@@ -74,7 +74,7 @@ interface WorkflowContextType {
   workflowData: WorkflowData;
   updateWorkflowData: (data: Partial<WorkflowData>) => void;
   currentStage: string;
-  setCurrentStage: (stage: string) => void;
+  setCurrentStage: (stage: string, force?: boolean) => void;
   completedStages: string[];
   markStageComplete: (stage: string) => void;
   getProgress: () => number;
@@ -169,9 +169,9 @@ export const WorkflowProvider = ({ children, initialStage }: { children: ReactNo
     return completedStages.includes(previousStage);
   };
 
-  const setCurrentStage = (stage: string) => {
-    // Only allow navigation to accessible stages
-    if (isStageAccessible(stage) || completedStages.includes(stage)) {
+  const setCurrentStage = (stage: string, force: boolean = false) => {
+    // Allow forced navigation (for "Finish Later") or normal accessible navigation
+    if (force || isStageAccessible(stage) || completedStages.includes(stage)) {
       setCurrentStageState(stage);
     }
   };

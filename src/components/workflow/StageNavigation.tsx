@@ -46,8 +46,8 @@ export const StageNavigation = ({
 
   const handleFinishLater = () => {
     if (hasNext) {
-      // Don't mark as complete when finishing later
-      setCurrentStage(stageOrder[currentIndex + 1]);
+      // Force navigation without marking complete
+      setCurrentStage(stageOrder[currentIndex + 1], true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       if (incompleteItems.length > 0) {
         toast.info(`You can come back to complete: ${incompleteItems.join(', ')}`);
