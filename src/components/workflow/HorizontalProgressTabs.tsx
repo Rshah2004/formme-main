@@ -167,64 +167,32 @@ const ProductionSubTabs = () => {
   const currentSubIndex = getCurrentSubIndex();
 
   return (
-    <div className="mt-4 ml-0 sm:ml-8">
-      {/* Sub-step container with visual connection to main workflow */}
-      <div className="relative">
-        {/* Connection line from Production to sub-steps */}
-        <div className="absolute -top-4 left-6 w-0.5 h-4 bg-border hidden sm:block" />
-        
-        {/* Sub-steps wrapper */}
-        <div className="bg-card border border-border rounded-xl p-2 overflow-x-auto">
-          <div className="flex items-center gap-1 min-w-max">
-            {productionSubStages.map((subStage, index) => {
-              const isCurrent = index === currentSubIndex;
-              const isCompleted = index < currentSubIndex || completedStages.includes(subStage.id);
-              const isLocked = index > currentSubIndex && !completedStages.includes(productionSubStages[index - 1]?.id);
+    <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-1.5 overflow-x-auto">
+      {productionSubStages.map((subStage, index) => {
+        const isCurrent = index === currentSubIndex;
+        const isCompleted = index < currentSubIndex || completedStages.includes(subStage.id);
+        const isLocked = index > currentSubIndex && !completedStages.includes(productionSubStages[index - 1]?.id);
 
-              return (
-                <React.Fragment key={subStage.id}>
-                  <button
-                    onClick={() => !isLocked && setCurrentStage(subStage.id)}
-                    disabled={isLocked}
-                    className={cn(
-                      "flex items-center gap-2 px-4 py-2 rounded-lg transition-all whitespace-nowrap",
-                      "text-sm font-medium min-h-[40px]",
-                      isCurrent && "bg-primary text-primary-foreground shadow-sm",
-                      isCompleted && !isCurrent && "bg-primary/10 text-primary hover:bg-primary/20",
-                      isLocked && "bg-muted/50 text-muted-foreground/50 cursor-not-allowed",
-                      !isCurrent && !isCompleted && !isLocked && "bg-muted/50 text-muted-foreground hover:bg-muted"
-                    )}
-                  >
-                    {/* Step indicator */}
-                    <div className={cn(
-                      "w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-xs font-semibold",
-                      isCurrent && "bg-primary-foreground/20 text-primary-foreground",
-                      isCompleted && !isCurrent && "bg-primary text-primary-foreground",
-                      isLocked && "bg-muted-foreground/20 text-muted-foreground/50",
-                      !isCurrent && !isCompleted && !isLocked && "bg-muted-foreground/20 text-muted-foreground"
-                    )}>
-                      {isCompleted && !isCurrent ? (
-                        <Check className="w-3 h-3" />
-                      ) : (
-                        <span>{index + 1}</span>
-                      )}
-                    </div>
-                    <span>{subStage.label}</span>
-                  </button>
-
-                  {/* Connector between sub-steps */}
-                  {index < productionSubStages.length - 1 && (
-                    <div className={cn(
-                      "w-4 h-0.5 shrink-0",
-                      index < currentSubIndex ? "bg-primary" : "bg-border"
-                    )} />
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+        return (
+          <button
+            key={subStage.id}
+            onClick={() => !isLocked && setCurrentStage(subStage.id)}
+            disabled={isLocked}
+            className={cn(
+              "px-3 py-1.5 rounded-md text-xs font-medium transition-all whitespace-nowrap",
+              isCurrent && "bg-background text-foreground shadow-sm",
+              isCompleted && !isCurrent && "text-primary hover:bg-background/50",
+              isLocked && "text-muted-foreground/40 cursor-not-allowed",
+              !isCurrent && !isCompleted && !isLocked && "text-muted-foreground hover:bg-background/50"
+            )}
+          >
+            {isCompleted && !isCurrent && (
+              <Check className="w-3 h-3 inline mr-1" />
+            )}
+            {subStage.label}
+          </button>
+        );
+      })}
     </div>
   );
 };
