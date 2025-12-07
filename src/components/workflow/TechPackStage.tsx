@@ -563,18 +563,45 @@ const TechPackStage = ({ design }: TechPackStageProps) => {
     }
   };
 
+  // Track incomplete items for progress indicator
+  const incompleteItems = [
+    !designFileUrl && 'Design file',
+    measurements.every(m => !m.name && !m.value) && 'Measurements',
+    fabricSpecs.every(f => !f.type && !f.details) && 'Fabric specs',
+    !existingTechPackUrl && !techPackDraft && 'Tech pack generation'
+  ].filter(Boolean) as string[];
+
   return (
-    <div className="space-y-6 p-6">
+    <div className="max-w-3xl mx-auto space-y-6 py-6">
       <div className="mb-6">
         <h2 className="text-2xl font-bold">Create Tech Pack</h2>
         <p className="text-muted-foreground">Upload design and add specifications</p>
       </div>
 
+      {/* Incomplete Status Banner */}
+      {incompleteItems.length > 0 && (
+        <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-50 border border-amber-200">
+          <div className="w-5 h-5 text-amber-600 shrink-0 mt-0.5">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </div>
+          <div>
+            <p className="font-medium text-amber-800 text-sm">Incomplete</p>
+            <p className="text-sm text-amber-700">
+              Missing: {incompleteItems.join(', ')}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Design Upload */}
       <section>
         <h3 className="text-sm font-semibold mb-3">Design File (SVG)</h3>
-        <Card>
-          <CardContent className="p-6">
+        <Card className="border-border">
+          <CardContent className="p-5">
             <input
               ref={designFileInputRef}
               type="file"
@@ -584,7 +611,7 @@ const TechPackStage = ({ design }: TechPackStageProps) => {
             />
             {designFileUrl ? (
               <div className="space-y-3">
-                <div className="p-4 bg-muted rounded-lg flex items-center justify-between">
+                <div className="p-3 bg-muted rounded-lg flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <FileCheck className="w-5 h-5 text-primary" />
                     <div>
@@ -605,11 +632,12 @@ const TechPackStage = ({ design }: TechPackStageProps) => {
               </div>
             ) : (
               <div 
-                className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary/50 cursor-pointer"
+                className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 cursor-pointer h-[200px] flex flex-col items-center justify-center"
                 onClick={() => designFileInputRef.current?.click()}
               >
-                <Upload className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
+                <Upload className="w-8 h-8 mb-3 text-muted-foreground" />
                 <p className="text-sm font-medium mb-1">Upload design (SVG only)</p>
+                <p className="text-xs text-muted-foreground">Vector format preserves quality</p>
               </div>
             )}
           </CardContent>
@@ -619,34 +647,35 @@ const TechPackStage = ({ design }: TechPackStageProps) => {
       {/* Measurements */}
       <section>
         <h3 className="text-sm font-semibold mb-3">Measurements</h3>
-        <Card>
-          <CardContent className="p-6 space-y-3">
+        <Card className="border-border">
+          <CardContent className="p-5 space-y-3">
             {measurements.map((m, i) => (
               <div key={i} className="flex gap-2">
                 <Input
-                  placeholder="Name"
+                  placeholder="Name (e.g., Chest)"
                   value={m.name}
                   onChange={(e) => {
                     const updated = [...measurements];
                     updated[i].name = e.target.value;
                     setMeasurements(updated);
                   }}
-                  className="flex-1"
+                  className="flex-1 h-9"
                 />
                 <Input
-                  placeholder="Value"
+                  placeholder="Value (e.g., 42 in)"
                   value={m.value}
                   onChange={(e) => {
                     const updated = [...measurements];
                     updated[i].value = e.target.value;
                     setMeasurements(updated);
                   }}
-                  className="w-32"
+                  className="w-36 h-9"
                 />
                 {measurements.length > 1 && (
                   <Button
                     variant="ghost"
                     size="sm"
+                    className="h-9 w-9 p-0"
                     onClick={() => setMeasurements(measurements.filter((_, idx) => idx !== i))}
                   >
                     <X className="w-4 h-4" />
@@ -670,13 +699,13 @@ const TechPackStage = ({ design }: TechPackStageProps) => {
       {/* Fabric Specs */}
       <section>
         <h3 className="text-sm font-semibold mb-3">Fabric Specifications</h3>
-        <Card>
-          <CardContent className="p-6 space-y-3">
+        <Card className="border-border">
+          <CardContent className="p-5 space-y-4">
             {fabricSpecs.map((spec, i) => (
-              <div key={i} className="border rounded-lg p-3 space-y-2">
-                <div className="grid grid-cols-2 gap-2">
+              <div key={i} className="border border-border rounded-lg p-4 space-y-3 bg-muted/30">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-xs">Fabric Type</Label>
+                    <Label className="text-xs text-muted-foreground">Fabric Type</Label>
                     <Input
                       placeholder="e.g., Cotton Jersey"
                       value={spec.type}
@@ -685,11 +714,11 @@ const TechPackStage = ({ design }: TechPackStageProps) => {
                         updated[i].type = e.target.value;
                         setFabricSpecs(updated);
                       }}
-                      className="h-8 text-sm"
+                      className="h-9 text-sm"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Color</Label>
+                    <Label className="text-xs text-muted-foreground">Color</Label>
                     <Input
                       placeholder="e.g., Navy Blue"
                       value={spec.color || ''}
@@ -698,12 +727,12 @@ const TechPackStage = ({ design }: TechPackStageProps) => {
                         updated[i].color = e.target.value;
                         setFabricSpecs(updated);
                       }}
-                      className="h-8 text-sm"
+                      className="h-9 text-sm"
                     />
                   </div>
                 </div>
                 <div>
-                  <Label className="text-xs">Details/Composition</Label>
+                  <Label className="text-xs text-muted-foreground">Composition</Label>
                   <Input
                     placeholder="e.g., 100% Organic Cotton"
                     value={spec.details}
@@ -712,12 +741,12 @@ const TechPackStage = ({ design }: TechPackStageProps) => {
                       updated[i].details = e.target.value;
                       setFabricSpecs(updated);
                     }}
-                    className="h-8 text-sm"
+                    className="h-9 text-sm"
                   />
                 </div>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <Label className="text-xs">GSM</Label>
+                    <Label className="text-xs text-muted-foreground">GSM</Label>
                     <Input
                       placeholder="180"
                       value={spec.gsm || ''}
@@ -726,11 +755,11 @@ const TechPackStage = ({ design }: TechPackStageProps) => {
                         updated[i].gsm = e.target.value;
                         setFabricSpecs(updated);
                       }}
-                      className="h-8 text-sm"
+                      className="h-9 text-sm"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Finish</Label>
+                    <Label className="text-xs text-muted-foreground">Finish</Label>
                     <Input
                       placeholder="Enzyme Wash"
                       value={spec.finish || ''}
@@ -739,11 +768,11 @@ const TechPackStage = ({ design }: TechPackStageProps) => {
                         updated[i].finish = e.target.value;
                         setFabricSpecs(updated);
                       }}
-                      className="h-8 text-sm"
+                      className="h-9 text-sm"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Supplier</Label>
+                    <Label className="text-xs text-muted-foreground">Supplier</Label>
                     <Input
                       placeholder="Supplier Name"
                       value={spec.supplier || ''}
@@ -752,7 +781,7 @@ const TechPackStage = ({ design }: TechPackStageProps) => {
                         updated[i].supplier = e.target.value;
                         setFabricSpecs(updated);
                       }}
-                      className="h-8 text-sm"
+                      className="h-9 text-sm"
                     />
                   </div>
                 </div>
@@ -761,7 +790,7 @@ const TechPackStage = ({ design }: TechPackStageProps) => {
                     variant="ghost"
                     size="sm"
                     onClick={() => setFabricSpecs(fabricSpecs.filter((_, idx) => idx !== i))}
-                    className="w-full text-xs"
+                    className="w-full text-xs text-muted-foreground hover:text-destructive"
                   >
                     <X className="w-3 h-3 mr-1" />
                     Remove
@@ -785,13 +814,14 @@ const TechPackStage = ({ design }: TechPackStageProps) => {
       {/* Construction Notes */}
       <section>
         <h3 className="text-sm font-semibold mb-3">Construction Notes</h3>
-        <Card>
-          <CardContent className="p-6">
+        <Card className="border-border">
+          <CardContent className="p-5">
             <Textarea
-              placeholder="Add construction details..."
+              placeholder="Add construction details, stitching requirements, special techniques..."
               value={constructionNotes}
               onChange={(e) => setConstructionNotes(e.target.value)}
               rows={4}
+              className="resize-none"
             />
           </CardContent>
         </Card>
@@ -800,8 +830,8 @@ const TechPackStage = ({ design }: TechPackStageProps) => {
       {/* Generate & Upload Tech Pack */}
       <section>
         <h3 className="text-sm font-semibold mb-3">Tech Pack</h3>
-        <Card>
-          <CardContent className="p-6 space-y-4">
+        <Card className="border-border">
+          <CardContent className="p-5 space-y-4">
             {/* Generate with AI */}
             <div>
               <p className="text-sm text-muted-foreground mb-3">
@@ -878,8 +908,8 @@ const TechPackStage = ({ design }: TechPackStageProps) => {
 
             {/* Show existing tech pack */}
             {existingTechPackUrl && (
-              <div className="rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 p-3 space-y-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-green-700 dark:text-green-400">
+              <div className="rounded-lg bg-primary/10 border border-primary/20 p-3 space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium text-primary">
                   <FileCheck className="w-4 h-4" />
                   Tech pack uploaded
                 </div>
@@ -903,9 +933,7 @@ const TechPackStage = ({ design }: TechPackStageProps) => {
                   >
                     <X className="w-3 h-3" />
                   </Button>
-                  
                 </div>
-                
               </div>
             )}
           </CardContent>
@@ -913,10 +941,12 @@ const TechPackStage = ({ design }: TechPackStageProps) => {
       </section>
 
       <StageNavigation 
-            onNext={handleNext}
-            nextLabel="Continue to Find Manufacturer"
-            showBack={true}
-          />
+        onNext={handleNext}
+        nextLabel="Continue to Find Manufacturer"
+        showBack={true}
+        showFinishLater={true}
+        incompleteItems={incompleteItems}
+      />
 
       {/* Draft Editor/Viewer Dialog */}
       <Dialog open={showDraftEditor} onOpenChange={setShowDraftEditor}>
