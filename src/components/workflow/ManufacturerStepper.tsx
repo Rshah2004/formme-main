@@ -9,10 +9,10 @@ interface ManufacturerStepperProps {
 }
 
 const manufacturerStages = [
-  { id: 'techpack', label: 'Tech Pack Review', completionKey: 'status' },
-  { id: 'sample', label: 'Production Approval', completionKey: 'production_params_submitted_at' },
-  { id: 'production', label: 'Sample Development', completionKey: 'sample_photos', requiresApproval: true },
-  { id: 'quality', label: 'Quality Check', completionKey: 'quality_check_completed', requiresApproval: true },
+  { id: 'techpack', label: 'Tech Pack Feasibility', completionKey: 'status' },
+  { id: 'feasibility', label: 'Production Feasibility', completionKey: 'production_params_submitted_at' },
+  { id: 'sample', label: 'Sample Development', completionKey: 'sample_submitted_at', requiresApproval: true },
+  { id: 'quality', label: 'Quality Check', completionKey: 'qc_submitted_at', requiresApproval: true },
   { id: 'shipping', label: 'Shipping & Logistics', completionKey: 'shipping_completed', requiresApproval: true },
 ];
 
@@ -24,13 +24,15 @@ export const ManufacturerStepper = ({ activeStep, onStepChange, orderData }: Man
     
     switch (stage.id) {
       case 'techpack':
-        return orderData.status !== 'sent_to_manufacturer';
+        return orderData.status !== 'sent_to_manufacturer' && orderData.status !== 'manufacturer_review';
+      case 'feasibility':
+        return !!orderData.production_params_approved;
       case 'sample':
-        return !!orderData.production_params_submitted_at;
-      case 'production':
+        return !!orderData.sample_approved;
       case 'quality':
+        return !!orderData.qc_approved;
       case 'shipping':
-        return false;
+        return orderData.status === 'delivered';
       default:
         return false;
     }
@@ -39,28 +41,12 @@ export const ManufacturerStepper = ({ activeStep, onStepChange, orderData }: Man
   const isStageAccessible = (stage: typeof manufacturerStages[0], index: number) => {
     if (!orderData) return false;
     
-    // Tech Pack is always accessible
     if (stage.id === 'techpack') return true;
+    if (stage.id === 'feasibility') return true;
+    if (stage.id === 'sample') return orderData.production_params_approved === true;
+    if (stage.id === 'quality') return orderData.sample_approved === true;
+    if (stage.id === 'shipping') return orderData.qc_approved === true;
     
-    // Production Approval is accessible after tech pack review
-    if (stage.id === 'sample') return true;
-    
-    // Sample Development requires designer approval of production params
-    if (stage.id === 'production') {
-      return orderData.production_params_approved === true;
-    }
-    
-    // Quality Check requires sample approval
-    if (stage.id === 'quality') {
-      return orderData.sample_approved === true;
-    }
-    
-    // Shipping requires QC approval
-    if (stage.id === 'shipping') {
-      return orderData.qc_approved === true;
-    }
-    
-    // Other stages - check if previous stage is completed
     return index > 0 && isStageCompleted(manufacturerStages[index - 1]);
   };
 
@@ -83,86 +69,40 @@ export const ManufacturerStepper = ({ activeStep, onStepChange, orderData }: Man
 
         return (
           <div key={stage.id} className="relative">
-            {/* Connector Line - Centered with circle */}
             {index < manufacturerStages.length - 1 && (
-              <div
-                className={`absolute left-[15px] top-8 w-0.5 h-8 ${
-                  isCompleted ? 'bg-primary' : 'bg-border'
-                }`}
-              />
+              <div className={`absolute left-[15px] top-8 w-0.5 h-8 ${isCompleted ? 'bg-primary' : 'bg-border'}`} />
             )}
 
-            {/* Step Item */}
             <button
               onClick={() => {
                 if (isLocked) {
-                  if (stage.id === 'production') {
-                    toast.error('This stage is locked until the designer approves your production parameters');
-                  } else if (stage.id === 'quality') {
-                    toast.error('This stage is locked until the designer approves your sample');
-                  } else if (stage.id === 'shipping') {
-                    toast.error('This stage is locked until the designer approves your quality check');
-                  }
+                  toast.error('This stage is locked until the previous stage is approved');
                   return;
                 }
-                if (isAccessible) {
-                  onStepChange(stage.id);
-                }
+                if (isAccessible) onStepChange(stage.id);
               }}
               className={`w-full text-left flex items-start gap-3 p-2 rounded-lg transition-all ${
-                isCurrent
-                  ? 'bg-primary/5'
-                  : isLocked
-                  ? 'opacity-50 cursor-not-allowed'
-                  : 'hover:bg-muted/50 cursor-pointer'
+                isCurrent ? 'bg-primary/5' : isLocked ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted/50 cursor-pointer'
               }`}
             >
-              {/* Circle/Check */}
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border-2 transition-all ${
-                  isCompleted
-                    ? 'bg-primary border-primary'
-                    : isCurrent
-                    ? 'bg-primary/10 border-primary'
-                    : isLocked
-                    ? 'bg-muted border-border'
-                    : 'bg-background border-border'
-                }`}
-              >
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border-2 transition-all ${
+                isCompleted ? 'bg-primary border-primary' : isCurrent ? 'bg-primary/10 border-primary' : isLocked ? 'bg-muted border-border' : 'bg-background border-border'
+              }`}>
                 {isCompleted ? (
                   <Check className="w-4 h-4 text-primary-foreground" />
                 ) : (
-                  <span
-                    className={`text-xs font-semibold ${
-                      isCurrent ? 'text-primary' : isLocked ? 'text-muted-foreground/50' : 'text-muted-foreground'
-                    }`}
-                  >
+                  <span className={`text-xs font-semibold ${isCurrent ? 'text-primary' : isLocked ? 'text-muted-foreground/50' : 'text-muted-foreground'}`}>
                     {index + 1}
                   </span>
                 )}
               </div>
 
-              {/* Text */}
               <div className="flex-1 pt-1">
-                <p
-                  className={`text-sm font-medium ${
-                    isCurrent
-                      ? 'text-primary'
-                      : isCompleted
-                      ? 'text-foreground'
-                      : isLocked
-                      ? 'text-muted-foreground/50'
-                      : 'text-muted-foreground'
-                  }`}
-                >
+                <p className={`text-sm font-medium ${isCurrent ? 'text-primary' : isCompleted ? 'text-foreground' : isLocked ? 'text-muted-foreground/50' : 'text-muted-foreground'}`}>
                   {stage.label}
                 </p>
-                {isCompleted && (
-                  <p className="text-xs text-muted-foreground mt-0.5">Completed</p>
-                )}
-                {isLocked && stage.requiresApproval && (
-                  <p className="text-xs text-amber-600 mt-0.5">Awaiting approval</p>
-                )}
+                {isCompleted && <p className="text-xs text-muted-foreground mt-0.5">Completed</p>}
+                {isLocked && stage.requiresApproval && <p className="text-xs text-amber-600 mt-0.5">Awaiting approval</p>}
               </div>
             </button>
           </div>
