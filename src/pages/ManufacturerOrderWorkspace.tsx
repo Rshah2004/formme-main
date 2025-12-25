@@ -12,6 +12,8 @@ import { ManufacturerStepper } from '@/components/workflow/ManufacturerStepper';
 import { FactoryMessaging } from '@/components/workflow/FactoryMessaging';
 import { FloatingMessagesWidget } from '@/components/workflow/FloatingMessagesWidget';
 import { ManufacturerMessaging } from '@/components/manufacturer/ManufacturerMessaging';
+import { TechPackFeasibilityReview } from '@/components/manufacturer/TechPackFeasibilityReview';
+import { ProductionFeasibilityConfirmation } from '@/components/manufacturer/ProductionFeasibilityConfirmation';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -493,63 +495,27 @@ const ManufacturerOrderWorkspace = () => {
 
           {/* Right Content Area */}
           <div className="col-span-9">
-            {/* Tech Pack Content */}
+            {/* Tech Pack Feasibility Review */}
             {activeTab === 'techpack' && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Tech Pack Details</CardTitle>
-                  <Button variant="outline" className="gap-2">
-                    <FileDown className="w-4 h-4" />
-                    Download Tech Pack
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h3 className="font-semibold mb-2">Garment Overview</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {order.designs?.category || 'No category specified'}
-                  </p>
-                  {order.design_specs?.construction_notes && (
-                    <p className="text-sm text-muted-foreground mt-2">
-                      {order.design_specs.construction_notes}
-                    </p>
-                  )}
-                </div>
-                {(order.design_specs?.measurements || order.design_specs?.fabric_type || order.design_specs?.gsm) && (
-                  <div>
-                    <h3 className="font-semibold mb-2">Specifications</h3>
-                    <div className="grid grid-cols-3 gap-4 text-sm">
-                      {order.design_specs?.measurements && (
-                        <div>
-                          <p className="text-muted-foreground">Measurements</p>
-                          <p className="font-medium">{JSON.stringify(order.design_specs.measurements)}</p>
-                        </div>
-                      )}
-                      {order.design_specs?.fabric_type && (
-                        <div>
-                          <p className="text-muted-foreground">Fabric</p>
-                          <p className="font-medium">{order.design_specs.fabric_type}</p>
-                        </div>
-                      )}
-                      {order.design_specs?.gsm && (
-                        <div>
-                          <p className="text-muted-foreground">GSM</p>
-                          <p className="font-medium">{order.design_specs.gsm}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-                <div>
-                  <h3 className="font-semibold mb-2">Notes</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {order.notes || 'No notes provided'}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+              <TechPackFeasibilityReview
+                order={order}
+                onConfirmFeasible={async (notes) => {
+                  try {
+                    await supabase
+                      .from('orders')
+                      .update({ status: 'production_approval' })
+                      .eq('id', order.id);
+                    toast.success('Tech pack confirmed as feasible');
+                    handleTabChange('sample');
+                  } catch (error) {
+                    toast.error('Failed to confirm feasibility');
+                  }
+                }}
+                onRequestChanges={async (notes) => {
+                  toast.info('Change request sent to designer');
+                }}
+                isSubmitting={submitting}
+              />
             )}
 
             {/* Sample Development Content */}
@@ -682,118 +648,30 @@ const ManufacturerOrderWorkspace = () => {
 
             {/* Production Approval Content */}
             {activeTab === 'sample' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Production Approval</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-3">
-                  <h3 className="font-semibold mb-3">Production Timeline</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Production Start Date</Label>
-                      <Input 
-                        type="date" 
-                        value={productionStartDate}
-                        onChange={(e) => setProductionStartDate(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Expected Completion Date</Label>
-                      <Input 
-                        type="date" 
-                        value={productionCompletionDate}
-                        onChange={(e) => setProductionCompletionDate(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <h3 className="font-semibold mb-3">Fabric Specifications</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Fabric Type *</Label>
-                      <Input 
-                        placeholder="e.g., 100% Cotton" 
-                        value={fabricType}
-                        onChange={(e) => setFabricType(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>GSM *</Label>
-                      <Input 
-                        placeholder="e.g., 180 GSM" 
-                        value={gsm}
-                        onChange={(e) => setGsm(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Shrinkage (%)</Label>
-                      <Input 
-                        placeholder="e.g., 3-5%" 
-                        value={shrinkage}
-                        onChange={(e) => setShrinkage(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Color Fastness</Label>
-                      <Input 
-                        placeholder="e.g., Grade 4-5" 
-                        value={colorFastness}
-                        onChange={(e) => setColorFastness(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="pt-4 border-t">
-                  {order.production_params_submitted_at && !order.production_params_approved && order.production_params_approved !== false ? (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                          <Clock className="w-5 h-5 text-blue-600 animate-pulse" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-blue-900">Waiting for designer approval</p>
-                          <p className="text-xs text-blue-700 mt-0.5">Your production parameters have been submitted and are under review</p>
-                        </div>
-                      </div>
-                    </div>
-                  ) : order.production_params_approved === true ? (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                      <div className="flex items-center gap-3">
-                        <CheckCircle className="w-5 h-5 text-green-600" />
-                        <p className="text-sm font-medium text-green-900">Designer approved your production parameters</p>
-                      </div>
-                    </div>
-                  ) : order.production_params_approved === false ? (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                      <div className="flex items-center gap-3">
-                        <XCircle className="w-5 h-5 text-red-600" />
-                        <p className="text-sm font-medium text-red-900">Designer rejected your production parameters</p>
-                      </div>
-                    </div>
-                  ) : null}
-                  
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium">Status:</span>
-                    <Badge variant="outline">
-                      {order.production_params_approved === true ? 'Approved' : 
-                       order.production_params_approved === false ? 'Rejected' :
-                       order.production_params_submitted_at ? 'Pending Approval' : 'Not Submitted'}
-                    </Badge>
-                  </div>
-                  <Button 
-                    className="w-full" 
-                    onClick={handleSubmitProductionApproval}
-                    disabled={submitting || !productionStartDate || !productionCompletionDate || !fabricType || !gsm || (order.production_params_submitted_at && order.production_params_approved !== false)}
-                  >
-                    {submitting ? 'Submitting...' : order.production_params_submitted_at && order.production_params_approved !== false ? 'Awaiting Designer Approval' : 'Submit for Designer Approval'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              <ProductionFeasibilityConfirmation
+                order={order}
+                onConfirmFeasibility={async (data) => {
+                  try {
+                    await supabase
+                      .from('orders')
+                      .update({
+                        production_start_date: new Date().toISOString(),
+                        lead_time_days: data.estimatedLeadTimeDays,
+                        fabric_type: data.fabricSourcing === 'manufacturer_sourcing' ? 'Manufacturer sourcing' : 'Designer provided',
+                        production_params_submitted_at: new Date().toISOString(),
+                        status: 'production_approval'
+                      })
+                      .eq('id', order.id);
+                    toast.success('Production feasibility confirmed');
+                  } catch (error) {
+                    toast.error('Failed to confirm feasibility');
+                  }
+                }}
+                onRequestChanges={async (notes) => {
+                  toast.info('Change request sent to designer');
+                }}
+                isSubmitting={submitting}
+              />
             )}
 
             {/* Quality Check Content */}
