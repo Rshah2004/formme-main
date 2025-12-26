@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { Card } from '@/components/ui/card';
@@ -8,7 +8,11 @@ import { Progress } from '@/components/ui/progress';
 import { mockDesigns } from '@/data/workflowData';
 import { ArrowLeft } from 'lucide-react';
 import { WorkflowProvider, useWorkflow } from '@/context/WorkflowContext';
-import { WorkflowStepper } from '@/components/workflow/WorkflowStepper';
+import { TopLevelStepper } from '@/components/designer/TopLevelStepper';
+import { TechPackSectionNav, TechPackSection } from '@/components/designer/TechPackSectionNav';
+import { ProductionStepper, ProductionStep } from '@/components/designer/ProductionStepper';
+import { TechPackReviewStatus } from '@/components/designer/TechPackReviewStatus';
+import { ProductionParametersStatus } from '@/components/designer/ProductionParametersStatus';
 import TechPackStage from '@/components/workflow/TechPackStage';
 import FactoryMatchStage from '@/components/workflow/FactoryMatchStage';
 import PaymentStage from '@/components/workflow/PaymentStage';
@@ -16,54 +20,245 @@ import ProductionStage from '@/components/workflow/ProductionStage';
 import SampleStage from '@/components/workflow/SampleStage';
 import QualityStage from '@/components/workflow/QualityStage';
 import ShippingStage from '@/components/workflow/ShippingStage';
+import { supabase } from '@/integrations/supabase/client';
+
+type TopLevelStep = 'design' | 'tech-pack' | 'production';
 
 const WorkspaceContent = ({ design }: { design: any }) => {
-  const { currentStage, getProgress } = useWorkflow();
+  const [topLevelStep, setTopLevelStep] = useState<TopLevelStep>('tech-pack');
+  const [techPackSection, setTechPackSection] = useState<TechPackSection>('overview');
+  const [productionStep, setProductionStep] = useState<ProductionStep>('tech-pack-review');
+  const [order, setOrder] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const renderStage = () => {
-    switch (currentStage) {
-      case 'tech-pack':
-        return <TechPackStage design={design} />;
-      case 'factory-match':
-        return <FactoryMatchStage design={design} />;
-      case 'payment':
-        return <PaymentStage design={design} />;
-      case 'production':
-        return <ProductionStage design={design} />;
-      case 'sample':
-        return <SampleStage design={design} />;
-      case 'quality':
-        return <QualityStage design={design} />;
-      case 'shipping':
-        return <ShippingStage design={design} />;
+  useEffect(() => {
+    const fetchOrder = async () => {
+      try {
+        const { data } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('design_id', design.id)
+          .maybeSingle();
+        
+        setOrder(data);
+      } catch (error) {
+        console.error('Error fetching order:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrder();
+
+    // Subscribe to order updates
+    const channel = supabase
+      .channel('order-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'orders',
+        },
+        (payload) => {
+          if (payload.new.design_id === design.id) {
+            setOrder(payload.new);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [design.id]);
+
+  const designComplete = true; // Design phase is complete
+  const techPackComplete = !!order?.tech_pack_feasible;
+
+  const renderTechPackSection = () => {
+    switch (techPackSection) {
+      case 'overview':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Tech Pack Overview</h2>
+            <TechPackStage design={design} />
+          </div>
+        );
+      case 'design-details':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Design Details</h2>
+            <p className="text-muted-foreground">Add design details, sketches, and reference images.</p>
+            {/* Design details content */}
+          </div>
+        );
+      case 'specifications':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Specifications</h2>
+            <p className="text-muted-foreground">Define construction specs, stitching details, and finishing requirements.</p>
+            {/* Specifications content */}
+          </div>
+        );
+      case 'fabric-color':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Fabric & Color</h2>
+            <p className="text-muted-foreground">Specify fabric types, colors, and material requirements.</p>
+            {/* Fabric & Color content */}
+          </div>
+        );
+      case 'measurements':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Measurements</h2>
+            <p className="text-muted-foreground">Add size charts and measurement specifications.</p>
+            {/* Measurements content */}
+          </div>
+        );
+      case 'attachments':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Attachments</h2>
+            <p className="text-muted-foreground">Upload additional files and documents.</p>
+            {/* Attachments content */}
+          </div>
+        );
       default:
         return <TechPackStage design={design} />;
     }
   };
 
-  return (
-    <div className="flex gap-6">
-      {/* Left Sidebar - Stepper */}
-      <div className="w-72 shrink-0">
-        <div className="sticky top-6">
-          <Card className="border-border">
-            <div className="p-4 border-b">
-              <h3 className="font-semibold text-sm mb-1">Production Pipeline</h3>
-              <p className="text-xs text-muted-foreground">
-                Follow each step to complete your order
-              </p>
-            </div>
-            <div className="p-4">
-              <WorkflowStepper />
-            </div>
-          </Card>
-        </div>
-      </div>
+  const renderProductionStep = () => {
+    switch (productionStep) {
+      case 'tech-pack-review':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Tech Pack Review</h2>
+            <p className="text-muted-foreground mb-4">
+              Manufacturer reviews your tech pack for producibility. You'll be notified of their decision.
+            </p>
+            <TechPackReviewStatus order={order} />
+          </div>
+        );
+      case 'production-parameters':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Production Parameters</h2>
+            <p className="text-muted-foreground mb-4">
+              Review and approve production parameters submitted by the manufacturer.
+            </p>
+            <ProductionParametersStatus 
+              order={order} 
+              onApprove={() => setOrder((prev: any) => ({ ...prev, production_params_approved: true }))}
+              onReject={() => setOrder((prev: any) => ({ ...prev, production_params_approved: false }))}
+            />
+          </div>
+        );
+      case 'sample-development':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Sample Development</h2>
+            <SampleStage design={design} />
+          </div>
+        );
+      case 'quality-check':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Quality Check</h2>
+            <QualityStage design={design} />
+          </div>
+        );
+      case 'shipping':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Shipping & Logistics</h2>
+            <ShippingStage design={design} />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
-      {/* Main Content Area */}
-      <div className="flex-1 min-w-0">
-        {renderStage()}
-      </div>
+  const renderTopLevelContent = () => {
+    switch (topLevelStep) {
+      case 'design':
+        return (
+          <div className="flex gap-6">
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl font-semibold mb-4">Design</h2>
+              <p className="text-muted-foreground">Design phase content here.</p>
+            </div>
+          </div>
+        );
+      case 'tech-pack':
+        return (
+          <div className="flex gap-6">
+            {/* Left Sidebar - Section Navigation */}
+            <div className="w-56 shrink-0">
+              <Card className="sticky top-6 border-border">
+                <div className="p-4 border-b">
+                  <h3 className="font-semibold text-sm">Tech Pack Sections</h3>
+                </div>
+                <div className="p-3">
+                  <TechPackSectionNav 
+                    activeSection={techPackSection} 
+                    onSectionChange={setTechPackSection} 
+                  />
+                </div>
+              </Card>
+            </div>
+
+            {/* Main Content Area */}
+            <div className="flex-1 min-w-0">
+              {renderTechPackSection()}
+            </div>
+          </div>
+        );
+      case 'production':
+        return (
+          <div className="flex gap-6">
+            {/* Left Sidebar - Production Steps */}
+            <div className="w-56 shrink-0">
+              <Card className="sticky top-6 border-border">
+                <div className="p-4 border-b">
+                  <h3 className="font-semibold text-sm">Production Pipeline</h3>
+                </div>
+                <div className="p-3">
+                  <ProductionStepper 
+                    activeStep={productionStep} 
+                    onStepChange={setProductionStep}
+                    order={order}
+                  />
+                </div>
+              </Card>
+            </div>
+
+            {/* Main Content Area */}
+            <div className="flex-1 min-w-0">
+              {renderProductionStep()}
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div>
+      {/* Top Level Stepper */}
+      <TopLevelStepper
+        currentStep={topLevelStep}
+        onStepChange={setTopLevelStep}
+        designComplete={designComplete}
+        techPackComplete={techPackComplete}
+      />
+
+      {/* Content based on top level step */}
+      {renderTopLevelContent()}
     </div>
   );
 };
