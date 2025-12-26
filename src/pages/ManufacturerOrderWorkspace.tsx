@@ -22,8 +22,8 @@ const ManufacturerOrderWorkspace = () => {
   const [activeTab, setActiveTab] = useState('techpack');
   
   const handleTabChange = (newTab: string) => {
-    // Check if trying to access Sample Development without approval
-    if (newTab === 'production' && order?.production_params_approved !== true) {
+    // Check if trying to access Sample Development without production params approval
+    if (newTab === 'sample' && order?.production_params_approved !== true) {
       toast.error('You cannot access Sample Development until the designer approves your production parameters');
       return;
     }
@@ -79,7 +79,7 @@ const ManufacturerOrderWorkspace = () => {
 
         // Auto-navigate to production feasibility if tech pack already confirmed
         if (orderData.tech_pack_feasible === true) {
-          setActiveTab('sample');
+          setActiveTab('feasibility');
         }
 
         // Fetch design details
@@ -546,12 +546,12 @@ const ManufacturerOrderWorkspace = () => {
                   }
                 }}
                 isSubmitting={submitting}
-                onNavigateToProduction={() => setActiveTab('sample')}
+                onNavigateToProduction={() => setActiveTab('feasibility')}
               />
             )}
 
             {/* Sample Development Content */}
-            {activeTab === 'production' && (
+            {activeTab === 'sample' && (
             <Card>
               <CardHeader>
                 <CardTitle>Sample Development</CardTitle>
@@ -678,8 +678,8 @@ const ManufacturerOrderWorkspace = () => {
             </Card>
             )}
 
-            {/* Production Approval Content */}
-            {activeTab === 'sample' && (
+            {/* Production Feasibility Content */}
+            {activeTab === 'feasibility' && (
               <ProductionFeasibilityConfirmation
                 order={order}
                 onConfirmFeasibility={async (data) => {
