@@ -71,11 +71,16 @@ const ManufacturerOrderWorkspace = () => {
         // Fetch order with design and design specs
         const { data: orderData, error: orderError } = await supabase
           .from('orders')
-          .select('*')
+          .select('*, tech_pack_feasible, tech_pack_feasibility_confirmed_at, tech_pack_checklist')
           .eq('id', id)
           .single();
 
         if (orderError) throw orderError;
+
+        // Auto-navigate to production feasibility if tech pack already confirmed
+        if (orderData.tech_pack_feasible === true) {
+          setActiveTab('sample');
+        }
 
         // Fetch design details
         const { data: designData, error: designError } = await supabase
@@ -503,18 +508,45 @@ const ManufacturerOrderWorkspace = () => {
                   try {
                     await supabase
                       .from('orders')
-                      .update({ status: 'production_approval' })
+                      .update({ 
+                        status: 'production_approval',
+                        tech_pack_feasible: true,
+                        tech_pack_feasibility_confirmed_at: new Date().toISOString(),
+                        tech_pack_feasibility_notes: notes || null
+                      })
                       .eq('id', order.id);
+                    
+                    // Update local state
+                    setOrder((prev: any) => ({
+                      ...prev,
+                      tech_pack_feasible: true,
+                      tech_pack_feasibility_confirmed_at: new Date().toISOString(),
+                      status: 'production_approval'
+                    }));
+                    
                     toast.success('Tech pack confirmed as feasible');
-                    handleTabChange('sample');
+                    setActiveTab('sample'); // Navigate to production feasibility
                   } catch (error) {
                     toast.error('Failed to confirm feasibility');
                   }
                 }}
                 onRequestChanges={async (notes) => {
-                  toast.info('Change request sent to designer');
+                  try {
+                    await supabase
+                      .from('orders')
+                      .update({ 
+                        tech_pack_feasible: false,
+                        tech_pack_feasibility_notes: notes,
+                        status: 'tech_pack_pending'
+                      })
+                      .eq('id', order.id);
+                    toast.info('Change request sent to designer');
+                  } catch (error) {
+                    toast.error('Failed to send change request');
+                  }
                 }}
                 isSubmitting={submitting}
+                onNavigateToProduction={() => setActiveTab('sample')}
               />
             )}
 

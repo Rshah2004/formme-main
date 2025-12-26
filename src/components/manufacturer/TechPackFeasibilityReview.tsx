@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,12 +14,15 @@ import {
   MessageSquare,
   Eye
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface TechPackFeasibilityReviewProps {
   order: any;
   onConfirmFeasible: (notes?: string) => Promise<void>;
   onRequestChanges: (notes: string) => Promise<void>;
   isSubmitting?: boolean;
+  onNavigateToProduction?: () => void;
 }
 
 interface ChecklistItem {
@@ -35,8 +38,25 @@ export const TechPackFeasibilityReview = ({
   order,
   onConfirmFeasible,
   onRequestChanges,
-  isSubmitting = false
+  isSubmitting = false,
+  onNavigateToProduction
 }: TechPackFeasibilityReviewProps) => {
+  const [isAlreadyConfirmed, setIsAlreadyConfirmed] = useState(false);
+  const [confirmedAt, setConfirmedAt] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check if already confirmed
+    if (order?.tech_pack_feasible === true) {
+      setIsAlreadyConfirmed(true);
+      setConfirmedAt(order.tech_pack_feasibility_confirmed_at);
+      // Auto-navigate to production feasibility if already confirmed
+      if (onNavigateToProduction) {
+        onNavigateToProduction();
+      }
+    }
+    setLoading(false);
+  }, [order?.tech_pack_feasible, order?.tech_pack_feasibility_confirmed_at, onNavigateToProduction]);
   const [checklist, setChecklist] = useState<ChecklistItem[]>([
     {
       id: 'measurements',
@@ -126,11 +146,60 @@ export const TechPackFeasibilityReview = ({
   };
 
   const getStepStatus = () => {
+    if (isAlreadyConfirmed) return 'completed';
     if (order.status === 'manufacturer_review' && !allItemsReviewed) return 'awaiting_review';
     if (hasBlockedItems) return 'blocked';
     if (canProceed) return 'approved';
     return 'awaiting_review';
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Show confirmation state if already confirmed
+  if (isAlreadyConfirmed) {
+    return (
+      <div className="space-y-6">
+        <StepHeader
+          stepNumber={1}
+          stepTitle="Tech Pack Feasibility Review"
+          owner="Manufacturer"
+          requiredAction="Already Completed"
+          status="completed"
+        />
+        
+        <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20">
+          <CardContent className="py-6">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+              <div>
+                <h3 className="text-lg font-semibold text-green-700 dark:text-green-300">
+                  Tech Pack Feasibility Confirmed
+                </h3>
+                <p className="text-sm text-green-600 dark:text-green-400">
+                  Confirmed on {confirmedAt ? new Date(confirmedAt).toLocaleDateString() : 'N/A'}
+                </p>
+              </div>
+            </div>
+            
+            <div className="mt-4">
+              <Button 
+                onClick={onNavigateToProduction}
+                className="gap-2"
+              >
+                Continue to Production Feasibility
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

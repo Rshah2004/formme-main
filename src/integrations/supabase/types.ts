@@ -436,7 +436,11 @@ export type Database = {
           shrinkage: string | null
           status: Database["public"]["Enums"]["order_status"] | null
           sustainability_priority: string | null
+          tech_pack_checklist: Json | null
           tech_pack_data: Json | null
+          tech_pack_feasibility_confirmed_at: string | null
+          tech_pack_feasibility_notes: string | null
+          tech_pack_feasible: boolean | null
           techpack_id: string | null
           updated_at: string | null
         }
@@ -476,7 +480,11 @@ export type Database = {
           shrinkage?: string | null
           status?: Database["public"]["Enums"]["order_status"] | null
           sustainability_priority?: string | null
+          tech_pack_checklist?: Json | null
           tech_pack_data?: Json | null
+          tech_pack_feasibility_confirmed_at?: string | null
+          tech_pack_feasibility_notes?: string | null
+          tech_pack_feasible?: boolean | null
           techpack_id?: string | null
           updated_at?: string | null
         }
@@ -516,7 +524,11 @@ export type Database = {
           shrinkage?: string | null
           status?: Database["public"]["Enums"]["order_status"] | null
           sustainability_priority?: string | null
+          tech_pack_checklist?: Json | null
           tech_pack_data?: Json | null
+          tech_pack_feasibility_confirmed_at?: string | null
+          tech_pack_feasibility_notes?: string | null
+          tech_pack_feasible?: boolean | null
           techpack_id?: string | null
           updated_at?: string | null
         }
