@@ -22,10 +22,10 @@ import QualityStage from '@/components/workflow/QualityStage';
 import ShippingStage from '@/components/workflow/ShippingStage';
 import { supabase } from '@/integrations/supabase/client';
 
-type TopLevelStep = 'design' | 'tech-pack' | 'production';
+type TopLevelStep = 'design' | 'specifications' | 'fabric-color' | 'tech-pack' | 'production';
 
 const WorkspaceContent = ({ design }: { design: any }) => {
-  const [topLevelStep, setTopLevelStep] = useState<TopLevelStep>('tech-pack');
+  const [topLevelStep, setTopLevelStep] = useState<TopLevelStep>('design');
   const [techPackSection, setTechPackSection] = useState<TechPackSection>('overview');
   const [productionStep, setProductionStep] = useState<ProductionStep>('tech-pack-review');
   const [order, setOrder] = useState<any>(null);
@@ -73,7 +73,9 @@ const WorkspaceContent = ({ design }: { design: any }) => {
     };
   }, [design.id]);
 
-  const designComplete = true; // Design phase is complete
+  const designComplete = true;
+  const specsComplete = true;
+  const fabricComplete = true;
   const techPackComplete = !!order?.tech_pack_feasible;
 
   const renderTechPackSection = () => {
@@ -189,7 +191,25 @@ const WorkspaceContent = ({ design }: { design: any }) => {
           <div className="flex gap-6">
             <div className="flex-1 min-w-0">
               <h2 className="text-xl font-semibold mb-4">Design</h2>
-              <p className="text-muted-foreground">Design phase content here.</p>
+              <p className="text-muted-foreground">Design phase content - add sketches, references, and design files.</p>
+            </div>
+          </div>
+        );
+      case 'specifications':
+        return (
+          <div className="flex gap-6">
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl font-semibold mb-4">Specifications</h2>
+              <p className="text-muted-foreground">Add construction details, stitching requirements, and finishing specs.</p>
+            </div>
+          </div>
+        );
+      case 'fabric-color':
+        return (
+          <div className="flex gap-6">
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl font-semibold mb-4">Fabric & Color</h2>
+              <p className="text-muted-foreground">Specify fabric types, GSM, colors, and material requirements.</p>
             </div>
           </div>
         );
@@ -252,8 +272,10 @@ const WorkspaceContent = ({ design }: { design: any }) => {
       {/* Top Level Stepper */}
       <TopLevelStepper
         currentStep={topLevelStep}
-        onStepChange={setTopLevelStep}
+        onStepChange={(step) => setTopLevelStep(step)}
         designComplete={designComplete}
+        specsComplete={specsComplete}
+        fabricComplete={fabricComplete}
         techPackComplete={techPackComplete}
       />
 
