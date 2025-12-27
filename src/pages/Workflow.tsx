@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { HorizontalProgressTabs } from '@/components/workflow/HorizontalProgressTabs';
 import TechPackStage from '@/components/workflow/TechPackStage';
 import TechPackOverviewStage from '@/components/workflow/TechPackOverviewStage';
+import TechPackFeasibilityStage from '@/components/workflow/TechPackFeasibilityStage';
 import DesignStage from '@/components/workflow/DesignStage';
 import SpecificationsStage from '@/components/workflow/SpecificationsStage';
 import FabricColorStage from '@/components/workflow/FabricColorStage';
@@ -76,9 +77,8 @@ const WorkspaceContent = ({ design }: { design: any }) => {
       case 'factory-match':
         return <FactoryMatchStage design={design} />;
       case 'send-tech-pack':
-        return <ManufacturerSelectionStage design={design} />;
       case 'waiting':
-        return <WaitingForManufacturerStage design={design} />;
+        return <TechPackFeasibilityStage design={design} />;
       
       // Production stages (sub-navigation: Payment, Sample Review, Quality Check, Delivery)
       case 'payment':

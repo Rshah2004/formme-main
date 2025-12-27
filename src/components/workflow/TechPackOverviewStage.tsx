@@ -10,7 +10,7 @@ interface TechPackOverviewStageProps {
 }
 
 const TechPackOverviewStage = ({ design }: TechPackOverviewStageProps) => {
-  const { setCurrentStage, markStageComplete } = useWorkflow();
+  const { setCurrentStage, markStageComplete, completedStages } = useWorkflow();
 
   const techPackSections = [
     {
@@ -18,26 +18,31 @@ const TechPackOverviewStage = ({ design }: TechPackOverviewStageProps) => {
       title: 'Design Details',
       description: 'Product name, description, and design files',
       icon: Image,
-      status: design?.name ? 'complete' : 'incomplete',
+      isComplete: completedStages.includes('design') || design?.name,
     },
     {
       id: 'specifications',
       title: 'Specifications',
       description: 'Size charts, measurements, and construction details',
       icon: Ruler,
-      status: design?.status !== 'draft' ? 'complete' : 'incomplete',
+      isComplete: completedStages.includes('specifications'),
     },
     {
       id: 'fabric-color',
       title: 'Fabric & Color',
       description: 'Fabric type, GSM, print method, and colors',
       icon: Palette,
-      status: design?.status !== 'draft' ? 'complete' : 'incomplete',
+      isComplete: completedStages.includes('fabric-color'),
     },
   ];
 
-  const completedCount = techPackSections.filter(s => s.status === 'complete').length;
+  const completedCount = techPackSections.filter(s => s.isComplete).length;
   const isReady = completedCount === techPackSections.length;
+
+  const handleSectionClick = (sectionId: string) => {
+    // Navigate to the appropriate stage
+    setCurrentStage(sectionId);
+  };
 
   const handleContinue = () => {
     markStageComplete('tech-pack');
@@ -66,16 +71,16 @@ const TechPackOverviewStage = ({ design }: TechPackOverviewStageProps) => {
         <CardContent className="space-y-4">
           {techPackSections.map((section) => {
             const Icon = section.icon;
-            const isComplete = section.status === 'complete';
             
             return (
-              <div
+              <button
                 key={section.id}
-                className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                onClick={() => handleSectionClick(section.id)}
+                className="w-full flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors text-left"
               >
                 <div className="flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    isComplete ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+                    section.isComplete ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
                   }`}>
                     <Icon className="w-5 h-5" />
                   </div>
@@ -85,19 +90,15 @@ const TechPackOverviewStage = ({ design }: TechPackOverviewStageProps) => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {isComplete ? (
+                  {section.isComplete ? (
                     <CheckCircle className="w-5 h-5 text-primary" />
                   ) : (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setCurrentStage(section.id)}
-                    >
+                    <Button variant="outline" size="sm">
                       Complete
                     </Button>
                   )}
                 </div>
-              </div>
+              </button>
             );
           })}
         </CardContent>
