@@ -13,6 +13,7 @@ import { WorkflowProvider, useWorkflow } from '@/context/WorkflowContext';
 import { supabase } from '@/integrations/supabase/client';
 import { HorizontalProgressTabs } from '@/components/workflow/HorizontalProgressTabs';
 import TechPackStage from '@/components/workflow/TechPackStage';
+import TechPackOverviewStage from '@/components/workflow/TechPackOverviewStage';
 import DesignStage from '@/components/workflow/DesignStage';
 import SpecificationsStage from '@/components/workflow/SpecificationsStage';
 import FabricColorStage from '@/components/workflow/FabricColorStage';
@@ -64,19 +65,22 @@ const WorkspaceContent = ({ design }: { design: any }) => {
         return <SpecificationsStage design={design} />;
       case 'fabric-color':
         return <FabricColorStage design={design} />;
+      
+      // Tech Pack stages (sub-navigation)
       case 'tech-pack':
       case 'tech-pack-review':
-        return <TechPackStage design={design} />;
-      // Transition stage
+      case 'tech-pack-overview':
+        return <TechPackOverviewStage design={design} />;
       case 'factory-selection':
         return <FactorySelectionStage design={design} />;
-      // Production stages
       case 'factory-match':
         return <FactoryMatchStage design={design} />;
       case 'send-tech-pack':
         return <ManufacturerSelectionStage design={design} />;
       case 'waiting':
         return <WaitingForManufacturerStage design={design} />;
+      
+      // Production stages (sub-navigation: Payment, Sample Review, Quality Check, Delivery)
       case 'payment':
         return <PaymentStage design={design} />;
       case 'production':
