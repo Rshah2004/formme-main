@@ -87,7 +87,7 @@ const WorkspaceContent = ({ design }: { design: any }) => {
       case 'manufacture-selection':
         return <ManufacturerSelectionStage design={design} />
       // Production stages (sub-navigation: Payment, Sample Review, Quality Check, Delivery)
-      case 'tech-pack-review':
+      case 'tech-pack-feasibility':
         return <TechPackFeasibilityStage design={design} />;
       case 'payment':
         return <PaymentStage design={design} />;

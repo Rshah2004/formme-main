@@ -157,7 +157,7 @@ export const WorkflowProvider = ({ children, initialStage }: { children: ReactNo
     'send-tech-pack',
     'waiting',
     'manufacture-selection',
-    'tech-pack-review',
+    'tech-pack-feasibility',
     'production',
     'payment',
     'waiting-sample',

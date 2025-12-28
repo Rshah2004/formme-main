@@ -10,7 +10,7 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
-import { CheckCircle2, Clock, XCircle, MessageSquare, ArrowRight } from 'lucide-react';
+import {CheckCircle2, Clock, XCircle, MessageSquare, ArrowRight, ArrowLeft} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { FactoryMessaging } from './FactoryMessaging';
@@ -145,7 +145,8 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
         markStageComplete('tech-pack');
         markStageComplete('factory-match');
         markStageComplete('send-tech-pack');
-        setCurrentStage('tech-pack-review');
+        markStageComplete('manufacture-selection');
+        setCurrentStage('tech-pack-feasibility');
       }
     } catch (error: any) {
       console.error('[ManufacturerSelectionStage] Error fetching matches:', error);
@@ -222,6 +223,9 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
       markStageComplete('tech-pack');
       markStageComplete('factory-match');
       markStageComplete('send-tech-pack');
+      markStageComplete('factory-selection');
+      markStageComplete('manufacture-selection');
+      markStageComplete('waiting');
       setCurrentStage('tech-pack-review');
     } catch (error: any) {
       console.error('Error finalizing manufacturer:', error);
@@ -288,7 +292,7 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
     markStageComplete('send-tech-pack');
     
     // Navigate to production parameters page
-    setCurrentStage('tech-pack-review');
+    setCurrentStage('tech-pack-feasibility');
     
     return true;
   };
@@ -432,11 +436,16 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
         </Card>
 
         {selectedManufacturer && (
-          <StageNavigation
-            nextLabel="Continue to Review Timeline"
-            onNext={handleProceed}
-            showBack={true}
-          />
+            <div className="flex justify-between pt-4">
+              {/*<Button variant="outline" onClick={handleBack} className="gap-2">*/}
+              {/*  <ArrowLeft className="w-4 h-4"/>*/}
+              {/*  Back to Tech Pack*/}
+              {/*</Button>*/}
+              <Button onClick={handleProceed} className="gap-2">
+                Go to review techpack
+                <ArrowRight className="w-4 h-4"/>
+              </Button>
+            </div>
         )}
       </div>
 

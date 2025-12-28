@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Clock, CheckCircle, XCircle, MessageSquare } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import {useWorkflow} from "@/context/WorkflowContext.tsx";
 
 interface TechPackFeasibilityStageProps {
   design: any;
@@ -11,6 +12,8 @@ interface TechPackFeasibilityStageProps {
 const TechPackFeasibilityStage = ({ design }: TechPackFeasibilityStageProps) => {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { currentStage, setCurrentStage, markStageComplete } = useWorkflow();
+
   console.log('what is design id', design.id);
   useEffect(() => {
     const fetchOrder = async () => {
@@ -33,7 +36,6 @@ const TechPackFeasibilityStage = ({ design }: TechPackFeasibilityStageProps) => 
     };
 
     fetchOrder();
-
     // Subscribe to order updates
     const channel = supabase
       .channel('tech-pack-feasibility')
@@ -56,6 +58,11 @@ const TechPackFeasibilityStage = ({ design }: TechPackFeasibilityStageProps) => 
       supabase.removeChannel(channel);
     };
   }, [design?.id]);
+
+  const handleProceed = () => {
+    markStageComplete('tech-pack-feasibility');
+    setCurrentStage('production');
+  }
 
   if (loading) {
     return (
@@ -132,6 +139,7 @@ const TechPackFeasibilityStage = ({ design }: TechPackFeasibilityStageProps) => 
 
   // Manufacturer approved
   if (order.tech_pack_feasible === true) {
+    handleProceed();
     return (
       <Card className="border-border border-green-200 bg-green-50/50">
         <CardHeader>
