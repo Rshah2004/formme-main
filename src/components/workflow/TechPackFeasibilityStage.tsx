@@ -11,7 +11,7 @@ interface TechPackFeasibilityStageProps {
 const TechPackFeasibilityStage = ({ design }: TechPackFeasibilityStageProps) => {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
+  console.log('what is design id', design.id);
   useEffect(() => {
     const fetchOrder = async () => {
       if (!design?.id) return;
@@ -24,6 +24,7 @@ const TechPackFeasibilityStage = ({ design }: TechPackFeasibilityStageProps) => 
           .maybeSingle();
         
         setOrder(data);
+        console.log('what is the order', data);
       } catch (error) {
         console.error('Error fetching order:', error);
       } finally {

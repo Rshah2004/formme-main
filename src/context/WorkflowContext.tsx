@@ -115,11 +115,16 @@ const initialData: WorkflowData = {
   factoryMessages: [],
 };
 
+
 export const WorkflowProvider = ({ children, initialStage }: { children: ReactNode; initialStage?: string }) => {
   const [searchParams] = useSearchParams();
   const [workflowData, setWorkflowData] = useState<WorkflowData>(initialData);
   const [currentStage, setCurrentStageState] = useState(initialStage || 'tech-pack');
   const [completedStages, setCompletedStages] = useState<string[]>([]);
+
+  useEffect(() => {
+  console.log('[CTX] currentStage changed →', currentStage);
+}, [currentStage]);
 
   // Sync currentStage with URL parameter
   useEffect(() => {
@@ -136,7 +141,7 @@ export const WorkflowProvider = ({ children, initialStage }: { children: ReactNo
       console.log('[WorkflowContext] Initial stage set to:', initialStage);
       setCurrentStageState(initialStage);
     }
-  }, [initialStage]);
+  }, []);
 
   const stages = [
     // Creative phase
@@ -144,13 +149,15 @@ export const WorkflowProvider = ({ children, initialStage }: { children: ReactNo
     'specifications',
     'fabric-color',
     'tech-pack',
-    'tech-pack-review',
-    // Transition
-    'factory-selection',
-    // Production phase
     'factory-match',
+    // Production phase
+    // 'factory-match',
+    // Transition
+    // 'factory-selection',
     'send-tech-pack',
     'waiting',
+    'manufacture-selection',
+    'tech-pack-review',
     'production',
     'payment',
     'waiting-sample',

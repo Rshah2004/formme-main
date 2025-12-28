@@ -29,6 +29,7 @@ import SampleStage from '@/components/workflow/SampleStage';
 import QualityStage from '@/components/workflow/QualityStage';
 import ShippingStage from '@/components/workflow/ShippingStage';
 import { FloatingMessagesWidget } from '@/components/workflow/FloatingMessagesWidget';
+import { useRef} from "react";
 
 const ProgressBar = () => {
   const { getProgress, completedStages } = useWorkflow();
@@ -58,6 +59,8 @@ const WorkspaceContent = ({ design }: { design: any }) => {
   const { currentStage } = useWorkflow();
 
   const renderStage = () => {
+          console.log('what is the current stagee', currentStage);
+
     switch (currentStage) {
       // Creative stages
       case 'design':
@@ -69,18 +72,23 @@ const WorkspaceContent = ({ design }: { design: any }) => {
       
       // Tech Pack stages (sub-navigation)
       case 'tech-pack':
-      case 'tech-pack-review':
       case 'tech-pack-overview':
         return <TechPackOverviewStage design={design} />;
+
+        case 'factory-match':
+        return <FactoryMatchStage design={design} />;
+
       case 'factory-selection':
         return <FactorySelectionStage design={design} />;
-      case 'factory-match':
-        return <FactoryMatchStage design={design} />;
       case 'send-tech-pack':
       case 'waiting':
-        return <TechPackFeasibilityStage design={design} />;
-      
+        return <WaitingForManufacturerStage design={design} />
+        // return <TechPackFeasibilityStage design={design} />;
+      case 'manufacture-selection':
+        return <ManufacturerSelectionStage design={design} />
       // Production stages (sub-navigation: Payment, Sample Review, Quality Check, Delivery)
+      case 'tech-pack-review':
+        return <TechPackFeasibilityStage design={design} />;
       case 'payment':
         return <PaymentStage design={design} />;
       case 'production':
@@ -139,8 +147,12 @@ const Workflow = () => {
     }
   }, [role, roleLoading, navigate]);
 
+const initializedRef = useRef(false);
+
   // Determine initial stage based on design selection
   useEffect(() => {
+      if (initializedRef.current) return;
+
     if (!designId || !selectedDesign) {
       setInitialStage(null);
       return;
@@ -204,7 +216,7 @@ const Workflow = () => {
       
       // Check if production params are approved to determine exact stage
       const productionParamsApproved = order.production_params_approved;
-      
+
       // Map order status to workflow stage (design -> specs -> fabric -> tech-pack -> production stages)
       const stageMap: Record<string, string> = {
         'draft': 'design',
@@ -221,9 +233,10 @@ const Workflow = () => {
       console.log('[Workflow] Order status:', order.status, 'Params approved:', productionParamsApproved, 'Mapped stage:', stageMap[order.status]);
       setInitialStage(stageMap[order.status] || 'design');
     };
-    
+      initializedRef.current = true;
+
     determineStage();
-  }, [designId, searchParams, selectedDesign]);
+  }, [designId, selectedDesign]);
 
   if (isAuthenticated === null || roleLoading || loading) {
     return (
@@ -321,7 +334,7 @@ const Workflow = () => {
     }
     
     return (
-      <WorkflowProvider initialStage={initialStage}>
+      <WorkflowProvider key={designId} initialStage={initialStage}>
         <div className="min-h-screen bg-background">
           <Navbar />
           

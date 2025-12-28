@@ -10,7 +10,7 @@ interface TechPackOverviewStageProps {
 }
 
 const TechPackOverviewStage = ({ design }: TechPackOverviewStageProps) => {
-  const { setCurrentStage, markStageComplete, completedStages } = useWorkflow();
+  const { currentStage, setCurrentStage, markStageComplete, completedStages } = useWorkflow();
 
   const techPackSections = [
     {
@@ -44,10 +44,21 @@ const TechPackOverviewStage = ({ design }: TechPackOverviewStageProps) => {
     setCurrentStage(sectionId);
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    // guard
+    if (!isReady) {
+      return;
+    }
+    // purely client-side
     markStageComplete('tech-pack');
+
+    // navigate forward
     setCurrentStage('factory-match');
+    console.log('this should run', currentStage);
+
   };
+  console.log('what is the current stage', currentStage);
+
 
   return (
     <div className="space-y-6">

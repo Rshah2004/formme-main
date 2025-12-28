@@ -145,7 +145,7 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
         markStageComplete('tech-pack');
         markStageComplete('factory-match');
         markStageComplete('send-tech-pack');
-        setCurrentStage('production');
+        setCurrentStage('tech-pack-review');
       }
     } catch (error: any) {
       console.error('[ManufacturerSelectionStage] Error fetching matches:', error);
@@ -190,6 +190,21 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
         })
         .eq('id', orderId);
 
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          design_id: design.id,
+          designer_id: user.id,
+          manufacturer_id: manufacturerId,
+          quantity: 100,
+          status: 'sent_to_manufacturer',
+          notes: 'Delivery date: TBD'
+        })
+        .select()
+        .single();
+
       if (updateError) {
         console.error('[handleConfirmFinalize] Update error:', updateError);
         throw updateError;
@@ -207,7 +222,7 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
       markStageComplete('tech-pack');
       markStageComplete('factory-match');
       markStageComplete('send-tech-pack');
-      setCurrentStage('production');
+      setCurrentStage('tech-pack-review');
     } catch (error: any) {
       console.error('Error finalizing manufacturer:', error);
       toast.error('Failed to finalize manufacturer');
@@ -273,7 +288,7 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
     markStageComplete('send-tech-pack');
     
     // Navigate to production parameters page
-    setCurrentStage('production');
+    setCurrentStage('tech-pack-review');
     
     return true;
   };

@@ -71,6 +71,8 @@ const FactoryMatchStage = ({ design }: FactoryMatchStageProps) => {
     fetchDesignCategory();
   }, [design.id]);
 
+  console.log('what is design category', designCategory);
+
   const calculateAndSortManufacturers = (manufacturersList: Manufacturer[], applyFilters: boolean = true): ManufacturerWithScore[] => {
     console.log('[calculateAndSortManufacturers] Starting with manufacturers:', manufacturersList.length);
     console.log('[calculateAndSortManufacturers] Design category:', designCategory);

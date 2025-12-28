@@ -7,15 +7,16 @@ import { useWorkflow } from '@/context/WorkflowContext';
 interface FactorySelectionStageProps {
   design: any;
 }
-
+console.log("is it reaching here");
 const FactorySelectionStage = ({ design }: FactorySelectionStageProps) => {
-  const { setCurrentStage, markStageComplete } = useWorkflow();
+  const { currentStage, setCurrentStage, markStageComplete } = useWorkflow();
 
   const handleBack = () => {
     setCurrentStage('tech-pack');
   };
 
   const handleContinue = () => {
+    console.log('is this not passing forward');
     markStageComplete('factory-selection');
     setCurrentStage('factory-match');
   };

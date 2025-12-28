@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CreditCard, CheckCircle, Loader2 } from 'lucide-react';
+import {CreditCard, CheckCircle, Loader2, ArrowLeft, ArrowRight} from 'lucide-react';
 import { Design } from '@/data/workflowData';
 import { useWorkflow } from '@/context/WorkflowContext';
 import { StageHeader } from './StageHeader';
@@ -17,6 +17,8 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
   const { workflowData } = useWorkflow();
   const [loading, setLoading] = useState(false);
   const [orderDetails, setOrderDetails] = useState<any>(null);
+  const { currentStage, setCurrentStage, markStageComplete } = useWorkflow();
+
 
   useEffect(() => {
     fetchOrderDetails();
@@ -32,6 +34,16 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
 
     setOrderDetails(order);
   };
+
+  const handleBack = () => {
+    // setCurrentStage('tech-pack');
+  };
+
+  const handleContinue = () => {
+    markStageComplete('payment');
+    setCurrentStage('waiting-sample');
+  };
+
 
   const unitCost = 18.50;
   const shipping = 450;
@@ -113,7 +125,7 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
                   <span className="text-muted-foreground">Taxes & Fees</span>
                   <span className="font-medium">${taxes.toFixed(2)}</span>
                 </div>
-                <div className="h-px bg-border my-3" />
+                <div className="h-px bg-border my-3"/>
                 <div className="flex justify-between text-lg font-semibold">
                   <span>Total Amount</span>
                   <span className="text-primary">${total.toFixed(2)}</span>
@@ -132,22 +144,22 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
                 <p className="text-sm text-muted-foreground">
                   Payment processing will be handled securely. You'll be redirected to complete your payment.
                 </p>
-                <Button 
-                  onClick={handlePayment} 
-                  className="w-full gap-2" 
-                  size="lg"
-                  disabled={loading}
+                <Button
+                    onClick={handlePayment}
+                    className="w-full gap-2"
+                    size="lg"
+                    disabled={loading}
                 >
                   {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Processing...
-                    </>
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin"/>
+                        Processing...
+                      </>
                   ) : (
-                    <>
-                      <CreditCard className="w-4 h-4" />
-                      Proceed to Payment
-                    </>
+                      <>
+                        <CreditCard className="w-4 h-4"/>
+                        Proceed to Payment
+                      </>
                   )}
                 </Button>
               </div>
@@ -155,11 +167,22 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
           </Card>
         </section>
 
-        <StageNavigation 
-          onNext={() => true}
-          nextLabel="Skip Payment & Continue to Sample Review"
-          showBack={true}
-        />
+        {/*<StageNavigation */}
+        {/*  onNext={() => true}*/}
+        {/*  nextLabel="Skip Payment & Continue to Sample Review"*/}
+        {/*  showBack={true}*/}
+        {/*/>*/}
+        <div className="flex justify-between pt-4">
+          <Button variant="outline" onClick={handleBack} className="gap-2">
+            <ArrowLeft className="w-4 h-4"/>
+            Back to Tech Pack
+          </Button>
+          <Button onClick={handleContinue} className="gap-2">
+            Skip to sample review page
+            <ArrowRight className="w-4 h-4"/>
+          </Button>
+        </div>
+
       </div>
     </div>
   );
