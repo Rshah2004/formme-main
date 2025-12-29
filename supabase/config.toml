@@ -5,3 +5,15 @@ verify_jwt = false
 
 [functions.start-techpack-agents]
 verify_jwt = false
+
+[functions.order-management]
+verify_jwt = true
+
+[functions.manufacturer-matching]
+verify_jwt = true
+
+[functions.payment-management]
+verify_jwt = true
+
+[functions.create-checkout]
+verify_jwt = false
