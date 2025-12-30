@@ -228,6 +228,22 @@ const TechPackFeasibilityStage = ({ design }: TechPackFeasibilityStageProps) => 
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Feasibility Summary */}
+            <div className="grid grid-cols-2 gap-4">
+              {order.lead_time_days && (
+                <div className="p-3 rounded-lg bg-green-100/50 border border-green-200 dark:bg-green-900/20 dark:border-green-800">
+                  <p className="text-xs text-green-600 dark:text-green-400 mb-1">Lead Time</p>
+                  <p className="font-semibold text-green-700 dark:text-green-300">{order.lead_time_days} days</p>
+                </div>
+              )}
+              {order.quantity && (
+                <div className="p-3 rounded-lg bg-green-100/50 border border-green-200 dark:bg-green-900/20 dark:border-green-800">
+                  <p className="text-xs text-green-600 dark:text-green-400 mb-1">Quantity</p>
+                  <p className="font-semibold text-green-700 dark:text-green-300">{order.quantity} units</p>
+                </div>
+              )}
+            </div>
+            
             <div className="p-4 rounded-lg bg-green-100/50 border border-green-200 dark:bg-green-900/20 dark:border-green-800">
               <div className="flex items-center gap-2 mb-2">
                 <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
@@ -245,11 +261,11 @@ const TechPackFeasibilityStage = ({ design }: TechPackFeasibilityStageProps) => 
               )}
             </div>
             <p className="text-sm text-muted-foreground">
-              You can now proceed to finalize the production agreement and continue to payment.
+              You can now finalize the production agreement and continue to payment.
             </p>
-            <Button onClick={handleProceed} className="gap-2">
+            <Button onClick={handleProceed} className="gap-2 bg-green-600 hover:bg-green-700">
               <CheckCircle className="w-4 h-4" />
-              Proceed to Production
+              Finalize Production Agreement
             </Button>
           </CardContent>
         </Card>
