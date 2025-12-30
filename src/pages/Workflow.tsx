@@ -176,31 +176,45 @@ const initializedRef = useRef(false);
         return;
       }
       
-      // First check if there's an order with a manufacturer assigned
-      const { data: orderWithManufacturer } = await supabase
+      // First check if contract is finalized (any order with manufacturer_id and status production_approval+)
+      const { data: finalizedOrder, error: finalizedOrderError } = await supabase
         .from('orders')
-        .select('id, status, manufacturer_id, tech_pack_feasible, production_params_approved')
+        .select('id, status, manufacturer_id')
         .eq('design_id', designId)
         .not('manufacturer_id', 'is', null)
+        .in('status', ['production_approval', 'sample_development', 'quality_check', 'shipping', 'delivered'])
+        .order('updated_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
-      // Check if contract is actually finalized (status is beyond sent_to_manufacturer)
-      const contractFinalized = orderWithManufacturer && 
-        orderWithManufacturer.status !== 'draft' && 
-        orderWithManufacturer.status !== 'tech_pack_pending' &&
-        orderWithManufacturer.status !== 'sent_to_manufacturer';
-
-      // If contract is NOT finalized, stay on manufacture-selection (even if manufacturer submitted production params)
-      if (orderWithManufacturer && !contractFinalized) {
-        console.log('[Workflow] Contract not finalized, staying on manufacture-selection');
-        setInitialStage('manufacture-selection');
-        return;
+      if (finalizedOrderError) {
+        console.warn('[Workflow] Finalized order lookup error:', finalizedOrderError);
       }
 
       // If contract IS finalized, go to payment stage (skipping production stage)
-      if (orderWithManufacturer && contractFinalized) {
+      if (finalizedOrder) {
         console.log('[Workflow] Contract finalized, proceeding to payment');
         setInitialStage('payment');
+        return;
+      }
+
+      // If there are any manufacturer-assigned orders (even if not finalized), stay on manufacture-selection
+      const { data: anyManufacturerOrder, error: anyManufacturerOrderError } = await supabase
+        .from('orders')
+        .select('id, status, manufacturer_id')
+        .eq('design_id', designId)
+        .not('manufacturer_id', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (anyManufacturerOrderError) {
+        console.warn('[Workflow] Manufacturer order lookup error:', anyManufacturerOrderError);
+      }
+
+      if (anyManufacturerOrder) {
+        console.log('[Workflow] Manufacturer assigned, waiting for finalization');
+        setInitialStage('manufacture-selection');
         return;
       }
       
