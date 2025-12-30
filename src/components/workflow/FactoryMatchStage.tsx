@@ -45,7 +45,7 @@ interface FactoryMatchStageProps {
 }
 
 const FactoryMatchStage = ({ design }: FactoryMatchStageProps) => {
-  const { workflowData, updateWorkflowData, markStageComplete } = useWorkflow();
+  const { workflowData, updateWorkflowData, markStageComplete, setCurrentStage } = useWorkflow();
   const navigate = useNavigate();
   const [showFactories, setShowFactories] = useState(false);
   const [manufacturers, setManufacturers] = useState<ManufacturerWithScore[]>([]);
@@ -54,22 +54,35 @@ const FactoryMatchStage = ({ design }: FactoryMatchStageProps) => {
   const [designCategory, setDesignCategory] = useState<string>('');
   const [selectedManufacturers, setSelectedManufacturers] = useState<Set<string>>(new Set());
   const [sending, setSending] = useState(false);
+  const [alreadyRequestedIds, setAlreadyRequestedIds] = useState<Set<string>>(new Set());
 
-  // Fetch design category
+  // Fetch design category and existing matches
   useEffect(() => {
-    const fetchDesignCategory = async () => {
-      const { data, error } = await supabase
+    const fetchInitialData = async () => {
+      // Fetch design category
+      const { data: designData } = await supabase
         .from('designs')
         .select('category')
         .eq('id', design.id)
         .single();
       
-      if (!error && data?.category) {
-        setDesignCategory(data.category);
+      if (designData?.category) {
+        setDesignCategory(designData.category);
+      }
+
+      // Fetch existing manufacturer matches for this design
+      const { data: existingMatches } = await supabase
+        .from('manufacturer_matches')
+        .select('manufacturer_id')
+        .eq('design_id', design.id);
+
+      if (existingMatches) {
+        const requestedIds = new Set(existingMatches.map(m => m.manufacturer_id));
+        setAlreadyRequestedIds(requestedIds);
       }
     };
 
-    fetchDesignCategory();
+    fetchInitialData();
   }, [design.id]);
 
   console.log('what is design category', designCategory);
@@ -179,6 +192,12 @@ const FactoryMatchStage = ({ design }: FactoryMatchStageProps) => {
   };
 
   const handleFactorySelect = (factory: Manufacturer) => {
+    // Don't allow selecting already-requested manufacturers
+    if (alreadyRequestedIds.has(factory.id)) {
+      toast.info('You have already sent a request to this manufacturer');
+      return;
+    }
+    
     const newSelected = new Set(selectedManufacturers);
     if (newSelected.has(factory.id)) {
       newSelected.delete(factory.id);
@@ -190,7 +209,7 @@ const FactoryMatchStage = ({ design }: FactoryMatchStageProps) => {
 
   const handleSendRequests = async () => {
     if (selectedManufacturers.size === 0) {
-      toast.error('Please select at least one manufacturer');
+      toast.error('Please select at least one new manufacturer');
       return false;
     }
 
@@ -208,12 +227,19 @@ const FactoryMatchStage = ({ design }: FactoryMatchStageProps) => {
 
       toast.success(`Sent requests to ${selectedManufacturers.size} manufacturer(s)`);
       
-      // Mark stage complete and navigate to send-tech-pack stage
-      markStageComplete('factory-match');
-      navigate({
-        pathname: '/workflow',
-        search: `?designId=${design.id}&stage=send-tech-pack`
+      // Add the newly requested to the already requested set
+      setAlreadyRequestedIds(prev => {
+        const newSet = new Set(prev);
+        selectedManufacturers.forEach(id => newSet.add(id));
+        return newSet;
       });
+      setSelectedManufacturers(new Set());
+      
+      // Mark stage complete and navigate directly to manufacture-selection (skip waiting page)
+      markStageComplete('factory-match');
+      markStageComplete('send-tech-pack');
+      markStageComplete('waiting');
+      setCurrentStage('manufacture-selection');
       
       return false; // Return false to prevent StageNavigation from also navigating
     } catch (error: any) {
@@ -337,14 +363,17 @@ const FactoryMatchStage = ({ design }: FactoryMatchStageProps) => {
                 <div className="space-y-3">
                   {manufacturers.map((factory) => {
                     const isSelected = selectedManufacturers.has(factory.id);
+                    const isAlreadyRequested = alreadyRequestedIds.has(factory.id);
                     
                     return (
                       <Card
                         key={factory.id}
                         className={`border-2 transition-all cursor-pointer ${
-                          isSelected
-                            ? 'border-primary bg-primary/5'
-                            : 'border-border hover:border-primary/30'
+                          isAlreadyRequested
+                            ? 'border-green-500 bg-green-50/50 dark:bg-green-900/10'
+                            : isSelected
+                              ? 'border-primary bg-primary/5'
+                              : 'border-border hover:border-primary/30'
                         }`}
                         onClick={() => handleFactorySelect(factory)}
                       >
@@ -358,7 +387,12 @@ const FactoryMatchStage = ({ design }: FactoryMatchStageProps) => {
                                     Top Match
                                   </Badge>
                                 )}
-                                {isSelected && (
+                                {isAlreadyRequested && (
+                                  <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs">
+                                    Request Sent
+                                  </Badge>
+                                )}
+                                {isSelected && !isAlreadyRequested && (
                                   <Badge className="bg-primary text-primary-foreground text-xs">Selected</Badge>
                                 )}
                               </div>
@@ -411,7 +445,17 @@ const FactoryMatchStage = ({ design }: FactoryMatchStageProps) => {
             <Card className="bg-primary/5 border-primary/20">
               <CardContent className="p-4">
                 <p className="text-sm text-muted-foreground">
-                  {selectedManufacturers.size} manufacturer(s) selected. Click "Send Requests" to notify them about your order.
+                  {selectedManufacturers.size} new manufacturer(s) selected. Click "Send Requests" to notify them about your order.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {alreadyRequestedIds.size > 0 && selectedManufacturers.size === 0 && (
+            <Card className="bg-green-50/50 dark:bg-green-900/10 border-green-200 dark:border-green-800">
+              <CardContent className="p-4">
+                <p className="text-sm text-muted-foreground">
+                  You have already sent requests to {alreadyRequestedIds.size} manufacturer(s). Select new manufacturers to send additional requests.
                 </p>
               </CardContent>
             </Card>
@@ -419,7 +463,7 @@ const FactoryMatchStage = ({ design }: FactoryMatchStageProps) => {
 
           <StageNavigation 
             onNext={handleSendRequests}
-            nextLabel={sending ? 'Sending Requests...' : `Send Requests to ${selectedManufacturers.size || 'Selected'} Manufacturer(s)`}
+            nextLabel={sending ? 'Sending Requests...' : `Send Requests to ${selectedManufacturers.size || 0} New Manufacturer(s)`}
             showBack={true}
           />
         </div>
