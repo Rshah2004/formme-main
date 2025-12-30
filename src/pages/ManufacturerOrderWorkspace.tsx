@@ -197,10 +197,10 @@ const ManufacturerOrderWorkspace = () => {
       // Don't update order status here - wait for designer to finalize contract
 
       setMatchStatus('accepted');
-      toast.success('Match accepted! The designer will be notified.');
+      toast.success('You agreed to review the tech pack. The designer will be notified.');
     } catch (error: any) {
       console.error('Error accepting match:', error);
-      toast.error('Failed to accept match. Please try again.');
+      toast.error('Failed to respond. Please try again.');
     } finally {
       setAccepting(false);
     }
@@ -900,11 +900,11 @@ const ManufacturerOrderWorkspace = () => {
         {matchStatus === 'pending' && (
           <Card className="mt-8">
             <CardHeader>
-              <CardTitle>Order Match Request</CardTitle>
+              <CardTitle>Tech Pack Review Request</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">
-                The designer has requested to work with your factory for this order.
+                The designer has requested you to review their tech pack. Agreeing to review does not commit you to production.
               </p>
               <div className="flex gap-3">
                 <Button 
@@ -912,8 +912,8 @@ const ManufacturerOrderWorkspace = () => {
                   disabled={accepting}
                   className="gap-2"
                 >
-                  <CheckCircle className="w-4 h-4" />
-                  {accepting ? 'Accepting...' : 'Accept Match'}
+                  <Clock className="w-4 h-4" />
+                  {accepting ? 'Processing...' : 'Agree to Review Tech Pack'}
                 </Button>
                 <Button 
                   onClick={handleDeclineMatch}
@@ -922,7 +922,7 @@ const ManufacturerOrderWorkspace = () => {
                   className="gap-2"
                 >
                   <XCircle className="w-4 h-4" />
-                  Decline Match
+                  Decline
                 </Button>
               </div>
             </CardContent>
@@ -930,13 +930,18 @@ const ManufacturerOrderWorkspace = () => {
         )}
 
         {matchStatus === 'accepted' && (
-          <Card className="mt-8 bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800">
+          <Card className="mt-8 bg-blue-50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                <p className="text-sm font-medium text-green-900 dark:text-green-100">
-                  You have accepted this order. The designer has been notified.
-                </p>
+                <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <div>
+                  <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                    You have agreed to review this tech pack.
+                  </p>
+                  <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                    Production is not confirmed yet. Please review the tech pack and confirm feasibility when ready.
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -34,12 +34,12 @@ export const TechPackReviewStatus = ({ order }: TechPackReviewStatusProps) => {
     if (order?.status === 'sent_to_manufacturer' || order?.status === 'manufacturer_review') {
       return {
         status: 'pending',
-        label: 'Awaiting Review',
+        label: 'Under Review',
         icon: Clock,
         color: 'text-blue-600',
         bgColor: 'bg-blue-50 dark:bg-blue-900/20',
         borderColor: 'border-blue-200 dark:border-blue-800',
-        description: 'Waiting for manufacturer to review the tech pack.'
+        description: 'Manufacturer is reviewing your tech pack. Production is not confirmed yet.'
       };
     }
     return {
