@@ -12,6 +12,8 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { WorkflowProvider, useWorkflow } from '@/context/WorkflowContext';
 import { supabase } from '@/integrations/supabase/client';
 import { HorizontalProgressTabs } from '@/components/workflow/HorizontalProgressTabs';
+import { ManufacturerFeedbackBanner } from '@/components/workflow/ManufacturerFeedbackBanner';
+import { FeasibilitySummary } from '@/components/workflow/FeasibilitySummary';
 import TechPackStage from '@/components/workflow/TechPackStage';
 import TechPackOverviewStage from '@/components/workflow/TechPackOverviewStage';
 import TechPackFeasibilityStage from '@/components/workflow/TechPackFeasibilityStage';
@@ -108,6 +110,12 @@ const WorkspaceContent = ({ design }: { design: any }) => {
 
   return (
     <div className="space-y-6">
+      {/* Manufacturer Feedback Banner - shows above stepper when issues exist */}
+      <ManufacturerFeedbackBanner designId={design.id} />
+      
+      {/* Feasibility Summary - shows when feasibility is confirmed */}
+      <FeasibilitySummary designId={design.id} />
+      
       {/* Horizontal Progress Tabs */}
       <HorizontalProgressTabs />
 
