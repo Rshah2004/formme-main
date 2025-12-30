@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Clock, AlertTriangle, XCircle, Calendar, Package, Layers } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { orderApi } from '@/lib/api';
 import { toast } from 'sonner';
 
 interface ProductionParametersStatusProps {
@@ -68,19 +68,11 @@ export const ProductionParametersStatus = ({
     if (!order?.id) return;
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({
-          production_params_approved: true,
-          status: 'sample_development'
-        })
-        .eq('id', order.id);
-      
-      if (error) throw error;
+      await orderApi.approveProductionParams(order.id);
       toast.success('Production parameters approved!');
       onApprove?.();
-    } catch (error) {
-      toast.error('Failed to approve parameters');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to approve parameters');
     } finally {
       setIsSubmitting(false);
     }
@@ -90,19 +82,11 @@ export const ProductionParametersStatus = ({
     if (!order?.id) return;
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({
-          production_params_approved: false,
-          status: 'production_approval'
-        })
-        .eq('id', order.id);
-      
-      if (error) throw error;
+      await orderApi.rejectProductionParams(order.id);
       toast.info('Production parameters rejected. Manufacturer will be notified.');
       onReject?.();
-    } catch (error) {
-      toast.error('Failed to reject parameters');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to reject parameters');
     } finally {
       setIsSubmitting(false);
     }

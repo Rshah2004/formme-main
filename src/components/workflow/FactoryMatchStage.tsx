@@ -11,6 +11,7 @@ import { StageHeader } from './StageHeader';
 import { StageNavigation } from './StageNavigation';
 import { FactoryDocuments } from './FactoryDocuments';
 import { supabase } from '@/integrations/supabase/client';
+import { orderApi } from '@/lib/api';
 import { toast } from 'sonner';
 import { calculateMatchScore } from '@/utils/matchingAlgorithm';
 import { useNavigate } from 'react-router-dom';
@@ -193,67 +194,17 @@ const FactoryMatchStage = ({ design }: FactoryMatchStageProps) => {
       return false;
     }
 
-
     setSending(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      // Create manufacturer matches and orders for all selected manufacturers
-      const matchPromises = Array.from(selectedManufacturers).map(async (manufacturerId) => {
-        const manufacturer = manufacturers.find(m => m.id === manufacturerId);
-        
-        // Check if match already exists
-        const { data: existing } = await supabase
-          .from('manufacturer_matches')
-          .select('id')
-          .eq('design_id', design.id)
-          .eq('manufacturer_id', manufacturerId)
-          .maybeSingle();
-
-        if (existing) {
-          console.log(`[handleSendRequests] Match already exists for manufacturer ${manufacturerId}`);
-          return; // Already exists
-        }
-
-        // Create manufacturer match
-        const { error: matchError } = await supabase
-          .from('manufacturer_matches')
-          .insert({
-            design_id: design.id,
-            manufacturer_id: manufacturerId,
-            score: manufacturer?.matchScore || 0,
-            status: 'pending'
-          });
-
-        if (matchError) {
-          console.error(`[handleSendRequests] Error creating match:`, matchError);
-          throw matchError;
-        }
-
-        // Create order for this manufacturer
-        const { data: orderData, error: orderError } = await supabase
-          .from('orders')
-          .insert({
-            design_id: design.id,
-            designer_id: user.id,
-            manufacturer_id: manufacturerId,
-            quantity: parseInt(workflowData.quantity || '100'),
-            status: 'sent_to_manufacturer',
-            notes: `Delivery date: ${workflowData.deliveryDate || 'TBD'}`
-          })
-          .select()
-          .single();
-
-        if (orderError) {
-          console.error(`[handleSendRequests] Error creating order:`, orderError);
-          throw orderError;
-        }
-
-        console.log(`[handleSendRequests] Created order ${orderData.id} for manufacturer ${manufacturerId}`);
+      // Use backend API for sending requests to manufacturers
+      const result = await orderApi.sendToManufacturers({
+        design_id: design.id,
+        manufacturer_ids: Array.from(selectedManufacturers),
+        quantity: parseInt(workflowData.quantity || '100'),
+        notes: `Delivery date: ${workflowData.deliveryDate || 'TBD'}`
       });
 
-      await Promise.all(matchPromises);
+      console.log('[handleSendRequests] Backend response:', result);
 
       toast.success(`Sent requests to ${selectedManufacturers.size} manufacturer(s)`);
       
