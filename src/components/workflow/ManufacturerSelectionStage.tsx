@@ -277,7 +277,7 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
       }
 
       const orderId = manufacturerToFinalize.orders[0].id;
-      console.log('[handleConfirmFinalize] Updating order:', orderId, 'to manufacturer_review status');
+      console.log('[handleConfirmFinalize] Updating order:', orderId, 'to production_approval status');
 
       // Update the order to mark this manufacturer as finalized by setting status to production_approval
       // This is when the designer officially finalizes - the manufacturer's Section B submission
@@ -285,31 +285,17 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
       const { error: updateError } = await supabase
         .from('orders')
         .update({ 
-          status: 'production_approval'
+          status: 'production_approval',
+          production_params_approved: true
         })
         .eq('id', orderId);
-
-      const { data: { user } } = await supabase.auth.getUser();
-
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          design_id: design.id,
-          designer_id: user.id,
-          manufacturer_id: manufacturerId,
-          quantity: 100,
-          status: 'sent_to_manufacturer',
-          notes: 'Delivery date: TBD'
-        })
-        .select()
-        .single();
 
       if (updateError) {
         console.error('[handleConfirmFinalize] Update error:', updateError);
         throw updateError;
       }
 
-      console.log('[handleConfirmFinalize] Order updated successfully');
+      console.log('[handleConfirmFinalize] Order updated successfully to production_approval');
       
       setSelectedManufacturer(manufacturerId);
       setConfirmDialogOpen(false);
@@ -325,7 +311,7 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
       markStageComplete('manufacture-selection');
       markStageComplete('waiting');
       markStageComplete('production');
-      setCurrentStage('payment');
+      setCurrentStage('payment', true); // Force navigation to payment
     } catch (error: any) {
       console.error('Error finalizing manufacturer:', error);
       toast.error('Failed to finalize manufacturer');
