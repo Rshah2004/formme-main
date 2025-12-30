@@ -159,26 +159,27 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
             }
           }
           
-          // Section B complete: production params submitted AND tech_pack_feasible is true
+          // Section B complete: production params submitted = feasibility is confirmed
           const hasProductionParams = !!order?.production_params_submitted_at;
           const techPackFeasible = order?.tech_pack_feasible === true;
           
-          // Full feasibility = both sections complete (tech_pack_feasible is set when Section B is done)
-          const feasibilityConfirmed = techPackFeasible && hasProductionParams;
+          // Feasibility is confirmed when Section B (production confirmation) is submitted
+          // This is the key change: once manufacturer submits Section B, designer can finalize
+          const feasibilityConfirmed = hasProductionParams;
           
           // Has issues if tech_pack_feasible is explicitly false (manufacturer reported issues)
           const hasIssues = order?.tech_pack_feasible === false;
           
           // Determine feasibility status for comparison - this is what the designer sees
           // 'tech_pack_feasible' = Section A done only (checklist complete but not committed)
-          // 'submitted' = Both sections complete (ready for designer to finalize)
+          // 'submitted' = Section B complete (ready for designer to finalize)
           // 'blocked' = Issues reported
           // 'pending' = Nothing submitted yet
           let feasibilityStatus: 'pending' | 'tech_pack_feasible' | 'submitted' | 'blocked' = 'pending';
           if (hasIssues) {
             feasibilityStatus = 'blocked';
           } else if (feasibilityConfirmed) {
-            feasibilityStatus = 'submitted'; // Both sections done = Feasibility Submitted
+            feasibilityStatus = 'submitted'; // Section B done = Feasibility Submitted
           } else if (techPackReviewComplete) {
             feasibilityStatus = 'tech_pack_feasible'; // Only Section A done (checklist complete)
           }
