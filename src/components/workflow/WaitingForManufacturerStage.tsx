@@ -84,7 +84,7 @@ const WaitingForManufacturerStage = ({ design }: WaitingForManufacturerStageProp
 
             setIsAccepted(true);
             setAcceptedManufacturer(manufacturer?.name || 'Manufacturer');
-            toast.success(`${manufacturer?.name || 'A manufacturer'} has accepted your order!`);
+            toast.info(`${manufacturer?.name || 'A manufacturer'} has agreed to review your tech pack`);
             // Don't auto-navigate - let designer manually proceed
           }
         }
@@ -106,10 +106,10 @@ const WaitingForManufacturerStage = ({ design }: WaitingForManufacturerStageProp
     <div>
       <StageHeader
         icon={Clock}
-        title={isAccepted ? "Manufacturer Found!" : "Waiting for manufacturer to approve your order"}
+        title={isAccepted ? "Manufacturer Will Review Tech Pack" : "Waiting for manufacturer response"}
         description={isAccepted 
-          ? `${acceptedManufacturer} has accepted your order` 
-          : "Your order has been sent to the manufacturer. You'll be notified as soon as they approve."
+          ? `${acceptedManufacturer} has agreed to review your tech pack` 
+          : "Your request has been sent to the manufacturer. You'll be notified when they respond."
         }
       />
 
@@ -131,36 +131,44 @@ const WaitingForManufacturerStage = ({ design }: WaitingForManufacturerStageProp
                   {/* Waiting Message */}
                   <div className="space-y-3">
                     <h3 className="text-2xl font-semibold text-foreground">
-                      Waiting for manufacturer...
+                      Waiting for manufacturer response...
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Your order has been sent to the manufacturer. You'll be notified as soon as they approve.
+                      Your request has been sent to the manufacturer. You'll be notified when they respond.
                     </p>
                   </div>
                 </div>
             ) : (
                 <div className="text-center space-y-6">
-                  {/* Success Animation */}
+                  {/* Info State - Blue, not green */}
                   <div className="relative w-32 h-32 mx-auto">
-                    <div className="absolute inset-0 bg-primary/10 rounded-full animate-ping"/>
+                    <div className="absolute inset-0 bg-blue-500/10 rounded-full"/>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <CheckCircle2 className="w-20 h-20 text-primary"/>
+                      <Clock className="w-20 h-20 text-blue-500"/>
                     </div>
                   </div>
 
-                  {/* Success Message */}
+                  {/* Info Message - Not success */}
                   <div className="space-y-2">
                     <h3 className="text-2xl font-semibold text-foreground">
-                      Manufacturer Confirmed!
+                      Under Manufacturer Review
                     </h3>
                     <p className="text-base text-muted-foreground">
-                      {acceptedManufacturer} has accepted your order
+                      {acceptedManufacturer} has agreed to review your tech pack
+                    </p>
+                  </div>
+
+                  {/* Important info banner */}
+                  <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      <strong>Note:</strong> Production is not confirmed yet. The manufacturer will review your tech pack 
+                      and confirm feasibility before production can begin.
                     </p>
                   </div>
 
                   <div className="pt-4">
                     <p className="text-sm text-muted-foreground">
-                      Click the button below to review and finalize your contract
+                      Click the button below to view manufacturer details and proceed
                     </p>
                   </div>
                 </div>
@@ -171,7 +179,7 @@ const WaitingForManufacturerStage = ({ design }: WaitingForManufacturerStageProp
         {!isAccepted && (
             <div className="mt-6 text-center">
               <p className="text-xs text-muted-foreground">
-                This usually takes 2-5 minutes. You'll receive a notification when a manufacturer accepts.
+                This usually takes 2-5 minutes. You'll receive a notification when a manufacturer responds.
               </p>
             </div>
         )}

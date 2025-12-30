@@ -282,7 +282,7 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
 
   const handleProceed = async () => {
     if (!selectedManufacturer) {
-      toast.error('Please finalize a contract with an accepted manufacturer before proceeding');
+      toast.error('Please finalize a contract with a manufacturer who agreed to review before proceeding');
       return false;
     }
 
@@ -300,11 +300,11 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'accepted':
-        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Accepted</Badge>;
+        return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Reviewing Tech Pack</Badge>;
       case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">Pending</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">Awaiting Response</Badge>;
       case 'rejected':
-        return <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Rejected</Badge>;
+        return <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Declined</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -314,8 +314,8 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
     <div>
       <StageHeader
         icon={Clock}
-        title="Waiting for Manufacturer Approval"
-        description="View all manufacturers you've sent requests to, chat with them, and select your preferred manufacturer once they accept."
+        title="Manufacturer Review Status"
+        description="View all manufacturers you've contacted. Once a manufacturer agrees to review your tech pack, you can finalize the contract to proceed."
       />
 
       <div className="max-w-4xl mx-auto mt-8">
@@ -375,27 +375,32 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
 
                           <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                             {match.status === 'accepted' && !match.isFinalized && (
-                              <Button
-                                size="sm"
-                                onClick={() => handleOpenConfirmDialog(match)}
-                                className="gap-2"
-                              >
-                                <CheckCircle2 className="w-4 h-4" />
-                                Finalize Contract
-                              </Button>
+                              <>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleOpenConfirmDialog(match)}
+                                  className="gap-2"
+                                >
+                                  <CheckCircle2 className="w-4 h-4" />
+                                  Finalize Contract
+                                </Button>
+                                <span className="text-xs text-blue-600 dark:text-blue-400 self-center ml-2">
+                                  Ready for tech pack review
+                                </span>
+                              </>
                             )}
 
                             {match.status === 'accepted' && match.isFinalized && (
                               <div className="flex items-center gap-2 text-sm font-medium text-primary">
-                                <CheckCircle2 className="w-4 h-4" />
-                                Contract Finalized
+                                <Clock className="w-4 h-4" />
+                                Under Review
                               </div>
                             )}
                             
                             {match.status === 'pending' && (
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <Clock className="w-4 h-4" />
-                                Waiting for manufacturer response...
+                                Awaiting manufacturer response...
                               </div>
                             )}
                             
