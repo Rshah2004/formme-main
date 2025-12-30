@@ -183,35 +183,32 @@ const initializedRef = useRef(false);
         .not('manufacturer_id', 'is', null)
         .maybeSingle();
 
-      // If there's an order with manufacturer, check the feasibility state
-      if (orderWithManufacturer) {
-        // If manufacturer requested changes (tech_pack_feasible = false), go to feasibility stage
-        if (orderWithManufacturer.tech_pack_feasible === false) {
-          console.log('[Workflow] Manufacturer requested changes, going to feasibility stage');
-          setInitialStage('tech-pack-feasibility');
-          return;
-        }
-        
-        // If under review (tech_pack_feasible = null), go to feasibility stage
-        if (orderWithManufacturer.tech_pack_feasible === null && orderWithManufacturer.status !== 'draft') {
-          console.log('[Workflow] Tech pack under review, going to feasibility stage');
-          setInitialStage('tech-pack-feasibility');
-          return;
-        }
-        
-        // If feasibility confirmed but production not approved yet, go to production stage
-        if (orderWithManufacturer.tech_pack_feasible === true && !orderWithManufacturer.production_params_approved) {
-          console.log('[Workflow] Feasibility confirmed, waiting for production params');
-          setInitialStage('tech-pack-feasibility');
-          return;
-        }
-        
+      // Check if contract is actually finalized (status is beyond sent_to_manufacturer)
+      const contractFinalized = orderWithManufacturer && 
+        orderWithManufacturer.status !== 'draft' && 
+        orderWithManufacturer.status !== 'tech_pack_pending' &&
+        orderWithManufacturer.status !== 'sent_to_manufacturer';
+
+      // If contract is NOT finalized, stay on manufacture-selection
+      if (orderWithManufacturer && !contractFinalized) {
+        console.log('[Workflow] Contract not finalized, staying on manufacture-selection');
+        setInitialStage('manufacture-selection');
+        return;
+      }
+
+      // If contract IS finalized, check the production state
+      if (orderWithManufacturer && contractFinalized) {
         // If production params approved, go to payment stage
         if (orderWithManufacturer.production_params_approved) {
           console.log('[Workflow] Production params approved, proceeding to payment');
           setInitialStage('payment');
           return;
         }
+        
+        // Otherwise go to production stage (waiting for manufacturer to confirm)
+        console.log('[Workflow] Contract finalized, going to production');
+        setInitialStage('production');
+        return;
       }
       
       // Check manufacturer match status
@@ -221,10 +218,10 @@ const initializedRef = useRef(false);
         .eq('design_id', designId)
         .eq('status', 'accepted');
       
-      // If there are accepted matches but no finalized order, go to waiting/selection stage
+      // If there are accepted matches but no order with manufacturer, go to manufacture-selection
       if (acceptedMatches && acceptedMatches.length > 0) {
-        console.log('[Workflow] Manufacturers accepted, waiting for selection');
-        setInitialStage('send-tech-pack');
+        console.log('[Workflow] Manufacturers accepted, waiting for finalization');
+        setInitialStage('manufacture-selection');
         return;
       }
       

@@ -22,7 +22,6 @@ export const techPackSubStages = [
   { id: 'tech-pack-overview', label: 'Overview' },
   { id: 'factory-match', label: 'Finding Manufacturers' },
   { id: 'manufacture-selection', label: 'Finalize Manufacturers' },
-  { id: 'tech-pack-feasibility', label: 'Tech Pack Feasibility' },
 ];
 
 // Production sub-stages
@@ -41,8 +40,8 @@ export const getTopLevelStage = (currentStage: string): string => {
     return 'design';
   }
   
-  // Tech Pack phase (includes overview, finding manufacturers, feasibility)
-  if (['tech-pack', 'tech-pack-review', 'tech-pack-overview', 'factory-match', 'factory-selection', 'send-tech-pack', 'waiting', 'manufacture-selection', 'tech-pack-feasibility'].includes(currentStage)) {
+  // Tech Pack phase (includes overview, finding manufacturers, finalize)
+  if (['tech-pack', 'tech-pack-review', 'tech-pack-overview', 'factory-match', 'factory-selection', 'send-tech-pack', 'waiting', 'manufacture-selection'].includes(currentStage)) {
     return 'tech-pack';
   }
 
@@ -195,7 +194,6 @@ const TechPackSubTabs = () => {
     if (currentStage === 'tech-pack' || currentStage === 'tech-pack-review' || currentStage === 'tech-pack-overview') return 0;
     if (currentStage === 'factory-match' || currentStage === 'factory-selection') return 1;
     if (currentStage === 'manufacture-selection' || currentStage === 'waiting' || currentStage === 'send-tech-pack') return 2;
-    if (currentStage === 'tech-pack-feasibility') return 3;
     return 0;
   };
 
@@ -206,8 +204,7 @@ const TechPackSubTabs = () => {
   const handleSubTabClick = (subStageId: string) => {
     if (subStageId === 'tech-pack-overview') setCurrentStage('tech-pack');
     else if (subStageId === 'factory-match') setCurrentStage('factory-match');
-    else if (subStageId === 'send-tech-pack') setCurrentStage('send-tech-pack');
-    else if (subStageId === 'tech-pack-feasibility') setCurrentStage('tech-pack-feasibility');
+    else if (subStageId === 'manufacture-selection') setCurrentStage('manufacture-selection');
     console.log('what is substage id', subStageId);
   };
 
