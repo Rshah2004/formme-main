@@ -8,6 +8,7 @@ import { StageHeader } from './StageHeader';
 import { StageNavigation } from './StageNavigation';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { paymentApi } from '@/lib/api';
 
 interface PaymentStageProps {
   design: Design;
@@ -58,25 +59,17 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
       
       console.log('[PaymentStage] Initiating checkout for design:', design.id);
       
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: {
-          orderId: design.id,
-          successUrl: `${window.location.origin}/workflow?designId=${design.id}&stage=production`,
-          cancelUrl: `${window.location.origin}/workflow?designId=${design.id}&stage=payment`,
-        },
+      const result = await paymentApi.createCheckout({
+        design_id: design.id,
+        success_url: `${window.location.origin}/workflow?designId=${design.id}&stage=production`,
+        cancel_url: `${window.location.origin}/workflow?designId=${design.id}&stage=payment`,
       });
 
-      console.log('[PaymentStage] Checkout response:', { data, error });
+      console.log('[PaymentStage] Checkout response:', result);
 
-      if (error) {
-        console.error('[PaymentStage] Checkout error:', error);
-        throw error;
-      }
-
-      if (data?.url) {
-        console.log('[PaymentStage] Opening Stripe checkout:', data.url);
-        // Open Stripe Checkout in a new tab
-        window.open(data.url, '_blank');
+      if (result?.url) {
+        console.log('[PaymentStage] Opening Stripe checkout:', result.url);
+        window.open(result.url, '_blank');
         toast.success('Redirecting to payment...');
       } else {
         throw new Error('No checkout URL received');

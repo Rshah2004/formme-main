@@ -11,6 +11,7 @@ import { StageHeader } from './StageHeader';
 import { StageNavigation } from './StageNavigation';
 import { FactoryDocuments } from './FactoryDocuments';
 import { supabase } from '@/integrations/supabase/client';
+import { orderApi } from '@/lib/api';
 
 interface SampleStageProps { design: Design; }
 
@@ -163,14 +164,11 @@ const SampleStage = ({ design }: SampleStageProps) => {
             onNext={async () => { 
               if (!allApproved) return false; 
               
-              // Update database to approve sample
+              // Update database to approve sample via backend API
               if (orderData?.id) {
-                const { error } = await supabase
-                  .from('orders')
-                  .update({ sample_approved: true })
-                  .eq('id', orderData.id);
-                
-                if (error) {
+                try {
+                  await orderApi.approveSample(orderData.id, workflowData.fitNotes);
+                } catch (error) {
                   console.error('Error approving sample:', error);
                   return false;
                 }
