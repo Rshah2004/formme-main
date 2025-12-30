@@ -10,7 +10,9 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
-import {CheckCircle2, Clock, XCircle, MessageSquare, ArrowRight, ArrowLeft} from 'lucide-react';
+import {CheckCircle2, Clock, XCircle, MessageSquare, ArrowRight, ArrowLeft, AlertTriangle, Lock, Info} from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { FactoryMessaging } from './FactoryMessaging';
@@ -33,8 +35,13 @@ interface ManufacturerMatch {
   orders: Array<{
     id: string;
     status?: string;
+    tech_pack_feasible?: boolean | null;
+    tech_pack_feasibility_notes?: string | null;
+    production_params_approved?: boolean | null;
   }>;
   isFinalized?: boolean;
+  feasibilityConfirmed?: boolean;
+  hasIssues?: boolean;
 }
 
 interface ManufacturerSelectionStageProps {
@@ -107,7 +114,7 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
         (data || []).map(async (match: any) => {
           const { data: order } = await supabase
             .from('orders')
-            .select('id, status, manufacturer_id')
+            .select('id, status, manufacturer_id, tech_pack_feasible, tech_pack_feasibility_notes, production_params_approved')
             .eq('design_id', design.id)
             .eq('manufacturer_id', match.manufacturer_id)
             .maybeSingle();
@@ -115,10 +122,18 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
           // Finalized means status is manufacturer_review or beyond
           const isFinalized = order && order.status !== 'sent_to_manufacturer' && order.status !== 'draft' && order.status !== 'tech_pack_pending';
           
+          // Feasibility is confirmed when tech_pack_feasible is true AND production_params_approved is true
+          const feasibilityConfirmed = order?.tech_pack_feasible === true && order?.production_params_approved === true;
+          
+          // Has issues if tech_pack_feasible is explicitly false (manufacturer reported issues)
+          const hasIssues = order?.tech_pack_feasible === false;
+          
           return {
             ...match,
             orders: order ? [order] : [],
-            isFinalized
+            isFinalized,
+            feasibilityConfirmed,
+            hasIssues
           };
         })
       );
@@ -310,15 +325,41 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
     }
   };
 
+  // Check if any manufacturer has reported issues
+  const hasAnyIssues = matches.some(m => m.hasIssues);
+  const hasFeasibilityConfirmed = matches.some(m => m.feasibilityConfirmed);
+
   return (
     <div>
       <StageHeader
         icon={Clock}
         title="Manufacturer Review Status"
-        description="View all manufacturers you've contacted. Once a manufacturer agrees to review your tech pack, you can finalize the contract to proceed."
+        description="Track manufacturer responses and feasibility reviews. Production agreements can only be finalized after a manufacturer confirms feasibility."
       />
 
       <div className="max-w-4xl mx-auto mt-8">
+        {/* Info banner about feasibility process */}
+        <Alert className="mb-6 border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/20">
+          <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <AlertTitle className="text-blue-800 dark:text-blue-200">Feasibility Review Required</AlertTitle>
+          <AlertDescription className="text-blue-700 dark:text-blue-300 text-sm">
+            Before you can finalize a production agreement, the manufacturer must complete their feasibility review. 
+            This includes reviewing your tech pack and confirming production capacity. Production steps remain locked until feasibility is confirmed.
+          </AlertDescription>
+        </Alert>
+
+        {/* Issues alert if any manufacturer reported problems */}
+        {hasAnyIssues && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Issues Need Resolution</AlertTitle>
+            <AlertDescription className="text-sm">
+              One or more manufacturers have reported issues with your tech pack. Please review the feedback below, 
+              update your specifications, and the tech pack will be automatically resubmitted for review.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>Manufacturer Requests</CardTitle>
@@ -373,43 +414,92 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
                             )}
                           </div>
 
-                          <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                            {match.status === 'accepted' && !match.isFinalized && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleOpenConfirmDialog(match)}
-                                  className="gap-2"
-                                >
-                                  <CheckCircle2 className="w-4 h-4" />
-                                  Finalize Contract
-                                </Button>
-                                <span className="text-xs text-blue-600 dark:text-blue-400 self-center ml-2">
-                                  Ready for tech pack review
-                                </span>
-                              </>
+                          <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
+                            {/* Show issues if manufacturer reported problems */}
+                            {match.hasIssues && match.orders?.[0]?.tech_pack_feasibility_notes && (
+                              <Alert variant="destructive" className="mb-2">
+                                <AlertTriangle className="h-4 w-4" />
+                                <AlertTitle>Issues Reported</AlertTitle>
+                                <AlertDescription className="text-sm">
+                                  {match.orders[0].tech_pack_feasibility_notes}
+                                </AlertDescription>
+                              </Alert>
+                            )}
+                            
+                            {/* Show feasibility status */}
+                            {match.feasibilityConfirmed && (
+                              <div className="flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400">
+                                <CheckCircle2 className="w-4 h-4" />
+                                Feasibility Confirmed - Ready to Finalize
+                              </div>
                             )}
 
-                            {match.status === 'accepted' && match.isFinalized && (
-                              <div className="flex items-center gap-2 text-sm font-medium text-primary">
-                                <Clock className="w-4 h-4" />
-                                Under Review
-                              </div>
-                            )}
-                            
-                            {match.status === 'pending' && (
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Clock className="w-4 h-4" />
-                                Awaiting manufacturer response...
-                              </div>
-                            )}
-                            
-                            {match.status === 'rejected' && (
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <XCircle className="w-4 h-4" />
-                                Manufacturer declined this request
-                              </div>
-                            )}
+                            <div className="flex gap-2 items-center">
+                              {match.status === 'accepted' && !match.isFinalized && (
+                                <>
+                                  {match.feasibilityConfirmed ? (
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleOpenConfirmDialog(match)}
+                                      className="gap-2"
+                                    >
+                                      <CheckCircle2 className="w-4 h-4" />
+                                      Finalize Production Agreement
+                                    </Button>
+                                  ) : (
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            disabled
+                                            className="gap-2 opacity-50 cursor-not-allowed"
+                                          >
+                                            <Lock className="w-4 h-4" />
+                                            Finalize Production Agreement
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Manufacturer must complete feasibility review first</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  )}
+                                  {!match.feasibilityConfirmed && !match.hasIssues && (
+                                    <span className="text-xs text-blue-600 dark:text-blue-400 self-center ml-2">
+                                      Awaiting feasibility confirmation
+                                    </span>
+                                  )}
+                                  {match.hasIssues && (
+                                    <span className="text-xs text-amber-600 dark:text-amber-400 self-center ml-2">
+                                      Please resolve issues and resubmit
+                                    </span>
+                                  )}
+                                </>
+                              )}
+
+                              {match.status === 'accepted' && match.isFinalized && !match.feasibilityConfirmed && (
+                                <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                                  <Clock className="w-4 h-4" />
+                                  Under Feasibility Review
+                                </div>
+                              )}
+                              
+                              {match.status === 'pending' && (
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                  <Clock className="w-4 h-4" />
+                                  Awaiting manufacturer response...
+                                </div>
+                              )}
+                              
+                              {match.status === 'rejected' && (
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                  <XCircle className="w-4 h-4" />
+                                  Manufacturer declined this request
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
