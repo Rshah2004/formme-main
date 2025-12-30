@@ -154,20 +154,30 @@ const ManufacturerOrderWorkspace = () => {
           filter: `id=eq.${id}`
         },
         (payload) => {
+          const previousOrder = order;
           setOrder((prev: any) => prev ? { ...prev, ...payload.new } : payload.new);
           
+          // Show toast when designer resubmits tech pack for review
+          if (payload.new.tech_pack_feasible === null && previousOrder?.tech_pack_feasible === false) {
+            toast.info('Designer has resubmitted the tech pack for review. Please check the updated specifications.', {
+              duration: 6000,
+            });
+            // Navigate to review tab
+            setActiveTab('review-feasibility');
+          }
+          
           // Show toast when designer approves production parameters
-          if (payload.new.production_params_approved === true && !order?.production_params_approved) {
+          if (payload.new.production_params_approved === true && !previousOrder?.production_params_approved) {
             toast.success('Designer approved your production parameters! You can now proceed to Sample Development.');
           }
           
           // Show toast when designer approves sample
-          if (payload.new.sample_approved === true && !order?.sample_approved) {
+          if (payload.new.sample_approved === true && !previousOrder?.sample_approved) {
             toast.success('Designer has approved the sample! You can now proceed to Quality Check.');
           }
           
           // Show toast when designer approves QC
-          if (payload.new.qc_approved === true && !order?.qc_approved) {
+          if (payload.new.qc_approved === true && !previousOrder?.qc_approved) {
             toast.success('Designer has approved the quality check! You can now proceed to Shipping.');
           }
         }
