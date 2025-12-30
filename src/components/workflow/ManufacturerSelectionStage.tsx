@@ -165,17 +165,12 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
 
       console.log('[ManufacturerSelectionStage] Finalized orders:', finalizedOrders);
 
+      // Don't auto-navigate here - let the user stay on manufacture-selection
+      // Navigation only happens when user explicitly finalizes the contract
       if (finalizedOrders && finalizedOrders.length > 0) {
         const finalizedOrder = finalizedOrders[0];
         setSelectedManufacturer(finalizedOrder.manufacturer_id);
-        
-        // If contract is already finalized, immediately navigate to payment stage
-        console.log('[ManufacturerSelectionStage] Contract already finalized, navigating to payment stage');
-        markStageComplete('tech-pack');
-        markStageComplete('factory-match');
-        markStageComplete('send-tech-pack');
-        markStageComplete('manufacture-selection');
-        setCurrentStage('payment');
+        console.log('[ManufacturerSelectionStage] Contract finalized with manufacturer:', finalizedOrder.manufacturer_id);
       }
     } catch (error: any) {
       console.error('[ManufacturerSelectionStage] Error fetching matches:', error);
