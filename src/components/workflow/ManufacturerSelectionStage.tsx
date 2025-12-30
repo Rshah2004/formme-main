@@ -159,42 +159,56 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
 
       if (error) throw error;
 
-      // For each match, fetch the corresponding order with production params
+      // For each match, fetch the most recent corresponding order with production params
+      // (IMPORTANT: we order+limit to avoid maybeSingle() errors when duplicates exist)
       const matchesWithOrders = await Promise.all(
         (data || []).map(async (match: any) => {
-          const { data: order } = await supabase
+          const { data: order, error: orderError } = await supabase
             .from('orders')
-            .select('id, status, manufacturer_id, tech_pack_feasible, tech_pack_feasibility_notes, tech_pack_checklist, production_params_approved, production_params_submitted_at, fabric_type, gsm, shrinkage, color_fastness, lead_time_days, production_start_date, production_completion_date, production_timeline_data')
+            .select(
+              'id, status, manufacturer_id, tech_pack_feasible, tech_pack_feasibility_notes, tech_pack_checklist, production_params_approved, production_params_submitted_at, fabric_type, gsm, shrinkage, color_fastness, lead_time_days, production_start_date, production_completion_date, production_timeline_data'
+            )
             .eq('design_id', design.id)
             .eq('manufacturer_id', match.manufacturer_id)
+            .order('created_at', { ascending: false })
+            .limit(1)
             .maybeSingle();
-          
+
+          if (orderError) {
+            console.warn('[ManufacturerSelectionStage] Order lookup error for match:', match?.id, orderError);
+          }
+
           // "Finalized" means the DESIGNER explicitly selected this manufacturer
           // (we treat that as status production_approval and beyond)
-          const isFinalized = !!order && ['production_approval', 'sample_development', 'quality_check', 'shipping', 'delivered'].includes(order.status || '');
-          
+          const isFinalized =
+            !!order &&
+            ['production_approval', 'sample_development', 'quality_check', 'shipping', 'delivered'].includes(
+              order.status || ''
+            );
+
           // Section A complete: Check if tech_pack_checklist exists and all items are checked (not blocked)
           let techPackReviewComplete = false;
           if (order?.tech_pack_checklist) {
-            const checklist = typeof order.tech_pack_checklist === 'string' 
-              ? JSON.parse(order.tech_pack_checklist) 
-              : order.tech_pack_checklist;
+            const checklist =
+              typeof order.tech_pack_checklist === 'string'
+                ? JSON.parse(order.tech_pack_checklist)
+                : order.tech_pack_checklist;
             if (Array.isArray(checklist) && checklist.length > 0) {
               techPackReviewComplete = checklist.every((item: any) => item.checked && !item.blocked);
             }
           }
-          
+
           // Section B complete: production params submitted = feasibility is confirmed
           const hasProductionParams = !!order?.production_params_submitted_at;
           const techPackFeasible = order?.tech_pack_feasible === true;
-          
+
           // Feasibility is confirmed when Section B (production confirmation) is submitted
           // This is the key change: once manufacturer submits Section B, designer can finalize
           const feasibilityConfirmed = hasProductionParams;
-          
+
           // Has issues if tech_pack_feasible is explicitly false (manufacturer reported issues)
           const hasIssues = order?.tech_pack_feasible === false;
-          
+
           // Determine feasibility status for comparison - this is what the designer sees
           // 'tech_pack_feasible' = Section A done only (checklist complete but not committed)
           // 'submitted' = Section B complete (ready for designer to finalize)
@@ -208,7 +222,7 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
           } else if (techPackReviewComplete) {
             feasibilityStatus = 'tech_pack_feasible'; // Only Section A done (checklist complete)
           }
-          
+
           return {
             ...match,
             orders: order ? [order] : [],
@@ -218,7 +232,7 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
             feasibilityConfirmed,
             hasIssues,
             hasProductionParams,
-            feasibilityStatus
+            feasibilityStatus,
           };
         })
       );
@@ -269,40 +283,75 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
 
     try {
       const manufacturerId = manufacturerToFinalize.manufacturer_id;
-      
-      // Find the order for this specific manufacturer
-      if (!manufacturerToFinalize.orders?.[0]?.id) {
+
+      const selectedManufacturerOrder = manufacturerToFinalize.orders?.[0];
+      if (!selectedManufacturerOrder?.id) {
         toast.error('No order found for this manufacturer');
         return;
       }
 
-      const orderId = manufacturerToFinalize.orders[0].id;
-      console.log('[handleConfirmFinalize] Updating order:', orderId, 'to production_approval status');
-
-      // Update the order to mark this manufacturer as finalized by setting status to production_approval
-      // This is when the designer officially finalizes - the manufacturer's Section B submission
-      // only confirms feasibility but doesn't finalize the contract
-      const { error: updateError } = await supabase
+      // 1) Finalize the manufacturer-specific order (this is what the manufacturer has been working on)
+      const { error: finalizeManufacturerOrderError } = await supabase
         .from('orders')
-        .update({ 
+        .update({
           status: 'production_approval',
-          production_params_approved: true
+          production_params_approved: true,
         })
-        .eq('id', orderId);
+        .eq('id', selectedManufacturerOrder.id);
 
-      if (updateError) {
-        console.error('[handleConfirmFinalize] Update error:', updateError);
-        throw updateError;
+      if (finalizeManufacturerOrderError) {
+        console.error('[handleConfirmFinalize] Update error (manufacturer order):', finalizeManufacturerOrderError);
+        throw finalizeManufacturerOrderError;
       }
 
-      console.log('[handleConfirmFinalize] Order updated successfully to production_approval');
-      
+      // 2) Also update the "primary" workflow order (the one created when the design was created)
+      // so the designer workflow + payment stage key off the correct single order.
+      const { data: primaryOrder, error: primaryOrderError } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('design_id', design.id)
+        .is('manufacturer_id', null)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (primaryOrderError) {
+        console.warn('[handleConfirmFinalize] Primary order lookup error:', primaryOrderError);
+      }
+
+      if (primaryOrder?.id && primaryOrder.id !== selectedManufacturerOrder.id) {
+        const { error: updatePrimaryError } = await supabase
+          .from('orders')
+          .update({
+            manufacturer_id: manufacturerId,
+            status: 'production_approval',
+            production_params_approved: true,
+
+            // Copy over the production details the manufacturer submitted (so designer/payment uses same record)
+            production_params_submitted_at: selectedManufacturerOrder.production_params_submitted_at ?? null,
+            lead_time_days: selectedManufacturerOrder.lead_time_days ?? null,
+            production_start_date: selectedManufacturerOrder.production_start_date ?? null,
+            production_completion_date: selectedManufacturerOrder.production_completion_date ?? null,
+            fabric_type: selectedManufacturerOrder.fabric_type ?? null,
+            gsm: selectedManufacturerOrder.gsm ?? null,
+            shrinkage: selectedManufacturerOrder.shrinkage ?? null,
+            color_fastness: selectedManufacturerOrder.color_fastness ?? null,
+            production_timeline_data: selectedManufacturerOrder.production_timeline_data ?? {},
+          })
+          .eq('id', primaryOrder.id);
+
+        if (updatePrimaryError) {
+          console.error('[handleConfirmFinalize] Update error (primary order):', updatePrimaryError);
+          throw updatePrimaryError;
+        }
+      }
+
       setSelectedManufacturer(manufacturerId);
       setConfirmDialogOpen(false);
       setManufacturerToFinalize(null);
-      
+
       toast.success('Contract finalized! Proceeding to payment.');
-      
+
       // Immediately proceed to payment (skipping production stage)
       markStageComplete('tech-pack');
       markStageComplete('factory-match');
@@ -311,7 +360,10 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
       markStageComplete('manufacture-selection');
       markStageComplete('waiting');
       markStageComplete('production');
-      setCurrentStage('payment', true); // Force navigation to payment
+
+      // Force navigation in context AND in URL (URL is the source of truth when present)
+      setCurrentStage('payment', true);
+      navigate(`/workflow?designId=${design.id}&stage=payment`, { replace: true });
     } catch (error: any) {
       console.error('Error finalizing manufacturer:', error);
       toast.error('Failed to finalize manufacturer');
@@ -320,47 +372,29 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
 
   const handleOpenChat = async (match: ManufacturerMatch) => {
     console.log('[handleOpenChat] Match:', match);
-    
-    // If order exists, use it
-    if (match.orders && match.orders.length > 0) {
-      console.log('[handleOpenChat] Using existing order:', match.orders[0].id);
-      setCurrentChatOrderId(match.orders[0].id);
-      setChatDialogOpen(true);
-      return;
-    }
 
-    // Create order if it doesn't exist
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      console.log('[handleOpenChat] Creating new order for manufacturer:', match.manufacturer_id);
-      
-      const { data: orderData, error: orderError } = await supabase
+      // Always resolve the existing order from DB (prevents duplicate orders)
+      const { data: existingOrder, error: existingOrderError } = await supabase
         .from('orders')
-        .insert({
-          design_id: design.id,
-          designer_id: user.id,
-          manufacturer_id: match.manufacturer_id,
-          quantity: 100,
-          status: 'sent_to_manufacturer',
-          notes: 'Delivery date: TBD'
-        })
-        .select()
-        .single();
+        .select('id')
+        .eq('design_id', design.id)
+        .eq('manufacturer_id', match.manufacturer_id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      if (orderError) throw orderError;
+      if (existingOrderError) throw existingOrderError;
 
-      console.log('[handleOpenChat] Created order:', orderData.id);
-      
-      // Refresh matches to get the new order
-      await fetchMatches();
-      
-      setCurrentChatOrderId(orderData.id);
+      if (!existingOrder?.id) {
+        toast.error('Chat is available once you have sent the tech pack to this manufacturer.');
+        return;
+      }
+
+      setCurrentChatOrderId(existingOrder.id);
       setChatDialogOpen(true);
-      toast.success('Chat opened');
     } catch (error: any) {
-      console.error('[handleOpenChat] Error creating order:', error);
+      console.error('[handleOpenChat] Error opening chat:', error);
       toast.error('Failed to open chat');
     }
   };
