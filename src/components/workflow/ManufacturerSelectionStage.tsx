@@ -92,7 +92,7 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
     fetchMatches();
 
     // Set up real-time subscription for match updates
-    const channel = supabase
+    const matchesChannel = supabase
       .channel(`manufacturer-matches-${design.id}`)
       .on(
         'postgres_changes',
@@ -103,13 +103,33 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
           filter: `design_id=eq.${design.id}`
         },
         () => {
+          console.log('[ManufacturerSelectionStage] Match update detected, refetching...');
+          fetchMatches();
+        }
+      )
+      .subscribe();
+
+    // Set up real-time subscription for order updates (for feasibility changes)
+    const ordersChannel = supabase
+      .channel(`orders-for-design-${design.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'orders',
+          filter: `design_id=eq.${design.id}`
+        },
+        (payload) => {
+          console.log('[ManufacturerSelectionStage] Order update detected:', payload);
           fetchMatches();
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(matchesChannel);
+      supabase.removeChannel(ordersChannel);
     };
   }, [design.id]);
 
