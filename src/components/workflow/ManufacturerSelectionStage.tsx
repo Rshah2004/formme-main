@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { 
   Dialog, 
   DialogContent, 
@@ -10,7 +11,7 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
-import {CheckCircle2, Clock, XCircle, MessageSquare, ArrowRight, ArrowLeft, AlertTriangle, Lock, Info} from 'lucide-react';
+import {CheckCircle2, Clock, XCircle, MessageSquare, ArrowRight, ArrowLeft, AlertTriangle, Lock, Info, Calendar, Factory} from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,10 +39,19 @@ interface ManufacturerMatch {
     tech_pack_feasible?: boolean | null;
     tech_pack_feasibility_notes?: string | null;
     production_params_approved?: boolean | null;
+    production_params_submitted_at?: string | null;
+    fabric_type?: string | null;
+    gsm?: string | null;
+    shrinkage?: string | null;
+    color_fastness?: string | null;
+    lead_time_days?: number | null;
+    production_start_date?: string | null;
+    production_completion_date?: string | null;
   }>;
   isFinalized?: boolean;
   feasibilityConfirmed?: boolean;
   hasIssues?: boolean;
+  hasProductionParams?: boolean;
 }
 
 interface ManufacturerSelectionStageProps {
@@ -109,12 +119,12 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
 
       if (error) throw error;
 
-      // For each match, fetch the corresponding order
+      // For each match, fetch the corresponding order with production params
       const matchesWithOrders = await Promise.all(
         (data || []).map(async (match: any) => {
           const { data: order } = await supabase
             .from('orders')
-            .select('id, status, manufacturer_id, tech_pack_feasible, tech_pack_feasibility_notes, production_params_approved')
+            .select('id, status, manufacturer_id, tech_pack_feasible, tech_pack_feasibility_notes, production_params_approved, production_params_submitted_at, fabric_type, gsm, shrinkage, color_fastness, lead_time_days, production_start_date, production_completion_date')
             .eq('design_id', design.id)
             .eq('manufacturer_id', match.manufacturer_id)
             .maybeSingle();
@@ -122,18 +132,22 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
           // Finalized means status is manufacturer_review or beyond
           const isFinalized = order && order.status !== 'sent_to_manufacturer' && order.status !== 'draft' && order.status !== 'tech_pack_pending';
           
-          // Feasibility is confirmed when tech_pack_feasible is true AND production_params_approved is true
-          const feasibilityConfirmed = order?.tech_pack_feasible === true && order?.production_params_approved === true;
+          // Feasibility is confirmed when production_params_submitted_at is set (manufacturer submitted production confirmation)
+          const feasibilityConfirmed = !!order?.production_params_submitted_at;
           
           // Has issues if tech_pack_feasible is explicitly false (manufacturer reported issues)
           const hasIssues = order?.tech_pack_feasible === false;
+          
+          // Has production params if manufacturer has submitted them
+          const hasProductionParams = !!order?.production_params_submitted_at;
           
           return {
             ...match,
             orders: order ? [order] : [],
             isFinalized,
             feasibilityConfirmed,
-            hasIssues
+            hasIssues,
+            hasProductionParams
           };
         })
       );
@@ -155,13 +169,13 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
         const finalizedOrder = finalizedOrders[0];
         setSelectedManufacturer(finalizedOrder.manufacturer_id);
         
-        // If contract is already finalized, immediately navigate to production stage
-        console.log('[ManufacturerSelectionStage] Contract already finalized, navigating to production stage');
+        // If contract is already finalized, immediately navigate to payment stage
+        console.log('[ManufacturerSelectionStage] Contract already finalized, navigating to payment stage');
         markStageComplete('tech-pack');
         markStageComplete('factory-match');
         markStageComplete('send-tech-pack');
         markStageComplete('manufacture-selection');
-        setCurrentStage('tech-pack-feasibility');
+        setCurrentStage('payment');
       }
     } catch (error: any) {
       console.error('[ManufacturerSelectionStage] Error fetching matches:', error);
@@ -232,16 +246,17 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
       setConfirmDialogOpen(false);
       setManufacturerToFinalize(null);
       
-      toast.success('Contract finalized! Proceeding to production parameters.');
+      toast.success('Contract finalized! Proceeding to payment.');
       
-      // Immediately proceed to production parameters
+      // Immediately proceed to payment (skipping production stage)
       markStageComplete('tech-pack');
       markStageComplete('factory-match');
       markStageComplete('send-tech-pack');
       markStageComplete('factory-selection');
       markStageComplete('manufacture-selection');
       markStageComplete('waiting');
-      setCurrentStage('tech-pack-review');
+      markStageComplete('production');
+      setCurrentStage('payment');
     } catch (error: any) {
       console.error('Error finalizing manufacturer:', error);
       toast.error('Failed to finalize manufacturer');
@@ -305,11 +320,19 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
     markStageComplete('tech-pack');
     markStageComplete('factory-match');
     markStageComplete('send-tech-pack');
+    markStageComplete('manufacture-selection');
+    markStageComplete('production');
     
-    // Navigate to production parameters page
-    setCurrentStage('tech-pack-feasibility');
+    // Navigate to payment page
+    setCurrentStage('payment');
     
     return true;
+  };
+  
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return 'Not set';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
   const getStatusBadge = (status: string) => {
@@ -426,11 +449,61 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
                               </Alert>
                             )}
                             
+                            {/* Show production parameters if manufacturer submitted them */}
+                            {match.hasProductionParams && match.orders?.[0] && (
+                              <Card className="mt-3 border-green-200 bg-green-50/50 dark:border-green-900 dark:bg-green-950/20">
+                                <CardContent className="p-4">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <Factory className="w-4 h-4 text-green-600 dark:text-green-400" />
+                                    <h4 className="text-sm font-semibold text-green-800 dark:text-green-200">Production Confirmation Received</h4>
+                                  </div>
+                                  
+                                  <div className="grid grid-cols-2 gap-3 mb-3">
+                                    <div>
+                                      <Label className="text-xs text-muted-foreground block">Fabric Type</Label>
+                                      <p className="text-sm font-medium">{match.orders[0].fabric_type || 'Not provided'}</p>
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs text-muted-foreground block">GSM</Label>
+                                      <p className="text-sm font-medium">{match.orders[0].gsm || 'Not provided'}</p>
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs text-muted-foreground block">Shrinkage</Label>
+                                      <p className="text-sm font-medium">{match.orders[0].shrinkage || 'Not provided'}</p>
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs text-muted-foreground block">Color Fastness</Label>
+                                      <p className="text-sm font-medium">{match.orders[0].color_fastness || 'Not provided'}</p>
+                                    </div>
+                                  </div>
+                                  
+                                  {(match.orders[0].production_start_date || match.orders[0].production_completion_date) && (
+                                    <div className="border-t pt-3 mt-3">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <Calendar className="w-3 h-3 text-muted-foreground" />
+                                        <span className="text-xs font-medium text-muted-foreground">Timeline</span>
+                                      </div>
+                                      <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                          <Label className="text-xs text-muted-foreground block">Start Date</Label>
+                                          <p className="text-sm font-medium">{formatDate(match.orders[0].production_start_date)}</p>
+                                        </div>
+                                        <div>
+                                          <Label className="text-xs text-muted-foreground block">Completion</Label>
+                                          <p className="text-sm font-medium">{formatDate(match.orders[0].production_completion_date)}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            )}
+                            
                             {/* Show feasibility status */}
                             {match.feasibilityConfirmed && (
-                              <div className="flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400">
+                              <div className="flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400 mt-2">
                                 <CheckCircle2 className="w-4 h-4" />
-                                Feasibility Confirmed - Ready to Finalize
+                                Ready to Finalize Contract
                               </div>
                             )}
 

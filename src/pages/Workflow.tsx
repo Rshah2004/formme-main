@@ -90,11 +90,12 @@ const WorkspaceContent = ({ design }: { design: any }) => {
         return <ManufacturerSelectionStage design={design} />
       // Production stages (sub-navigation: Payment, Sample Review, Quality Check, Delivery)
       case 'tech-pack-feasibility':
-        return <TechPackFeasibilityStage design={design} />;
+        return <ManufacturerSelectionStage design={design} />;
       case 'payment':
         return <PaymentStage design={design} />;
       case 'production':
-        return <ProductionStage design={design} />;
+        // Redirect to payment if someone lands on production stage
+        return <PaymentStage design={design} />;
       case 'waiting-sample':
         return <WaitingForSampleStage design={design} />;
       case 'sample':
@@ -189,25 +190,17 @@ const initializedRef = useRef(false);
         orderWithManufacturer.status !== 'tech_pack_pending' &&
         orderWithManufacturer.status !== 'sent_to_manufacturer';
 
-      // If contract is NOT finalized, stay on manufacture-selection
+      // If contract is NOT finalized, stay on manufacture-selection (even if manufacturer submitted production params)
       if (orderWithManufacturer && !contractFinalized) {
         console.log('[Workflow] Contract not finalized, staying on manufacture-selection');
         setInitialStage('manufacture-selection');
         return;
       }
 
-      // If contract IS finalized, check the production state
+      // If contract IS finalized, go to payment stage (skipping production stage)
       if (orderWithManufacturer && contractFinalized) {
-        // If production params approved, go to payment stage
-        if (orderWithManufacturer.production_params_approved) {
-          console.log('[Workflow] Production params approved, proceeding to payment');
-          setInitialStage('payment');
-          return;
-        }
-        
-        // Otherwise go to production stage (waiting for manufacturer to confirm)
-        console.log('[Workflow] Contract finalized, going to production');
-        setInitialStage('production');
+        console.log('[Workflow] Contract finalized, proceeding to payment');
+        setInitialStage('payment');
         return;
       }
       
@@ -242,20 +235,20 @@ const initializedRef = useRef(false);
       // Check if production params are approved to determine exact stage
       const productionParamsApproved = order.production_params_approved;
 
-      // Map order status to workflow stage (design -> specs -> fabric -> tech-pack -> production stages)
+      // Map order status to workflow stage (design -> specs -> fabric -> tech-pack -> payment stages)
       const stageMap: Record<string, string> = {
         'draft': 'design',
         'tech_pack_pending': 'tech-pack',
-        'sent_to_manufacturer': 'tech-pack-feasibility',
-        'manufacturer_review': 'tech-pack-feasibility',
-        'production_approval': productionParamsApproved ? 'payment' : 'tech-pack-feasibility',
+        'sent_to_manufacturer': 'manufacture-selection',
+        'manufacturer_review': 'payment',
+        'production_approval': 'payment',
         'sample_development': 'sample',
         'quality_check': 'quality',
         'shipping': 'shipping',
         'delivered': 'shipping'
       };
       
-      console.log('[Workflow] Order status:', order.status, 'Params approved:', productionParamsApproved, 'Mapped stage:', stageMap[order.status]);
+      console.log('[Workflow] Order status:', order.status, 'Mapped stage:', stageMap[order.status]);
       setInitialStage(stageMap[order.status] || 'design');
     };
       initializedRef.current = true;
