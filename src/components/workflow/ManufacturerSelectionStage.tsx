@@ -61,6 +61,7 @@ interface ManufacturerMatch {
   }>;
   isFinalized?: boolean;
   techPackFeasible?: boolean;
+  techPackReviewComplete?: boolean;
   feasibilityConfirmed?: boolean;
   hasIssues?: boolean;
   hasProductionParams?: boolean;
@@ -139,7 +140,7 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
         (data || []).map(async (match: any) => {
           const { data: order } = await supabase
             .from('orders')
-            .select('id, status, manufacturer_id, tech_pack_feasible, tech_pack_feasibility_notes, production_params_approved, production_params_submitted_at, fabric_type, gsm, shrinkage, color_fastness, lead_time_days, production_start_date, production_completion_date, production_timeline_data')
+            .select('id, status, manufacturer_id, tech_pack_feasible, tech_pack_feasibility_notes, tech_pack_checklist, production_params_approved, production_params_submitted_at, fabric_type, gsm, shrinkage, color_fastness, lead_time_days, production_start_date, production_completion_date, production_timeline_data')
             .eq('design_id', design.id)
             .eq('manufacturer_id', match.manufacturer_id)
             .maybeSingle();
@@ -147,20 +148,29 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
           // Finalized means status is manufacturer_review or beyond
           const isFinalized = order && order.status !== 'sent_to_manufacturer' && order.status !== 'draft' && order.status !== 'tech_pack_pending';
           
-          // Section A complete: tech_pack_feasible is true (all 5 checks completed)
+          // Section A complete: Check if tech_pack_checklist exists and all items are checked (not blocked)
+          let techPackReviewComplete = false;
+          if (order?.tech_pack_checklist) {
+            const checklist = typeof order.tech_pack_checklist === 'string' 
+              ? JSON.parse(order.tech_pack_checklist) 
+              : order.tech_pack_checklist;
+            if (Array.isArray(checklist) && checklist.length > 0) {
+              techPackReviewComplete = checklist.every((item: any) => item.checked && !item.blocked);
+            }
+          }
+          
+          // Section B complete: production params submitted AND tech_pack_feasible is true
+          const hasProductionParams = !!order?.production_params_submitted_at;
           const techPackFeasible = order?.tech_pack_feasible === true;
           
-          // Section B complete: production params submitted
-          const hasProductionParams = !!order?.production_params_submitted_at;
-          
-          // Full feasibility = both sections complete
+          // Full feasibility = both sections complete (tech_pack_feasible is set when Section B is done)
           const feasibilityConfirmed = techPackFeasible && hasProductionParams;
           
           // Has issues if tech_pack_feasible is explicitly false (manufacturer reported issues)
           const hasIssues = order?.tech_pack_feasible === false;
           
           // Determine feasibility status for comparison - this is what the designer sees
-          // 'tech_pack_feasible' = Section A done only
+          // 'tech_pack_feasible' = Section A done only (checklist complete but not committed)
           // 'submitted' = Both sections complete (ready for designer to finalize)
           // 'blocked' = Issues reported
           // 'pending' = Nothing submitted yet
@@ -169,8 +179,8 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
             feasibilityStatus = 'blocked';
           } else if (feasibilityConfirmed) {
             feasibilityStatus = 'submitted'; // Both sections done = Feasibility Submitted
-          } else if (techPackFeasible) {
-            feasibilityStatus = 'tech_pack_feasible'; // Only Section A done
+          } else if (techPackReviewComplete) {
+            feasibilityStatus = 'tech_pack_feasible'; // Only Section A done (checklist complete)
           }
           
           return {
@@ -178,6 +188,7 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
             orders: order ? [order] : [],
             isFinalized,
             techPackFeasible,
+            techPackReviewComplete,
             feasibilityConfirmed,
             hasIssues,
             hasProductionParams,
@@ -557,14 +568,14 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
                                     </TooltipProvider>
                                   )}
                                   
-                                  {/* Status messages */}
-                                  {!match.feasibilityConfirmed && !match.hasIssues && match.hasProductionParams && (
-                                    <span className="text-xs text-amber-600 dark:text-amber-400 self-center ml-2">
-                                      Manufacturer reviewing - awaiting final confirmation
+                                  {/* Status messages based on feasibility status */}
+                                  {match.feasibilityStatus === 'tech_pack_feasible' && (
+                                    <span className="text-xs text-blue-600 dark:text-blue-400 self-center ml-2">
+                                      Tech pack reviewed - awaiting production confirmation
                                     </span>
                                   )}
-                                  {!match.feasibilityConfirmed && !match.hasIssues && !match.hasProductionParams && (
-                                    <span className="text-xs text-blue-600 dark:text-blue-400 self-center ml-2">
+                                  {match.feasibilityStatus === 'pending' && !match.hasIssues && (
+                                    <span className="text-xs text-muted-foreground self-center ml-2">
                                       Awaiting manufacturer review
                                     </span>
                                   )}
