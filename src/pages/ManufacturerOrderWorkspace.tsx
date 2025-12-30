@@ -12,14 +12,13 @@ import { ManufacturerStepper } from '@/components/workflow/ManufacturerStepper';
 import { FactoryMessaging } from '@/components/workflow/FactoryMessaging';
 import { FloatingMessagesWidget } from '@/components/workflow/FloatingMessagesWidget';
 import { ManufacturerMessaging } from '@/components/manufacturer/ManufacturerMessaging';
-import { TechPackFeasibilityReview } from '@/components/manufacturer/TechPackFeasibilityReview';
-import { ProductionFeasibilityConfirmation } from '@/components/manufacturer/ProductionFeasibilityConfirmation';
+import { ManufacturerReviewFeasibility } from '@/components/manufacturer/ManufacturerReviewFeasibility';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const ManufacturerOrderWorkspace = () => {
   const { id } = useParams();
-  const [activeTab, setActiveTab] = useState('techpack');
+  const [activeTab, setActiveTab] = useState('review-feasibility');
   
   const handleTabChange = (newTab: string) => {
     // Check if trying to access Sample Development without production params approval
@@ -500,53 +499,27 @@ const ManufacturerOrderWorkspace = () => {
 
           {/* Right Content Area */}
           <div className="col-span-9">
-            {/* Tech Pack Feasibility Review */}
-            {activeTab === 'techpack' && (
-              <TechPackFeasibilityReview
+            {/* Merged Review & Feasibility */}
+            {activeTab === 'review-feasibility' && (
+              <ManufacturerReviewFeasibility
                 order={order}
-                onConfirmFeasible={async (notes) => {
-                  try {
-                    await supabase
-                      .from('orders')
-                      .update({ 
-                        status: 'production_approval',
-                        tech_pack_feasible: true,
-                        tech_pack_feasibility_confirmed_at: new Date().toISOString(),
-                        tech_pack_feasibility_notes: notes || null
-                      })
-                      .eq('id', order.id);
-                    
-                    // Update local state
-                    setOrder((prev: any) => ({
-                      ...prev,
-                      tech_pack_feasible: true,
-                      tech_pack_feasibility_confirmed_at: new Date().toISOString(),
-                      status: 'production_approval'
-                    }));
-                    
-                    toast.success('Tech pack confirmed as feasible');
-                    setActiveTab('sample'); // Navigate to production feasibility
-                  } catch (error) {
-                    toast.error('Failed to confirm feasibility');
-                  }
+                onTechPackConfirmed={() => {
+                  // Update local state
+                  setOrder((prev: any) => ({
+                    ...prev,
+                    tech_pack_checklist: prev.tech_pack_checklist
+                  }));
                 }}
-                onRequestChanges={async (notes) => {
-                  try {
-                    await supabase
-                      .from('orders')
-                      .update({ 
-                        tech_pack_feasible: false,
-                        tech_pack_feasibility_notes: notes,
-                        status: 'tech_pack_pending'
-                      })
-                      .eq('id', order.id);
-                    toast.info('Change request sent to designer');
-                  } catch (error) {
-                    toast.error('Failed to send change request');
-                  }
+                onProductionConfirmed={() => {
+                  // Update local state
+                  setOrder((prev: any) => ({
+                    ...prev,
+                    tech_pack_feasible: true,
+                    tech_pack_feasibility_confirmed_at: new Date().toISOString(),
+                    production_params_submitted_at: new Date().toISOString(),
+                    status: 'production_approval'
+                  }));
                 }}
-                isSubmitting={submitting}
-                onNavigateToProduction={() => setActiveTab('feasibility')}
               />
             )}
 
@@ -676,34 +649,6 @@ const ManufacturerOrderWorkspace = () => {
                 </div>
               </CardContent>
             </Card>
-            )}
-
-            {/* Production Feasibility Content */}
-            {activeTab === 'feasibility' && (
-              <ProductionFeasibilityConfirmation
-                order={order}
-                onConfirmFeasibility={async (data) => {
-                  try {
-                    await supabase
-                      .from('orders')
-                      .update({
-                        production_start_date: new Date().toISOString(),
-                        lead_time_days: data.estimatedLeadTimeDays,
-                        fabric_type: data.fabricSourcing === 'manufacturer_sourcing' ? 'Manufacturer sourcing' : 'Designer provided',
-                        production_params_submitted_at: new Date().toISOString(),
-                        status: 'production_approval'
-                      })
-                      .eq('id', order.id);
-                    toast.success('Production feasibility confirmed');
-                  } catch (error) {
-                    toast.error('Failed to confirm feasibility');
-                  }
-                }}
-                onRequestChanges={async (notes) => {
-                  toast.info('Change request sent to designer');
-                }}
-                isSubmitting={submitting}
-              />
             )}
 
             {/* Quality Check Content */}

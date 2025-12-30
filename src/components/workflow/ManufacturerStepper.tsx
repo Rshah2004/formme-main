@@ -9,8 +9,7 @@ interface ManufacturerStepperProps {
 }
 
 const manufacturerStages = [
-  { id: 'techpack', label: 'Tech Pack Feasibility', completionKey: 'status' },
-  { id: 'feasibility', label: 'Production Feasibility', completionKey: 'production_params_submitted_at' },
+  { id: 'review-feasibility', label: 'Review & Feasibility', completionKey: 'tech_pack_feasible' },
   { id: 'sample', label: 'Sample Development', completionKey: 'sample_submitted_at', requiresApproval: true },
   { id: 'quality', label: 'Quality Check', completionKey: 'qc_submitted_at', requiresApproval: true },
   { id: 'shipping', label: 'Shipping & Logistics', completionKey: 'shipping_completed', requiresApproval: true },
@@ -23,10 +22,8 @@ export const ManufacturerStepper = ({ activeStep, onStepChange, orderData }: Man
     if (!orderData) return false;
     
     switch (stage.id) {
-      case 'techpack':
-        return orderData.status !== 'sent_to_manufacturer' && orderData.status !== 'manufacturer_review';
-      case 'feasibility':
-        return !!orderData.production_params_approved;
+      case 'review-feasibility':
+        return orderData.tech_pack_feasible === true && !!orderData.production_params_submitted_at;
       case 'sample':
         return !!orderData.sample_approved;
       case 'quality':
@@ -41,8 +38,7 @@ export const ManufacturerStepper = ({ activeStep, onStepChange, orderData }: Man
   const isStageAccessible = (stage: typeof manufacturerStages[0], index: number) => {
     if (!orderData) return false;
     
-    if (stage.id === 'techpack') return true;
-    if (stage.id === 'feasibility') return true;
+    if (stage.id === 'review-feasibility') return true;
     if (stage.id === 'sample') return orderData.production_params_approved === true;
     if (stage.id === 'quality') return orderData.sample_approved === true;
     if (stage.id === 'shipping') return orderData.qc_approved === true;

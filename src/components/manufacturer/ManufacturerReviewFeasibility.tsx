@@ -1,0 +1,880 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  FileDown, 
+  CheckCircle, 
+  XCircle, 
+  AlertTriangle,
+  MessageSquare,
+  Eye,
+  Clock,
+  Package,
+  Layers,
+  Calendar,
+  Lock,
+  AlertCircle
+} from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+interface ManufacturerReviewFeasibilityProps {
+  order: any;
+  onTechPackConfirmed: () => void;
+  onProductionConfirmed: () => void;
+}
+
+interface ChecklistItem {
+  id: string;
+  label: string;
+  description: string;
+  checked: boolean;
+  blocked: boolean;
+  blockingNote: string;
+}
+
+interface ProductionFeasibilityData {
+  estimatedLeadTimeDays: number;
+  moqAchievable: boolean;
+  moqNote?: string;
+  fabricSourcing: 'designer_provided' | 'manufacturer_sourcing';
+  fabricNote?: string;
+  capacityAvailable: boolean;
+  capacityNote?: string;
+  samplingRequired: boolean;
+  sampleType?: string;
+  additionalNotes?: string;
+  productionCommitmentConfirmed: boolean;
+}
+
+export const ManufacturerReviewFeasibility = ({
+  order,
+  onTechPackConfirmed,
+  onProductionConfirmed
+}: ManufacturerReviewFeasibilityProps) => {
+  const [activeSection, setActiveSection] = useState<'tech-pack' | 'production'>('tech-pack');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Tech Pack Review State
+  const [checklist, setChecklist] = useState<ChecklistItem[]>([
+    {
+      id: 'measurements',
+      label: 'Measurements & tolerances reviewed',
+      description: 'All size specs, grading rules, and tolerance limits are clear',
+      checked: false,
+      blocked: false,
+      blockingNote: ''
+    },
+    {
+      id: 'construction',
+      label: 'Construction details clear',
+      description: 'Seams, stitching, finishing, and assembly order are specified',
+      checked: false,
+      blocked: false,
+      blockingNote: ''
+    },
+    {
+      id: 'artwork',
+      label: 'Artwork / print / embroidery specs clear',
+      description: 'All decorations have placement, color codes, and technique specs',
+      checked: false,
+      blocked: false,
+      blockingNote: ''
+    },
+    {
+      id: 'fabric',
+      label: 'Fabric info present OR marked "Manufacturer to source"',
+      description: 'Fabric type, GSM, composition, or sourcing responsibility is defined',
+      checked: false,
+      blocked: false,
+      blockingNote: ''
+    },
+    {
+      id: 'no_ambiguities',
+      label: 'No blocking ambiguities',
+      description: 'No unclear specs that would prevent production from starting',
+      checked: false,
+      blocked: false,
+      blockingNote: ''
+    }
+  ]);
+  const [showBlockingForm, setShowBlockingForm] = useState<string | null>(null);
+  const [blockingNote, setBlockingNote] = useState('');
+  const [techPackNotes, setTechPackNotes] = useState('');
+  
+  // Production Feasibility State
+  const [productionData, setProductionData] = useState<ProductionFeasibilityData>({
+    estimatedLeadTimeDays: order?.lead_time_days || 21,
+    moqAchievable: true,
+    fabricSourcing: 'manufacturer_sourcing',
+    capacityAvailable: true,
+    samplingRequired: true,
+    sampleType: 'fit',
+    productionCommitmentConfirmed: false
+  });
+  const [productionNotes, setProductionNotes] = useState({
+    moq: '',
+    fabric: '',
+    capacity: ''
+  });
+
+  // Load saved checklist from order
+  useEffect(() => {
+    if (order?.tech_pack_checklist) {
+      try {
+        const savedChecklist = typeof order.tech_pack_checklist === 'string' 
+          ? JSON.parse(order.tech_pack_checklist) 
+          : order.tech_pack_checklist;
+        if (Array.isArray(savedChecklist)) {
+          setChecklist(savedChecklist);
+        }
+      } catch (e) {
+        console.error('Error parsing checklist:', e);
+      }
+    }
+  }, [order?.tech_pack_checklist]);
+
+  // Tech Pack Review Logic
+  const hasBlockedItems = checklist.some(item => item.blocked);
+  const allItemsReviewed = checklist.every(item => item.checked || item.blocked);
+  const allItemsPassed = checklist.every(item => item.checked && !item.blocked);
+  const techPackReviewComplete = allItemsPassed && !hasBlockedItems;
+  const isTechPackAlreadyConfirmed = order?.tech_pack_feasible === true;
+
+  // Production Feasibility Logic
+  const hasProductionIssues = !productionData.moqAchievable || !productionData.capacityAvailable;
+  const allProductionFieldsFilled = productionData.estimatedLeadTimeDays > 0;
+  const requiresExplanation = (hasProductionIssues && !productionNotes.moq && !productionData.moqAchievable) || 
+    (!productionNotes.capacity && !productionData.capacityAvailable);
+  const canConfirmProduction = allProductionFieldsFilled && !requiresExplanation && 
+    productionData.productionCommitmentConfirmed && techPackReviewComplete;
+
+  const handleCheckItem = (id: string, checked: boolean) => {
+    setChecklist(prev => prev.map(item => 
+      item.id === id 
+        ? { ...item, checked, blocked: checked ? false : item.blocked }
+        : item
+    ));
+  };
+
+  const handleBlockItem = (id: string) => {
+    if (!blockingNote.trim()) return;
+    
+    setChecklist(prev => prev.map(item => 
+      item.id === id 
+        ? { ...item, blocked: true, checked: false, blockingNote: blockingNote.trim() }
+        : item
+    ));
+    setBlockingNote('');
+    setShowBlockingForm(null);
+  };
+
+  const handleUnblockItem = (id: string) => {
+    setChecklist(prev => prev.map(item => 
+      item.id === id 
+        ? { ...item, blocked: false, blockingNote: '' }
+        : item
+    ));
+  };
+
+  const handleSaveChecklist = async () => {
+    try {
+      await supabase
+        .from('orders')
+        .update({ tech_pack_checklist: JSON.parse(JSON.stringify(checklist)) })
+        .eq('id', order.id);
+      toast.success('Checklist progress saved');
+    } catch (error) {
+      toast.error('Failed to save checklist');
+    }
+  };
+
+  const handleRequestChanges = async () => {
+    setIsSubmitting(true);
+    try {
+      const blockedItems = checklist.filter(item => item.blocked);
+      const notes = blockedItems
+        .map(item => `• ${item.label}: ${item.blockingNote}`)
+        .join('\n');
+      
+      await supabase
+        .from('orders')
+        .update({ 
+          tech_pack_feasible: false,
+          tech_pack_feasibility_notes: notes,
+          tech_pack_checklist: JSON.parse(JSON.stringify(checklist)),
+          status: 'tech_pack_pending'
+        })
+        .eq('id', order.id);
+      
+      toast.info('Change request sent to designer');
+    } catch (error) {
+      toast.error('Failed to send change request');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleConfirmTechPack = async () => {
+    setIsSubmitting(true);
+    try {
+      await supabase
+        .from('orders')
+        .update({ 
+          tech_pack_checklist: JSON.parse(JSON.stringify(checklist)),
+          tech_pack_feasibility_notes: techPackNotes || null
+        })
+        .eq('id', order.id);
+      
+      toast.success('Tech pack review complete. Proceed to Production Confirmation.');
+      setActiveSection('production');
+      onTechPackConfirmed();
+    } catch (error) {
+      toast.error('Failed to save review');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleConfirmProduction = async () => {
+    if (!productionData.productionCommitmentConfirmed) {
+      toast.error('Please confirm your production commitment');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await supabase
+        .from('orders')
+        .update({
+          tech_pack_feasible: true,
+          tech_pack_feasibility_confirmed_at: new Date().toISOString(),
+          tech_pack_feasibility_notes: techPackNotes || null,
+          tech_pack_checklist: JSON.parse(JSON.stringify(checklist)),
+          production_start_date: new Date().toISOString(),
+          lead_time_days: productionData.estimatedLeadTimeDays,
+          fabric_type: productionData.fabricSourcing === 'manufacturer_sourcing' ? 'Manufacturer sourcing' : 'Designer provided',
+          production_params_submitted_at: new Date().toISOString(),
+          status: 'production_approval'
+        })
+        .eq('id', order.id);
+      
+      toast.success('Production feasibility confirmed. Awaiting designer approval.');
+      onProductionConfirmed();
+    } catch (error) {
+      toast.error('Failed to confirm production feasibility');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-semibold">Manufacturer Review & Feasibility</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Complete both sections to confirm production feasibility
+          </p>
+        </div>
+        <Badge variant={isTechPackAlreadyConfirmed ? 'default' : 'secondary'}>
+          {isTechPackAlreadyConfirmed ? 'Production Confirmed' : 'In Review'}
+        </Badge>
+      </div>
+
+      {/* Section Tabs */}
+      <Tabs value={activeSection} onValueChange={(v) => setActiveSection(v as 'tech-pack' | 'production')}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="tech-pack" className="gap-2">
+            <Eye className="w-4 h-4" />
+            Section A: Tech Pack Review
+            {techPackReviewComplete && <CheckCircle className="w-4 h-4 text-green-600" />}
+          </TabsTrigger>
+          <TabsTrigger 
+            value="production" 
+            disabled={!techPackReviewComplete && !isTechPackAlreadyConfirmed}
+            className="gap-2"
+          >
+            {!techPackReviewComplete && !isTechPackAlreadyConfirmed && <Lock className="w-4 h-4" />}
+            Section B: Production Confirmation
+            {isTechPackAlreadyConfirmed && <CheckCircle className="w-4 h-4 text-green-600" />}
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Section A: Tech Pack Review */}
+        <TabsContent value="tech-pack" className="space-y-6 mt-6">
+          {/* Info Banner */}
+          <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+            <CardContent className="py-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                    Non-binding Review
+                  </p>
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    This section is for reviewing the tech pack. Completing this does NOT commit you to production.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Tech Pack Preview Card */}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Tech Pack Document</CardTitle>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Eye className="w-4 h-4" />
+                    Preview
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <FileDown className="w-4 h-4" />
+                    Download PDF
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground">Category</p>
+                  <p className="font-medium">{order?.designs?.category || 'Not specified'}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Fabric</p>
+                  <p className="font-medium">{order?.design_specs?.fabric_type || 'Not specified'}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">GSM</p>
+                  <p className="font-medium">{order?.design_specs?.gsm || 'Not specified'}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Print Type</p>
+                  <p className="font-medium">{order?.design_specs?.print_type || 'None'}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Feasibility Checklist */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Tech Pack Checklist</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Review each item. Mark as checked if clear, or report issues for clarification.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {checklist.map((item) => (
+                <div 
+                  key={item.id} 
+                  className={`p-4 rounded-lg border transition-colors ${
+                    item.blocked 
+                      ? 'bg-destructive/5 border-destructive/30' 
+                      : item.checked 
+                      ? 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-900'
+                      : 'bg-muted/30 border-border'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex items-center pt-0.5">
+                      {item.blocked ? (
+                        <div className="w-5 h-5 rounded bg-destructive/20 flex items-center justify-center">
+                          <XCircle className="w-4 h-4 text-destructive" />
+                        </div>
+                      ) : (
+                        <Checkbox
+                          id={item.id}
+                          checked={item.checked}
+                          onCheckedChange={(checked) => handleCheckItem(item.id, checked as boolean)}
+                        />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <Label 
+                        htmlFor={item.id} 
+                        className={`font-medium cursor-pointer ${item.blocked ? 'text-destructive' : ''}`}
+                      >
+                        {item.label}
+                      </Label>
+                      <p className="text-sm text-muted-foreground mt-0.5">
+                        {item.description}
+                      </p>
+                      
+                      {item.blocked && item.blockingNote && (
+                        <div className="mt-2 p-2 bg-destructive/10 rounded text-sm">
+                          <span className="font-medium text-destructive">Issue: </span>
+                          <span className="text-destructive/80">{item.blockingNote}</span>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="ml-2 h-6 text-xs"
+                            onClick={() => handleUnblockItem(item.id)}
+                          >
+                            Clear
+                          </Button>
+                        </div>
+                      )}
+
+                      {!item.checked && !item.blocked && (
+                        <>
+                          {showBlockingForm === item.id ? (
+                            <div className="mt-3 space-y-2">
+                              <Textarea
+                                placeholder="Describe the issue or missing information..."
+                                value={blockingNote}
+                                onChange={(e) => setBlockingNote(e.target.value)}
+                                className="text-sm"
+                                rows={2}
+                              />
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="destructive"
+                                  onClick={() => handleBlockItem(item.id)}
+                                  disabled={!blockingNote.trim()}
+                                >
+                                  Mark as Issue
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setShowBlockingForm(null);
+                                    setBlockingNote('');
+                                  }}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="mt-2 text-destructive hover:text-destructive hover:bg-destructive/10 h-7 text-xs"
+                              onClick={() => setShowBlockingForm(item.id)}
+                            >
+                              <AlertTriangle className="w-3 h-3 mr-1" />
+                              Report Issue
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Tech Pack Action Section */}
+          <Card className="border-2 border-primary/20">
+            <CardContent className="p-6">
+              {hasBlockedItems ? (
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3 p-4 bg-destructive/5 rounded-lg">
+                    <AlertTriangle className="w-5 h-5 text-destructive mt-0.5" />
+                    <div>
+                      <p className="font-medium text-destructive">Issues Found</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {checklist.filter(i => i.blocked).length} item(s) need clarification from the designer.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <Button 
+                      variant="outline"
+                      onClick={handleSaveChecklist}
+                      disabled={isSubmitting}
+                    >
+                      Save Progress
+                    </Button>
+                    <Button 
+                      variant="destructive"
+                      className="flex-1 gap-2"
+                      onClick={handleRequestChanges}
+                      disabled={isSubmitting}
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      Request Changes from Designer
+                    </Button>
+                  </div>
+                </div>
+              ) : techPackReviewComplete ? (
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                    <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-green-700 dark:text-green-400">Tech Pack Review Complete</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        All items reviewed. Proceed to Production Confirmation to commit.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm">Review notes (optional)</Label>
+                    <Textarea
+                      placeholder="Any notes for the designer..."
+                      value={techPackNotes}
+                      onChange={(e) => setTechPackNotes(e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+
+                  <Button 
+                    size="lg"
+                    className="w-full gap-2"
+                    onClick={handleConfirmTechPack}
+                    disabled={isSubmitting}
+                  >
+                    Proceed to Production Confirmation
+                  </Button>
+                  
+                  <p className="text-xs text-center text-muted-foreground">
+                    This does not commit you to production yet.
+                  </p>
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-muted-foreground">
+                    Review all checklist items to proceed
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {checklist.filter(i => !i.checked && !i.blocked).length} items remaining
+                  </p>
+                  <Button 
+                    variant="outline"
+                    onClick={handleSaveChecklist}
+                    className="mt-4"
+                    disabled={isSubmitting}
+                  >
+                    Save Progress
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Section B: Production Confirmation */}
+        <TabsContent value="production" className="space-y-6 mt-6">
+          {!techPackReviewComplete && !isTechPackAlreadyConfirmed ? (
+            <Card className="bg-muted/50">
+              <CardContent className="py-12 text-center">
+                <Lock className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Section Locked</h3>
+                <p className="text-muted-foreground">
+                  Complete all items in Tech Pack Review before confirming production feasibility.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              {/* Warning Banner */}
+              <Card className="bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800">
+                <CardContent className="py-4">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                        Binding Commitment
+                      </p>
+                      <p className="text-sm text-amber-700 dark:text-amber-300">
+                        Submitting this section commits you to produce this order under the stated parameters.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Lead Time */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-primary" />
+                    <CardTitle className="text-lg">Lead Time Confirmation</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1 max-w-xs">
+                      <Label htmlFor="lead-time">Days from order confirmation to delivery</Label>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Input
+                          id="lead-time"
+                          type="number"
+                          min="1"
+                          max="180"
+                          value={productionData.estimatedLeadTimeDays}
+                          onChange={(e) => setProductionData(prev => ({ 
+                            ...prev, 
+                            estimatedLeadTimeDays: parseInt(e.target.value) || 0 
+                          }))}
+                          className="w-24"
+                        />
+                        <span className="text-muted-foreground">days</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* MOQ */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <Package className="w-5 h-5 text-primary" />
+                    <CardTitle className="text-lg">MOQ Confirmation</CardTitle>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Order quantity: {order?.quantity || 'Not specified'} units
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <RadioGroup
+                    value={productionData.moqAchievable ? 'yes' : 'no'}
+                    onValueChange={(value) => setProductionData(prev => ({ 
+                      ...prev, 
+                      moqAchievable: value === 'yes' 
+                    }))}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="yes" id="moq-yes" />
+                      <Label htmlFor="moq-yes" className="cursor-pointer">
+                        Yes, this quantity is achievable
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="no" id="moq-no" />
+                      <Label htmlFor="moq-no" className="cursor-pointer">
+                        No, quantity is below our MOQ
+                      </Label>
+                    </div>
+                  </RadioGroup>
+
+                  {!productionData.moqAchievable && (
+                    <div className="mt-3">
+                      <Label className="text-destructive">Explanation required *</Label>
+                      <Textarea
+                        placeholder="Explain the MOQ issue and suggest alternatives..."
+                        value={productionNotes.moq}
+                        onChange={(e) => setProductionNotes(prev => ({ ...prev, moq: e.target.value }))}
+                        className="mt-1"
+                        rows={2}
+                      />
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Fabric Sourcing */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <Layers className="w-5 h-5 text-primary" />
+                    <CardTitle className="text-lg">Fabric Sourcing Responsibility</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <RadioGroup
+                    value={productionData.fabricSourcing}
+                    onValueChange={(value: 'designer_provided' | 'manufacturer_sourcing') => 
+                      setProductionData(prev => ({ ...prev, fabricSourcing: value }))
+                    }
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="designer_provided" id="fabric-designer" />
+                      <Label htmlFor="fabric-designer" className="cursor-pointer">
+                        Designer will provide fabric
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="manufacturer_sourcing" id="fabric-mfr" />
+                      <Label htmlFor="fabric-mfr" className="cursor-pointer">
+                        Manufacturer will source fabric
+                      </Label>
+                    </div>
+                  </RadioGroup>
+
+                  {productionData.fabricSourcing === 'manufacturer_sourcing' && (
+                    <div className="mt-3">
+                      <Label>Fabric sourcing notes (optional)</Label>
+                      <Textarea
+                        placeholder="Notes about fabric availability, alternatives, or lead time impact..."
+                        value={productionNotes.fabric}
+                        onChange={(e) => setProductionNotes(prev => ({ ...prev, fabric: e.target.value }))}
+                        className="mt-1"
+                        rows={2}
+                      />
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Capacity */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-primary" />
+                    <CardTitle className="text-lg">Production Capacity Confirmation</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <RadioGroup
+                    value={productionData.capacityAvailable ? 'yes' : 'no'}
+                    onValueChange={(value) => setProductionData(prev => ({ 
+                      ...prev, 
+                      capacityAvailable: value === 'yes' 
+                    }))}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="yes" id="capacity-yes" />
+                      <Label htmlFor="capacity-yes" className="cursor-pointer">
+                        Yes, capacity available in planned window
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="no" id="capacity-no" />
+                      <Label htmlFor="capacity-no" className="cursor-pointer">
+                        No, capacity constraints exist
+                      </Label>
+                    </div>
+                  </RadioGroup>
+
+                  {!productionData.capacityAvailable && (
+                    <div className="mt-3">
+                      <Label className="text-destructive">Explanation required *</Label>
+                      <Textarea
+                        placeholder="Explain capacity constraints and earliest availability..."
+                        value={productionNotes.capacity}
+                        onChange={(e) => setProductionNotes(prev => ({ ...prev, capacity: e.target.value }))}
+                        className="mt-1"
+                        rows={2}
+                      />
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Sampling */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">Sampling Requirement</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <RadioGroup
+                    value={productionData.samplingRequired ? 'yes' : 'no'}
+                    onValueChange={(value) => setProductionData(prev => ({ 
+                      ...prev, 
+                      samplingRequired: value === 'yes' 
+                    }))}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="yes" id="sampling-yes" />
+                      <Label htmlFor="sampling-yes" className="cursor-pointer">
+                        Yes, sampling required before production
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="no" id="sampling-no" />
+                      <Label htmlFor="sampling-no" className="cursor-pointer">
+                        No, can proceed directly to production
+                      </Label>
+                    </div>
+                  </RadioGroup>
+
+                  {productionData.samplingRequired && (
+                    <div className="mt-3">
+                      <Label>Sample type</Label>
+                      <RadioGroup
+                        value={productionData.sampleType}
+                        onValueChange={(value) => setProductionData(prev => ({ ...prev, sampleType: value }))}
+                        className="mt-2"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="fit" id="sample-fit" />
+                          <Label htmlFor="sample-fit" className="cursor-pointer text-sm">Fit sample</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="size_set" id="sample-size" />
+                          <Label htmlFor="sample-size" className="cursor-pointer text-sm">Size set sample</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="pre_production" id="sample-pre" />
+                          <Label htmlFor="sample-pre" className="cursor-pointer text-sm">Pre-production sample</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Production Commitment Action Section */}
+              <Card className="border-2 border-primary/20">
+                <CardContent className="p-6 space-y-4">
+                  {/* Final Confirmation Checkbox */}
+                  <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                    <Checkbox
+                      id="production-commitment"
+                      checked={productionData.productionCommitmentConfirmed}
+                      onCheckedChange={(checked) => setProductionData(prev => ({
+                        ...prev,
+                        productionCommitmentConfirmed: checked as boolean
+                      }))}
+                    />
+                    <div>
+                      <Label htmlFor="production-commitment" className="font-medium cursor-pointer">
+                        I confirm production commitment
+                      </Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        By checking this box, I confirm that I can produce this order under the stated parameters 
+                        and commit to delivering on time.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm">Additional notes (optional)</Label>
+                    <Textarea
+                      placeholder="Any additional conditions, notes, or questions..."
+                      value={productionData.additionalNotes || ''}
+                      onChange={(e) => setProductionData(prev => ({ ...prev, additionalNotes: e.target.value }))}
+                      rows={2}
+                    />
+                  </div>
+
+                  <Button 
+                    size="lg"
+                    className="w-full gap-2"
+                    onClick={handleConfirmProduction}
+                    disabled={isSubmitting || !canConfirmProduction}
+                  >
+                    <CheckCircle className="w-5 h-5" />
+                    Confirm Production Feasibility
+                  </Button>
+                  
+                  <p className="text-xs text-center text-muted-foreground">
+                    This is a binding commitment. The designer will be notified to approve production.
+                  </p>
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
