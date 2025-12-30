@@ -60,10 +60,11 @@ interface ManufacturerMatch {
     production_timeline_data?: ProductionTimelineData | null;
   }>;
   isFinalized?: boolean;
+  techPackFeasible?: boolean;
   feasibilityConfirmed?: boolean;
   hasIssues?: boolean;
   hasProductionParams?: boolean;
-  feasibilityStatus?: 'pending' | 'submitted' | 'blocked' | 'confirmed';
+  feasibilityStatus?: 'pending' | 'tech_pack_feasible' | 'submitted' | 'blocked';
 }
 
 interface ManufacturerSelectionStageProps {
@@ -146,29 +147,37 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
           // Finalized means status is manufacturer_review or beyond
           const isFinalized = order && order.status !== 'sent_to_manufacturer' && order.status !== 'draft' && order.status !== 'tech_pack_pending';
           
-          // Feasibility is confirmed when tech_pack_feasible is true (all 5 checks completed in Section A + Section B)
-          const feasibilityConfirmed = order?.tech_pack_feasible === true;
+          // Section A complete: tech_pack_feasible is true (all 5 checks completed)
+          const techPackFeasible = order?.tech_pack_feasible === true;
+          
+          // Section B complete: production params submitted
+          const hasProductionParams = !!order?.production_params_submitted_at;
+          
+          // Full feasibility = both sections complete
+          const feasibilityConfirmed = techPackFeasible && hasProductionParams;
           
           // Has issues if tech_pack_feasible is explicitly false (manufacturer reported issues)
           const hasIssues = order?.tech_pack_feasible === false;
           
-          // Has production params if manufacturer has submitted them (production_params_submitted_at is set)
-          const hasProductionParams = !!order?.production_params_submitted_at;
-          
-          // Determine feasibility status for comparison
-          let feasibilityStatus: 'pending' | 'submitted' | 'blocked' | 'confirmed' = 'pending';
+          // Determine feasibility status for comparison - this is what the designer sees
+          // 'tech_pack_feasible' = Section A done only
+          // 'submitted' = Both sections complete (ready for designer to finalize)
+          // 'blocked' = Issues reported
+          // 'pending' = Nothing submitted yet
+          let feasibilityStatus: 'pending' | 'tech_pack_feasible' | 'submitted' | 'blocked' = 'pending';
           if (hasIssues) {
             feasibilityStatus = 'blocked';
           } else if (feasibilityConfirmed) {
-            feasibilityStatus = 'confirmed';
-          } else if (hasProductionParams) {
-            feasibilityStatus = 'submitted';
+            feasibilityStatus = 'submitted'; // Both sections done = Feasibility Submitted
+          } else if (techPackFeasible) {
+            feasibilityStatus = 'tech_pack_feasible'; // Only Section A done
           }
           
           return {
             ...match,
             orders: order ? [order] : [],
             isFinalized,
+            techPackFeasible,
             feasibilityConfirmed,
             hasIssues,
             hasProductionParams,
@@ -370,10 +379,10 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
 
   const getFeasibilityBadge = (match: ManufacturerMatch) => {
     switch (match.feasibilityStatus) {
-      case 'confirmed':
-        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Feasibility Confirmed</Badge>;
       case 'submitted':
-        return <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">Feasibility Submitted</Badge>;
+        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Feasibility Submitted</Badge>;
+      case 'tech_pack_feasible':
+        return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Tech Pack Feasible</Badge>;
       case 'blocked':
         return <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Blocked</Badge>;
       default:
@@ -450,7 +459,7 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
                 {matches.map((match) => (
                   <Card 
                     key={match.id} 
-                    className={`${selectedManufacturer === match.manufacturer_id ? 'border-primary border-2' : ''} ${match.feasibilityStatus === 'confirmed' ? 'border-green-200 dark:border-green-800' : ''} cursor-pointer hover:shadow-md transition-shadow`}
+                    className={`${selectedManufacturer === match.manufacturer_id ? 'border-primary border-2' : ''} ${match.feasibilityStatus === 'submitted' ? 'border-green-200 dark:border-green-800' : ''} cursor-pointer hover:shadow-md transition-shadow`}
                     onClick={() => handleOpenChat(match)}
                   >
                     <CardContent className="p-6">
