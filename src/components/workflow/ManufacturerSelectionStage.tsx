@@ -21,7 +21,7 @@ import { StageHeader } from './StageHeader';
 import { StageNavigation } from './StageNavigation';
 import { useNavigate } from 'react-router-dom';
 import { useWorkflow } from '@/context/WorkflowContext';
-
+import type { Json } from '@/integrations/supabase/types';
 interface ProductionTimelineData {
   lead_time_days?: number;
   moq_achievable?: boolean;
@@ -336,7 +336,7 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
             gsm: selectedManufacturerOrder.gsm ?? null,
             shrinkage: selectedManufacturerOrder.shrinkage ?? null,
             color_fastness: selectedManufacturerOrder.color_fastness ?? null,
-            production_timeline_data: selectedManufacturerOrder.production_timeline_data ?? {},
+            production_timeline_data: (selectedManufacturerOrder.production_timeline_data ?? {}) as Json,
           })
           .eq('id', primaryOrder.id);
 
