@@ -263,7 +263,9 @@ export const ManufacturerReviewFeasibility = ({
           lead_time_days: productionData.estimatedLeadTimeDays,
           fabric_type: productionData.fabricSourcing === 'manufacturer_sourcing' ? 'Manufacturer sourcing' : 'Designer provided',
           production_params_submitted_at: new Date().toISOString(),
-          status: 'production_approval'
+          // IMPORTANT: Do NOT set order status here.
+          // The designer must explicitly click "Finalize Contract" to select a manufacturer.
+          updated_at: new Date().toISOString()
         })
         .eq('id', order.id);
       

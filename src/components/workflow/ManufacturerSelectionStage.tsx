@@ -165,8 +165,9 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
             .eq('manufacturer_id', match.manufacturer_id)
             .maybeSingle();
           
-          // Finalized means status is manufacturer_review or beyond
-          const isFinalized = order && order.status !== 'sent_to_manufacturer' && order.status !== 'draft' && order.status !== 'tech_pack_pending';
+          // "Finalized" means the DESIGNER explicitly selected this manufacturer
+          // (we treat that as status production_approval and beyond)
+          const isFinalized = !!order && ['production_approval', 'sample_development', 'quality_check', 'shipping', 'delivered'].includes(order.status || '');
           
           // Section A complete: Check if tech_pack_checklist exists and all items are checked (not blocked)
           let techPackReviewComplete = false;
