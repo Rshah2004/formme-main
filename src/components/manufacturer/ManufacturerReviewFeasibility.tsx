@@ -147,6 +147,7 @@ export const ManufacturerReviewFeasibility = ({
   const allItemsPassed = checklist.every(item => item.checked && !item.blocked);
   const techPackReviewComplete = allItemsPassed && !hasBlockedItems;
   const isTechPackAlreadyConfirmed = order?.tech_pack_feasible === true;
+  const isResubmittedForReview = order?.tech_pack_feasible === null && order?.tech_pack_feasibility_notes;
 
   // Production Feasibility Logic
   const hasProductionIssues = !productionData.moqAchievable || !productionData.capacityAvailable;
@@ -277,6 +278,25 @@ export const ManufacturerReviewFeasibility = ({
 
   return (
     <div className="space-y-6">
+      {/* Resubmission Alert - Designer has updated and resubmitted */}
+      {isResubmittedForReview && (
+        <Card className="bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 border-2">
+          <CardContent className="py-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                  Designer Has Resubmitted Tech Pack for Review
+                </p>
+                <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                  The designer has updated their tech pack based on your previous feedback. Please review the updated specifications and checklist items again.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -285,8 +305,9 @@ export const ManufacturerReviewFeasibility = ({
             Complete both sections to confirm production feasibility
           </p>
         </div>
-        <Badge variant={isTechPackAlreadyConfirmed ? 'default' : 'secondary'}>
-          {isTechPackAlreadyConfirmed ? 'Production Confirmed' : 'In Review'}
+        <Badge variant={isTechPackAlreadyConfirmed ? 'default' : isResubmittedForReview ? 'outline' : 'secondary'} 
+               className={isResubmittedForReview ? 'border-amber-500 text-amber-700 dark:text-amber-300' : ''}>
+          {isTechPackAlreadyConfirmed ? 'Production Confirmed' : isResubmittedForReview ? 'Resubmitted - Needs Review' : 'In Review'}
         </Badge>
       </div>
 
