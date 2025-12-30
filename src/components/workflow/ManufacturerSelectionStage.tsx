@@ -221,18 +221,19 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
       console.log('[ManufacturerSelectionStage] Matches with orders:', matchesWithOrders);
       setMatches(matchesWithOrders as any);
 
-      // Check if any manufacturer is already finalized
+      // Check if any manufacturer is already finalized (designer clicked "Finalize Contract")
+      // Only production_approval and beyond means designer has explicitly finalized
+      // manufacturer_review status does NOT count as finalized - that's just the manufacturer reviewing
       const { data: finalizedOrders } = await supabase
         .from('orders')
         .select('manufacturer_id, status')
         .eq('design_id', design.id)
         .not('manufacturer_id', 'is', null)
-        .in('status', ['manufacturer_review', 'production_approval', 'sample_development', 'quality_check', 'shipping', 'delivered']);
+        .in('status', ['production_approval', 'sample_development', 'quality_check', 'shipping', 'delivered']);
 
       console.log('[ManufacturerSelectionStage] Finalized orders:', finalizedOrders);
 
-      // Don't auto-navigate here - let the user stay on manufacture-selection
-      // Navigation only happens when user explicitly finalizes the contract
+      // Only set selectedManufacturer if designer has explicitly finalized (status is production_approval+)
       if (finalizedOrders && finalizedOrders.length > 0) {
         const finalizedOrder = finalizedOrders[0];
         setSelectedManufacturer(finalizedOrder.manufacturer_id);
@@ -273,11 +274,13 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
       const orderId = manufacturerToFinalize.orders[0].id;
       console.log('[handleConfirmFinalize] Updating order:', orderId, 'to manufacturer_review status');
 
-      // Update the order to mark this manufacturer as finalized
+      // Update the order to mark this manufacturer as finalized by setting status to production_approval
+      // This is when the designer officially finalizes - the manufacturer's Section B submission
+      // only confirms feasibility but doesn't finalize the contract
       const { error: updateError } = await supabase
         .from('orders')
         .update({ 
-          status: 'manufacturer_review'
+          status: 'production_approval'
         })
         .eq('id', orderId);
 

@@ -453,6 +453,8 @@ async function confirmTechPackFeasibility(supabase: any, userId: string, params:
     throw new Error("Order is not in manufacturer_review status");
   }
 
+  // Note: Do NOT change status here - keep at manufacturer_review
+  // Status only changes to production_approval when DESIGNER finalizes the contract
   const { data: updated, error } = await supabase
     .from('orders')
     .update({
@@ -460,7 +462,7 @@ async function confirmTechPackFeasibility(supabase: any, userId: string, params:
       tech_pack_feasibility_confirmed_at: new Date().toISOString(),
       tech_pack_feasibility_notes: notes,
       tech_pack_checklist: checklist,
-      status: 'production_approval',
+      // Status remains unchanged - designer must finalize
       updated_at: new Date().toISOString()
     })
     .eq('id', order_id)
