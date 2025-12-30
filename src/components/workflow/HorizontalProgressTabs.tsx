@@ -24,9 +24,8 @@ export const techPackSubStages = [
   { id: 'manufacture-selection', label: 'Finalize Manufacturers' },
 ];
 
-// Production sub-stages
+// Production sub-stages (removed production parameters - now shown in finalize manufacturers)
 export const productionSubStages = [
-  {id: 'production', label: 'Production parameters'},
   { id: 'payment', label: 'Payment' },
   { id: 'sample', label: 'Sample Review' },
   { id: 'quality', label: 'Quality Check' },
@@ -241,8 +240,8 @@ const ProductionSubTabs = () => {
   const { currentStage, setCurrentStage, completedStages } = useWorkflow();
 
   const getCurrentSubIndex = () => {
-    if (currentStage === 'payment') return 1;
-    if (currentStage === 'production' || currentStage === 'waiting-sample' || currentStage === 'sample') return 0;
+    if (currentStage === 'payment') return 0;
+    if (currentStage === 'production' || currentStage === 'waiting-sample' || currentStage === 'sample') return 1;
     if (currentStage === 'quality') return 2;
     if (currentStage === 'shipping') return 3;
     return 0;
