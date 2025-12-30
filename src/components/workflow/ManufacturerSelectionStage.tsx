@@ -69,6 +69,8 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
   const [currentChatOrderId, setCurrentChatOrderId] = useState<string | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [manufacturerToFinalize, setManufacturerToFinalize] = useState<ManufacturerMatch | null>(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [manufacturerToViewDetails, setManufacturerToViewDetails] = useState<ManufacturerMatch | null>(null);
   const navigate = useNavigate();
   const { markStageComplete, setCurrentStage } = useWorkflow();
 
@@ -132,13 +134,13 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
           // Finalized means status is manufacturer_review or beyond
           const isFinalized = order && order.status !== 'sent_to_manufacturer' && order.status !== 'draft' && order.status !== 'tech_pack_pending';
           
-          // Feasibility is confirmed when production_params_submitted_at is set (manufacturer submitted production confirmation)
-          const feasibilityConfirmed = !!order?.production_params_submitted_at;
+          // Feasibility is confirmed when tech_pack_feasible is true (all 5 checks completed in Section A + Section B)
+          const feasibilityConfirmed = order?.tech_pack_feasible === true;
           
           // Has issues if tech_pack_feasible is explicitly false (manufacturer reported issues)
           const hasIssues = order?.tech_pack_feasible === false;
           
-          // Has production params if manufacturer has submitted them
+          // Has production params if manufacturer has submitted them (production_params_submitted_at is set)
           const hasProductionParams = !!order?.production_params_submitted_at;
           
           return {
@@ -444,67 +446,33 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
                               </Alert>
                             )}
                             
-                            {/* Show production parameters if manufacturer submitted them */}
-                            {match.hasProductionParams && match.orders?.[0] && (
-                              <Card className="mt-3 border-green-200 bg-green-50/50 dark:border-green-900 dark:bg-green-950/20">
-                                <CardContent className="p-4">
-                                  <div className="flex items-center gap-2 mb-3">
-                                    <Factory className="w-4 h-4 text-green-600 dark:text-green-400" />
-                                    <h4 className="text-sm font-semibold text-green-800 dark:text-green-200">Production Confirmation Received</h4>
-                                  </div>
-                                  
-                                  <div className="grid grid-cols-2 gap-3 mb-3">
-                                    <div>
-                                      <Label className="text-xs text-muted-foreground block">Fabric Type</Label>
-                                      <p className="text-sm font-medium">{match.orders[0].fabric_type || 'Not provided'}</p>
-                                    </div>
-                                    <div>
-                                      <Label className="text-xs text-muted-foreground block">GSM</Label>
-                                      <p className="text-sm font-medium">{match.orders[0].gsm || 'Not provided'}</p>
-                                    </div>
-                                    <div>
-                                      <Label className="text-xs text-muted-foreground block">Shrinkage</Label>
-                                      <p className="text-sm font-medium">{match.orders[0].shrinkage || 'Not provided'}</p>
-                                    </div>
-                                    <div>
-                                      <Label className="text-xs text-muted-foreground block">Color Fastness</Label>
-                                      <p className="text-sm font-medium">{match.orders[0].color_fastness || 'Not provided'}</p>
-                                    </div>
-                                  </div>
-                                  
-                                  {(match.orders[0].production_start_date || match.orders[0].production_completion_date) && (
-                                    <div className="border-t pt-3 mt-3">
-                                      <div className="flex items-center gap-2 mb-2">
-                                        <Calendar className="w-3 h-3 text-muted-foreground" />
-                                        <span className="text-xs font-medium text-muted-foreground">Timeline</span>
-                                      </div>
-                                      <div className="grid grid-cols-2 gap-3">
-                                        <div>
-                                          <Label className="text-xs text-muted-foreground block">Start Date</Label>
-                                          <p className="text-sm font-medium">{formatDate(match.orders[0].production_start_date)}</p>
-                                        </div>
-                                        <div>
-                                          <Label className="text-xs text-muted-foreground block">Completion</Label>
-                                          <p className="text-sm font-medium">{formatDate(match.orders[0].production_completion_date)}</p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-                                </CardContent>
-                              </Card>
-                            )}
-                            
                             {/* Show feasibility status */}
                             {match.feasibilityConfirmed && (
                               <div className="flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400 mt-2">
                                 <CheckCircle2 className="w-4 h-4" />
-                                Ready to Finalize Contract
+                                Feasibility Review Complete - Ready to Finalize
                               </div>
                             )}
 
-                            <div className="flex gap-2 items-center">
+                            <div className="flex gap-2 items-center flex-wrap mt-2">
                               {match.status === 'accepted' && !match.isFinalized && (
                                 <>
+                                  {/* View Production Details button - show when manufacturer submitted production confirmation */}
+                                  {match.hasProductionParams && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => {
+                                        setManufacturerToViewDetails(match);
+                                        setDetailsDialogOpen(true);
+                                      }}
+                                      className="gap-2"
+                                    >
+                                      <Factory className="w-4 h-4" />
+                                      View Production Details
+                                    </Button>
+                                  )}
+                                  
                                   {match.feasibilityConfirmed ? (
                                     <Button
                                       size="sm"
@@ -512,7 +480,7 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
                                       className="gap-2"
                                     >
                                       <CheckCircle2 className="w-4 h-4" />
-                                      Finalize Production Agreement
+                                      Finalize Contract
                                     </Button>
                                   ) : (
                                     <TooltipProvider>
@@ -525,18 +493,25 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
                                             className="gap-2 opacity-50 cursor-not-allowed"
                                           >
                                             <Lock className="w-4 h-4" />
-                                            Finalize Production Agreement
+                                            Finalize Contract
                                           </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                          <p>Manufacturer must complete feasibility review first</p>
+                                          <p>Manufacturer must complete all feasibility checks first</p>
                                         </TooltipContent>
                                       </Tooltip>
                                     </TooltipProvider>
                                   )}
-                                  {!match.feasibilityConfirmed && !match.hasIssues && (
+                                  
+                                  {/* Status messages */}
+                                  {!match.feasibilityConfirmed && !match.hasIssues && match.hasProductionParams && (
+                                    <span className="text-xs text-amber-600 dark:text-amber-400 self-center ml-2">
+                                      Manufacturer reviewing - awaiting final confirmation
+                                    </span>
+                                  )}
+                                  {!match.feasibilityConfirmed && !match.hasIssues && !match.hasProductionParams && (
                                     <span className="text-xs text-blue-600 dark:text-blue-400 self-center ml-2">
-                                      Awaiting feasibility confirmation
+                                      Awaiting manufacturer review
                                     </span>
                                   )}
                                   {match.hasIssues && (
@@ -635,7 +610,7 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
             <DialogTitle>Finalize Contract</DialogTitle>
             <DialogDescription>
               Are you sure you want to finalize the contract with {manufacturerToFinalize?.manufacturers.name}? 
-              Once confirmed, you'll proceed to review production parameters with this manufacturer.
+              Once confirmed, you'll proceed to payment with this manufacturer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
@@ -651,6 +626,92 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
             <Button onClick={handleConfirmFinalize}>
               Yes, Finalize Contract
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Production Details Dialog */}
+      <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Factory className="w-5 h-5 text-primary" />
+              Production Details from {manufacturerToViewDetails?.manufacturers.name}
+            </DialogTitle>
+            <DialogDescription>
+              Review the production confirmation submitted by the manufacturer before finalizing the contract.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {manufacturerToViewDetails?.orders?.[0] && (
+            <div className="space-y-4">
+              {/* Fabric Specifications */}
+              <div>
+                <h4 className="text-sm font-semibold mb-3">Fabric Specifications</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-muted/50 p-3 rounded-lg">
+                    <Label className="text-xs text-muted-foreground block">Fabric Type</Label>
+                    <p className="text-sm font-medium">{manufacturerToViewDetails.orders[0].fabric_type || 'Not provided'}</p>
+                  </div>
+                  <div className="bg-muted/50 p-3 rounded-lg">
+                    <Label className="text-xs text-muted-foreground block">GSM (Weight)</Label>
+                    <p className="text-sm font-medium">{manufacturerToViewDetails.orders[0].gsm || 'Not provided'}</p>
+                  </div>
+                  <div className="bg-muted/50 p-3 rounded-lg">
+                    <Label className="text-xs text-muted-foreground block">Shrinkage</Label>
+                    <p className="text-sm font-medium">{manufacturerToViewDetails.orders[0].shrinkage || 'Not provided'}</p>
+                  </div>
+                  <div className="bg-muted/50 p-3 rounded-lg">
+                    <Label className="text-xs text-muted-foreground block">Color Fastness</Label>
+                    <p className="text-sm font-medium">{manufacturerToViewDetails.orders[0].color_fastness || 'Not provided'}</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Production Timeline */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Calendar className="w-4 h-4 text-primary" />
+                  <h4 className="text-sm font-semibold">Production Timeline</h4>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-muted/50 p-3 rounded-lg">
+                    <Label className="text-xs text-muted-foreground block">Lead Time</Label>
+                    <p className="text-sm font-medium">{manufacturerToViewDetails.orders[0].lead_time_days ? `${manufacturerToViewDetails.orders[0].lead_time_days} days` : 'Not provided'}</p>
+                  </div>
+                  <div className="bg-muted/50 p-3 rounded-lg">
+                    <Label className="text-xs text-muted-foreground block">Start Date</Label>
+                    <p className="text-sm font-medium">{formatDate(manufacturerToViewDetails.orders[0].production_start_date)}</p>
+                  </div>
+                  <div className="bg-muted/50 p-3 rounded-lg col-span-2">
+                    <Label className="text-xs text-muted-foreground block">Expected Completion</Label>
+                    <p className="text-sm font-medium">{formatDate(manufacturerToViewDetails.orders[0].production_completion_date)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-0 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDetailsDialogOpen(false);
+                setManufacturerToViewDetails(null);
+              }}
+            >
+              Close
+            </Button>
+            {manufacturerToViewDetails?.feasibilityConfirmed && (
+              <Button 
+                onClick={() => {
+                  setDetailsDialogOpen(false);
+                  handleOpenConfirmDialog(manufacturerToViewDetails);
+                }}
+              >
+                Finalize Contract
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
