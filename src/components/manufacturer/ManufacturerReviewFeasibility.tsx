@@ -252,6 +252,21 @@ export const ManufacturerReviewFeasibility = ({
 
     setIsSubmitting(true);
     try {
+      // Save complete production details to production_timeline_data for designer review
+      const productionTimelineData = {
+        lead_time_days: productionData.estimatedLeadTimeDays,
+        moq_achievable: productionData.moqAchievable,
+        moq_note: productionNotes.moq || null,
+        fabric_sourcing: productionData.fabricSourcing,
+        fabric_note: productionNotes.fabric || null,
+        capacity_available: productionData.capacityAvailable,
+        capacity_note: productionNotes.capacity || null,
+        sampling_required: productionData.samplingRequired,
+        sample_type: productionData.sampleType || null,
+        additional_notes: productionData.additionalNotes || null,
+        confirmed_at: new Date().toISOString()
+      };
+
       await supabase
         .from('orders')
         .update({
@@ -263,6 +278,7 @@ export const ManufacturerReviewFeasibility = ({
           lead_time_days: productionData.estimatedLeadTimeDays,
           fabric_type: productionData.fabricSourcing === 'manufacturer_sourcing' ? 'Manufacturer sourcing' : 'Designer provided',
           production_params_submitted_at: new Date().toISOString(),
+          production_timeline_data: productionTimelineData,
           // IMPORTANT: Do NOT set order status here.
           // The designer must explicitly click "Finalize Contract" to select a manufacturer.
           updated_at: new Date().toISOString()

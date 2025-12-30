@@ -465,6 +465,25 @@ const ManufacturerOrderWorkspace = () => {
           Back to Dashboard
         </Link>
 
+        {/* Contract Finalized Banner */}
+        {order.status === 'production_approval' && (
+          <Card className="mb-6 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 border-2">
+            <CardContent className="py-4">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                <div>
+                  <p className="text-lg font-semibold text-green-800 dark:text-green-200">
+                    Contract Finalized!
+                  </p>
+                  <p className="text-sm text-green-700 dark:text-green-300">
+                    The designer has accepted your production terms and finalized the contract. Payment is being processed.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
@@ -475,9 +494,15 @@ const ManufacturerOrderWorkspace = () => {
               <p className="text-muted-foreground">Designer: {order.profiles?.full_name || 'Unknown'}</p>
             </div>
             <div className="flex items-center gap-3">
-              <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                On Track
-              </Badge>
+              {order.status === 'production_approval' ? (
+                <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                  Contract Finalized
+                </Badge>
+              ) : (
+                <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                  On Track
+                </Badge>
+              )}
               <Badge variant="outline">{order.status?.replace(/_/g, ' ') || 'Pending'}</Badge>
             </div>
           </div>
