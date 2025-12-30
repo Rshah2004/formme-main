@@ -175,36 +175,56 @@ const initializedRef = useRef(false);
         return;
       }
       
-      // Check manufacturer match status instead of order status
+      // First check if there's an order with a manufacturer assigned
+      const { data: orderWithManufacturer } = await supabase
+        .from('orders')
+        .select('id, status, manufacturer_id, tech_pack_feasible, production_params_approved')
+        .eq('design_id', designId)
+        .not('manufacturer_id', 'is', null)
+        .maybeSingle();
+
+      // If there's an order with manufacturer, check the feasibility state
+      if (orderWithManufacturer) {
+        // If manufacturer requested changes (tech_pack_feasible = false), go to feasibility stage
+        if (orderWithManufacturer.tech_pack_feasible === false) {
+          console.log('[Workflow] Manufacturer requested changes, going to feasibility stage');
+          setInitialStage('tech-pack-feasibility');
+          return;
+        }
+        
+        // If under review (tech_pack_feasible = null), go to feasibility stage
+        if (orderWithManufacturer.tech_pack_feasible === null && orderWithManufacturer.status !== 'draft') {
+          console.log('[Workflow] Tech pack under review, going to feasibility stage');
+          setInitialStage('tech-pack-feasibility');
+          return;
+        }
+        
+        // If feasibility confirmed but production not approved yet, go to production stage
+        if (orderWithManufacturer.tech_pack_feasible === true && !orderWithManufacturer.production_params_approved) {
+          console.log('[Workflow] Feasibility confirmed, waiting for production params');
+          setInitialStage('tech-pack-feasibility');
+          return;
+        }
+        
+        // If production params approved, go to payment stage
+        if (orderWithManufacturer.production_params_approved) {
+          console.log('[Workflow] Production params approved, proceeding to payment');
+          setInitialStage('payment');
+          return;
+        }
+      }
+      
+      // Check manufacturer match status
       const { data: acceptedMatches } = await supabase
         .from('manufacturer_matches')
         .select('status')
         .eq('design_id', designId)
         .eq('status', 'accepted');
       
-      // If there are accepted matches but no finalized contract, go to manufacturer selection
+      // If there are accepted matches but no finalized order, go to waiting/selection stage
       if (acceptedMatches && acceptedMatches.length > 0) {
-        const { data: finalizedOrder } = await supabase
-          .from('orders')
-          .select('status, manufacturer_id, production_params_approved')
-          .eq('design_id', designId)
-          .not('manufacturer_id', 'is', null)
-          .maybeSingle();
-        
-        if (!finalizedOrder) {
-          console.log('[Workflow] Manufacturers accepted, waiting for contract finalization');
-          setInitialStage('send-tech-pack');
-          return;
-        }
-        
-        // If contract is finalized, determine stage based on production params approval
-        if (finalizedOrder.production_params_approved) {
-          console.log('[Workflow] Production params approved, proceeding to payment/sample');
-          setInitialStage('payment');
-        } else {
-          console.log('[Workflow] Contract finalized, going to production parameters review');
-          setInitialStage('production');
-        }
+        console.log('[Workflow] Manufacturers accepted, waiting for selection');
+        setInitialStage('send-tech-pack');
         return;
       }
       
@@ -229,9 +249,9 @@ const initializedRef = useRef(false);
       const stageMap: Record<string, string> = {
         'draft': 'design',
         'tech_pack_pending': 'tech-pack',
-        'sent_to_manufacturer': 'send-tech-pack',
-        'manufacturer_review': 'production',
-        'production_approval': productionParamsApproved ? 'payment' : 'production',
+        'sent_to_manufacturer': 'tech-pack-feasibility',
+        'manufacturer_review': 'tech-pack-feasibility',
+        'production_approval': productionParamsApproved ? 'payment' : 'tech-pack-feasibility',
         'sample_development': 'sample',
         'quality_check': 'quality',
         'shipping': 'shipping',
