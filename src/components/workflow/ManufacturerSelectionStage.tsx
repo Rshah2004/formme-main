@@ -24,11 +24,15 @@ import { useWorkflow } from '@/context/WorkflowContext';
 
 interface ProductionTimelineData {
   lead_time_days?: number;
+  moq_achievable?: boolean;
+  moq_note?: string | null;
   fabric_sourcing?: string;
+  fabric_note?: string | null;
   capacity_available?: boolean;
+  capacity_note?: string | null;
   sampling_required?: boolean;
-  sample_type?: string;
-  additional_notes?: string;
+  sample_type?: string | null;
+  additional_notes?: string | null;
   confirmed_at?: string;
 }
 
@@ -693,16 +697,69 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
         </DialogContent>
       </Dialog>
 
-      {/* Confirmation Dialog */}
+      {/* Confirmation Dialog with Production Details */}
       <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Finalize Contract</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Factory className="w-5 h-5 text-primary" />
+              Finalize Contract with {manufacturerToFinalize?.manufacturers.name}
+            </DialogTitle>
             <DialogDescription>
-              Are you sure you want to finalize the contract with {manufacturerToFinalize?.manufacturers.name}? 
-              Once confirmed, you'll proceed to payment with this manufacturer.
+              Review the production details submitted by the manufacturer before finalizing. 
+              Once confirmed, you'll proceed to payment.
             </DialogDescription>
           </DialogHeader>
+          
+          {manufacturerToFinalize?.orders?.[0] && (() => {
+            const order = manufacturerToFinalize.orders[0];
+            const timeline = order.production_timeline_data as ProductionTimelineData | null;
+            
+            return (
+              <div className="space-y-4 my-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-muted/30 p-3 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Lead Time</p>
+                    <p className="font-semibold">{timeline?.lead_time_days || order.lead_time_days || 'N/A'} days</p>
+                  </div>
+                  <div className="bg-muted/30 p-3 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Fabric Sourcing</p>
+                    <p className="font-semibold">
+                      {timeline?.fabric_sourcing === 'manufacturer_sourcing' || timeline?.fabric_sourcing === 'manufacturer' 
+                        ? 'Manufacturer sources' 
+                        : timeline?.fabric_sourcing === 'designer_provided' 
+                          ? 'Designer provides' 
+                          : order.fabric_type || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="bg-muted/30 p-3 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Capacity Available</p>
+                    <p className="font-semibold">
+                      {timeline?.capacity_available !== undefined 
+                        ? (timeline.capacity_available ? '✅ Yes' : '❌ No') 
+                        : 'N/A'}
+                    </p>
+                  </div>
+                  <div className="bg-muted/30 p-3 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Sampling Required</p>
+                    <p className="font-semibold">
+                      {timeline?.sampling_required !== undefined 
+                        ? (timeline.sampling_required ? `Yes (${timeline.sample_type || 'Fit sample'})` : 'No') 
+                        : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+                
+                {timeline?.additional_notes && (
+                  <div className="bg-muted/30 p-3 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Additional Notes</p>
+                    <p className="text-sm">{timeline.additional_notes}</p>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
           <DialogFooter className="gap-2 sm:gap-0">
             <Button
               variant="outline"
@@ -713,8 +770,9 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
             >
               Cancel
             </Button>
-            <Button onClick={handleConfirmFinalize}>
-              Yes, Finalize Contract
+            <Button onClick={handleConfirmFinalize} className="gap-2">
+              <CheckCircle2 className="w-4 h-4" />
+              Finalize Contract & Proceed to Payment
             </Button>
           </DialogFooter>
         </DialogContent>
