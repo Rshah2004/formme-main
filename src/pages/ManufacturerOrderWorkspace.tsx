@@ -923,57 +923,6 @@ const ManufacturerOrderWorkspace = () => {
             )}
           </div>
         </div>
-
-        {/* Matching Controls (shown only when status is pending) */}
-        {matchStatus === 'pending' && (
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle>Tech Pack Review Request</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                The designer has requested you to review their tech pack. Agreeing to review does not commit you to production.
-              </p>
-              <div className="flex gap-3">
-                <Button 
-                  onClick={handleAcceptMatch} 
-                  disabled={accepting}
-                  className="gap-2"
-                >
-                  <Clock className="w-4 h-4" />
-                  {accepting ? 'Processing...' : 'Agree to Review Tech Pack'}
-                </Button>
-                <Button 
-                  onClick={handleDeclineMatch}
-                  disabled={accepting}
-                  variant="outline" 
-                  className="gap-2"
-                >
-                  <XCircle className="w-4 h-4" />
-                  Decline
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {matchStatus === 'accepted' && (
-          <Card className="mt-8 bg-blue-50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <div>
-                  <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                    You have agreed to review this tech pack.
-                  </p>
-                  <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                    Production is not confirmed yet. Please review the tech pack and confirm feasibility when ready.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
 
       {/* Floating Messages Widget for Manufacturers */}
