@@ -281,33 +281,31 @@ export const AcceptOrderStage = ({ order, onAccept, onDecline, matchStatus }: Ac
         </CardContent>
       </Card>
 
-      {/* Decision Buttons */}
+      {/* Decision Buttons - Tech Pack Review Request Style */}
       <Card>
         <CardContent className="py-6">
-          <div className="flex flex-col items-center text-center">
-            <h3 className="text-lg font-semibold mb-2">Would you like to review this tech pack?</h3>
-            <p className="text-muted-foreground mb-6 max-w-md">
-              By agreeing, you commit to reviewing the tech pack and submitting your production parameters for the designer's approval.
-            </p>
-            <div className="flex gap-4">
-              <Button 
-                variant="outline" 
-                size="lg" 
-                onClick={handleDecline}
-                disabled={declining || accepting}
-                className="min-w-32"
-              >
-                {declining ? 'Declining...' : 'Decline'}
-              </Button>
-              <Button 
-                size="lg" 
-                onClick={handleAccept}
-                disabled={accepting || declining}
-                className="min-w-32 bg-green-600 hover:bg-green-700"
-              >
-                {accepting ? 'Accepting...' : 'Agree to Review'}
-              </Button>
-            </div>
+          <h3 className="text-xl font-bold mb-2">Tech Pack Review Request</h3>
+          <p className="text-muted-foreground mb-4">
+            The designer has requested you to review their tech pack. Agreeing to review does not commit you to production.
+          </p>
+          <div className="flex gap-3">
+            <Button 
+              onClick={handleAccept}
+              disabled={accepting || declining}
+              className="bg-[#2d3b2d] hover:bg-[#3d4b3d] text-white gap-2"
+            >
+              <Clock className="w-4 h-4" />
+              {accepting ? 'Accepting...' : 'Agree to Review Tech Pack'}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleDecline}
+              disabled={declining || accepting}
+              className="gap-2"
+            >
+              <XCircle className="w-4 h-4" />
+              {declining ? 'Declining...' : 'Decline'}
+            </Button>
           </div>
         </CardContent>
       </Card>
