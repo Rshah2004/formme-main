@@ -285,9 +285,9 @@ export const AcceptOrderStage = ({ order, onAccept, onDecline, matchStatus }: Ac
       <Card>
         <CardContent className="py-6">
           <div className="flex flex-col items-center text-center">
-            <h3 className="text-lg font-semibold mb-2">Would you like to take this order?</h3>
+            <h3 className="text-lg font-semibold mb-2">Would you like to review this tech pack?</h3>
             <p className="text-muted-foreground mb-6 max-w-md">
-              By accepting, you agree to review the tech pack and submit your production parameters for the designer's approval.
+              By agreeing, you commit to reviewing the tech pack and submitting your production parameters for the designer's approval.
             </p>
             <div className="flex gap-4">
               <Button 
@@ -297,7 +297,7 @@ export const AcceptOrderStage = ({ order, onAccept, onDecline, matchStatus }: Ac
                 disabled={declining || accepting}
                 className="min-w-32"
               >
-                {declining ? 'Declining...' : 'Decline Order'}
+                {declining ? 'Declining...' : 'Decline'}
               </Button>
               <Button 
                 size="lg" 
@@ -305,7 +305,7 @@ export const AcceptOrderStage = ({ order, onAccept, onDecline, matchStatus }: Ac
                 disabled={accepting || declining}
                 className="min-w-32 bg-green-600 hover:bg-green-700"
               >
-                {accepting ? 'Accepting...' : 'Accept Order'}
+                {accepting ? 'Accepting...' : 'Agree to Review'}
               </Button>
             </div>
           </div>
