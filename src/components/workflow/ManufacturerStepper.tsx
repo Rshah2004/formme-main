@@ -9,7 +9,8 @@ interface ManufacturerStepperProps {
 }
 
 const manufacturerStages = [
-  { id: 'review-feasibility', label: 'Review & Feasibility', completionKey: 'tech_pack_feasible' },
+  { id: 'accept-order', label: 'Accept Order', completionKey: 'order_accepted' },
+  { id: 'review-feasibility', label: 'Review & Feasibility', completionKey: 'tech_pack_feasible', requiresAcceptance: true },
   { id: 'sample', label: 'Sample Development', completionKey: 'sample_submitted_at', requiresApproval: true },
   { id: 'quality', label: 'Quality Check', completionKey: 'qc_submitted_at', requiresApproval: true },
   { id: 'shipping', label: 'Shipping & Logistics', completionKey: 'shipping_completed', requiresApproval: true },
@@ -18,10 +19,20 @@ const manufacturerStages = [
 export const ManufacturerStepper = ({ activeStep, onStepChange, orderData }: ManufacturerStepperProps) => {
   const currentIndex = manufacturerStages.findIndex(s => s.id === activeStep);
 
+  // Check if manufacturer has accepted the order (match status = 'accepted')
+  const hasAcceptedOrder = orderData?.match_status === 'accepted' || 
+    orderData?.status === 'production_approval' || 
+    orderData?.status === 'sample_development' ||
+    orderData?.status === 'quality_check' ||
+    orderData?.status === 'shipping' ||
+    orderData?.status === 'delivered';
+
   const isStageCompleted = (stage: typeof manufacturerStages[0]) => {
     if (!orderData) return false;
     
     switch (stage.id) {
+      case 'accept-order':
+        return hasAcceptedOrder;
       case 'review-feasibility':
         return orderData.tech_pack_feasible === true && !!orderData.production_params_submitted_at;
       case 'sample':
@@ -38,7 +49,13 @@ export const ManufacturerStepper = ({ activeStep, onStepChange, orderData }: Man
   const isStageAccessible = (stage: typeof manufacturerStages[0], index: number) => {
     if (!orderData) return false;
     
-    if (stage.id === 'review-feasibility') return true;
+    // Accept order is always accessible
+    if (stage.id === 'accept-order') return true;
+    
+    // Other stages require order acceptance first
+    if (!hasAcceptedOrder) return false;
+    
+    if (stage.id === 'review-feasibility') return hasAcceptedOrder;
     if (stage.id === 'sample') return orderData.production_params_approved === true;
     if (stage.id === 'quality') return orderData.sample_approved === true;
     if (stage.id === 'shipping') return orderData.qc_approved === true;
@@ -72,7 +89,11 @@ export const ManufacturerStepper = ({ activeStep, onStepChange, orderData }: Man
             <button
               onClick={() => {
                 if (isLocked) {
-                  toast.error('This stage is locked until the previous stage is approved');
+                  if (!hasAcceptedOrder) {
+                    toast.error('Please accept the order first to access this stage');
+                  } else {
+                    toast.error('This stage is locked until the previous stage is approved');
+                  }
                   return;
                 }
                 if (isAccessible) onStepChange(stage.id);
@@ -86,8 +107,10 @@ export const ManufacturerStepper = ({ activeStep, onStepChange, orderData }: Man
               }`}>
                 {isCompleted ? (
                   <Check className="w-4 h-4 text-primary-foreground" />
+                ) : isLocked ? (
+                  <Lock className="w-3 h-3 text-muted-foreground/50" />
                 ) : (
-                  <span className={`text-xs font-semibold ${isCurrent ? 'text-primary' : isLocked ? 'text-muted-foreground/50' : 'text-muted-foreground'}`}>
+                  <span className={`text-xs font-semibold ${isCurrent ? 'text-primary' : 'text-muted-foreground'}`}>
                     {index + 1}
                   </span>
                 )}
@@ -98,7 +121,12 @@ export const ManufacturerStepper = ({ activeStep, onStepChange, orderData }: Man
                   {stage.label}
                 </p>
                 {isCompleted && <p className="text-xs text-muted-foreground mt-0.5">Completed</p>}
-                {isLocked && stage.requiresApproval && <p className="text-xs text-amber-600 mt-0.5">Awaiting approval</p>}
+                {isLocked && !hasAcceptedOrder && stage.id !== 'accept-order' && (
+                  <p className="text-xs text-amber-600 mt-0.5">Accept order first</p>
+                )}
+                {isLocked && hasAcceptedOrder && stage.requiresApproval && (
+                  <p className="text-xs text-amber-600 mt-0.5">Awaiting approval</p>
+                )}
               </div>
             </button>
           </div>
