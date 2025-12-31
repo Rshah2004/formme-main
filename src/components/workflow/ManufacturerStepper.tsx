@@ -9,7 +9,7 @@ interface ManufacturerStepperProps {
 }
 
 const manufacturerStages = [
-  { id: 'accept-order', label: 'Accept Order', completionKey: 'order_accepted' },
+  { id: 'accept-order', label: 'Agree to Review', completionKey: 'order_accepted' },
   { id: 'review-feasibility', label: 'Review & Feasibility', completionKey: 'tech_pack_feasible', requiresAcceptance: true },
   { id: 'sample', label: 'Sample Development', completionKey: 'sample_submitted_at', requiresApproval: true },
   { id: 'quality', label: 'Quality Check', completionKey: 'qc_submitted_at', requiresApproval: true },
