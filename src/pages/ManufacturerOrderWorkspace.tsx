@@ -13,14 +13,26 @@ import { FactoryMessaging } from '@/components/workflow/FactoryMessaging';
 import { FloatingMessagesWidget } from '@/components/workflow/FloatingMessagesWidget';
 import { ManufacturerMessaging } from '@/components/manufacturer/ManufacturerMessaging';
 import { ManufacturerReviewFeasibility } from '@/components/manufacturer/ManufacturerReviewFeasibility';
+import { AcceptOrderStage } from '@/components/manufacturer/AcceptOrderStage';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const ManufacturerOrderWorkspace = () => {
   const { id } = useParams();
-  const [activeTab, setActiveTab] = useState('review-feasibility');
+  const [activeTab, setActiveTab] = useState('accept-order');
   
   const handleTabChange = (newTab: string) => {
+    // Check if trying to access stages beyond accept-order without acceptance
+    if (newTab !== 'accept-order' && matchStatus !== 'accepted' && 
+        order?.status !== 'production_approval' && 
+        order?.status !== 'sample_development' &&
+        order?.status !== 'quality_check' &&
+        order?.status !== 'shipping' &&
+        order?.status !== 'delivered') {
+      toast.error('Please accept the order first to access this stage');
+      return;
+    }
+    
     // Check if trying to access Sample Development without production params approval
     if (newTab === 'sample' && order?.production_params_approved !== true) {
       toast.error('You cannot access Sample Development until the designer approves your production parameters');
@@ -76,11 +88,6 @@ const ManufacturerOrderWorkspace = () => {
 
         if (orderError) throw orderError;
 
-        // Auto-navigate to production feasibility if tech pack already confirmed
-        if (orderData.tech_pack_feasible === true) {
-          setActiveTab('feasibility');
-        }
-
         // Fetch design details
         const { data: designData, error: designError } = await supabase
           .from('designs')
@@ -112,12 +119,36 @@ const ManufacturerOrderWorkspace = () => {
           .eq('manufacturer_id', orderData.manufacturer_id)
           .maybeSingle();
 
+        const matchStatusValue = (matchData?.status as 'pending' | 'accepted' | 'rejected') || null;
+        setMatchStatus(matchStatusValue);
+
         setOrder({
           ...orderData,
           designs: designData,
           design_specs: specsData,
-          profiles: profile || { full_name: 'Unknown' }
+          profiles: profile || { full_name: 'Unknown' },
+          match_status: matchStatusValue
         });
+
+        // Auto-navigate based on status
+        const isOrderAccepted = matchStatusValue === 'accepted' || 
+          orderData.status === 'production_approval' || 
+          orderData.status === 'sample_development' ||
+          orderData.status === 'quality_check' ||
+          orderData.status === 'shipping' ||
+          orderData.status === 'delivered';
+
+        if (isOrderAccepted) {
+          // If order is accepted, go to review-feasibility by default
+          if (orderData.tech_pack_feasible === true) {
+            setActiveTab('review-feasibility');
+          } else {
+            setActiveTab('review-feasibility');
+          }
+        } else {
+          // Not yet accepted, stay on accept-order
+          setActiveTab('accept-order');
+        }
 
         // Set timeline dates if they exist
         if (orderData.production_start_date) {
@@ -527,13 +558,30 @@ const ManufacturerOrderWorkspace = () => {
                 <CardTitle className="text-lg">Order Pipeline</CardTitle>
               </CardHeader>
               <CardContent>
-                <ManufacturerStepper activeStep={activeTab} onStepChange={handleTabChange} orderData={order} />
+                <ManufacturerStepper activeStep={activeTab} onStepChange={handleTabChange} orderData={{ ...order, match_status: matchStatus }} />
               </CardContent>
             </Card>
           </div>
 
           {/* Right Content Area */}
           <div className="col-span-9">
+            {/* Accept Order Stage */}
+            {activeTab === 'accept-order' && (
+              <AcceptOrderStage
+                order={order}
+                matchStatus={matchStatus}
+                onAccept={() => {
+                  setMatchStatus('accepted');
+                  setOrder((prev: any) => ({ ...prev, match_status: 'accepted' }));
+                  setActiveTab('review-feasibility');
+                }}
+                onDecline={() => {
+                  setMatchStatus('rejected');
+                  setOrder((prev: any) => ({ ...prev, match_status: 'rejected' }));
+                }}
+              />
+            )}
+
             {/* Merged Review & Feasibility */}
             {activeTab === 'review-feasibility' && (
               <ManufacturerReviewFeasibility
