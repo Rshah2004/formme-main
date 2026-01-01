@@ -17,6 +17,7 @@ import { Plus, Lock, Search, Download, SlidersHorizontal, Shirt, Building2, Cale
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
+import MessagesView from '@/components/dashboard/MessagesView';
 
 interface Design {
   id: string;
@@ -463,46 +464,14 @@ const Dashboard = () => {
         <p className="text-muted-foreground">Communication with manufacturers</p>
       </div>
       
-      {orders.length === 0 ? (
-        <Card className="p-8 text-center">
-          <p className="text-muted-foreground">No orders yet. Create an order to start messaging manufacturers.</p>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {orders.filter(o => o.manufacturers?.name).map((order) => (
-            <Card 
-              key={order.id} 
-              className="p-4 hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => navigate({ pathname: '/workflow', search: `?designId=${order.design_id}` })}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Building2 className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">{order.manufacturers?.name}</h3>
-                    <p className="text-sm text-muted-foreground">{order.designs?.name || "Untitled"}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <Badge variant="outline" className={statusConfig[order.status]?.color || "bg-slate-100"}>
-                    {statusConfig[order.status]?.label || order.status}
-                  </Badge>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {new Date(order.updated_at || order.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-            </Card>
-          ))}
-          {orders.filter(o => o.manufacturers?.name).length === 0 && (
-            <Card className="p-8 text-center">
-              <p className="text-muted-foreground">No manufacturers connected yet. Your orders are still in the design phase.</p>
-            </Card>
-          )}
-        </div>
-      )}
+      <MessagesView orders={orders.map(o => ({
+        id: o.id,
+        design_id: o.design_id,
+        status: o.status,
+        created_at: o.created_at,
+        designs: o.designs ? { id: o.designs.id, name: o.designs.name } : null,
+        manufacturers: o.manufacturers
+      }))} />
     </div>
   );
 
