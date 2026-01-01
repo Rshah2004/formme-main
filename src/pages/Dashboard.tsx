@@ -38,23 +38,24 @@ interface Order {
   } | null;
 }
 
-// Map order status to step number (1-5)
+// Map order status to step number (1-6)
 const getStepFromStatus = (status: string): number => {
   switch (status) {
     case "draft":
     case "tech_pack_pending":
+      return 1; // Design stage
     case "sent_to_manufacturer":
     case "manufacturer_review":
-      return 1; // Design stage
+      return 2; // Finalizing Manufacturer stage
     case "production_approval":
     case "sample_development":
-      return 2; // Sampling stage
+      return 3; // Sampling stage
     case "quality_check":
-      return 4; // QC stage
+      return 5; // QC stage
     case "shipping":
-      return 3; // Production stage
+      return 4; // Production stage
     case "delivered":
-      return 5; // Delivery stage
+      return 6; // Delivery stage
     default:
       return 1;
   }
@@ -105,14 +106,15 @@ const StatCard = ({ title, value, change, color }: { title: string; value: numbe
 const OrderProgressStepper = ({ currentStep }: { currentStep: number }) => {
   const steps = [
     { id: 1, label: "Design" },
-    { id: 2, label: "Sampling" },
-    { id: 3, label: "Production" },
-    { id: 4, label: "QC" },
-    { id: 5, label: "Delivery" },
+    { id: 2, label: "Finalize" },
+    { id: 3, label: "Sampling" },
+    { id: 4, label: "Production" },
+    { id: 5, label: "QC" },
+    { id: 6, label: "Delivery" },
   ];
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1">
       {steps.map((step) => {
         const isCompleted = step.id < currentStep;
         const isCurrent = step.id === currentStep;
@@ -121,15 +123,15 @@ const OrderProgressStepper = ({ currentStep }: { currentStep: number }) => {
         return (
           <div key={step.id} className="flex flex-col items-center">
             <div
-              className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium border-2 transition-all ${
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium border-2 transition-all ${
                 isCompleted ? "bg-blue-500 border-blue-500 text-white" :
                 isCurrent ? "border-blue-500 text-blue-600 bg-white" :
                 "border-muted text-muted-foreground bg-muted/20"
               }`}
             >
-              {isCompleted ? <Check className="w-4 h-4" /> : step.id}
+              {isCompleted ? <Check className="w-3 h-3" /> : step.id}
             </div>
-            <span className={`text-xs mt-1 whitespace-nowrap ${(isCompleted || isCurrent) ? "text-foreground" : "text-muted-foreground"}`}>
+            <span className={`text-[10px] mt-1 whitespace-nowrap ${(isCompleted || isCurrent) ? "text-foreground" : "text-muted-foreground"}`}>
               {step.label}
             </span>
           </div>
@@ -143,8 +145,8 @@ const OrderProgressStepper = ({ currentStep }: { currentStep: number }) => {
 const statusConfig: Record<string, { label: string; color: string; dotColor: string }> = {
   draft: { label: "Draft", color: "bg-slate-100 text-slate-700 border-slate-200", dotColor: "bg-slate-500" },
   tech_pack_pending: { label: "Design Submitted", color: "bg-blue-50 text-blue-700 border-blue-200", dotColor: "bg-blue-500" },
-  sent_to_manufacturer: { label: "Finding Manufacturer", color: "bg-blue-50 text-blue-700 border-blue-200", dotColor: "bg-blue-500" },
-  manufacturer_review: { label: "Manufacturer Review", color: "bg-blue-50 text-blue-700 border-blue-200", dotColor: "bg-blue-500" },
+  sent_to_manufacturer: { label: "Finalizing Manufacturer", color: "bg-cyan-50 text-cyan-700 border-cyan-200", dotColor: "bg-cyan-500" },
+  manufacturer_review: { label: "Finalizing Manufacturer", color: "bg-cyan-50 text-cyan-700 border-cyan-200", dotColor: "bg-cyan-500" },
   production_approval: { label: "Sampling", color: "bg-purple-50 text-purple-700 border-purple-200", dotColor: "bg-purple-500" },
   sample_development: { label: "Sampling", color: "bg-purple-50 text-purple-700 border-purple-200", dotColor: "bg-purple-500" },
   quality_check: { label: "Quality Check", color: "bg-orange-50 text-orange-700 border-orange-200", dotColor: "bg-orange-500" },
@@ -456,8 +458,51 @@ const Dashboard = () => {
 
   const renderMessagesContent = () => (
     <div className="space-y-6">
-      <div><h1 className="text-3xl font-bold mb-1">Messages</h1><p className="text-muted-foreground">Communication with manufacturers</p></div>
-      <Card className="p-8 text-center"><p className="text-muted-foreground">Select an order to view messages</p></Card>
+      <div>
+        <h1 className="text-3xl font-bold mb-1">Messages</h1>
+        <p className="text-muted-foreground">Communication with manufacturers</p>
+      </div>
+      
+      {orders.length === 0 ? (
+        <Card className="p-8 text-center">
+          <p className="text-muted-foreground">No orders yet. Create an order to start messaging manufacturers.</p>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {orders.filter(o => o.manufacturers?.name).map((order) => (
+            <Card 
+              key={order.id} 
+              className="p-4 hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => navigate({ pathname: '/workflow', search: `?designId=${order.design_id}` })}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Building2 className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">{order.manufacturers?.name}</h3>
+                    <p className="text-sm text-muted-foreground">{order.designs?.name || "Untitled"}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <Badge variant="outline" className={statusConfig[order.status]?.color || "bg-slate-100"}>
+                    {statusConfig[order.status]?.label || order.status}
+                  </Badge>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {new Date(order.updated_at || order.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          ))}
+          {orders.filter(o => o.manufacturers?.name).length === 0 && (
+            <Card className="p-8 text-center">
+              <p className="text-muted-foreground">No manufacturers connected yet. Your orders are still in the design phase.</p>
+            </Card>
+          )}
+        </div>
+      )}
     </div>
   );
 
