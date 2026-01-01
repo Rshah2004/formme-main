@@ -1,30 +1,227 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useDesigns } from '@/hooks/useDesigns';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useUserRole } from '@/hooks/useUserRole';
-import { Plus, Clock, Package, Factory, FileCheck, Lock } from 'lucide-react';
+import { Plus, Lock, Search, Download, SlidersHorizontal, Shirt, Building2, Calendar, Check, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
+
+interface Design {
+  id: string;
+  name: string;
+  category: string;
+  created_at: string;
+  thumbnail_url: string | null;
+}
+
+interface Order {
+  id: string;
+  status: string;
+  design_id: string;
+  created_at: string;
+  updated_at: string;
+  designs: Design;
+  manufacturers: {
+    name: string;
+  } | null;
+}
+
+// Map order status to step number (1-5)
+const getStepFromStatus = (status: string): number => {
+  switch (status) {
+    case "draft":
+    case "tech_pack_pending":
+    case "sent_to_manufacturer":
+    case "manufacturer_review":
+      return 1; // Design stage
+    case "production_approval":
+    case "sample_development":
+      return 2; // Sampling stage
+    case "quality_check":
+      return 4; // QC stage
+    case "shipping":
+      return 3; // Production stage
+    case "delivered":
+      return 5; // Delivery stage
+    default:
+      return 1;
+  }
+};
+
+// Stat Card Component
+const StatCard = ({ title, value, change, color }: { title: string; value: number; change?: string; color: "blue" | "purple" | "orange" | "green" }) => {
+  const colorMap = {
+    blue: { bg: "bg-blue-50 dark:bg-blue-950/30", text: "text-blue-600", line: "stroke-blue-500" },
+    purple: { bg: "bg-purple-50 dark:bg-purple-950/30", text: "text-purple-600", line: "stroke-purple-500" },
+    orange: { bg: "bg-orange-50 dark:bg-orange-950/30", text: "text-orange-600", line: "stroke-orange-500" },
+    green: { bg: "bg-green-50 dark:bg-green-950/30", text: "text-green-600", line: "stroke-green-500" },
+  };
+  const colors = colorMap[color];
+  
+  return (
+    <Card className={`p-5 border ${colors.bg}`}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm text-muted-foreground font-medium">{title}</span>
+        {change && (
+          <div className={`flex items-center gap-1 text-xs font-medium ${colors.text}`}>
+            <TrendingUp className="w-3 h-3" />
+            {change}
+          </div>
+        )}
+      </div>
+      <div className="text-3xl font-bold mb-4">{value}</div>
+      <div className="h-12 relative overflow-hidden">
+        <svg className="w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
+          <path
+            d={`M0,35 Q25,25 50,20 T100,15 V40 H0 Z`}
+            fill={`hsl(var(--${color === 'blue' ? 'primary' : color === 'purple' ? 'accent' : color === 'orange' ? 'warning' : 'success'}) / 0.2)`}
+            className="opacity-30"
+          />
+          <path
+            d={`M0,35 Q25,25 50,20 T100,15`}
+            fill="none"
+            className={colors.line}
+            strokeWidth="2"
+          />
+        </svg>
+      </div>
+    </Card>
+  );
+};
+
+// Order Progress Stepper
+const OrderProgressStepper = ({ currentStep }: { currentStep: number }) => {
+  const steps = [
+    { id: 1, label: "Design" },
+    { id: 2, label: "Sampling" },
+    { id: 3, label: "Production" },
+    { id: 4, label: "QC" },
+    { id: 5, label: "Delivery" },
+  ];
+
+  return (
+    <div className="flex items-center gap-2">
+      {steps.map((step) => {
+        const isCompleted = step.id < currentStep;
+        const isCurrent = step.id === currentStep;
+        const isPending = step.id > currentStep;
+        
+        return (
+          <div key={step.id} className="flex flex-col items-center">
+            <div
+              className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium border-2 transition-all ${
+                isCompleted ? "bg-blue-500 border-blue-500 text-white" :
+                isCurrent ? "border-blue-500 text-blue-600 bg-white" :
+                "border-muted text-muted-foreground bg-muted/20"
+              }`}
+            >
+              {isCompleted ? <Check className="w-4 h-4" /> : step.id}
+            </div>
+            <span className={`text-xs mt-1 whitespace-nowrap ${(isCompleted || isCurrent) ? "text-foreground" : "text-muted-foreground"}`}>
+              {step.label}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+// Status config for badges
+const statusConfig: Record<string, { label: string; color: string; dotColor: string }> = {
+  draft: { label: "Draft", color: "bg-slate-100 text-slate-700 border-slate-200", dotColor: "bg-slate-500" },
+  tech_pack_pending: { label: "Design Submitted", color: "bg-blue-50 text-blue-700 border-blue-200", dotColor: "bg-blue-500" },
+  sent_to_manufacturer: { label: "Finding Manufacturer", color: "bg-blue-50 text-blue-700 border-blue-200", dotColor: "bg-blue-500" },
+  manufacturer_review: { label: "Manufacturer Review", color: "bg-blue-50 text-blue-700 border-blue-200", dotColor: "bg-blue-500" },
+  production_approval: { label: "Sampling", color: "bg-purple-50 text-purple-700 border-purple-200", dotColor: "bg-purple-500" },
+  sample_development: { label: "Sampling", color: "bg-purple-50 text-purple-700 border-purple-200", dotColor: "bg-purple-500" },
+  quality_check: { label: "Quality Check", color: "bg-orange-50 text-orange-700 border-orange-200", dotColor: "bg-orange-500" },
+  shipping: { label: "In Production", color: "bg-amber-50 text-amber-700 border-amber-200", dotColor: "bg-amber-500" },
+  delivered: { label: "Delivered", color: "bg-green-50 text-green-700 border-green-200", dotColor: "bg-green-500" },
+};
+
+// Order Card Component
+const OrderCard = ({ order, onClick }: { order: Order; onClick: () => void }) => {
+  const statusInfo = statusConfig[order.status] || statusConfig.draft;
+  const orderId = `ORD-${order.id.slice(0, 8).toUpperCase()}`;
+
+  return (
+    <Card className="p-5 hover:shadow-md transition-shadow cursor-pointer border" onClick={onClick}>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs text-muted-foreground font-mono mb-1">{orderId}</p>
+          <h3 className="font-semibold text-lg truncate">{order.designs?.name || "Untitled"}</h3>
+          <div className="flex flex-col gap-1 mt-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Building2 className="w-4 h-4" />
+              <span>{order.manufacturers?.name || "No manufacturer yet"}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              <span>{new Date(order.created_at).toLocaleDateString()}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-6">
+          <OrderProgressStepper currentStep={getStepFromStatus(order.status)} />
+          
+          <Badge variant="outline" className={`${statusInfo.color} flex items-center gap-1.5 px-3 py-1`}>
+            <span className={`w-2 h-2 rounded-full ${statusInfo.dotColor}`} />
+            {statusInfo.label}
+          </Badge>
+        </div>
+      </div>
+    </Card>
+  );
+};
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('all');
-  const [hoveredTab, setHoveredTab] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [manufacturerFilter, setManufacturerFilter] = useState('all');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const { designs, loading } = useDesigns();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
   const { role, loading: roleLoading } = useUserRole();
 
-  // Check authentication
+  // Check authentication and fetch data
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuthAndFetch = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setIsAuthenticated(!!user);
+      
+      if (user) {
+        try {
+          const { data: ordersData, error } = await supabase
+            .from("orders")
+            .select(`*, designs(*), manufacturers(name)`)
+            .eq("designer_id", user.id)
+            .order("created_at", { ascending: false });
+
+          if (error) throw error;
+          setOrders(ordersData || []);
+        } catch (error: any) {
+          toast.error("Failed to load orders");
+        }
+      }
+      setLoading(false);
     };
-    checkAuth();
+    checkAuthAndFetch();
   }, []);
 
   // Redirect to manufacturer dashboard if user is a manufacturer
@@ -34,13 +231,46 @@ const Dashboard = () => {
     }
   }, [role, roleLoading, navigate]);
 
+  // Calculate stats
+  const stats = {
+    ordersPlaced: orders.length,
+    inSampling: orders.filter(o => o.status === "production_approval" || o.status === "sample_development").length,
+    inProduction: orders.filter(o => o.status === "quality_check" || o.status === "shipping").length,
+    delivered: orders.filter(o => o.status === "delivered").length,
+  };
+
+  // Get unique manufacturers for filter
+  const manufacturers = [...new Set(orders.filter(o => o.manufacturers?.name).map(o => o.manufacturers?.name))];
+
+  // Filter orders
+  const filteredOrders = orders.filter(order => {
+    const matchesSearch = order.designs?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "all" || order.status === statusFilter;
+    const matchesManufacturer = manufacturerFilter === "all" || order.manufacturers?.name === manufacturerFilter;
+    return matchesSearch && matchesStatus && matchesManufacturer;
+  });
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setManufacturerFilter("all");
+  };
+
   if (isAuthenticated === null || roleLoading || loading) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <main className="container mx-auto px-4 sm:px-6 py-6 mt-20 max-w-7xl">
-          <p className="text-muted-foreground">Loading...</p>
-        </main>
+        <div className="flex">
+          <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+          <div className="flex-1 p-8">
+            <div className="animate-pulse space-y-4">
+              <div className="h-8 bg-muted rounded w-48" />
+              <div className="grid grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-muted rounded" />)}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -57,16 +287,10 @@ const Dashboard = () => {
                 <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
                   <Lock className="w-10 h-10 text-primary" />
                 </div>
-                <h2 className="text-2xl font-semibold text-foreground mb-3">
-                  Sign up to access your dashboard
-                </h2>
-                <p className="text-muted-foreground mb-8">
-                  You need to create an account or sign in to view your production dashboard and manage your designs.
-                </p>
+                <h2 className="text-2xl font-semibold text-foreground mb-3">Sign up to access your dashboard</h2>
+                <p className="text-muted-foreground mb-8">You need to create an account or sign in to view your production dashboard and manage your designs.</p>
                 <Link to="/auth">
-                  <Button size="lg" className="w-full">
-                    Sign up or Sign in
-                  </Button>
+                  <Button size="lg" className="w-full">Sign up or Sign in</Button>
                 </Link>
               </CardContent>
             </Card>
@@ -75,195 +299,193 @@ const Dashboard = () => {
       </div>
     );
   }
-  
-  const activeDesigns = designs.filter(d => d.status !== 'completed').length;
-  const inSampling = designs.filter(d => d.status === 'sample_development').length;
-  const inProduction = designs.filter(d => 
-    d.status === 'production_approval' || d.status === 'in_production'
-  ).length;
 
-  const getStatusBadge = (status: string | null) => {
-    if (!status) return 'default';
-    if (status.includes('draft')) return 'outline';
-    if (status.includes('completed') || status.includes('delivered')) return 'default';
-    return 'secondary';
+  const renderDashboardContent = () => (
+    <div className="space-y-8">
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold mb-1">Dashboard</h1>
+          <p className="text-muted-foreground">Track your designs from concept to delivery</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input placeholder="Search orders..." className="pl-9 w-64" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-4 gap-4">
+        <StatCard title="Orders Placed" value={stats.ordersPlaced} change="+12%" color="blue" />
+        <StatCard title="In Sampling" value={stats.inSampling} change="+2" color="purple" />
+        <StatCard title="In Production" value={stats.inProduction} change="+4" color="orange" />
+        <StatCard title="Delivered" value={stats.delivered} change="+8%" color="green" />
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Manufacturing Orders</h2>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm"><SlidersHorizontal className="w-4 h-4 mr-2" />Filter</Button>
+            <Button onClick={() => navigate("/new-design")} size="sm"><Plus className="w-4 h-4 mr-2" />New Order</Button>
+          </div>
+        </div>
+
+        {filteredOrders.length === 0 ? (
+          <Card className="p-8 text-center">
+            <p className="text-muted-foreground mb-4">No orders yet</p>
+            <Button onClick={() => navigate("/new-design")}>Create your first design</Button>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {filteredOrders.map((order) => (
+              <OrderCard key={order.id} order={order} onClick={() => navigate({ pathname: '/workflow', search: `?designId=${order.design_id}` })} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderOrdersContent = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold mb-1">Orders</h1>
+          <p className="text-muted-foreground">Manage and track all your manufacturing orders</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm"><Download className="w-4 h-4 mr-2" />Export</Button>
+          <Button onClick={() => navigate("/new-design")} size="sm">New Order</Button>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input placeholder="Search orders..." className="pl-9" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-40"><SelectValue placeholder="All Statuses" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="draft">Draft</SelectItem>
+            <SelectItem value="tech_pack_pending">Design Submitted</SelectItem>
+            <SelectItem value="sample_development">Sampling</SelectItem>
+            <SelectItem value="quality_check">Quality Check</SelectItem>
+            <SelectItem value="delivered">Delivered</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={manufacturerFilter} onValueChange={setManufacturerFilter}>
+          <SelectTrigger className="w-48"><SelectValue placeholder="All Manufacturers" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Manufacturers</SelectItem>
+            {manufacturers.map(m => m && <SelectItem key={m} value={m}>{m}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Button variant="link" size="sm" onClick={clearFilters}>Clear filters</Button>
+      </div>
+
+      <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Showing {filteredOrders.length} orders</p>
+
+      {filteredOrders.length === 0 ? (
+        <Card className="p-8 text-center">
+          <p className="text-muted-foreground mb-4">No orders match your filters</p>
+          <Button variant="outline" onClick={clearFilters}>Clear filters</Button>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {filteredOrders.map((order) => (
+            <OrderCard key={order.id} order={order} onClick={() => navigate({ pathname: '/workflow', search: `?designId=${order.design_id}` })} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderProductionContent = () => {
+    const designSubmitted = orders.filter(o => ["draft", "tech_pack_pending", "sent_to_manufacturer", "manufacturer_review"].includes(o.status));
+    const sampling = orders.filter(o => ["production_approval", "sample_development"].includes(o.status));
+    const inProduction = orders.filter(o => ["quality_check", "shipping"].includes(o.status));
+    const delivered = orders.filter(o => o.status === "delivered");
+
+    const KanbanColumn = ({ title, columnOrders, dotColor }: { title: string; columnOrders: Order[]; dotColor: string }) => (
+      <div className="flex-1 min-w-[300px]">
+        <div className="flex items-center gap-2 mb-4">
+          <span className={`w-2 h-2 rounded-full ${dotColor}`} />
+          <h3 className="font-semibold">{title}</h3>
+          <Badge variant="secondary" className="ml-1">{columnOrders.length}</Badge>
+        </div>
+        <div className="space-y-3">
+          {columnOrders.map(order => (
+            <Card key={order.id} className="p-4 cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate({ pathname: '/workflow', search: `?designId=${order.design_id}` })}>
+              <p className="text-xs text-muted-foreground font-mono mb-1">ORD-{order.id.slice(0, 8).toUpperCase()}</p>
+              <h4 className="font-semibold mb-2">{order.designs?.name || "Untitled"}</h4>
+              <div className="text-sm text-muted-foreground">
+                <p className="flex items-center gap-2"><Shirt className="w-3 h-3" />{order.manufacturers?.name || "No manufacturer"}</p>
+              </div>
+              <div className={`h-1 rounded-full mt-3 ${dotColor}`} />
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold mb-1">Production Status</h1>
+            <p className="text-muted-foreground">Kanban view of your manufacturing pipeline</p>
+          </div>
+          <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
+            <Button variant="secondary" size="sm">Board</Button>
+            <Button variant="ghost" size="sm">Timeline</Button>
+          </div>
+        </div>
+
+        <div className="flex gap-6 overflow-x-auto pb-4">
+          <KanbanColumn title="Design Submitted" columnOrders={designSubmitted} dotColor="bg-blue-500" />
+          <KanbanColumn title="Sampling" columnOrders={sampling} dotColor="bg-purple-500" />
+          <KanbanColumn title="In Production" columnOrders={inProduction} dotColor="bg-orange-500" />
+          <KanbanColumn title="Delivered" columnOrders={delivered} dotColor="bg-green-500" />
+        </div>
+      </div>
+    );
   };
 
-  const getStatusDisplay = (status: string | null) => {
-    if (!status) return 'Draft';
-    return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-  };
+  const renderMessagesContent = () => (
+    <div className="space-y-6">
+      <div><h1 className="text-3xl font-bold mb-1">Messages</h1><p className="text-muted-foreground">Communication with manufacturers</p></div>
+      <Card className="p-8 text-center"><p className="text-muted-foreground">Select an order to view messages</p></Card>
+    </div>
+  );
 
-  const filteredDesigns = designs;
+  const renderSettingsContent = () => (
+    <div className="space-y-6">
+      <div><h1 className="text-3xl font-bold mb-1">Settings</h1><p className="text-muted-foreground">Manage your account preferences</p></div>
+      <Card className="p-8 text-center"><p className="text-muted-foreground">Settings coming soon</p></Card>
+    </div>
+  );
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case "dashboard": return renderDashboardContent();
+      case "orders": return renderOrdersContent();
+      case "production": return renderProductionContent();
+      case "messages": return renderMessagesContent();
+      case "settings": return renderSettingsContent();
+      default: return renderDashboardContent();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
-      <main className="container mx-auto px-4 sm:px-6 py-6 mt-20 max-w-7xl">
-        {/* Header Section */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">Your Production Dashboard</h1>
-              <p className="text-muted-foreground">Track your designs from concept to delivery</p>
-            </div>
-            <div className="flex gap-3">
-              <Link to="/new-design">
-                <Button size="lg" className="gap-2 w-full sm:w-auto">
-                  <Plus className="w-4 h-4" />
-                  New Design
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          {/* KPI Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            <Card className="border-border hover:border-primary/50 transition-colors">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardDescription className="text-xs uppercase font-medium">Active</CardDescription>
-                  <Clock className="w-4 h-4 text-primary" />
-                </div>
-                <CardTitle className="text-3xl font-bold text-foreground">{activeDesigns}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs text-muted-foreground">In progress</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border hover:border-primary/50 transition-colors">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardDescription className="text-xs uppercase font-medium">Sampling</CardDescription>
-                  <Package className="w-4 h-4 text-primary" />
-                </div>
-                <CardTitle className="text-3xl font-bold text-foreground">{inSampling}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs text-muted-foreground">Review stage</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border hover:border-primary/50 transition-colors">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardDescription className="text-xs uppercase font-medium">Production</CardDescription>
-                  <Factory className="w-4 h-4 text-primary" />
-                </div>
-                <CardTitle className="text-3xl font-bold text-foreground">{inProduction}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs text-muted-foreground">Manufacturing</p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <Card className="border-border">
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <CardTitle className="text-xl sm:text-2xl">View recent designs</CardTitle>
-                <CardDescription>Monitor and manage all designs</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {/* Hover Button Tabs */}
-            <div className="flex gap-2 mb-6 pb-4 border-b">
-              {[
-                { value: 'all', label: 'All' },
-                { value: 'on-track', label: 'On Track' },
-                { value: 'action-required', label: 'Urgent' },
-                { value: 'delayed', label: 'Delayed' },
-              ].map((tab) => (
-                <button
-                  key={tab.value}
-                  onClick={() => setActiveTab(tab.value)}
-                  onMouseEnter={() => setHoveredTab(tab.value)}
-                  onMouseLeave={() => setHoveredTab(null)}
-                  className={`relative px-4 py-2 text-sm font-medium transition-all rounded-lg ${
-                    activeTab === tab.value
-                      ? 'text-primary'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {(hoveredTab === tab.value || activeTab === tab.value) && (
-                    <span
-                      className={`absolute inset-0 rounded-lg transition-all ${
-                        activeTab === tab.value
-                          ? 'bg-primary/10 border-2 border-primary'
-                          : 'bg-muted border-2 border-border'
-                      }`}
-                    />
-                  )}
-                  <span className="relative z-10">{tab.label}</span>
-                </button>
-              ))}
-            </div>
-            
-            <div className="space-y-3">
-              {loading ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <Clock className="w-12 h-12 mx-auto mb-3 opacity-50 animate-spin" />
-                  <p>Loading designs...</p>
-                </div>
-              ) : filteredDesigns.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No designs found</p>
-                  <p className="text-sm mt-2">Create your first design to get started</p>
-                </div>
-              ) : (
-                filteredDesigns.map((design) => (
-                  <Card 
-                    key={design.id} 
-                    className="border-border hover:border-primary/50 transition-all hover:shadow-sm cursor-pointer"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      const url = '/workflow?designId=' + design.id;
-                      console.log('Navigating to:', url);
-                      window.location.href = url;
-                    }}
-                  >
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <FileCheck className="w-4 h-4" />
-                            <h3 className="font-semibold text-foreground">{design.name}</h3>
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-2">
-                            {getStatusDisplay(design.status)}
-                          </p>
-                          {design.description && (
-                            <p className="text-xs text-muted-foreground line-clamp-2">
-                              {design.description}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                          <Badge variant={getStatusBadge(design.status)}>
-                            {getStatusDisplay(design.status)}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground whitespace-nowrap">
-                            {new Date(design.created_at).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                    </CardHeader>
-                  </Card>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </main>
-      <Footer />
+      <div className="flex mt-16">
+        <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <main className="flex-1 p-8 overflow-auto">{renderContent()}</main>
+      </div>
     </div>
   );
 };
