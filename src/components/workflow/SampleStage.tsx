@@ -184,7 +184,7 @@ const SampleStage = ({ design }: SampleStageProps) => {
               updateWorkflowData({ sampleApproved: true }); 
               return true; 
             }} 
-            nextLabel={allApproved ? "Approve & Continue to Quality Check" : "Complete checklist to continue"} 
+            nextLabel={allApproved ? "Approve & Continue to Production" : "Complete checklist to continue"} 
             showBack={true} 
           />
         </div>

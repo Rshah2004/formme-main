@@ -28,6 +28,7 @@ export const manufacturersSubStages = [
 export const productionSubStages = [
   { id: 'payment', label: 'Payment' },
   { id: 'sample', label: 'Sample Review' },
+  { id: 'production-tracking', label: 'Production' },
   { id: 'quality', label: 'Quality Check' },
   { id: 'shipping', label: 'Delivery' },
 ];
@@ -50,7 +51,7 @@ export const getTopLevelStage = (currentStage: string): string => {
   }
 
   // Production phase
-  if (['payment', 'production', 'waiting-sample', 'sample', 'quality', 'shipping'].includes(currentStage)) {
+  if (['payment', 'production', 'waiting-sample', 'sample', 'production-tracking', 'quality', 'shipping'].includes(currentStage)) {
     return 'production';
   }
   
@@ -239,8 +240,9 @@ const ProductionSubTabs = () => {
   const getCurrentSubIndex = () => {
     if (currentStage === 'payment') return 0;
     if (currentStage === 'production' || currentStage === 'waiting-sample' || currentStage === 'sample') return 1;
-    if (currentStage === 'quality') return 2;
-    if (currentStage === 'shipping') return 3;
+    if (currentStage === 'production-tracking') return 2;
+    if (currentStage === 'quality') return 3;
+    if (currentStage === 'shipping') return 4;
     return 0;
   };
 
