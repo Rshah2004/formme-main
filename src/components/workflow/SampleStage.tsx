@@ -277,7 +277,7 @@ const SampleStage = ({ design }: SampleStageProps) => {
               <p className="text-green-700 dark:text-green-300 mb-6">
                 You've approved the sample. Production will begin shortly.
               </p>
-              <Button onClick={() => setCurrentStage('production-tracking')}>
+              <Button onClick={() => setCurrentStage('production-tracking', true)}>
                 Go to Production Tracking
               </Button>
             </CardContent>
