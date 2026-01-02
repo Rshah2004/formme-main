@@ -144,20 +144,20 @@ export const WorkflowProvider = ({ children, initialStage }: { children: ReactNo
   }, []);
 
   const stages = [
-    // Creative phase
+    // Overview - first step
+    'overview',
+    // Tech Pack phase
     'design',
     'specifications',
     'fabric-color',
     'tech-pack',
+    // Manufacturers phase
     'factory-match',
-    // Production phase
-    // 'factory-match',
-    // Transition
-    // 'factory-selection',
     'send-tech-pack',
     'waiting',
     'manufacture-selection',
     'tech-pack-feasibility',
+    // Production phase
     'production',
     'payment',
     'waiting-sample',
