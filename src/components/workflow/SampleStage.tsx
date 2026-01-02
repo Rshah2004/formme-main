@@ -33,7 +33,8 @@ const SampleStage = ({ design }: SampleStageProps) => {
           .eq('design_id', design.id)
           .eq('designer_id', user.id)
           .not('manufacturer_id', 'is', null)
-          .order('created_at', { ascending: false })
+          .neq('status', 'cancelled')
+          .order('updated_at', { ascending: false })
           .limit(1)
           .maybeSingle();
 
@@ -47,20 +48,25 @@ const SampleStage = ({ design }: SampleStageProps) => {
     };
 
     fetchOrderData();
+  }, [design.id]);
 
-    // Real-time subscription for sample updates
+  useEffect(() => {
+    if (!orderData?.id) return;
+
+    // Real-time subscription for sample updates (only for the active order)
     const channel = supabase
-      .channel('sample-updates')
+      .channel(`sample-updates-${orderData.id}`)
       .on(
         'postgres_changes',
         {
           event: 'UPDATE',
           schema: 'public',
           table: 'orders',
-          filter: `design_id=eq.${design.id}`
+          filter: `id=eq.${orderData.id}`
         },
         (payload) => {
-          setOrderData((prev: any) => prev ? { ...prev, ...payload.new } : payload.new);
+          if ((payload.new as any)?.status === 'cancelled') return;
+          setOrderData(payload.new);
         }
       )
       .subscribe();
@@ -68,7 +74,7 @@ const SampleStage = ({ design }: SampleStageProps) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [design.id]);
+  }, [orderData?.id]);
 
   const allApproved = Object.values(approvals).every(v => v);
   const samplePhotos = orderData?.production_timeline_data?.sample_photos || [];
