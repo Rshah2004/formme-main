@@ -33,14 +33,25 @@ const WaitingForSampleStage = ({ design }: WaitingForSampleStageProps) => {
   useEffect(() => {
     // Check if sample is already ready
     const checkSampleStatus = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get the active order (not cancelled) for this design
       const { data: order } = await supabase
         .from('orders')
-        .select('status')
+        .select('status, sample_submitted_at')
         .eq('design_id', design.id)
+        .eq('designer_id', user.id)
+        .not('manufacturer_id', 'is', null)
+        .neq('status', 'cancelled')
+        .order('updated_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
-      if (order?.status === 'sample_development') {
+      // Check if sample has been submitted (sample_submitted_at is set)
+      if (order?.sample_submitted_at) {
         setIsReady(true);
+        toast.success('Your sample is ready for review!');
         
         // Auto-proceed after 2 seconds
         setTimeout(() => {
@@ -66,10 +77,11 @@ const WaitingForSampleStage = ({ design }: WaitingForSampleStageProps) => {
           table: 'orders',
           filter: `design_id=eq.${design.id}`
         },
-        async (payload) => {
+        async (payload: any) => {
           console.log('Order updated:', payload);
           
-          if (payload.new.status === 'sample_development') {
+          // Check if sample has been submitted (sample_submitted_at is set)
+          if (payload.new.sample_submitted_at && payload.new.status !== 'cancelled') {
             setIsReady(true);
             toast.success('Your sample is ready for review!');
             
@@ -89,7 +101,7 @@ const WaitingForSampleStage = ({ design }: WaitingForSampleStageProps) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [design.id, navigate]);
+  }, [design.id, navigate, markStageComplete]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
