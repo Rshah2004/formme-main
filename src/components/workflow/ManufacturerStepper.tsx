@@ -12,6 +12,7 @@ const manufacturerStages = [
   { id: 'accept-order', label: 'Agree to Review', completionKey: 'order_accepted' },
   { id: 'review-feasibility', label: 'Review & Feasibility', completionKey: 'tech_pack_feasible', requiresAcceptance: true },
   { id: 'sample', label: 'Sample Development', completionKey: 'sample_submitted_at', requiresApproval: true },
+  { id: 'production', label: 'Production', completionKey: 'production_completed', requiresApproval: true },
   { id: 'quality', label: 'Quality Check', completionKey: 'qc_submitted_at', requiresApproval: true },
   { id: 'shipping', label: 'Shipping & Logistics', completionKey: 'shipping_completed', requiresApproval: true },
 ];
@@ -37,6 +38,8 @@ export const ManufacturerStepper = ({ activeStep, onStepChange, orderData }: Man
         return orderData.tech_pack_feasible === true && !!orderData.production_params_submitted_at;
       case 'sample':
         return !!orderData.sample_approved;
+      case 'production':
+        return orderData.production_timeline_data?.production_completed === true;
       case 'quality':
         return !!orderData.qc_approved;
       case 'shipping':
@@ -57,7 +60,8 @@ export const ManufacturerStepper = ({ activeStep, onStepChange, orderData }: Man
     
     if (stage.id === 'review-feasibility') return hasAcceptedOrder;
     if (stage.id === 'sample') return orderData.production_params_approved === true;
-    if (stage.id === 'quality') return orderData.sample_approved === true;
+    if (stage.id === 'production') return orderData.sample_approved === true;
+    if (stage.id === 'quality') return orderData.production_timeline_data?.production_completed === true || orderData.sample_approved === true;
     if (stage.id === 'shipping') return orderData.qc_approved === true;
     
     return index > 0 && isStageCompleted(manufacturerStages[index - 1]);
