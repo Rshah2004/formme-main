@@ -11,7 +11,8 @@ import {
   Camera,
   Clock,
   CheckCircle,
-  Image as ImageIcon
+  Image as ImageIcon,
+  AlertTriangle
 } from 'lucide-react';
 
 interface SampleDevelopmentStageProps {
@@ -133,11 +134,37 @@ export const SampleDevelopmentStage = ({
               </div>
               <div>
                 <p className="font-medium text-green-900 dark:text-green-100">
-                  Sample Approved
+                  Sample Approved by Designer
                 </p>
                 <p className="text-sm text-green-700 dark:text-green-300">
                   Proceed to Quality Check stage
                 </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {isRejected && (
+        <Card className="bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-amber-600" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-amber-900 dark:text-amber-100">
+                  Changes Requested by Designer
+                </p>
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  Please review the feedback and submit a revised sample.
+                </p>
+                {order.production_timeline_data?.designer_feedback && (
+                  <div className="mt-2 p-2 bg-amber-100/50 dark:bg-amber-900/30 rounded text-sm">
+                    <span className="font-medium">Feedback: </span>
+                    {order.production_timeline_data.designer_feedback}
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>

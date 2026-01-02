@@ -59,7 +59,13 @@ export const useManufacturerOrders = () => {
           *,
           designs (
             name,
-            user_id
+            user_id,
+            category
+          ),
+          techpacks (
+            id,
+            pdf_url,
+            version
           )
         `
         )
