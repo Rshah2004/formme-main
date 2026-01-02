@@ -207,17 +207,58 @@ const Dashboard = () => {
     const checkAuthAndFetch = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setIsAuthenticated(!!user);
-      
+
       if (user) {
         try {
           const { data: ordersData, error } = await supabase
             .from("orders")
             .select(`*, designs(*), manufacturers(name)`)
             .eq("designer_id", user.id)
+            .neq('status', 'cancelled')
             .order("created_at", { ascending: false });
 
           if (error) throw error;
-          setOrders(ordersData || []);
+
+          // Show only ONE order card per design (prevents duplicate-looking cards)
+          const statusPriority: Record<string, number> = {
+            draft: 0,
+            tech_pack_pending: 1,
+            sent_to_manufacturer: 2,
+            manufacturer_review: 3,
+            production_approval: 4,
+            sample_development: 5,
+            quality_check: 6,
+            shipping: 7,
+            delivered: 8,
+            cancelled: -1,
+          };
+
+          const bestByDesign = new Map<string, Order>();
+          for (const order of ordersData || []) {
+            const existing = bestByDesign.get(order.design_id);
+            if (!existing) {
+              bestByDesign.set(order.design_id, order);
+              continue;
+            }
+
+            const pA = statusPriority[order.status] ?? 0;
+            const pB = statusPriority[existing.status] ?? 0;
+
+            if (pA > pB) {
+              bestByDesign.set(order.design_id, order);
+              continue;
+            }
+
+            if (pA === pB) {
+              const aTime = new Date(order.updated_at || order.created_at).getTime();
+              const bTime = new Date(existing.updated_at || existing.created_at).getTime();
+              if (aTime > bTime) bestByDesign.set(order.design_id, order);
+            }
+          }
+
+          setOrders(Array.from(bestByDesign.values()).sort((a, b) => (
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          )));
         } catch (error: any) {
           toast.error("Failed to load orders");
         }

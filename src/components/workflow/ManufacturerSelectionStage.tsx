@@ -15,6 +15,7 @@ import {CheckCircle2, Clock, XCircle, MessageSquare, ArrowRight, ArrowLeft, Aler
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
+import { orderApi } from '@/lib/api';
 import { toast } from 'sonner';
 import { FactoryMessaging } from './FactoryMessaging';
 import { StageHeader } from './StageHeader';
@@ -290,34 +291,12 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
         return;
       }
 
-      // Finalize ONLY the manufacturer-specific order (the one the manufacturer has been working on)
-      // Do NOT update or copy to any "primary" order - that causes duplicate orders
-      const { error: finalizeManufacturerOrderError } = await supabase
-        .from('orders')
-        .update({
-          status: 'production_approval',
-          production_params_approved: true,
-        })
-        .eq('id', selectedManufacturerOrder.id);
-
-      if (finalizeManufacturerOrderError) {
-        console.error('[handleConfirmFinalize] Update error (manufacturer order):', finalizeManufacturerOrderError);
-        throw finalizeManufacturerOrderError;
-      }
-
-      // Delete the draft "primary" order (with manufacturer_id = null) if it exists
-      // This order was created when the design was first made but is no longer needed
-      // since we now have a proper order with the selected manufacturer
-      const { error: deletePrimaryError } = await supabase
-        .from('orders')
-        .delete()
-        .eq('design_id', design.id)
-        .is('manufacturer_id', null);
-
-      if (deletePrimaryError) {
-        console.warn('[handleConfirmFinalize] Could not delete primary order:', deletePrimaryError);
-        // Non-fatal, continue
-      }
+      // Finalize via backend (required because designers cannot DELETE orders via RLS)
+      await orderApi.finalizeManufacturer({
+        design_id: design.id,
+        manufacturer_id: manufacturerId,
+        order_id: selectedManufacturerOrder.id,
+      });
 
       setSelectedManufacturer(manufacturerId);
       setConfirmDialogOpen(false);
@@ -339,7 +318,7 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
       navigate(`/workflow?designId=${design.id}&stage=payment`, { replace: true });
     } catch (error: any) {
       console.error('Error finalizing manufacturer:', error);
-      toast.error('Failed to finalize manufacturer');
+      toast.error(error?.message || 'Failed to finalize manufacturer');
     }
   };
 
