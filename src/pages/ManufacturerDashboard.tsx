@@ -96,7 +96,7 @@ const ManufacturerDashboard = () => {
             matches.map(async (match) => {
               const { data: profile } = await supabase
                 .from('profiles')
-                .select('full_name')
+                .select('full_name, company_name')
                 .eq('user_id', match.designs.user_id)
                 .maybeSingle();
               
@@ -104,7 +104,7 @@ const ManufacturerDashboard = () => {
                 ...match,
                 designs: {
                   ...match.designs,
-                  designer_name: profile?.full_name || 'Unknown Designer'
+                  designer_name: profile?.full_name || profile?.company_name || 'Unknown Designer'
                 }
               };
             })
@@ -270,9 +270,9 @@ const ManufacturerDashboard = () => {
                     <TableRow>
                       <TableHead>Design Name</TableHead>
                       <TableHead>Designer</TableHead>
+                      <TableHead>Received</TableHead>
                       <TableHead>Stage</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Next Action</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -297,6 +297,13 @@ const ManufacturerDashboard = () => {
                         <TableRow key={order.id} className="hover:bg-muted/50">
                           <TableCell className="font-medium">{order.designs?.name || 'Unknown Design'}</TableCell>
                           <TableCell>{order.profiles?.full_name || 'Unknown'}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {order.created_at ? new Date(order.created_at).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            }) : 'N/A'}
+                          </TableCell>
                           <TableCell>
                             <span className="group relative">
                               <span className="text-sm text-muted-foreground group-hover:opacity-0 transition-opacity">
@@ -326,9 +333,6 @@ const ManufacturerDashboard = () => {
                                 {order.status?.includes('review') ? 'Action Required' : 'On Track'}
                               </Badge>
                             </span>
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            Review order details
                           </TableCell>
                           <TableCell className="text-right">
                             <Link to={`/manufacturer/order/${order.id}`}>

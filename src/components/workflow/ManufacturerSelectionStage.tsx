@@ -479,9 +479,20 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
           <Alert variant="destructive" className="mb-6">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Issues Need Resolution</AlertTitle>
-            <AlertDescription className="text-sm">
-              One or more manufacturers have reported issues with your tech pack. Please review the feedback below, 
-              update your specifications, and the tech pack will be automatically resubmitted for review.
+            <AlertDescription className="text-sm flex flex-col gap-3">
+              <span>
+                One or more manufacturers have reported issues with your tech pack. Please review the feedback below
+                and update your specifications.
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-fit gap-2 border-red-300 text-red-700 hover:bg-red-50"
+                onClick={() => navigate(`/workflow?designId=${design.id}&stage=design`)}
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Go to Tech Pack to Fix Issues
+              </Button>
             </AlertDescription>
           </Alert>
         )}
@@ -629,9 +640,23 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
                                     </span>
                                   )}
                                   {match.hasIssues && (
-                                    <span className="text-xs text-amber-600 dark:text-amber-400 self-center ml-2">
-                                      Please resolve issues and resubmit
-                                    </span>
+                                    <div className="flex items-center gap-2 ml-2">
+                                      <span className="text-xs text-amber-600 dark:text-amber-400">
+                                        Please resolve issues and resubmit
+                                      </span>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-7 text-xs gap-1"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          navigate(`/workflow?designId=${design.id}&stage=design`);
+                                        }}
+                                      >
+                                        <ArrowLeft className="w-3 h-3" />
+                                        Edit Tech Pack
+                                      </Button>
+                                    </div>
                                   )}
                                 </>
                               )}

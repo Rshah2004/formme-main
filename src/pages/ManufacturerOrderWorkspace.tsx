@@ -113,7 +113,7 @@ const ManufacturerOrderWorkspace = () => {
         // Fetch designer profile
         const { data: profile } = await supabase
           .from('profiles')
-          .select('full_name')
+          .select('full_name, company_name')
           .eq('user_id', orderData.designer_id)
           .maybeSingle();
 
@@ -132,7 +132,9 @@ const ManufacturerOrderWorkspace = () => {
           ...orderData,
           designs: designData,
           design_specs: specsData,
-          profiles: profile || { full_name: 'Unknown' },
+          profiles: profile 
+            ? { full_name: profile.full_name || profile.company_name || 'Unknown' }
+            : { full_name: 'Unknown' },
           match_status: matchStatusValue
         });
 
@@ -528,7 +530,18 @@ const ManufacturerOrderWorkspace = () => {
               <h1 className="text-3xl font-bold text-foreground mb-2">
                 {order.designs?.name || 'Unknown Design'}
               </h1>
-              <p className="text-muted-foreground">Designer: {order.profiles?.full_name || 'Unknown'}</p>
+              <div className="flex flex-col gap-1">
+                <p className="text-muted-foreground">Designer: {order.profiles?.full_name || 'Unknown'}</p>
+                <p className="text-sm text-muted-foreground">
+                  Order received: {order.created_at ? new Date(order.created_at).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  }) : 'N/A'}
+                </p>
+              </div>
             </div>
             <div className="flex items-center gap-3">
               {order.status === 'production_approval' ? (
