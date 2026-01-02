@@ -159,19 +159,23 @@ export const mockTasks: Task[] = [
 
 // Designer-friendly stage names
 export const stageNames: Record<string, string> = {
-  // Creative stages
-  'design': 'Design',
+  // Overview
+  'overview': 'Overview',
+  
+  // Tech Pack stages
+  'design': 'Design Details',
   'specifications': 'Specifications', 
   'fabric-color': 'Fabric & Color',
   'tech-pack': 'Tech Pack',
   
-  // Transition
+  // Manufacturers stages
   'factory-selection': 'Find a Maker',
-  
-  // Production stages (sub-stages)
-  'factory-match': 'Select Maker',
+  'factory-match': 'Find Manufacturers',
   'send-tech-pack': 'Maker Response',
   'waiting': 'Waiting for Response',
+  'manufacture-selection': 'Finalize Manufacturer',
+  
+  // Production stages
   'production': 'Review Details',
   'payment': 'Payment',
   'sample': 'Sample Review',
@@ -181,18 +185,19 @@ export const stageNames: Record<string, string> = {
 
 // Full stage order for workflow
 export const stageOrder = [
-  // Creative phase
+  // Overview
+  'overview',
+  // Tech Pack phase
   'design',
   'specifications',
   'fabric-color',
   'tech-pack',
-  // Transition
-  'factory-selection',
-  // Production phase
+  // Manufacturers phase
   'factory-match',
+  'manufacture-selection',
   'send-tech-pack',
   'waiting',
-  'production',
+  // Production phase
   'payment',
   'sample',
   'quality',

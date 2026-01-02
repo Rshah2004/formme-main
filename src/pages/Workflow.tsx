@@ -30,6 +30,7 @@ import WaitingForSampleStage from '@/components/workflow/WaitingForSampleStage';
 import SampleStage from '@/components/workflow/SampleStage';
 import QualityStage from '@/components/workflow/QualityStage';
 import ShippingStage from '@/components/workflow/ShippingStage';
+import PipelineOverviewStage from '@/components/workflow/PipelineOverviewStage';
 import { FloatingMessagesWidget } from '@/components/workflow/FloatingMessagesWidget';
 import { useRef} from "react";
 
@@ -61,40 +62,41 @@ const WorkspaceContent = ({ design }: { design: any }) => {
   const { currentStage } = useWorkflow();
 
   const renderStage = () => {
-          console.log('what is the current stagee', currentStage);
+    console.log('what is the current stagee', currentStage);
 
     switch (currentStage) {
-      // Creative stages
+      // Overview stage - first step
+      case 'overview':
+        return <PipelineOverviewStage design={design} />;
+      
+      // Tech Pack stages (design details, specs, fabric)
       case 'design':
         return <DesignStage design={design} />;
       case 'specifications':
         return <SpecificationsStage design={design} />;
       case 'fabric-color':
         return <FabricColorStage design={design} />;
-      
-      // Tech Pack stages (sub-navigation)
       case 'tech-pack':
       case 'tech-pack-overview':
         return <TechPackOverviewStage design={design} />;
 
-        case 'factory-match':
+      // Manufacturers stages
+      case 'factory-match':
         return <FactoryMatchStage design={design} />;
-
       case 'factory-selection':
         return <FactorySelectionStage design={design} />;
       case 'send-tech-pack':
       case 'waiting':
         return <WaitingForManufacturerStage design={design} />
-        // return <TechPackFeasibilityStage design={design} />;
       case 'manufacture-selection':
         return <ManufacturerSelectionStage design={design} />
-      // Production stages (sub-navigation: Payment, Sample Review, Quality Check, Delivery)
       case 'tech-pack-feasibility':
         return <ManufacturerSelectionStage design={design} />;
+
+      // Production stages
       case 'payment':
         return <PaymentStage design={design} />;
       case 'production':
-        // Redirect to payment if someone lands on production stage
         return <PaymentStage design={design} />;
       case 'waiting-sample':
         return <WaitingForSampleStage design={design} />;
@@ -105,7 +107,7 @@ const WorkspaceContent = ({ design }: { design: any }) => {
       case 'shipping':
         return <ShippingStage design={design} />;
       default:
-        return <DesignStage design={design} />;
+        return <PipelineOverviewStage design={design} />;
     }
   };
 
@@ -242,17 +244,17 @@ const initializedRef = useRef(false);
         .maybeSingle();
       
       if (!order) {
-        setInitialStage('design');
+        setInitialStage('overview');
         return;
       }
       
       // Check if production params are approved to determine exact stage
       const productionParamsApproved = order.production_params_approved;
 
-      // Map order status to workflow stage (design -> specs -> fabric -> tech-pack -> payment stages)
+      // Map order status to workflow stage
       const stageMap: Record<string, string> = {
-        'draft': 'design',
-        'tech_pack_pending': 'tech-pack',
+        'draft': 'overview',
+        'tech_pack_pending': 'design',
         'sent_to_manufacturer': 'manufacture-selection',
         'manufacturer_review': 'payment',
         'production_approval': 'payment',
@@ -263,7 +265,7 @@ const initializedRef = useRef(false);
       };
       
       console.log('[Workflow] Order status:', order.status, 'Mapped stage:', stageMap[order.status]);
-      setInitialStage(stageMap[order.status] || 'design');
+      setInitialStage(stageMap[order.status] || 'overview');
     };
       initializedRef.current = true;
 
