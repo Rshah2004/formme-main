@@ -241,6 +241,9 @@ const FactoryMatchStage = ({ design }: FactoryMatchStageProps) => {
       markStageComplete('waiting');
       setCurrentStage('manufacture-selection');
       
+      // Also update URL to ensure navigation
+      navigate(`/workflow?designId=${design.id}&stage=manufacture-selection`, { replace: true });
+      
       return false; // Return false to prevent StageNavigation from also navigating
     } catch (error: any) {
       console.error('[handleSendRequests] Error sending requests:', error);

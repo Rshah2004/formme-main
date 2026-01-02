@@ -73,13 +73,15 @@ export const useManufacturerOrders = () => {
         (data || []).map(async (order) => {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('full_name')
+            .select('full_name, company_name')
             .eq('user_id', order.designer_id)
             .single();
 
           return {
             ...order,
-            profiles: profile || { full_name: null },
+            profiles: profile 
+              ? { full_name: profile.full_name || profile.company_name || null }
+              : { full_name: null },
           };
         })
       );
