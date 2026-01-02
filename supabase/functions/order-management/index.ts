@@ -67,6 +67,9 @@ serve(async (req) => {
       case "update_order_status":
         result = await updateOrderStatus(supabaseClient, user.id, params);
         break;
+      case "finalize_manufacturer":
+        result = await finalizeManufacturer(supabaseClient, user.id, params);
+        break;
       case "approve_manufacturer_match":
         result = await approveManufacturerMatch(supabaseClient, user.id, params);
         break;
@@ -426,6 +429,129 @@ async function sendToManufacturers(supabase: any, userId: string, params: any) {
   }
 
   return { created, reused, results };
+}
+
+async function finalizeManufacturer(supabase: any, userId: string, params: any) {
+  const { design_id, manufacturer_id, order_id } = params;
+
+  if (!design_id) throw new Error('design_id is required');
+
+  // Verify user owns the design
+  const { data: design, error: designError } = await supabase
+    .from('designs')
+    .select('id, user_id')
+    .eq('id', design_id)
+    .single();
+
+  if (designError || !design) throw new Error('Design not found');
+  if (design.user_id !== userId) throw new Error('Not authorized');
+
+  // Check user has designer role
+  const { data: role } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', userId)
+    .eq('role', 'designer')
+    .maybeSingle();
+
+  if (!role) throw new Error('User is not a designer');
+
+  // Resolve selected order
+  let selectedOrder: any = null;
+
+  if (order_id) {
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('id, design_id, manufacturer_id, status')
+      .eq('id', order_id)
+      .eq('design_id', design_id)
+      .single();
+
+    if (orderError || !order) throw new Error('Order not found');
+    if (!order.manufacturer_id) throw new Error('Selected order has no manufacturer');
+    selectedOrder = order;
+  } else {
+    if (!manufacturer_id) throw new Error('manufacturer_id or order_id is required');
+
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('id, design_id, manufacturer_id, status')
+      .eq('design_id', design_id)
+      .eq('manufacturer_id', manufacturer_id)
+      .order('updated_at', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (orderError || !order) throw new Error('Order not found for manufacturer');
+    selectedOrder = order;
+  }
+
+  // Finalize the selected order
+  const { error: finalizeError } = await supabase
+    .from('orders')
+    .update({
+      status: 'production_approval',
+      production_params_approved: true,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', selectedOrder.id);
+
+  if (finalizeError) throw finalizeError;
+
+  // Cancel all other orders for this design
+  const { error: cancelError, count: cancelledCount } = await supabase
+    .from('orders')
+    .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+    .eq('design_id', design_id)
+    .neq('id', selectedOrder.id)
+    .neq('status', 'cancelled');
+
+  if (cancelError) throw cancelError;
+
+  // Delete any draft "primary" order (manufacturer_id is null)
+  const { error: deleteDraftError, count: deletedDraftCount } = await supabase
+    .from('orders')
+    .delete({ count: 'exact' })
+    .eq('design_id', design_id)
+    .is('manufacturer_id', null);
+
+  if (deleteDraftError) {
+    // Non-fatal: cancellation + finalize are what matters
+    logStep('WARN: Could not delete draft order', { design_id, message: deleteDraftError.message });
+  }
+
+  // Update manufacturer match statuses: keep selected as accepted; reject the rest
+  const selectedManufacturerId = selectedOrder.manufacturer_id;
+  const { error: matchUpdateError } = await supabase
+    .from('manufacturer_matches')
+    .update({
+      status: 'rejected',
+    })
+    .eq('design_id', design_id)
+    .neq('manufacturer_id', selectedManufacturerId)
+    .neq('status', 'rejected');
+
+  if (matchUpdateError) {
+    logStep('WARN: Could not reject non-selected matches', { design_id, message: matchUpdateError.message });
+  }
+
+  const { error: ensureAcceptedError } = await supabase
+    .from('manufacturer_matches')
+    .update({ status: 'accepted' })
+    .eq('design_id', design_id)
+    .eq('manufacturer_id', selectedManufacturerId);
+
+  if (ensureAcceptedError) {
+    logStep('WARN: Could not set selected match to accepted', { design_id, message: ensureAcceptedError.message });
+  }
+
+  return {
+    selectedOrderId: selectedOrder.id,
+    selectedManufacturerId,
+    cancelledCount: cancelledCount ?? null,
+    deletedDraftCount: deletedDraftCount ?? null,
+  };
 }
 
 async function approveManufacturerMatch(supabase: any, userId: string, params: any) {

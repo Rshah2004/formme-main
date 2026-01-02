@@ -43,6 +43,15 @@ export const orderApi = {
     return data.data;
   },
 
+  async finalizeManufacturer(params: { design_id: string; manufacturer_id?: string; order_id?: string }) {
+    const { data, error } = await supabase.functions.invoke('order-management', {
+      body: { action: 'finalize_manufacturer', ...params }
+    });
+    if (error) throw error;
+    if (!data.success) throw new Error(data.error);
+    return data.data;
+  },
+
   async approveManufacturerMatch(match_id: string, design_id: string) {
     const { data, error } = await supabase.functions.invoke('order-management', {
       body: { action: 'approve_manufacturer_match', match_id, design_id }
