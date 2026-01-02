@@ -861,53 +861,88 @@ export const ManufacturerReviewFeasibility = ({
                 </CardContent>
               </Card>
 
-              {/* Production Commitment Action Section */}
+          {/* Production Commitment Action Section */}
               <Card className="border-2 border-primary/20">
                 <CardContent className="p-6 space-y-4">
-                  {/* Final Confirmation Checkbox */}
-                  <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-lg border border-primary/20">
-                    <Checkbox
-                      id="production-commitment"
-                      checked={productionData.productionCommitmentConfirmed}
-                      onCheckedChange={(checked) => setProductionData(prev => ({
-                        ...prev,
-                        productionCommitmentConfirmed: checked as boolean
-                      }))}
-                    />
-                    <div>
-                      <Label htmlFor="production-commitment" className="font-medium cursor-pointer">
-                        I confirm production commitment
-                      </Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        By checking this box, I confirm that I can produce this order under the stated parameters 
-                        and commit to delivering on time.
-                      </p>
+                  {/* Show awaiting approval status if already submitted */}
+                  {order?.production_params_submitted_at && !order?.production_params_approved && order?.production_params_approved !== false && (
+                    <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center flex-shrink-0">
+                        <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400 animate-pulse" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-blue-900 dark:text-blue-200">Awaiting Designer Approval</p>
+                        <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5">
+                          Production feasibility submitted on {new Date(order.production_params_submitted_at).toLocaleDateString()}. Waiting for designer to approve.
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  <div className="space-y-2">
-                    <Label className="text-sm">Additional notes (optional)</Label>
-                    <Textarea
-                      placeholder="Any additional conditions, notes, or questions..."
-                      value={productionData.additionalNotes || ''}
-                      onChange={(e) => setProductionData(prev => ({ ...prev, additionalNotes: e.target.value }))}
-                      rows={2}
-                    />
-                  </div>
+                  {/* Show approved status with Next button */}
+                  {order?.production_params_approved === true && (
+                    <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                      <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-800 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-green-900 dark:text-green-200">Designer Approved!</p>
+                        <p className="text-xs text-green-700 dark:text-green-300 mt-0.5">
+                          Production parameters approved. You can now proceed to sample development.
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
-                  <Button 
-                    size="lg"
-                    className="w-full gap-2"
-                    onClick={handleConfirmProduction}
-                    disabled={isSubmitting || !canConfirmProduction}
-                  >
-                    <CheckCircle className="w-5 h-5" />
-                    Confirm Production Feasibility
-                  </Button>
-                  
-                  <p className="text-xs text-center text-muted-foreground">
-                    This is a binding commitment. The designer will be notified to approve production.
-                  </p>
+                  {/* Show form only if not yet submitted */}
+                  {!order?.production_params_submitted_at && (
+                    <>
+                      {/* Final Confirmation Checkbox */}
+                      <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                        <Checkbox
+                          id="production-commitment"
+                          checked={productionData.productionCommitmentConfirmed}
+                          onCheckedChange={(checked) => setProductionData(prev => ({
+                            ...prev,
+                            productionCommitmentConfirmed: checked as boolean
+                          }))}
+                        />
+                        <div>
+                          <Label htmlFor="production-commitment" className="font-medium cursor-pointer">
+                            I confirm production commitment
+                          </Label>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            By checking this box, I confirm that I can produce this order under the stated parameters 
+                            and commit to delivering on time.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-sm">Additional notes (optional)</Label>
+                        <Textarea
+                          placeholder="Any additional conditions, notes, or questions..."
+                          value={productionData.additionalNotes || ''}
+                          onChange={(e) => setProductionData(prev => ({ ...prev, additionalNotes: e.target.value }))}
+                          rows={2}
+                        />
+                      </div>
+
+                      <Button 
+                        size="lg"
+                        className="w-full gap-2"
+                        onClick={handleConfirmProduction}
+                        disabled={isSubmitting || !canConfirmProduction}
+                      >
+                        <CheckCircle className="w-5 h-5" />
+                        Confirm Production Feasibility
+                      </Button>
+                      
+                      <p className="text-xs text-center text-muted-foreground">
+                        This is a binding commitment. The designer will be notified to approve production.
+                      </p>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </>

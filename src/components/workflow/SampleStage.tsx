@@ -73,7 +73,8 @@ const SampleStage = ({ design }: SampleStageProps) => {
   const allApproved = Object.values(approvals).every(v => v);
   const samplePhotos = orderData?.production_timeline_data?.sample_photos || [];
   const sampleNotes = orderData?.production_timeline_data?.sample_notes || '';
-  const hasSampleData = samplePhotos.length > 0;
+  // Show sample content if manufacturer has submitted it (sample_submitted_at exists)
+  const hasSampleData = samplePhotos.length > 0 || orderData?.sample_submitted_at;
 
   if (loading) {
     return (
