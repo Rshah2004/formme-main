@@ -8,9 +8,9 @@ const stages = [
   'tech-pack',
   'factory-match',
   'send-tech-pack',
-  'production',
   'payment',
   'sample',
+  'production-tracking',
   'quality',
   'shipping'
 ];
