@@ -147,8 +147,26 @@ const ManufacturerOrderWorkspace = () => {
           orderData.status === 'delivered';
 
         if (isOrderAccepted) {
-          // If order is accepted, go to review-feasibility by default
-          if (orderData.tech_pack_feasible === true) {
+          // Navigate to the correct stage based on order status
+          if (orderData.status === 'shipping' || orderData.status === 'delivered') {
+            setActiveTab('shipping');
+          } else if (orderData.status === 'quality_check') {
+            // If QC is approved, go to shipping
+            if (orderData.qc_approved === true) {
+              setActiveTab('shipping');
+            } else {
+              setActiveTab('quality');
+            }
+          } else if (orderData.sample_approved === true) {
+            const productionData = orderData.production_timeline_data as Record<string, any> | null;
+            if (productionData?.production_completed === true) {
+              setActiveTab('quality');
+            } else {
+              setActiveTab('production');
+            }
+          } else if (orderData.production_params_approved === true) {
+            setActiveTab('sample');
+          } else if (orderData.tech_pack_feasible === true) {
             setActiveTab('review-feasibility');
           } else {
             setActiveTab('review-feasibility');

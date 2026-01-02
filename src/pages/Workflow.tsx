@@ -240,7 +240,7 @@ const initializedRef = useRef(false);
       // Otherwise, determine stage from order status
       const { data: order } = await supabase
         .from('orders')
-        .select('status, production_params_approved, sample_approved, production_timeline_data')
+        .select('status, production_params_approved, sample_approved, production_timeline_data, qc_approved')
         .eq('design_id', designId)
         .not('manufacturer_id', 'is', null)
         .order('updated_at', { ascending: false })
@@ -255,6 +255,7 @@ const initializedRef = useRef(false);
       // Check if production params are approved to determine exact stage
       const productionParamsApproved = order.production_params_approved;
       const sampleApproved = order.sample_approved;
+      const qcApproved = order.qc_approved;
       const productionData = order.production_timeline_data as Record<string, any> | null;
       const productionCompleted = productionData?.production_completed === true;
 
@@ -278,13 +279,23 @@ const initializedRef = useRef(false);
         case 'sample_development':
           // If sample is approved, go to production-tracking
           if (sampleApproved) {
-            stage = 'production-tracking';
+            // If production is completed, go to quality check
+            if (productionCompleted) {
+              stage = 'quality';
+            } else {
+              stage = 'production-tracking';
+            }
           } else {
             stage = 'sample';
           }
           break;
         case 'quality_check':
-          stage = 'quality';
+          // If QC is approved, go to shipping
+          if (qcApproved === true) {
+            stage = 'shipping';
+          } else {
+            stage = 'quality';
+          }
           break;
         case 'shipping':
         case 'delivered':
@@ -294,7 +305,7 @@ const initializedRef = useRef(false);
           stage = 'overview';
       }
       
-      console.log('[Workflow] Order status:', order.status, 'Sample approved:', sampleApproved, 'Production completed:', productionCompleted, 'Mapped stage:', stage);
+      console.log('[Workflow] Order status:', order.status, 'Sample approved:', sampleApproved, 'Production completed:', productionCompleted, 'QC approved:', qcApproved, 'Mapped stage:', stage);
       setInitialStage(stage);
     };
       initializedRef.current = true;
