@@ -7,6 +7,7 @@ import { StageHeader } from './StageHeader';
 import { StageNavigation } from './StageNavigation';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useWorkflow } from '@/context/WorkflowContext';
 
 interface QualityStageProps {
   design: any;
@@ -15,10 +16,13 @@ interface QualityStageProps {
 const QualityStage = ({ design }: QualityStageProps) => {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { setCurrentStage } = useWorkflow();
 
   useEffect(() => {
     fetchOrder();
-    
+  }, [design.id]);
+
+  useEffect(() => {
     if (!order?.id) return;
     
     // Real-time subscription for QC updates
@@ -33,7 +37,7 @@ const QualityStage = ({ design }: QualityStageProps) => {
           filter: `design_id=eq.${design.id}`
         },
         (payload) => {
-          setOrder(payload.new);
+          setOrder((prev: any) => prev ? { ...prev, ...payload.new } : payload.new);
         }
       )
       .subscribe();
@@ -41,7 +45,7 @@ const QualityStage = ({ design }: QualityStageProps) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [design.id]);
+  }, [order?.id, design.id]);
 
   const fetchOrder = async () => {
     try {
@@ -76,13 +80,16 @@ const QualityStage = ({ design }: QualityStageProps) => {
     try {
       const { error } = await supabase
         .from('orders')
-        .update({ qc_approved: true })
+        .update({ 
+          qc_approved: true,
+          status: 'shipping' as any
+        })
         .eq('id', order.id);
 
       if (error) throw error;
 
-      toast.success('Quality check approved');
-      fetchOrder();
+      toast.success('Quality check approved! Moving to shipping.');
+      setCurrentStage('shipping', true);
     } catch (error) {
       console.error('Error approving QC:', error);
       toast.error('Failed to approve quality check');
@@ -146,7 +153,7 @@ const QualityStage = ({ design }: QualityStageProps) => {
                     <div>
                       <p className="font-medium text-primary">Quality Check Approved</p>
                       <p className="text-sm text-muted-foreground">
-                        Approved on {new Date().toLocaleDateString()}
+                        Order has moved to shipping stage
                       </p>
                     </div>
                   </div>
@@ -218,11 +225,13 @@ const QualityStage = ({ design }: QualityStageProps) => {
                             <CheckCircle className="w-5 h-5 text-primary" />
                             <span className="font-medium text-primary">Passed</span>
                           </>
-                        ) : (
+                        ) : order.qc_result ? (
                           <>
                             <AlertCircle className="w-5 h-5 text-amber-500" />
                             <span className="font-medium text-amber-500">Needs Fixes</span>
                           </>
+                        ) : (
+                          <span className="text-muted-foreground">Pending result</span>
                         )}
                       </div>
                     </CardContent>
@@ -241,12 +250,20 @@ const QualityStage = ({ design }: QualityStageProps) => {
                     </Button>
                   </div>
                 )}
+
+                {order.qc_approved === true && (
+                  <div className="pt-4">
+                    <Button onClick={() => setCurrentStage('shipping', true)} className="w-full">
+                      Continue to Delivery
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </>
         )}
 
-        <StageNavigation onNext={() => order?.qc_approved === true} nextLabel="Continue to Shipping" showBack={true} />
+        <StageNavigation onNext={() => order?.qc_approved === true} nextLabel="Continue to Delivery" showBack={true} />
       </div>
     </div>
   );
