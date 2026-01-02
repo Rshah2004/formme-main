@@ -767,44 +767,51 @@ const ManufacturerOrderWorkspace = () => {
                 <div className="space-y-3">
                   <Label>Current Production Phase</Label>
                   <div className="grid grid-cols-4 gap-2">
-                    {['cutting', 'sewing', 'finishing', 'packing'].map((phase) => (
-                      <Button
-                        key={phase}
-                        variant={order?.production_timeline_data?.current_phase === phase ? 'default' : 'outline'}
-                        className="capitalize"
-                        onClick={async () => {
-                          try {
-                            // Update order with current phase
-                            await supabase
-                              .from('orders')
-                              .update({
-                                production_timeline_data: {
-                                  ...order?.production_timeline_data,
-                                  current_phase: phase,
-                                  last_updated: new Date().toISOString()
-                                }
-                              })
-                              .eq('id', order.id);
+                    {['cutting', 'sewing', 'finishing', 'packing'].map((phase, index) => {
+                      const phases = ['cutting', 'sewing', 'finishing', 'packing'];
+                      const currentPhaseIndex = phases.indexOf(order?.production_timeline_data?.current_phase || '');
+                      const isCompleted = currentPhaseIndex >= 0 && index <= currentPhaseIndex;
+                      const isCurrent = order?.production_timeline_data?.current_phase === phase;
+                      
+                      return (
+                        <Button
+                          key={phase}
+                          variant={isCompleted ? 'default' : 'outline'}
+                          className={`capitalize ${isCurrent ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+                          onClick={async () => {
+                            try {
+                              // Update order with current phase
+                              await supabase
+                                .from('orders')
+                                .update({
+                                  production_timeline_data: {
+                                    ...order?.production_timeline_data,
+                                    current_phase: phase,
+                                    last_updated: new Date().toISOString()
+                                  }
+                                })
+                                .eq('id', order.id);
 
-                            // Create production update
-                            await supabase
-                              .from('production_updates')
-                              .insert({
-                                order_id: order.id,
-                                status: phase,
-                                message: `Production moved to ${phase} phase`
-                              });
+                              // Create production update
+                              await supabase
+                                .from('production_updates')
+                                .insert({
+                                  order_id: order.id,
+                                  status: phase,
+                                  message: `Production moved to ${phase} phase`
+                                });
 
-                            toast.success(`Production phase updated to ${phase}`);
-                          } catch (error) {
-                            console.error('Error updating phase:', error);
-                            toast.error('Failed to update production phase');
-                          }
-                        }}
-                      >
-                        {phase}
-                      </Button>
-                    ))}
+                              toast.success(`Production phase updated to ${phase}`);
+                            } catch (error) {
+                              console.error('Error updating phase:', error);
+                              toast.error('Failed to update production phase');
+                            }
+                          }}
+                        >
+                          {phase}
+                        </Button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -881,7 +888,8 @@ const ManufacturerOrderWorkspace = () => {
                               ...order?.production_timeline_data,
                               production_completed: true,
                               completed_at: new Date().toISOString()
-                            }
+                            },
+                            status: 'quality_check' as any
                           })
                           .eq('id', order.id);
 

@@ -242,7 +242,8 @@ const initializedRef = useRef(false);
         .from('orders')
         .select('status, production_params_approved, sample_approved, production_timeline_data')
         .eq('design_id', designId)
-        .order('created_at', { ascending: false })
+        .not('manufacturer_id', 'is', null)
+        .order('updated_at', { ascending: false })
         .limit(1)
         .maybeSingle();
       
@@ -255,7 +256,7 @@ const initializedRef = useRef(false);
       const productionParamsApproved = order.production_params_approved;
       const sampleApproved = order.sample_approved;
       const productionData = order.production_timeline_data as Record<string, any> | null;
-      const productionComplete = productionData?.production_complete === true;
+      const productionCompleted = productionData?.production_completed === true;
 
       // Map order status to workflow stage with more precise logic
       let stage = 'overview';
@@ -293,7 +294,7 @@ const initializedRef = useRef(false);
           stage = 'overview';
       }
       
-      console.log('[Workflow] Order status:', order.status, 'Sample approved:', sampleApproved, 'Mapped stage:', stage);
+      console.log('[Workflow] Order status:', order.status, 'Sample approved:', sampleApproved, 'Production completed:', productionCompleted, 'Mapped stage:', stage);
       setInitialStage(stage);
     };
       initializedRef.current = true;

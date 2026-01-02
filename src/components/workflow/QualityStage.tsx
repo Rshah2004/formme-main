@@ -48,11 +48,16 @@ const QualityStage = ({ design }: QualityStageProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Fetch the order in quality check or later status
       const { data, error } = await supabase
         .from('orders')
         .select('*')
         .eq('design_id', design.id)
         .eq('designer_id', user.id)
+        .not('manufacturer_id', 'is', null)
+        .in('status', ['quality_check', 'shipping', 'delivered'])
+        .order('updated_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (error) throw error;
