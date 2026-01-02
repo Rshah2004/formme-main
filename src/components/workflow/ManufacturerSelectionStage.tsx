@@ -290,7 +290,8 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
         return;
       }
 
-      // 1) Finalize the manufacturer-specific order (this is what the manufacturer has been working on)
+      // Finalize ONLY the manufacturer-specific order (the one the manufacturer has been working on)
+      // Do NOT update or copy to any "primary" order - that causes duplicate orders
       const { error: finalizeManufacturerOrderError } = await supabase
         .from('orders')
         .update({
@@ -304,46 +305,18 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
         throw finalizeManufacturerOrderError;
       }
 
-      // 2) Also update the "primary" workflow order (the one created when the design was created)
-      // so the designer workflow + payment stage key off the correct single order.
-      const { data: primaryOrder, error: primaryOrderError } = await supabase
+      // Delete the draft "primary" order (with manufacturer_id = null) if it exists
+      // This order was created when the design was first made but is no longer needed
+      // since we now have a proper order with the selected manufacturer
+      const { error: deletePrimaryError } = await supabase
         .from('orders')
-        .select('id')
+        .delete()
         .eq('design_id', design.id)
-        .is('manufacturer_id', null)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .is('manufacturer_id', null);
 
-      if (primaryOrderError) {
-        console.warn('[handleConfirmFinalize] Primary order lookup error:', primaryOrderError);
-      }
-
-      if (primaryOrder?.id && primaryOrder.id !== selectedManufacturerOrder.id) {
-        const { error: updatePrimaryError } = await supabase
-          .from('orders')
-          .update({
-            manufacturer_id: manufacturerId,
-            status: 'production_approval',
-            production_params_approved: true,
-
-            // Copy over the production details the manufacturer submitted (so designer/payment uses same record)
-            production_params_submitted_at: selectedManufacturerOrder.production_params_submitted_at ?? null,
-            lead_time_days: selectedManufacturerOrder.lead_time_days ?? null,
-            production_start_date: selectedManufacturerOrder.production_start_date ?? null,
-            production_completion_date: selectedManufacturerOrder.production_completion_date ?? null,
-            fabric_type: selectedManufacturerOrder.fabric_type ?? null,
-            gsm: selectedManufacturerOrder.gsm ?? null,
-            shrinkage: selectedManufacturerOrder.shrinkage ?? null,
-            color_fastness: selectedManufacturerOrder.color_fastness ?? null,
-            production_timeline_data: (selectedManufacturerOrder.production_timeline_data ?? {}) as Json,
-          })
-          .eq('id', primaryOrder.id);
-
-        if (updatePrimaryError) {
-          console.error('[handleConfirmFinalize] Update error (primary order):', updatePrimaryError);
-          throw updatePrimaryError;
-        }
+      if (deletePrimaryError) {
+        console.warn('[handleConfirmFinalize] Could not delete primary order:', deletePrimaryError);
+        // Non-fatal, continue
       }
 
       setSelectedManufacturer(manufacturerId);
