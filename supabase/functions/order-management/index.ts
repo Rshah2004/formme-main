@@ -139,14 +139,14 @@ serve(async (req) => {
 
 async function createOrder(supabase: any, userId: string, params: any) {
   const { design_id, quantity, notes, manufacturer_ids } = params;
-  
+
   // Verify user owns the design
   const { data: design, error: designError } = await supabase
     .from('designs')
     .select('id, user_id')
     .eq('id', design_id)
     .single();
-    
+
   if (designError || !design) throw new Error("Design not found");
   if (design.user_id !== userId) throw new Error("Not authorized to create order for this design");
 
@@ -157,48 +157,89 @@ async function createOrder(supabase: any, userId: string, params: any) {
     .eq('user_id', userId)
     .eq('role', 'designer')
     .maybeSingle();
-    
+
   if (!role) throw new Error("User is not a designer");
 
-  // Create manufacturer matches if manufacturer_ids provided
+  // If manufacturer_ids provided, create/ensure one order per (design_id, manufacturer_id)
   if (manufacturer_ids && manufacturer_ids.length > 0) {
+    let createdOrders = 0;
+    let reusedOrders = 0;
+
     for (const manufacturerId of manufacturer_ids) {
-      // Create match
-      await supabase.from('manufacturer_matches').insert({
-        design_id,
-        manufacturer_id: manufacturerId,
-        status: 'pending'
-      });
-      
-      // Create order for this manufacturer
+      // Ensure match exists (limit(1) avoids maybeSingle errors if duplicates already exist)
+      const { data: existingMatch } = await supabase
+        .from('manufacturer_matches')
+        .select('id')
+        .eq('design_id', design_id)
+        .eq('manufacturer_id', manufacturerId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!existingMatch) {
+        await supabase.from('manufacturer_matches').insert({
+          design_id,
+          manufacturer_id: manufacturerId,
+          status: 'pending',
+        });
+      }
+
+      // If an order already exists for this manufacturer, do NOT create another
+      const { data: existingOrder } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('design_id', design_id)
+        .eq('manufacturer_id', manufacturerId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existingOrder?.id) {
+        reusedOrders += 1;
+        continue;
+      }
+
       await supabase.from('orders').insert({
         design_id,
         designer_id: userId,
         manufacturer_id: manufacturerId,
         quantity: quantity || 100,
         status: 'sent_to_manufacturer',
-        notes
+        notes,
       });
+
+      createdOrders += 1;
     }
-  } else {
-    // Create draft order without manufacturer
-    const { data: order, error } = await supabase
-      .from('orders')
-      .insert({
-        design_id,
-        designer_id: userId,
-        quantity: quantity || 100,
-        status: 'draft',
-        notes
-      })
-      .select()
-      .single();
-      
-    if (error) throw error;
-    return order;
+
+    return { createdOrders, reusedOrders };
   }
 
-  return { created: manufacturer_ids?.length || 1 };
+  // Otherwise, create a single draft order without a manufacturer (idempotent)
+  const { data: existingDraft } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('design_id', design_id)
+    .is('manufacturer_id', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existingDraft?.id) return existingDraft;
+
+  const { data: order, error } = await supabase
+    .from('orders')
+    .insert({
+      design_id,
+      designer_id: userId,
+      quantity: quantity || 100,
+      status: 'draft',
+      notes,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return order;
 }
 
 async function updateOrderStatus(supabase: any, userId: string, params: any) {
@@ -315,56 +356,76 @@ async function getOrdersForDesign(supabase: any, userId: string, params: any) {
 
 async function sendToManufacturers(supabase: any, userId: string, params: any) {
   const { design_id, manufacturer_ids, quantity, notes } = params;
-  
+
   // Verify user owns the design
   const { data: design } = await supabase
     .from('designs')
     .select('id, user_id')
     .eq('id', design_id)
     .single();
-    
+
   if (!design || design.user_id !== userId) {
     throw new Error("Not authorized");
   }
 
-  const results = [];
-  
+  const results: Array<{ manufacturerId: string; orderId?: string; reused?: boolean }> = [];
+  let created = 0;
+  let reused = 0;
+
   for (const manufacturerId of manufacturer_ids) {
-    // Check if match already exists
-    const { data: existing } = await supabase
+    // Idempotency: if an order already exists for this (design, manufacturer), reuse it
+    const { data: existingOrder } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('design_id', design_id)
+      .eq('manufacturer_id', manufacturerId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existingOrder?.id) {
+      results.push({ manufacturerId, orderId: existingOrder.id, reused: true });
+      reused += 1;
+      continue;
+    }
+
+    // Ensure match exists (limit(1) avoids maybeSingle errors if duplicates already exist)
+    const { data: existingMatch } = await supabase
       .from('manufacturer_matches')
       .select('id')
       .eq('design_id', design_id)
       .eq('manufacturer_id', manufacturerId)
+      .order('created_at', { ascending: false })
+      .limit(1)
       .maybeSingle();
 
-    if (!existing) {
-      // Create match
+    if (!existingMatch) {
       await supabase.from('manufacturer_matches').insert({
         design_id,
         manufacturer_id: manufacturerId,
-        status: 'pending'
+        status: 'pending',
       });
-      
-      // Create order
-      const { data: order } = await supabase
-        .from('orders')
-        .insert({
-          design_id,
-          designer_id: userId,
-          manufacturer_id: manufacturerId,
-          quantity: quantity || 100,
-          status: 'sent_to_manufacturer',
-          notes
-        })
-        .select()
-        .single();
-        
-      results.push({ manufacturerId, orderId: order?.id });
     }
+
+    // Create order
+    const { data: order } = await supabase
+      .from('orders')
+      .insert({
+        design_id,
+        designer_id: userId,
+        manufacturer_id: manufacturerId,
+        quantity: quantity || 100,
+        status: 'sent_to_manufacturer',
+        notes,
+      })
+      .select()
+      .single();
+
+    results.push({ manufacturerId, orderId: order?.id, reused: false });
+    created += 1;
   }
-  
-  return { sent: results.length, results };
+
+  return { created, reused, results };
 }
 
 async function approveManufacturerMatch(supabase: any, userId: string, params: any) {
