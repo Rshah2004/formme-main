@@ -16,7 +16,7 @@ const stages = [
 ];
 
 // Production steps that require feasibility confirmation
-const productionSteps = ['payment', 'sample', 'quality', 'shipping'];
+const productionSteps = ['payment', 'sample', 'production-tracking', 'quality', 'shipping'];
 
 export const WorkflowStepper = () => {
   const { currentStage, completedStages, setCurrentStage } = useWorkflow();
