@@ -1,30 +1,30 @@
 import React from 'react';
-import { Check, Lock, Palette, FileText, Factory } from 'lucide-react';
+import { Check, Lock, Palette, FileText, Factory, Sparkles } from 'lucide-react';
 import { useWorkflow } from '@/context/WorkflowContext';
 import { cn } from '@/lib/utils';
 
-// Top level tabs - simplified to 3 main phases
+// Top level tabs - 4 phases including overview
 const topLevelStages = [
-  { id: 'design', label: 'Design', icon: Palette },
+  { id: 'overview', label: 'Overview', icon: Sparkles },
   { id: 'tech-pack', label: 'Tech Pack', icon: FileText },
+  { id: 'manufacturers', label: 'Manufacturers', icon: Factory },
   { id: 'production', label: 'Production', icon: Factory },
 ];
 
-// Design sub-stages
-export const designSubStages = [
+// Tech Pack sub-stages (design details, specs, fabric)
+export const techPackSubStages = [
   { id: 'design', label: 'Design Details' },
   { id: 'specifications', label: 'Specifications' },
   { id: 'fabric-color', label: 'Fabric & Color' },
 ];
 
-// Tech Pack sub-stages
-export const techPackSubStages = [
-  { id: 'tech-pack-overview', label: 'Overview' },
-  { id: 'factory-match', label: 'Finding Manufacturers' },
-  { id: 'manufacture-selection', label: 'Finalize Manufacturers' },
+// Manufacturers sub-stages
+export const manufacturersSubStages = [
+  { id: 'factory-match', label: 'Find Manufacturers' },
+  { id: 'manufacture-selection', label: 'Finalize Manufacturer' },
 ];
 
-// Production sub-stages (removed production parameters - now shown in finalize manufacturers)
+// Production sub-stages
 export const productionSubStages = [
   { id: 'payment', label: 'Payment' },
   { id: 'sample', label: 'Sample Review' },
@@ -34,14 +34,19 @@ export const productionSubStages = [
 
 // Map current stage to top-level tab
 export const getTopLevelStage = (currentStage: string): string => {
-  // Design phase (includes design, specifications, fabric-color)
-  if (['design', 'specifications', 'fabric-color'].includes(currentStage)) {
-    return 'design';
+  // Overview stage
+  if (currentStage === 'overview') {
+    return 'overview';
   }
   
-  // Tech Pack phase (includes overview, finding manufacturers, finalize)
-  if (['tech-pack', 'tech-pack-review', 'tech-pack-overview', 'factory-match', 'factory-selection', 'send-tech-pack', 'waiting', 'manufacture-selection'].includes(currentStage)) {
+  // Tech Pack phase (design details, specs, fabric)
+  if (['design', 'specifications', 'fabric-color', 'tech-pack', 'tech-pack-review', 'tech-pack-overview'].includes(currentStage)) {
     return 'tech-pack';
+  }
+  
+  // Manufacturers phase (finding and finalizing)
+  if (['factory-match', 'factory-selection', 'send-tech-pack', 'waiting', 'manufacture-selection'].includes(currentStage)) {
+    return 'manufacturers';
   }
 
   // Production phase
@@ -49,15 +54,16 @@ export const getTopLevelStage = (currentStage: string): string => {
     return 'production';
   }
   
-  return 'design';
+  return 'overview';
 };
 
 export const HorizontalProgressTabs = () => {
   const { currentStage, completedStages, setCurrentStage } = useWorkflow();
 
   const activeTopLevel = getTopLevelStage(currentStage);
-  const isInDesign = activeTopLevel === 'design';
+  const isInOverview = activeTopLevel === 'overview';
   const isInTechPack = activeTopLevel === 'tech-pack';
+  const isInManufacturers = activeTopLevel === 'manufacturers';
   const isInProduction = activeTopLevel === 'production';
 
   const getStageStatus = (stageId: string) => {
@@ -74,8 +80,9 @@ export const HorizontalProgressTabs = () => {
   const handleStageClick = (stageId: string, status: string) => {
     if (status === 'locked') return;
     
-    if (stageId === 'design') setCurrentStage('design');
-    else if (stageId === 'tech-pack') setCurrentStage('tech-pack');
+    if (stageId === 'overview') setCurrentStage('overview');
+    else if (stageId === 'tech-pack') setCurrentStage('design');
+    else if (stageId === 'manufacturers') setCurrentStage('factory-match');
     else if (stageId === 'production') setCurrentStage('payment');
   };
 
@@ -96,7 +103,7 @@ export const HorizontalProgressTabs = () => {
                 onClick={() => handleStageClick(stage.id, status)}
                 disabled={isLocked}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all flex-1 justify-center",
+                  "flex items-center gap-2 px-3 py-2.5 rounded-lg transition-all flex-1 justify-center",
                   isCurrent && "bg-primary text-primary-foreground shadow-sm",
                   isCompleted && "bg-primary/10 text-primary hover:bg-primary/20",
                   isLocked && "text-muted-foreground/50 cursor-not-allowed",
@@ -121,7 +128,7 @@ export const HorizontalProgressTabs = () => {
 
               {index < topLevelStages.length - 1 && (
                 <div className={cn(
-                  "w-8 h-0.5 mx-1",
+                  "w-6 h-0.5 mx-0.5",
                   index < topLevelStages.findIndex(s => s.id === activeTopLevel)
                     ? "bg-primary"
                     : "bg-border"
@@ -132,11 +139,11 @@ export const HorizontalProgressTabs = () => {
         })}
       </div>
 
-      {/* Design Sub-stages */}
-      {isInDesign && <DesignSubTabs />}
-
       {/* Tech Pack Sub-stages */}
       {isInTechPack && <TechPackSubTabs />}
+
+      {/* Manufacturers Sub-stages */}
+      {isInManufacturers && <ManufacturersSubTabs />}
 
       {/* Production Sub-stages */}
       {isInProduction && <ProductionSubTabs />}
@@ -144,12 +151,12 @@ export const HorizontalProgressTabs = () => {
   );
 };
 
-// Sub-tabs for Design phase
-const DesignSubTabs = () => {
+// Sub-tabs for Tech Pack phase (design details, specs, fabric)
+const TechPackSubTabs = () => {
   const { currentStage, setCurrentStage, completedStages } = useWorkflow();
 
   const getCurrentSubIndex = () => {
-    if (currentStage === 'design') return 0;
+    if (currentStage === 'design' || currentStage === 'tech-pack' || currentStage === 'tech-pack-overview') return 0;
     if (currentStage === 'specifications') return 1;
     if (currentStage === 'fabric-color') return 2;
     return 0;
@@ -159,7 +166,7 @@ const DesignSubTabs = () => {
 
   return (
     <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-1.5 overflow-x-auto">
-      {designSubStages.map((subStage, index) => {
+      {techPackSubStages.map((subStage, index) => {
         const isCurrent = index === currentSubIndex;
         const isCompleted = completedStages.includes(subStage.id);
 
@@ -185,38 +192,28 @@ const DesignSubTabs = () => {
   );
 };
 
-// Sub-tabs for Tech Pack phase
-const TechPackSubTabs = () => {
+// Sub-tabs for Manufacturers phase
+const ManufacturersSubTabs = () => {
   const { currentStage, setCurrentStage, completedStages } = useWorkflow();
 
   const getCurrentSubIndex = () => {
-    if (currentStage === 'tech-pack' || currentStage === 'tech-pack-review' || currentStage === 'tech-pack-overview') return 0;
-    if (currentStage === 'factory-match' || currentStage === 'factory-selection') return 1;
-    if (currentStage === 'manufacture-selection' || currentStage === 'waiting' || currentStage === 'send-tech-pack') return 2;
+    if (currentStage === 'factory-match' || currentStage === 'factory-selection') return 0;
+    if (currentStage === 'manufacture-selection' || currentStage === 'waiting' || currentStage === 'send-tech-pack') return 1;
     return 0;
   };
 
-
-
   const currentSubIndex = getCurrentSubIndex();
-
-  const handleSubTabClick = (subStageId: string) => {
-    if (subStageId === 'tech-pack-overview') setCurrentStage('tech-pack');
-    else if (subStageId === 'factory-match') setCurrentStage('factory-match');
-    else if (subStageId === 'manufacture-selection') setCurrentStage('manufacture-selection');
-    console.log('what is substage id', subStageId);
-  };
 
   return (
     <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-1.5 overflow-x-auto">
-      {techPackSubStages.map((subStage, index) => {
+      {manufacturersSubStages.map((subStage, index) => {
         const isCurrent = index === currentSubIndex;
         const isCompleted = index < currentSubIndex || completedStages.includes(subStage.id);
 
         return (
           <button
             key={subStage.id}
-            onClick={() => handleSubTabClick(subStage.id)}
+            onClick={() => setCurrentStage(subStage.id)}
             className={cn(
               "px-3 py-1.5 rounded-md text-xs font-medium transition-all whitespace-nowrap",
               isCurrent && "bg-background text-foreground shadow-sm",
