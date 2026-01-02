@@ -76,14 +76,15 @@ const ProductionTrackingStage = ({ design }: ProductionTrackingStageProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch order
+      // Fetch the order in production/quality check phase (with manufacturer assigned)
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .select('*, manufacturers(name, location)')
         .eq('design_id', design.id)
         .eq('designer_id', user.id)
         .not('manufacturer_id', 'is', null)
-        .order('created_at', { ascending: false })
+        .in('status', ['sample_development', 'quality_check', 'shipping', 'delivered'])
+        .order('updated_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
@@ -109,7 +110,13 @@ const ProductionTrackingStage = ({ design }: ProductionTrackingStageProps) => {
     }
   };
 
+  // Get current phase from production_timeline_data instead of updates
   const getCurrentPhase = () => {
+    const currentPhaseId = order?.production_timeline_data?.current_phase;
+    if (currentPhaseId) {
+      return productionPhases.find(p => p.id === currentPhaseId) || null;
+    }
+    // Fallback to updates if no current_phase set
     if (!updates.length) return null;
     const latestUpdate = updates[0];
     return productionPhases.find(p => p.id === latestUpdate.status) || null;
@@ -119,6 +126,11 @@ const ProductionTrackingStage = ({ design }: ProductionTrackingStageProps) => {
     const phaseIndex = productionPhases.findIndex(p => p.id === phaseId);
     const currentPhase = getCurrentPhase();
     const currentIndex = currentPhase ? productionPhases.findIndex(p => p.id === currentPhase.id) : -1;
+    
+    // Check if production is completed
+    if (order?.production_timeline_data?.production_completed) {
+      return 'completed';
+    }
 
     if (phaseIndex < currentIndex) return 'completed';
     if (phaseIndex === currentIndex) return 'current';
@@ -126,6 +138,10 @@ const ProductionTrackingStage = ({ design }: ProductionTrackingStageProps) => {
   };
 
   const getProgress = () => {
+    // If production is completed, return 100%
+    if (order?.production_timeline_data?.production_completed) {
+      return 100;
+    }
     const currentPhase = getCurrentPhase();
     if (!currentPhase) return 0;
     const currentIndex = productionPhases.findIndex(p => p.id === currentPhase.id);
@@ -352,7 +368,15 @@ const ProductionTrackingStage = ({ design }: ProductionTrackingStageProps) => {
                 )}
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">QC Pending</span>
+                <span className="text-sm text-muted-foreground">Production Complete</span>
+                {order.production_timeline_data?.production_completed ? (
+                  <CheckCircle className="w-4 h-4 text-primary" />
+                ) : (
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                )}
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">QC Submitted</span>
                 {order.qc_submitted_at ? (
                   <CheckCircle className="w-4 h-4 text-primary" />
                 ) : (
