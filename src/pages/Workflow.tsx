@@ -240,7 +240,7 @@ const initializedRef = useRef(false);
       // Otherwise, determine stage from order status
       const { data: order } = await supabase
         .from('orders')
-        .select('status, production_params_approved')
+        .select('status, production_params_approved, sample_approved, production_timeline_data')
         .eq('design_id', designId)
         .order('created_at', { ascending: false })
         .limit(1)
@@ -253,22 +253,48 @@ const initializedRef = useRef(false);
       
       // Check if production params are approved to determine exact stage
       const productionParamsApproved = order.production_params_approved;
+      const sampleApproved = order.sample_approved;
+      const productionData = order.production_timeline_data as Record<string, any> | null;
+      const productionComplete = productionData?.production_complete === true;
 
-      // Map order status to workflow stage
-      const stageMap: Record<string, string> = {
-        'draft': 'overview',
-        'tech_pack_pending': 'design',
-        'sent_to_manufacturer': 'manufacture-selection',
-        'manufacturer_review': 'payment',
-        'production_approval': 'payment',
-        'sample_development': 'sample',
-        'quality_check': 'quality',
-        'shipping': 'shipping',
-        'delivered': 'shipping'
-      };
+      // Map order status to workflow stage with more precise logic
+      let stage = 'overview';
       
-      console.log('[Workflow] Order status:', order.status, 'Mapped stage:', stageMap[order.status]);
-      setInitialStage(stageMap[order.status] || 'overview');
+      switch (order.status) {
+        case 'draft':
+          stage = 'overview';
+          break;
+        case 'tech_pack_pending':
+          stage = 'design';
+          break;
+        case 'sent_to_manufacturer':
+          stage = 'manufacture-selection';
+          break;
+        case 'manufacturer_review':
+        case 'production_approval':
+          stage = 'payment';
+          break;
+        case 'sample_development':
+          // If sample is approved, go to production-tracking
+          if (sampleApproved) {
+            stage = 'production-tracking';
+          } else {
+            stage = 'sample';
+          }
+          break;
+        case 'quality_check':
+          stage = 'quality';
+          break;
+        case 'shipping':
+        case 'delivered':
+          stage = 'shipping';
+          break;
+        default:
+          stage = 'overview';
+      }
+      
+      console.log('[Workflow] Order status:', order.status, 'Sample approved:', sampleApproved, 'Mapped stage:', stage);
+      setInitialStage(stage);
     };
       initializedRef.current = true;
 
