@@ -28,6 +28,7 @@ import PaymentStage from '@/components/workflow/PaymentStage';
 import ProductionStage from '@/components/workflow/ProductionStage';
 import WaitingForSampleStage from '@/components/workflow/WaitingForSampleStage';
 import SampleStage from '@/components/workflow/SampleStage';
+import ProductionTrackingStage from '@/components/workflow/ProductionTrackingStage';
 import QualityStage from '@/components/workflow/QualityStage';
 import ShippingStage from '@/components/workflow/ShippingStage';
 import PipelineOverviewStage from '@/components/workflow/PipelineOverviewStage';
@@ -102,6 +103,8 @@ const WorkspaceContent = ({ design }: { design: any }) => {
         return <WaitingForSampleStage design={design} />;
       case 'sample':
         return <SampleStage design={design} />;
+      case 'production-tracking':
+        return <ProductionTrackingStage design={design} />;
       case 'quality':
         return <QualityStage design={design} />;
       case 'shipping':

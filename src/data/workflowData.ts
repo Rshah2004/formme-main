@@ -179,6 +179,7 @@ export const stageNames: Record<string, string> = {
   'production': 'Review Details',
   'payment': 'Payment',
   'sample': 'Sample Review',
+  'production-tracking': 'Production',
   'quality': 'Quality Check',
   'shipping': 'Delivery'
 };
@@ -200,6 +201,7 @@ export const stageOrder = [
   // Production phase
   'payment',
   'sample',
+  'production-tracking',
   'quality',
   'shipping'
 ] as const;

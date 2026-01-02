@@ -162,6 +162,7 @@ export const WorkflowProvider = ({ children, initialStage }: { children: ReactNo
     'payment',
     'waiting-sample',
     'sample',
+    'production-tracking',
     'quality',
     'shipping'
   ];

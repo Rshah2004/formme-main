@@ -39,9 +39,15 @@ const ManufacturerOrderWorkspace = () => {
       return;
     }
     
-    // Check if trying to access Quality Check without sample approval
+    // Check if trying to access Production without sample approval
+    if (newTab === 'production' && order?.sample_approved !== true) {
+      toast.error('You cannot access Production until the designer approves your sample');
+      return;
+    }
+    
+    // Check if trying to access Quality Check without production completion
     if (newTab === 'quality' && order?.sample_approved !== true) {
-      toast.error('You cannot access Quality Check until the designer approves your sample');
+      toast.error('You cannot access Quality Check until sample is approved');
       return;
     }
     
@@ -723,12 +729,174 @@ const ManufacturerOrderWorkspace = () => {
                     </Button>
                     <Button 
                       variant="outline"
-                      onClick={() => handleTabChange('quality')}
+                      onClick={() => handleTabChange('production')}
                       disabled={!order.sample_approved}
                     >
                       Next Step
                     </Button>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+            )}
+
+            {/* Production Content */}
+            {activeTab === 'production' && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Production Updates</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <p className="text-muted-foreground">
+                  Submit production updates to keep the designer informed about progress.
+                </p>
+
+                <div className="space-y-3">
+                  <Label>Current Production Phase</Label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {['cutting', 'sewing', 'finishing', 'packing'].map((phase) => (
+                      <Button
+                        key={phase}
+                        variant={order?.production_timeline_data?.current_phase === phase ? 'default' : 'outline'}
+                        className="capitalize"
+                        onClick={async () => {
+                          try {
+                            // Update order with current phase
+                            await supabase
+                              .from('orders')
+                              .update({
+                                production_timeline_data: {
+                                  ...order?.production_timeline_data,
+                                  current_phase: phase,
+                                  last_updated: new Date().toISOString()
+                                }
+                              })
+                              .eq('id', order.id);
+
+                            // Create production update
+                            await supabase
+                              .from('production_updates')
+                              .insert({
+                                order_id: order.id,
+                                status: phase,
+                                message: `Production moved to ${phase} phase`
+                              });
+
+                            toast.success(`Production phase updated to ${phase}`);
+                          } catch (error) {
+                            console.error('Error updating phase:', error);
+                            toast.error('Failed to update production phase');
+                          }
+                        }}
+                      >
+                        {phase}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label>Upload Production Photos</Label>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={async (e) => {
+                      const files = e.target.files;
+                      if (!files || files.length === 0) return;
+
+                      setSubmitting(true);
+                      try {
+                        const uploadPromises = Array.from(files).map(async (file) => {
+                          const fileExt = file.name.split('.').pop();
+                          const fileName = `${order.id}/production-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+                          const { error: uploadError } = await supabase.storage
+                            .from('design-files')
+                            .upload(fileName, file);
+
+                          if (uploadError) throw uploadError;
+
+                          const { data: { publicUrl } } = supabase.storage
+                            .from('design-files')
+                            .getPublicUrl(fileName);
+
+                          return publicUrl;
+                        });
+
+                        const urls = await Promise.all(uploadPromises);
+                        const existingPhotos = order?.production_timeline_data?.production_photos || [];
+
+                        await supabase
+                          .from('orders')
+                          .update({
+                            production_timeline_data: {
+                              ...order?.production_timeline_data,
+                              production_photos: [...existingPhotos, ...urls]
+                            }
+                          })
+                          .eq('id', order.id);
+
+                        toast.success('Production photos uploaded');
+                      } catch (error) {
+                        console.error('Error uploading photos:', error);
+                        toast.error('Failed to upload photos');
+                      } finally {
+                        setSubmitting(false);
+                      }
+                    }}
+                    disabled={submitting}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label>Production Notes</Label>
+                  <Textarea
+                    placeholder="Add any notes about production progress, issues, or updates..."
+                    rows={4}
+                  />
+                </div>
+
+                <div className="flex items-center gap-3 pt-4 border-t">
+                  <Button
+                    onClick={async () => {
+                      try {
+                        await supabase
+                          .from('orders')
+                          .update({
+                            production_timeline_data: {
+                              ...order?.production_timeline_data,
+                              production_completed: true,
+                              completed_at: new Date().toISOString()
+                            }
+                          })
+                          .eq('id', order.id);
+
+                        await supabase
+                          .from('production_updates')
+                          .insert({
+                            order_id: order.id,
+                            status: 'completed',
+                            message: 'Production completed, ready for QC'
+                          });
+
+                        toast.success('Production marked as complete');
+                        handleTabChange('quality');
+                      } catch (error) {
+                        console.error('Error:', error);
+                        toast.error('Failed to complete production');
+                      }
+                    }}
+                    disabled={submitting}
+                  >
+                    Mark Production Complete
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleTabChange('quality')}
+                  >
+                    Continue to QC
+                  </Button>
                 </div>
               </CardContent>
             </Card>

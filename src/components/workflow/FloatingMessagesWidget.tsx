@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { FactoryMessaging } from './FactoryMessaging';
+import { ManufacturerContactsList } from './ManufacturerContactsList';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 interface FloatingMessagesWidgetProps {
@@ -14,106 +15,52 @@ export const FloatingMessagesWidget: React.FC<FloatingMessagesWidgetProps> = ({ 
   const [unreadCount, setUnreadCount] = useState(0);
   const [selectedManufacturer, setSelectedManufacturer] = useState<any>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [showContacts, setShowContacts] = useState(true);
 
   useEffect(() => {
-    fetchSelectedManufacturer();
+    fetchUnreadCount();
   }, [designId]);
 
-  useEffect(() => {
-    if (!orderId) return;
-
-    // Fetch initial unread count
-    fetchUnreadCount();
-
-    // Subscribe to new messages
-    const channel = supabase
-      .channel('messages-unread')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `order_id=eq.${orderId}`,
-        },
-        async (payload) => {
-          const { data: { user } } = await supabase.auth.getUser();
-          // Only count messages not sent by current user
-          if (payload.new.sender_id !== user?.id) {
-            setUnreadCount(prev => prev + 1);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [orderId]);
-
-  const fetchSelectedManufacturer = async () => {
-    // Get the order with manufacturer_review status (finalized manufacturer)
-    const { data: order } = await supabase
-      .from('orders')
-      .select(`
-        id,
-        manufacturer_id,
-        manufacturers (
-          id,
-          name,
-          location
-        )
-      `)
-      .eq('design_id', designId)
-      .eq('status', 'manufacturer_review')
-      .maybeSingle();
-
-    if (order?.manufacturers) {
-      setSelectedManufacturer(order.manufacturers);
-      setOrderId(order.id);
-    }
-  };
-
   const fetchUnreadCount = async () => {
-    if (!orderId) return;
-
     const { data: { user } } = await supabase.auth.getUser();
-    
+    if (!user) return;
+
+    // Get all orders for this design
+    const { data: orders } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('design_id', designId);
+
+    if (!orders || orders.length === 0) return;
+
+    const orderIds = orders.map(o => o.id);
+
     const { count } = await supabase
       .from('messages')
       .select('*', { count: 'exact', head: true })
-      .eq('order_id', orderId)
-      .neq('sender_id', user?.id)
+      .in('order_id', orderIds)
+      .neq('sender_id', user.id)
       .eq('is_read', false);
 
     setUnreadCount(count || 0);
   };
 
+  const handleSelectManufacturer = (manufacturer: any, orderIdParam?: string) => {
+    setSelectedManufacturer(manufacturer);
+    setOrderId(orderIdParam || null);
+    setShowContacts(false);
+  };
+
+  const handleBack = () => {
+    setShowContacts(true);
+    setSelectedManufacturer(null);
+    setOrderId(null);
+  };
+
   const handleOpenChat = () => {
     setOpen(true);
-    // Mark messages as read when opening
-    markMessagesAsRead();
+    setShowContacts(true);
   };
-
-  const markMessagesAsRead = async () => {
-    if (!orderId) return;
-
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    await supabase
-      .from('messages')
-      .update({ is_read: true, read_at: new Date().toISOString() })
-      .eq('order_id', orderId)
-      .neq('sender_id', user?.id)
-      .eq('is_read', false);
-
-    setUnreadCount(0);
-  };
-
-  // Don't show widget if no manufacturer selected
-  if (!selectedManufacturer || !orderId) {
-    return null;
-  }
 
   return (
     <>
@@ -132,26 +79,40 @@ export const FloatingMessagesWidget: React.FC<FloatingMessagesWidgetProps> = ({ 
               </Badge>
             )}
           </div>
-          
           <span className="font-medium">Messages</span>
-          
-          <div className="flex items-center gap-1">
-            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold">
-              {selectedManufacturer.name.charAt(0)}
-            </div>
-          </div>
         </button>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-3xl max-h-[80vh]">
           <div className="p-2">
-            <h2 className="text-lg font-semibold mb-4">Chat with {selectedManufacturer.name}</h2>
-            {orderId && (
-              <FactoryMessaging
-                designId={designId}
-                orderId={orderId}
-              />
+            {showContacts ? (
+              <>
+                <h2 className="text-lg font-semibold mb-4">Manufacturer Contacts</h2>
+                <ManufacturerContactsList
+                  designId={designId}
+                  onSelectManufacturer={handleSelectManufacturer}
+                />
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-3 mb-4">
+                  <button onClick={handleBack} className="p-1 hover:bg-muted rounded">
+                    <ArrowLeft className="w-5 h-5" />
+                  </button>
+                  <h2 className="text-lg font-semibold">
+                    Chat with {selectedManufacturer?.name}
+                  </h2>
+                </div>
+                {orderId ? (
+                  <FactoryMessaging designId={designId} orderId={orderId} />
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>No active order with this manufacturer yet.</p>
+                    <p className="text-sm mt-1">Send a request to start a conversation.</p>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </DialogContent>
