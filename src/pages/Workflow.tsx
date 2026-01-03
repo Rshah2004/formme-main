@@ -60,7 +60,9 @@ const ProgressBar = () => {
 };
 
 const WorkspaceContent = ({ design }: { design: any }) => {
-  const { currentStage } = useWorkflow();
+  const { currentStage, furthestStage, setCurrentStage } = useWorkflow();
+
+  const isViewingPreviousStep = currentStage !== furthestStage;
 
   const renderStage = () => {
     console.log('what is the current stagee', currentStage);
@@ -124,6 +126,19 @@ const WorkspaceContent = ({ design }: { design: any }) => {
       
       {/* Horizontal Progress Tabs */}
       <HorizontalProgressTabs />
+
+      {/* Continue Button - shows when viewing a previously completed step */}
+      {isViewingPreviousStep && (
+        <div className="flex justify-end">
+          <Button
+            onClick={() => setCurrentStage(furthestStage, true)}
+            className="gap-2"
+          >
+            Continue to Current Step
+            <ArrowLeft className="w-4 h-4 rotate-180" />
+          </Button>
+        </div>
+      )}
 
       {/* Main Content Area */}
       <div className="w-full">

@@ -79,6 +79,7 @@ interface WorkflowContextType {
   markStageComplete: (stage: string) => void;
   getProgress: () => number;
   isStageAccessible: (stage: string) => boolean;
+  furthestStage: string;
 }
 
 const WorkflowContext = createContext<WorkflowContextType | undefined>(undefined);
@@ -121,6 +122,7 @@ export const WorkflowProvider = ({ children, initialStage }: { children: ReactNo
   const [workflowData, setWorkflowData] = useState<WorkflowData>(initialData);
   const [currentStage, setCurrentStageState] = useState(initialStage || 'tech-pack');
   const [completedStages, setCompletedStages] = useState<string[]>([]);
+  const [furthestStage, setFurthestStage] = useState<string>(initialStage || 'overview');
 
   useEffect(() => {
     console.log('[CTX] currentStage changed →', currentStage);
@@ -177,6 +179,7 @@ export const WorkflowProvider = ({ children, initialStage }: { children: ReactNo
     if (!initialStage) return;
     console.log('[WorkflowContext] Initial stage set to:', initialStage);
     setCurrentStageState(initialStage);
+    setFurthestStage(initialStage);
     ensureCompletedUpTo(initialStage);
   }, [initialStage]);
 
@@ -223,6 +226,7 @@ export const WorkflowProvider = ({ children, initialStage }: { children: ReactNo
         markStageComplete,
         getProgress,
         isStageAccessible,
+        furthestStage,
       }}
     >
       {children}
