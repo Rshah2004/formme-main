@@ -123,25 +123,8 @@ export const WorkflowProvider = ({ children, initialStage }: { children: ReactNo
   const [completedStages, setCompletedStages] = useState<string[]>([]);
 
   useEffect(() => {
-  console.log('[CTX] currentStage changed →', currentStage);
-}, [currentStage]);
-
-  // Sync currentStage with URL parameter
-  useEffect(() => {
-    const stageFromUrl = searchParams.get('stage');
-    if (stageFromUrl && stageFromUrl !== currentStage) {
-      console.log('[WorkflowContext] URL stage changed to:', stageFromUrl);
-      setCurrentStageState(stageFromUrl);
-    }
-  }, [searchParams]);
-
-  // Update initialStage when it changes
-  useEffect(() => {
-    if (initialStage) {
-      console.log('[WorkflowContext] Initial stage set to:', initialStage);
-      setCurrentStageState(initialStage);
-    }
-  }, []);
+    console.log('[CTX] currentStage changed →', currentStage);
+  }, [currentStage]);
 
   const stages = [
     // Overview - first step
@@ -164,8 +147,38 @@ export const WorkflowProvider = ({ children, initialStage }: { children: ReactNo
     'sample',
     'production-tracking',
     'quality',
-    'shipping'
+    'shipping',
   ];
+
+  const ensureCompletedUpTo = (stage: string) => {
+    const idx = stages.indexOf(stage);
+    if (idx <= 0) return;
+
+    const impliedCompleted = stages.slice(0, idx);
+    setCompletedStages((prev) => {
+      const merged = new Set(prev);
+      impliedCompleted.forEach((s) => merged.add(s));
+      return Array.from(merged);
+    });
+  };
+
+  // Sync currentStage with URL parameter
+  useEffect(() => {
+    const stageFromUrl = searchParams.get('stage');
+    if (stageFromUrl && stageFromUrl !== currentStage) {
+      console.log('[WorkflowContext] URL stage changed to:', stageFromUrl);
+      setCurrentStageState(stageFromUrl);
+      ensureCompletedUpTo(stageFromUrl);
+    }
+  }, [searchParams, currentStage]);
+
+  // Apply initialStage (from workflow route logic) and infer completed stages for progress persistence
+  useEffect(() => {
+    if (!initialStage) return;
+    console.log('[WorkflowContext] Initial stage set to:', initialStage);
+    setCurrentStageState(initialStage);
+    ensureCompletedUpTo(initialStage);
+  }, [initialStage]);
 
   const isStageAccessible = (stage: string) => {
     const stageIndex = stages.indexOf(stage);
