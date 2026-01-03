@@ -184,7 +184,7 @@ const initializedRef = useRef(false);
       // First check if contract is finalized (any order with manufacturer_id and status production_approval+)
       const { data: finalizedOrder, error: finalizedOrderError } = await supabase
         .from('orders')
-        .select('id, status, manufacturer_id')
+        .select('id, status, manufacturer_id, production_params_approved, sample_approved, qc_approved, production_timeline_data')
         .eq('design_id', designId)
         .not('manufacturer_id', 'is', null)
         .in('status', ['production_approval', 'sample_development', 'quality_check', 'shipping', 'delivered'])
@@ -196,10 +196,39 @@ const initializedRef = useRef(false);
         console.warn('[Workflow] Finalized order lookup error:', finalizedOrderError);
       }
 
-      // If contract IS finalized, go to payment stage (skipping production stage)
+      // If contract IS finalized, determine stage based on order status and progress
       if (finalizedOrder) {
-        console.log('[Workflow] Contract finalized, proceeding to payment');
-        setInitialStage('payment');
+        const sampleApproved = finalizedOrder.sample_approved === true;
+        const qcApproved = finalizedOrder.qc_approved === true;
+        const productionData = finalizedOrder.production_timeline_data as Record<string, any> | null;
+        const productionCompleted = productionData?.production_completed === true;
+        
+        let stage = 'payment';
+        
+        switch (finalizedOrder.status) {
+          case 'production_approval':
+            stage = 'payment';
+            break;
+          case 'sample_development':
+            if (sampleApproved) {
+              stage = productionCompleted ? 'quality' : 'production-tracking';
+            } else {
+              stage = 'sample';
+            }
+            break;
+          case 'quality_check':
+            stage = qcApproved ? 'shipping' : 'quality';
+            break;
+          case 'shipping':
+          case 'delivered':
+            stage = 'shipping';
+            break;
+          default:
+            stage = 'payment';
+        }
+        
+        console.log('[Workflow] Contract finalized, status:', finalizedOrder.status, 'sampleApproved:', sampleApproved, 'productionCompleted:', productionCompleted, 'qcApproved:', qcApproved, '-> stage:', stage);
+        setInitialStage(stage);
         return;
       }
 
