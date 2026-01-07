@@ -62,8 +62,32 @@ const ProgressBar = () => {
 const WorkspaceContent = ({ design }: { design: any }) => {
   const { currentStage, furthestStage, setCurrentStage } = useWorkflow();
 
-  const isViewingPreviousStep = currentStage !== furthestStage;
+const isViewingPreviousStep = () => {
+  const stageOrder = [
+    'overview',
+    'design',
+    'specifications',
+    'fabric-color',
+    'tech-pack',
+    'factory-match',
+    'manufacture-selection',
+    'payment',
+    'production',
+    'waiting-sample',
+    'sample',
+    'production-tracking',
+    'quality',
+    'shipping'
+  ];
+console.log('what is the current index');
 
+  const currentIndex = stageOrder.indexOf(currentStage);
+  const furthestIndex = stageOrder.indexOf(furthestStage);
+console.log('what is the current index', currentIndex);
+console.log('what is the furthest index', furthestIndex);
+  // Only show if current stage is before the furthest stage in the workflow
+  return currentIndex >= 0 && furthestIndex >= 0 && currentIndex < furthestIndex;
+  };
   const renderStage = () => {
     console.log('what is the current stagee', currentStage);
 
@@ -128,7 +152,7 @@ const WorkspaceContent = ({ design }: { design: any }) => {
       <HorizontalProgressTabs />
 
       {/* Continue Button - shows when viewing a previously completed step */}
-      {isViewingPreviousStep && (
+      {isViewingPreviousStep() && (
         <div className="flex justify-end">
           <Button
             onClick={() => setCurrentStage(furthestStage, true)}
