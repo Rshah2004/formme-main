@@ -3,16 +3,18 @@ import { Check, Lock, Palette, FileText, Factory, Sparkles } from 'lucide-react'
 import { useWorkflow } from '@/context/WorkflowContext';
 import { cn } from '@/lib/utils';
 
-// Top level tabs - 4 phases including overview
+import { Upload } from 'lucide-react';
+
+// Top level tabs - 4 phases
 const topLevelStages = [
-  { id: 'overview', label: 'Overview', icon: Sparkles },
   { id: 'tech-pack', label: 'Tech Pack', icon: FileText },
   { id: 'manufacturers', label: 'Manufacturers', icon: Factory },
   { id: 'production', label: 'Production', icon: Factory },
 ];
 
-// Tech Pack sub-stages (design details, specs, fabric)
+// Tech Pack sub-stages - Upload first, then generator steps
 export const techPackSubStages = [
+  { id: 'upload-tech-pack', label: 'Upload Tech Pack' },
   { id: 'design', label: 'Design Details' },
   { id: 'specifications', label: 'Specifications' },
   { id: 'fabric-color', label: 'Fabric & Color' },
@@ -35,13 +37,8 @@ export const productionSubStages = [
 
 // Map current stage to top-level tab
 export const getTopLevelStage = (currentStage: string): string => {
-  // Overview stage
-  if (currentStage === 'overview') {
-    return 'overview';
-  }
-  
-  // Tech Pack phase (design details, specs, fabric)
-  if (['design', 'specifications', 'fabric-color', 'tech-pack', 'tech-pack-review', 'tech-pack-overview'].includes(currentStage)) {
+  // Tech Pack phase (upload or generator steps)
+  if (['upload-tech-pack', 'design', 'specifications', 'fabric-color', 'tech-pack', 'tech-pack-review', 'tech-pack-overview'].includes(currentStage)) {
     return 'tech-pack';
   }
   
@@ -55,14 +52,13 @@ export const getTopLevelStage = (currentStage: string): string => {
     return 'production';
   }
   
-  return 'overview';
+  return 'tech-pack';
 };
 
 export const HorizontalProgressTabs = () => {
   const { currentStage, completedStages, setCurrentStage } = useWorkflow();
 
   const activeTopLevel = getTopLevelStage(currentStage);
-  const isInOverview = activeTopLevel === 'overview';
   const isInTechPack = activeTopLevel === 'tech-pack';
   const isInManufacturers = activeTopLevel === 'manufacturers';
   const isInProduction = activeTopLevel === 'production';
@@ -81,8 +77,7 @@ export const HorizontalProgressTabs = () => {
   const handleStageClick = (stageId: string, status: string) => {
     if (status === 'locked') return;
     
-    if (stageId === 'overview') setCurrentStage('overview');
-    else if (stageId === 'tech-pack') setCurrentStage('design');
+    if (stageId === 'tech-pack') setCurrentStage('upload-tech-pack');
     else if (stageId === 'manufacturers') setCurrentStage('factory-match');
     else if (stageId === 'production') setCurrentStage('payment');
   };
@@ -152,14 +147,15 @@ export const HorizontalProgressTabs = () => {
   );
 };
 
-// Sub-tabs for Tech Pack phase (design details, specs, fabric)
+// Sub-tabs for Tech Pack phase (upload first, then generator steps)
 const TechPackSubTabs = () => {
   const { currentStage, setCurrentStage, completedStages } = useWorkflow();
 
   const getCurrentSubIndex = () => {
-    if (currentStage === 'design' || currentStage === 'tech-pack' || currentStage === 'tech-pack-overview') return 0;
-    if (currentStage === 'specifications') return 1;
-    if (currentStage === 'fabric-color') return 2;
+    if (currentStage === 'upload-tech-pack') return 0;
+    if (currentStage === 'design' || currentStage === 'tech-pack' || currentStage === 'tech-pack-overview') return 1;
+    if (currentStage === 'specifications') return 2;
+    if (currentStage === 'fabric-color') return 3;
     return 0;
   };
 

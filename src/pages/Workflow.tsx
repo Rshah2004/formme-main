@@ -17,6 +17,7 @@ import { FeasibilitySummary } from '@/components/workflow/FeasibilitySummary';
 import TechPackStage from '@/components/workflow/TechPackStage';
 import TechPackOverviewStage from '@/components/workflow/TechPackOverviewStage';
 import TechPackFeasibilityStage from '@/components/workflow/TechPackFeasibilityStage';
+import TechPackUploadStage from '@/components/workflow/TechPackUploadStage';
 import DesignStage from '@/components/workflow/DesignStage';
 import SpecificationsStage from '@/components/workflow/SpecificationsStage';
 import FabricColorStage from '@/components/workflow/FabricColorStage';
@@ -31,7 +32,6 @@ import SampleStage from '@/components/workflow/SampleStage';
 import ProductionTrackingStage from '@/components/workflow/ProductionTrackingStage';
 import QualityStage from '@/components/workflow/QualityStage';
 import ShippingStage from '@/components/workflow/ShippingStage';
-import PipelineOverviewStage from '@/components/workflow/PipelineOverviewStage';
 import { FloatingMessagesWidget } from '@/components/workflow/FloatingMessagesWidget';
 import { useRef} from "react";
 
@@ -64,7 +64,7 @@ const WorkspaceContent = ({ design }: { design: any }) => {
 
 const isViewingPreviousStep = () => {
   const stageOrder = [
-    'overview',
+    'upload-tech-pack',
     'design',
     'specifications',
     'fabric-color',
@@ -79,12 +79,9 @@ const isViewingPreviousStep = () => {
     'quality',
     'shipping'
   ];
-console.log('what is the current index');
 
   const currentIndex = stageOrder.indexOf(currentStage);
   const furthestIndex = stageOrder.indexOf(furthestStage);
-console.log('what is the current index', currentIndex);
-console.log('what is the furthest index', furthestIndex);
   // Only show if current stage is before the furthest stage in the workflow
   return currentIndex >= 0 && furthestIndex >= 0 && currentIndex < furthestIndex;
   };
@@ -92,11 +89,11 @@ console.log('what is the furthest index', furthestIndex);
     console.log('what is the current stagee', currentStage);
 
     switch (currentStage) {
-      // Overview stage - first step
-      case 'overview':
-        return <PipelineOverviewStage design={design} />;
+      // Tech Pack stages - Upload first
+      case 'upload-tech-pack':
+        return <TechPackUploadStage design={design} />;
       
-      // Tech Pack stages (design details, specs, fabric)
+      // Tech Pack generator stages (design details, specs, fabric)
       case 'design':
         return <DesignStage design={design} />;
       case 'specifications':
@@ -136,7 +133,7 @@ console.log('what is the furthest index', furthestIndex);
       case 'shipping':
         return <ShippingStage design={design} />;
       default:
-        return <PipelineOverviewStage design={design} />;
+        return <TechPackUploadStage design={design} />;
     }
   };
 
@@ -316,7 +313,7 @@ const initializedRef = useRef(false);
         .maybeSingle();
       
       if (!order) {
-        setInitialStage('overview');
+        setInitialStage('upload-tech-pack');
         return;
       }
       
@@ -328,11 +325,11 @@ const initializedRef = useRef(false);
       const productionCompleted = productionData?.production_completed === true;
 
       // Map order status to workflow stage with more precise logic
-      let stage = 'overview';
+      let stage = 'upload-tech-pack';
       
       switch (order.status) {
         case 'draft':
-          stage = 'overview';
+          stage = 'upload-tech-pack';
           break;
         case 'tech_pack_pending':
           stage = 'design';
@@ -370,7 +367,7 @@ const initializedRef = useRef(false);
           stage = 'shipping';
           break;
         default:
-          stage = 'overview';
+          stage = 'upload-tech-pack';
       }
       
       console.log('[Workflow] Order status:', order.status, 'Sample approved:', sampleApproved, 'Production completed:', productionCompleted, 'QC approved:', qcApproved, 'Mapped stage:', stage);
