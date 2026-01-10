@@ -120,18 +120,18 @@ const initialData: WorkflowData = {
 export const WorkflowProvider = ({ children, initialStage }: { children: ReactNode; initialStage?: string }) => {
   const [searchParams] = useSearchParams();
   const [workflowData, setWorkflowData] = useState<WorkflowData>(initialData);
-  const [currentStage, setCurrentStageState] = useState(initialStage || 'tech-pack');
+  const [currentStage, setCurrentStageState] = useState(initialStage || 'upload-tech-pack');
   const [completedStages, setCompletedStages] = useState<string[]>([]);
-  const [furthestStage, setFurthestStage] = useState<string>(initialStage || 'overview');
+  const [furthestStage, setFurthestStage] = useState<string>(initialStage || 'upload-tech-pack');
 
   useEffect(() => {
     console.log('[CTX] currentStage changed →', currentStage);
   }, [currentStage]);
 
   const stages = [
-    // Overview - first step
-    'overview',
-    // Tech Pack phase
+    // Tech Pack phase - Upload first
+    'upload-tech-pack',
+    // Tech Pack generator steps
     'design',
     'specifications',
     'fabric-color',
