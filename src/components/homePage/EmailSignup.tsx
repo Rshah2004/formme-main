@@ -22,7 +22,8 @@ const EmailSignup: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase
+      // Using type assertion since the table was just created
+      const { error } = await (supabase as any)
         .from('email_subscribers')
         .insert({ email: email.toLowerCase().trim() });
 
