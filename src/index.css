@@ -72,3 +72,7 @@
     animation-play-state: paused;
   }
 }
+
+aside {
+  display: none !important;
+}
