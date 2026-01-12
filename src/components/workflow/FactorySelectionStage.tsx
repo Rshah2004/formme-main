@@ -7,7 +7,7 @@ import { useWorkflow } from '@/context/WorkflowContext';
 interface FactorySelectionStageProps {
   design: any;
 }
-console.log("is it reaching here");
+
 const FactorySelectionStage = ({ design }: FactorySelectionStageProps) => {
   const { currentStage, setCurrentStage, markStageComplete } = useWorkflow();
 
