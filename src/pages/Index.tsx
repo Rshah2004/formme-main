@@ -3,9 +3,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import HeroSection from '@/components/homePage/HeroSection';
 import Features from '@/components/homePage/Features';
+import WhatWeOffer from '@/components/homePage/WhatWeOffer';
 import CraftsmanshipSection from '@/components/homePage/CraftsmanshipSection';
 import MarketplaceShowcase from '@/components/homePage/MarketplaceShowcase';
 import ReviewsSection from '@/components/homePage/ReviewsSection';
+import EmailSignup from '@/components/homePage/EmailSignup';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
@@ -15,9 +17,11 @@ const Index = () => {
     <div className="min-h-screen font-inter">
       <HeroSection />
       <Features />
+      <WhatWeOffer />
       <CraftsmanshipSection />
       <MarketplaceShowcase />
       <ReviewsSection />
+      <EmailSignup />
       
       <section className="py-24 bg-[#FFF7DE]">
         <div className="container mx-auto px-6">
