@@ -161,6 +161,7 @@ const NewDesign = () => {
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                   <Palette className="w-8 h-8 text-primary" />
                 </div>
+                <h3 className="text-l font-light ">Coming Soon</h3>
                 <h2 className="text-2xl font-semibold mb-2">Design your garment with Formme</h2>
                 <p className="text-muted-foreground">
                   Create your design from scratch using our design tools
@@ -189,9 +190,9 @@ const NewDesign = () => {
                 </div>
               </div>
 
-              <Button onClick={handleNewDesignClick} className="w-full">
+              {/* <Button onClick={handleNewDesignClick} className="w-full">
                 Start Designing
-              </Button>
+              </Button> */}
             </Card>
 
             {/* Have a ready-to-manufacture design? */}

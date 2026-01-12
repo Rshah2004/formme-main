@@ -359,18 +359,18 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      {/* <div className="grid grid-cols-4 gap-4">
         <StatCard title="Orders Placed" value={stats.ordersPlaced} change="+12%" color="blue" />
         <StatCard title="In Sampling" value={stats.inSampling} change="+2" color="purple" />
         <StatCard title="In Production" value={stats.inProduction} change="+4" color="orange" />
         <StatCard title="Delivered" value={stats.delivered} change="+8%" color="green" />
-      </div>
+      </div> */}
 
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Manufacturing Orders</h2>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm"><SlidersHorizontal className="w-4 h-4 mr-2" />Filter</Button>
+            {/* <Button variant="outline" size="sm"><SlidersHorizontal className="w-4 h-4 mr-2" />Filter</Button> */}
             <Button onClick={() => navigate("/new-design")} size="sm"><Plus className="w-4 h-4 mr-2" />New Order</Button>
           </div>
         </div>

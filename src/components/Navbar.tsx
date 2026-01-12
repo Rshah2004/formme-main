@@ -99,13 +99,13 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
               key={item}
               to={
                 item === "create"
-                  ? "/dashboard"
+                  ? "/coming-soon"
                   : item === "dashboard"
                     ? "/dashboard"
                     : item === "reviews"
                       ? "/reviews"
                       : item === "collection"
-                        ? "/new-design"
+                        ? "/coming-soon"
                         : "#"
               }
               onClick={handleClick}
