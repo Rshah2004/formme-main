@@ -194,9 +194,23 @@ export const WorkflowProvider = ({ children, initialStage }: { children: ReactNo
   };
 
   const setCurrentStage = (stage: string, force: boolean = false) => {
-    // Allow forced navigation (for "Finish Later") or normal accessible navigation
-    if (force || isStageAccessible(stage) || completedStages.includes(stage)) {
+    const stageIndex = stages.indexOf(stage);
+    const currentIndex = stages.indexOf(currentStage);
+    
+    // Allow navigation if:
+    // 1. Force navigation is requested
+    // 2. Stage is accessible (previous stage already completed)
+    // 3. Stage was already completed (going back)
+    // 4. We're navigating to the immediate next stage from current (handles async state updates)
+    const isImmediateNext = stageIndex === currentIndex + 1;
+    
+    if (force || isStageAccessible(stage) || completedStages.includes(stage) || isImmediateNext) {
       setCurrentStageState(stage);
+      
+      // Update furthest stage if we're advancing
+      if (stageIndex > stages.indexOf(furthestStage)) {
+        setFurthestStage(stage);
+      }
     }
   };
 
