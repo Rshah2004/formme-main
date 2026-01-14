@@ -58,36 +58,58 @@ export default function Features() {
         </div>
 
         {/* Clean 3-step overview */}
-        <motion.ol
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16"
-        >
-          <li className="text-center">
-            <div className="mx-auto w-14 h-14 rounded-full bg-black/5 border border-black/10 flex items-center justify-center text-sm font-medium">01</div>
-            <h4 className="mt-4 text-xl font-medium text-white">Design</h4>
-            <p className="mt-1 text-sm text-white/70">Sketch, import, or start from templates.</p>
-          </li>
-          <li className="text-center">
-            <div className="mx-auto w-14 h-14 rounded-full bg-black/5 border border-black/10 flex items-center justify-center text-sm font-medium">02</div>
-            <h4 className="mt-4 text-xl font-medium text-white">Preview</h4>
-            <p className="mt-1 text-sm text-white/70">See it live with instant 3D visualization.</p>
-          </li>
-          <li className="text-center">
-            <div className="mx-auto w-14 h-14 rounded-full bg-black/5 border border-black/10 flex items-center justify-center text-sm font-medium">03</div>
-            <h4 className="mt-4 text-xl font-medium text-white">Deliver</h4>
-            <p className="mt-1 text-sm text-white/70">Checkout securely and track your order.</p>
-          </li>
-        </motion.ol>
+<motion.ol
+  initial={{ opacity: 0, y: 20 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true }}
+  transition={{ duration: 0.5 }}
+  className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16"
+>
+  <li className="text-center">
+    <div className="mx-auto w-14 h-14 rounded-full bg-black/5 border border-black/10 flex items-center justify-center text-sm font-medium">
+      01
+    </div>
+    <h4 className="mt-4 text-xl font-medium text-white">Share your vision</h4>
+    <p className="mt-1 text-sm text-white/70">
+      Upload sketches, references, and requirements—get everything in one place.
+    </p>
+  </li>
+
+  <li className="text-center">
+    <div className="mx-auto w-14 h-14 rounded-full bg-black/5 border border-black/10 flex items-center justify-center text-sm font-medium">
+      02
+    </div>
+    <h4 className="mt-4 text-xl font-medium text-white">Get matched</h4>
+    <p className="mt-1 text-sm text-white/70">
+      We connect you with the right manufacturer based on capabilities and MOQ.
+    </p>
+  </li>
+
+  <li className="text-center">
+    <div className="mx-auto w-14 h-14 rounded-full bg-black/5 border border-black/10 flex items-center justify-center text-sm font-medium">
+      03
+    </div>
+    <h4 className="mt-4 text-xl font-medium text-white">Produce with clarity</h4>
+    <p className="mt-1 text-sm text-white/70">
+      Centralized communication, revisions, and approvals so nothing gets lost.
+    </p>
+  </li>
+</motion.ol>
+
 
         {/* CTA */}
         <div className="text-center">
-          <Button className="rounded-xl px-8 py-6 bg-primary text-primary-foreground hover:opacity-90 transition">
-            Start Designing
-            <ArrowRight className="ml-2 w-4 h-4" />
-          </Button>
+          <Button
+  onClick={() => {
+    // replace with your actual route or modal trigger
+    window.location.href = "/new-design";
+  }}
+  className="rounded-xl px-8 py-6 bg-white text-[#344C3D] hover:bg-[#FFF7DE] hover:text-[#344C3D] transition font-medium shadow-lg"
+>
+  Start Producing
+  <ArrowRight className="ml-2 w-4 h-4" />
+</Button>
+
         </div>
       </div>
     </section>
@@ -162,61 +184,72 @@ interface BenefitType {
 const features: FeatureType[] = [
   {
     number: "01",
-    title: "Creative Design Tools",
-    description: "Leverage our sophisticated design interface built for professional workflows, with precision controls and enterprise-grade capabilities.",
-    icon: Brush,
+    title: "Manufacturer Matching",
+    description:
+      "Find the right production partner based on what you’re making—capabilities, MOQ, timelines, and quality expectations.",
+    icon: Factory,
     bgColor: "bg-[#FFF7DE]/20",
-    iconColor: "text-[#FFF7DE]"
+    iconColor: "text-[#FFF7DE]",
   },
   {
     number: "02",
-    title: "Ethical Manufacturing",
-    description: "Access on-demand manufacturing that prioritizes ethical practices and sustainability for professional fashion production.",
-    icon: Factory,
+    title: "Clear Communication, End-to-End",
+    description:
+      "One shared space for specs, questions, and updates—so details don’t get missed across time zones, tools, or language.",
+    icon: Users,
     bgColor: "bg-[#FFF7DE]/20",
-    iconColor: "text-[#FFF7DE]"
+    iconColor: "text-[#FFF7DE]",
   },
   {
     number: "03",
-    title: "Premium Quality",
-    description: "Experience exceptional quality with every garment through our rigorous standards and premium materials selection process.",
-    icon: Star,
+    title: "Fewer Revisions, Faster Production",
+    description:
+      "Keep requirements, approvals, and iteration history organized to reduce back-and-forth and move from concept to sample quicker.",
+    icon: Clock,
     bgColor: "bg-[#FFF7DE]/20",
-    iconColor: "text-[#FFF7DE]"
-  }
+    iconColor: "text-[#FFF7DE]",
+  },
 ];
+
 
 // Benefits data
 const benefits: BenefitType[] = [
   {
     icon: Shield,
-    title: "Secure & Protected",
-    description: "Enterprise-grade security with full IP protection and confidential design handling."
+    title: "Design Ownership",
+    description:
+      "Your files stay yours—share only what’s needed with the manufacturer you choose.",
   },
   {
     icon: Clock,
-    title: "Fast Turnaround",
-    description: "Rapid prototyping and production with industry-leading delivery times."
+    title: "Less Back-and-Forth",
+    description:
+      "Centralized questions, answers, and decisions to speed up iterations.",
   },
   {
     icon: Award,
-    title: "Quality Assurance",
-    description: "Rigorous quality control at every step ensures premium results every time."
+    title: "Production-Ready Details",
+    description:
+      "Keep specs and requirements consistent so manufacturing matches your intent.",
   },
   {
     icon: Users,
-    title: "Expert Support",
-    description: "Dedicated design consultants and production specialists at your service."
+    title: "Collaboration Built In",
+    description:
+      "Bring teammates into the same workflow—design, sourcing, and production.",
   },
   {
     icon: Truck,
-    title: "Global Shipping",
-    description: "Worldwide delivery with tracking and insurance for complete peace of mind."
+    title: "Progress Visibility",
+    description:
+      "Track what’s been asked, answered, approved, and what’s still pending.",
   },
   {
     icon: Recycle,
-    title: "Sustainable Practices",
-    description: "Eco-friendly materials and processes that align with your sustainability goals."
-  }
+    title: "Smarter Sampling",
+    description:
+      "Reduce waste by avoiding miscommunication that leads to wrong samples.",
+  },
 ];
+
 

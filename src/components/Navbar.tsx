@@ -69,7 +69,7 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
         </div>
       </Link>
       <nav className="hidden md:flex gap-8 mr-10 ml-auto">
-        {["collection", "create", "dashboard", "reviews"].map((item) => {
+        {["collection", "create", "dashboard"].map((item) => {
           const isAuthRequired = item === "collection" || item === "create" || item === "dashboard";
           
           const handleClick = (e: React.MouseEvent) => {
@@ -102,11 +102,9 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
                   ? "/coming-soon"
                   : item === "dashboard"
                     ? "/dashboard"
-                    : item === "reviews"
-                      ? "/reviews"
-                      : item === "collection"
-                        ? "/coming-soon"
-                        : "#"
+                    : item === "collection"
+                      ? "/coming-soon"
+                      : "#"
               }
               onClick={handleClick}
               className={cn(
@@ -135,9 +133,9 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
             </button>
           </Link>
         )}
-        <button aria-label="Shopping cart" className="p-2 rounded-full hover:bg-muted transition-colors">
+        {/* <button aria-label="Shopping cart" className="p-2 rounded-full hover:bg-muted transition-colors">
           <CartIcon />
-        </button>
+        </button> */}
 
         {!user && (
           <Link to="/auth">

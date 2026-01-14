@@ -20,7 +20,6 @@ const Index = () => {
       <WhatWeOffer />
       <CraftsmanshipSection />
       <MarketplaceShowcase />
-      <ReviewsSection />
       <EmailSignup />
       
       <section className="py-24 bg-[#FFF7DE]">

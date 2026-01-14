@@ -256,10 +256,10 @@ const HomePage = () => {
       <NavBar />
       <main className="flex-grow"> 
         <HeroSection />
-        <CraftsmanshipSection />
+        {/* <CraftsmanshipSection /> */}
         <Features />
-        <MarketplaceShowcase />
-        <ReviewsSection />
+        {/* <MarketplaceShowcase />
+        <ReviewsSection /> */}
       </main>
       <Footer />
     </div>

@@ -34,7 +34,7 @@ const HeroSection: React.FC = () => {
         description: "Create an account to access your personal dashboard and manage all your designs in one place.",
       });
     } else {
-      navigate("/new-design");
+      navigate("/dashboard");
     }
   };
 
@@ -45,7 +45,7 @@ const HeroSection: React.FC = () => {
         description: "Create an account to start designing custom garments and bring your creative vision to life.",
       });
     } else {
-      navigate("/dashboard");
+      navigate("/coming-soon");
     }
   };
 

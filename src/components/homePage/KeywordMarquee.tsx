@@ -5,15 +5,16 @@ interface KeywordMarqueeProps {
 }
 
 const keywords = [
-  "Sustainable fabrics",
-  "Real‑time 3D",
-  "Secure checkout",
-  "On‑demand production",
-  "Ethical sourcing",
-  "Premium quality",
-  "Fast delivery",
-  "Made for creators",
+  "Designer ↔ Manufacturer matching",
+  "Clear specs & requirements",
+  "Centralized communication",
+  "Revision + approval tracking",
+  "Time zone friendly workflows",
+  "Fewer misunderstandings",
+  "Faster sampling cycles",
+  "Production visibility",
 ];
+
 
 const KeywordMarquee: React.FC<KeywordMarqueeProps> = ({ speedMs = 22000 }) => {
   return (
