@@ -373,14 +373,27 @@ export const ManufacturerReviewFeasibility = ({
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Tech Pack Document</CardTitle>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Eye className="w-4 h-4" />
-                    Preview
-                  </Button>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <FileDown className="w-4 h-4" />
-                    Download PDF
-                  </Button>
+                  {order?.techpacks?.pdf_url ? (
+                    <>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="gap-2"
+                        onClick={() => window.open(order.techpacks.pdf_url, '_blank')}
+                      >
+                        <Eye className="w-4 h-4" />
+                        Preview
+                      </Button>
+                      <Button variant="outline" size="sm" className="gap-2" asChild>
+                        <a href={order.techpacks.pdf_url} download target="_blank" rel="noopener noreferrer">
+                          <FileDown className="w-4 h-4" />
+                          Download PDF
+                        </a>
+                      </Button>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No PDF uploaded</p>
+                  )}
                 </div>
               </div>
             </CardHeader>
