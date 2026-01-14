@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { MessageSquare, FileDown, Upload, CheckCircle, XCircle, ArrowLeft, Clock
 import { ManufacturerStepper } from '@/components/workflow/ManufacturerStepper';
 import { FactoryMessaging } from '@/components/workflow/FactoryMessaging';
 import { FloatingMessagesWidget } from '@/components/workflow/FloatingMessagesWidget';
-import { ManufacturerMessaging } from '@/components/manufacturer/ManufacturerMessaging';
+import { ManufacturerMessaging, ManufacturerMessagingRef } from '@/components/manufacturer/ManufacturerMessaging';
 import { ManufacturerReviewFeasibility } from '@/components/manufacturer/ManufacturerReviewFeasibility';
 import { AcceptOrderStage } from '@/components/manufacturer/AcceptOrderStage';
 import { supabase } from '@/integrations/supabase/client';
@@ -60,6 +60,7 @@ const ManufacturerOrderWorkspace = () => {
     setActiveTab(newTab);
   };
   const [order, setOrder] = useState<any>(null);
+  const messagingRef = useRef<ManufacturerMessagingRef>(null);
   const [loading, setLoading] = useState(true);
   const [matchStatus, setMatchStatus] = useState<'pending' | 'accepted' | 'rejected' | null>(null);
   const [accepting, setAccepting] = useState(false);
@@ -576,12 +577,13 @@ const ManufacturerOrderWorkspace = () => {
           </div>
           
           <div className="flex gap-3">
-            <Button variant="outline" className="gap-2">
+            <Button 
+              variant="outline" 
+              className="gap-2"
+              onClick={() => messagingRef.current?.openDialog(id)}
+            >
               <MessageSquare className="w-4 h-4" />
               Message Designer
-            </Button>
-            <Button className="gap-2">
-              Update Status
             </Button>
           </div>
         </div>
@@ -1133,7 +1135,7 @@ const ManufacturerOrderWorkspace = () => {
       </div>
 
       {/* Floating Messages Widget for Manufacturers */}
-      <ManufacturerMessaging />
+      <ManufacturerMessaging ref={messagingRef} />
     </div>
   );
 };
