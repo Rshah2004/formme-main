@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -20,11 +20,33 @@ interface Designer {
   unreadCount: number;
 }
 
-export const ManufacturerMessaging = () => {
+export interface ManufacturerMessagingRef {
+  openDialog: (orderId?: string) => void;
+}
+
+interface ManufacturerMessagingProps {
+  onOpenChange?: (open: boolean) => void;
+}
+
+export const ManufacturerMessaging = forwardRef<ManufacturerMessagingRef, ManufacturerMessagingProps>(
+  ({ onOpenChange }, ref) => {
   const [open, setOpen] = useState(false);
   const [designers, setDesigners] = useState<Designer[]>([]);
   const [selectedDesigner, setSelectedDesigner] = useState<Designer | null>(null);
   const [totalUnread, setTotalUnread] = useState(0);
+
+  useImperativeHandle(ref, () => ({
+    openDialog: (orderId?: string) => {
+      setOpen(true);
+      if (orderId) {
+        // Auto-select the designer for this order
+        const designer = designers.find(d => d.orderId === orderId);
+        if (designer) {
+          handleOpenChat(designer);
+        }
+      }
+    }
+  }));
 
   useEffect(() => {
     const fetchDesigners = async () => {
@@ -61,11 +83,16 @@ export const ManufacturerMessaging = () => {
           // Fetch designer profiles and unread counts
           const designerList = await Promise.all(
             orders.map(async (order) => {
-              const { data: profile } = await supabase
+              // Fetch profile using the designer_id which is the user_id
+              const { data: profile, error: profileError } = await supabase
                 .from('profiles')
                 .select('full_name, company_name')
                 .eq('user_id', order.designer_id)
                 .maybeSingle();
+
+              if (profileError) {
+                console.error('Error fetching profile:', profileError);
+              }
 
               // Count unread messages for this order
               const { count } = await supabase
@@ -75,9 +102,16 @@ export const ManufacturerMessaging = () => {
                 .eq('is_read', false)
                 .neq('sender_id', user.id);
 
+              // Use full_name first, then company_name, then fallback
+              const designerName = profile?.full_name?.trim() 
+                ? profile.full_name 
+                : profile?.company_name?.trim() 
+                  ? profile.company_name 
+                  : 'Unknown Designer';
+
               return {
                 id: order.designer_id,
-                name: profile?.full_name || profile?.company_name || 'Designer',
+                name: designerName,
                 designName: order.designs?.name || 'Unknown Design',
                 orderId: order.id,
                 unreadCount: count || 0,
@@ -143,6 +177,11 @@ export const ManufacturerMessaging = () => {
     }
   };
 
+  const handleDialogOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    onOpenChange?.(isOpen);
+  };
+
   return (
     <>
       {/* Floating Message Button */}
@@ -159,7 +198,7 @@ export const ManufacturerMessaging = () => {
       </button>
 
       {/* Messages Dialog */}
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="max-w-5xl h-[600px] p-0">
           <div className="flex h-full">
             {/* Left Sidebar - Designers List */}
@@ -234,4 +273,6 @@ export const ManufacturerMessaging = () => {
       </Dialog>
     </>
   );
-};
+});
+
+ManufacturerMessaging.displayName = 'ManufacturerMessaging';
