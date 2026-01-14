@@ -41,7 +41,6 @@
     --sidebar-primary: 133 18% 25%;
     --sidebar-ring: 133 18% 25%;
   }
-
 }
 
 @layer base {
@@ -67,12 +66,8 @@
   .animate-scroll-left {
     animation: scroll-left 30s linear infinite;
   }
-  
+
   .animate-scroll-left:hover {
     animation-play-state: paused;
   }
-}
-
-aside {
-  display: none !important;
 }
