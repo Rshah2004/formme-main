@@ -1,11 +1,10 @@
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageCircle } from 'lucide-react';
@@ -29,24 +28,32 @@ interface ManufacturerMessagingProps {
 }
 
 export const ManufacturerMessaging = forwardRef<ManufacturerMessagingRef, ManufacturerMessagingProps>(
-  ({ onOpenChange }, ref) => {
+  function ManufacturerMessagingComponent({ onOpenChange }, ref) {
   const [open, setOpen] = useState(false);
   const [designers, setDesigners] = useState<Designer[]>([]);
   const [selectedDesigner, setSelectedDesigner] = useState<Designer | null>(null);
   const [totalUnread, setTotalUnread] = useState(0);
+  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
 
   useImperativeHandle(ref, () => ({
     openDialog: (orderId?: string) => {
       setOpen(true);
       if (orderId) {
-        // Auto-select the designer for this order
-        const designer = designers.find(d => d.orderId === orderId);
-        if (designer) {
-          handleOpenChat(designer);
-        }
+        setPendingOrderId(orderId);
       }
     }
   }));
+
+  // Handle pending order selection after designers are loaded
+  useEffect(() => {
+    if (pendingOrderId && designers.length > 0) {
+      const designer = designers.find(d => d.orderId === pendingOrderId);
+      if (designer) {
+        setSelectedDesigner(designer);
+      }
+      setPendingOrderId(null);
+    }
+  }, [pendingOrderId, designers]);
 
   useEffect(() => {
     const fetchDesigners = async () => {
