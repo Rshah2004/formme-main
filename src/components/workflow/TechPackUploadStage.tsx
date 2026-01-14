@@ -59,6 +59,16 @@ const TechPackUploadStage = ({ design }: TechPackUploadStageProps) => {
         .update({ tech_pack_url: urlData.publicUrl })
         .eq('id', design.id);
 
+      // Also save to techpacks table so manufacturers can access it
+      await supabase
+        .from('techpacks')
+        .upsert({
+          design_id: design.id,
+          pdf_url: urlData.publicUrl,
+          pdf_file_id: fileName,
+          generated_by: 'user-upload',
+        }, { onConflict: 'design_id' });
+
       setUploadedUrl(urlData.publicUrl);
       toast.success('Tech pack uploaded successfully!');
     } catch (error) {
