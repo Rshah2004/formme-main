@@ -1,4 +1,4 @@
-import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -19,40 +19,35 @@ interface Designer {
   unreadCount: number;
 }
 
-export interface ManufacturerMessagingRef {
-  openDialog: (orderId?: string) => void;
-}
+type ManufacturerOpenMessagesDetail = {
+  orderId?: string;
+};
 
-interface ManufacturerMessagingProps {
-  onOpenChange?: (open: boolean) => void;
-}
-
-export const ManufacturerMessaging = forwardRef<ManufacturerMessagingRef, ManufacturerMessagingProps>(
-  function ManufacturerMessagingComponent({ onOpenChange }, ref) {
+export const ManufacturerMessaging = () => {
   const [open, setOpen] = useState(false);
   const [designers, setDesigners] = useState<Designer[]>([]);
   const [selectedDesigner, setSelectedDesigner] = useState<Designer | null>(null);
   const [totalUnread, setTotalUnread] = useState(0);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
 
-  useImperativeHandle(ref, () => ({
-    openDialog: (orderId?: string) => {
-      setOpen(true);
-      if (orderId) {
-        setPendingOrderId(orderId);
-      }
-    }
-  }));
-
-  // Handle pending order selection after designers are loaded
+  // Allow other UI (e.g. "Message Designer" button) to open this dialog
   useEffect(() => {
-    if (pendingOrderId && designers.length > 0) {
-      const designer = designers.find(d => d.orderId === pendingOrderId);
-      if (designer) {
-        setSelectedDesigner(designer);
-      }
-      setPendingOrderId(null);
-    }
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<ManufacturerOpenMessagesDetail>).detail;
+      setOpen(true);
+      if (detail?.orderId) setPendingOrderId(detail.orderId);
+    };
+
+    window.addEventListener('manufacturer:open-messages', handler as EventListener);
+    return () => window.removeEventListener('manufacturer:open-messages', handler as EventListener);
+  }, []);
+
+  // Auto-select order once designers list is loaded
+  useEffect(() => {
+    if (!pendingOrderId || designers.length === 0) return;
+    const designer = designers.find((d) => d.orderId === pendingOrderId);
+    if (designer) setSelectedDesigner(designer);
+    setPendingOrderId(null);
   }, [pendingOrderId, designers]);
 
   useEffect(() => {
@@ -184,11 +179,6 @@ export const ManufacturerMessaging = forwardRef<ManufacturerMessagingRef, Manufa
     }
   };
 
-  const handleDialogOpenChange = (isOpen: boolean) => {
-    setOpen(isOpen);
-    onOpenChange?.(isOpen);
-  };
-
   return (
     <>
       {/* Floating Message Button */}
@@ -205,7 +195,7 @@ export const ManufacturerMessaging = forwardRef<ManufacturerMessagingRef, Manufa
       </button>
 
       {/* Messages Dialog */}
-      <Dialog open={open} onOpenChange={handleDialogOpenChange}>
+      <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-5xl h-[600px] p-0">
           <div className="flex h-full">
             {/* Left Sidebar - Designers List */}
@@ -280,6 +270,4 @@ export const ManufacturerMessaging = forwardRef<ManufacturerMessagingRef, Manufa
       </Dialog>
     </>
   );
-});
-
-ManufacturerMessaging.displayName = 'ManufacturerMessaging';
+};
