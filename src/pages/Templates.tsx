@@ -232,6 +232,7 @@
 import * as React from "react";
 import NavBar from "../components/Navbar";
 import HeroSection from "../components/homePage/HeroSection";
+import CraftsmanshipSection from "../components/homePage/CraftsmanshipSection";
 import PipelineSection from "../components/homePage/PipelineSection";
 import WhatYouCanCreate from "../components/homePage/WhatYouCanCreate";
 import StatsAndCTA from "../components/homePage/StatsAndCTA";
@@ -255,6 +256,7 @@ const HomePage = () => {
       <NavBar />
       <main className="flex-grow"> 
         <HeroSection />
+        <CraftsmanshipSection />
         <PipelineSection />
         <WhatYouCanCreate />
         <StatsAndCTA />

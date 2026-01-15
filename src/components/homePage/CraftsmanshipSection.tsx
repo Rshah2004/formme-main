@@ -105,7 +105,7 @@ const CraftsmanshipSection = () => {
   ];
 
   return (
-    <section className="relative py-24 px-6 bg-white font-inter">
+    <section className="relative py-24 px-6 bg-[#1a1a1a] font-inter">
       <div className="max-w-6xl mx-auto">
         {/* Section Header */}
         <motion.div 
@@ -115,16 +115,16 @@ const CraftsmanshipSection = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <div className="inline-flex items-center px-3 py-1 bg-gray-50 rounded-full text-sm text-gray-600 mb-6">
-            <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+          <div className="inline-flex items-center px-3 py-1 bg-white/10 rounded-full text-sm text-gray-300 mb-6">
+            <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
             Behind the Scenes
           </div>
           
-          <h2 className="text-4xl md:text-5xl font-light text-gray-900 mb-6 tracking-tight">
-            Crafted to <span className="text-gray-900">perfection</span>
+          <h2 className="text-4xl md:text-5xl font-serif font-normal text-white mb-6 tracking-tight">
+            Crafted to perfection
           </h2>
           
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
             Experience the meticulous attention to detail that goes into every garment. 
             From initial design to final stitch, quality is our commitment.
           </p>
@@ -136,12 +136,12 @@ const CraftsmanshipSection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="relative mb-32"
+          className="relative mb-12"
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
         >
           {/* Video Frame */}
-          <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-100 shadow-lg border border-gray-200">
+          <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-800 shadow-2xl border border-white/10">
             <video
               ref={videoRef}
               id="craftsmanshipVideo"
@@ -160,9 +160,9 @@ const CraftsmanshipSection = () => {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className="absolute top-6 left-6 bg-white/95 backdrop-blur-sm px-4 py-2 rounded-lg shadow-md border border-gray-200"
+                className="absolute top-6 left-6 bg-black/80 backdrop-blur-sm px-4 py-2 rounded-lg shadow-md border border-white/20"
               >
-                <span className="text-sm font-medium text-gray-900">{annotationText}</span>
+                <span className="text-sm font-medium text-white">{annotationText}</span>
               </motion.div>
             )}
             
@@ -223,7 +223,7 @@ const CraftsmanshipSection = () => {
           
           {/* Video Caption */}
           <div className="text-center mt-6">
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-400 text-sm">
               Watch our artisans bring your designs to life with precision and care
             </p>
           </div>
