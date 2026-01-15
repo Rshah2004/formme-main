@@ -232,12 +232,11 @@
 import * as React from "react";
 import NavBar from "../components/Navbar";
 import HeroSection from "../components/homePage/HeroSection";
-import CraftsmanshipSection from "../components/homePage/CraftsmanshipSection";
-import Features from "../components/homePage/Features";
-import backgroundVideo from "/backgroundVideo.mp4"; // adjust based on actual file path
-import ReviewsSection from '@/components/homePage/ReviewsSection';
-import MarketplaceShowcase from '@/components/homePage/MarketplaceShowcase';
+import PipelineSection from "../components/homePage/PipelineSection";
+import WhatYouCanCreate from "../components/homePage/WhatYouCanCreate";
+import StatsAndCTA from "../components/homePage/StatsAndCTA";
 import Footer from '@/components/Footer';
+
 const HomePage = () => {
   return (
     <div className="relative w-full min-h-screen overflow-hidden">
@@ -256,10 +255,9 @@ const HomePage = () => {
       <NavBar />
       <main className="flex-grow"> 
         <HeroSection />
-        {/* <CraftsmanshipSection /> */}
-        <Features />
-        {/* <MarketplaceShowcase />
-        <ReviewsSection /> */}
+        <PipelineSection />
+        <WhatYouCanCreate />
+        <StatsAndCTA />
       </main>
       <Footer />
     </div>
