@@ -30,7 +30,7 @@ export default function WhatYouCanCreate() {
   const navigate = useNavigate();
   
   return (
-    <section className="py-24 bg-[#FAF9F6]">
+    <section className="py-24 bg-[#EEEDEA]">
       <div className="max-w-7xl mx-auto px-6">
         {/* Header row */}
         <motion.div
