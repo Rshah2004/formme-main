@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Users, TrendingUp, Leaf, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import BookDemoModal from './BookDemoModal';
 
 const stats = [
   {
@@ -28,6 +30,7 @@ const stats = [
 
 export default function StatsAndCTA() {
   const navigate = useNavigate();
+  const [showBookDemo, setShowBookDemo] = useState(false);
   
   return (
     <>
@@ -88,6 +91,7 @@ export default function StatsAndCTA() {
               </Button>
               <Button 
                 variant="outline"
+                onClick={() => setShowBookDemo(true)}
                 className="rounded-full px-8 py-6 text-base border-foreground/20 hover:bg-foreground/5"
               >
                 Book a demo
@@ -96,6 +100,8 @@ export default function StatsAndCTA() {
           </motion.div>
         </div>
       </section>
+
+      <BookDemoModal open={showBookDemo} onOpenChange={setShowBookDemo} />
     </>
   );
 }
