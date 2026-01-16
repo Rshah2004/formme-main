@@ -12,7 +12,7 @@ const logStep = (step: string, details?: any) => {
   console.log(`[PAYMENT-MANAGEMENT] ${step}${detailsStr}`);
 };
 
-// Price calculation logic
+// Price calculation logic - uses manufacturer-set pricing from production_timeline_data
 function calculateOrderTotal(order: any): {
   unitCost: number;
   quantity: number;
@@ -21,18 +21,26 @@ function calculateOrderTotal(order: any): {
   taxes: number;
   total: number;
 } {
-  const unitCost = order.price || 18.50; // Default unit cost
+  // Parse production_timeline_data for manufacturer pricing
+  let timelineData = null;
+  if (order.production_timeline_data) {
+    try {
+      timelineData = typeof order.production_timeline_data === 'string' 
+        ? JSON.parse(order.production_timeline_data) 
+        : order.production_timeline_data;
+    } catch (e) {
+      console.error('[PAYMENT-MANAGEMENT] Error parsing timeline data:', e);
+    }
+  }
+
   const quantity = order.quantity || 100;
+  
+  // Use manufacturer-set pricing if available, otherwise fall back to defaults
+  const unitCost = timelineData?.unit_cost || order.price || 0;
+  const shipping = timelineData?.shipping_cost || 0;
+  const taxes = timelineData?.taxes_and_fees || 0;
+  
   const subtotal = unitCost * quantity;
-  
-  // Shipping calculation based on quantity
-  let shipping = 450; // Base shipping
-  if (quantity > 500) shipping = 750;
-  if (quantity > 1000) shipping = 1200;
-  
-  // Tax calculation (simplified - 5% of subtotal)
-  const taxes = subtotal * 0.05;
-  
   const total = subtotal + shipping + taxes;
   
   return { unitCost, quantity, subtotal, shipping, taxes, total };

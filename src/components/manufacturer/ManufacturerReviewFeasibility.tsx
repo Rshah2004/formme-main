@@ -52,6 +52,10 @@ interface ProductionFeasibilityData {
   sampleType?: string;
   additionalNotes?: string;
   productionCommitmentConfirmed: boolean;
+  // Pricing fields
+  unitCost: number;
+  shippingCost: number;
+  taxesAndFees: number;
 }
 
 export const ManufacturerReviewFeasibility = ({
@@ -110,6 +114,13 @@ export const ManufacturerReviewFeasibility = ({
   const [techPackNotes, setTechPackNotes] = useState('');
   
   // Production Feasibility State
+  // Parse existing pricing from production_timeline_data if available
+  const existingPricing = order?.production_timeline_data ? (
+    typeof order.production_timeline_data === 'string' 
+      ? JSON.parse(order.production_timeline_data) 
+      : order.production_timeline_data
+  ) : null;
+
   const [productionData, setProductionData] = useState<ProductionFeasibilityData>({
     estimatedLeadTimeDays: order?.lead_time_days || 21,
     moqAchievable: true,
@@ -117,7 +128,11 @@ export const ManufacturerReviewFeasibility = ({
     capacityAvailable: true,
     samplingRequired: true,
     sampleType: 'fit',
-    productionCommitmentConfirmed: false
+    productionCommitmentConfirmed: false,
+    // Pricing - load from existing data or defaults
+    unitCost: existingPricing?.unit_cost || order?.price || 0,
+    shippingCost: existingPricing?.shipping_cost || 0,
+    taxesAndFees: existingPricing?.taxes_and_fees || 0
   });
   const [productionNotes, setProductionNotes] = useState({
     moq: '',
@@ -264,7 +279,11 @@ export const ManufacturerReviewFeasibility = ({
         sampling_required: productionData.samplingRequired,
         sample_type: productionData.sampleType || null,
         additional_notes: productionData.additionalNotes || null,
-        confirmed_at: new Date().toISOString()
+        confirmed_at: new Date().toISOString(),
+        // Pricing data
+        unit_cost: productionData.unitCost,
+        shipping_cost: productionData.shippingCost,
+        taxes_and_fees: productionData.taxesAndFees
       };
 
       await supabase
@@ -279,6 +298,8 @@ export const ManufacturerReviewFeasibility = ({
           fabric_type: productionData.fabricSourcing === 'manufacturer_sourcing' ? 'Manufacturer sourcing' : 'Designer provided',
           production_params_submitted_at: new Date().toISOString(),
           production_timeline_data: productionTimelineData,
+          // Save the unit price to the order for payment calculation
+          price: productionData.unitCost,
           // IMPORTANT: Do NOT set order status here.
           // The designer must explicitly click "Finalize Contract" to select a manufacturer.
           updated_at: new Date().toISOString()
@@ -678,6 +699,120 @@ export const ManufacturerReviewFeasibility = ({
                           className="w-24"
                         />
                         <span className="text-muted-foreground">days</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Pricing Section */}
+              <Card className="border-2 border-primary/30">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
+                      <path d="M12 18V6" />
+                    </svg>
+                    <CardTitle className="text-lg">Pricing Quote</CardTitle>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Set your pricing for this order. This will be shown to the designer in the payment stage.
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Unit Cost */}
+                    <div>
+                      <Label htmlFor="unit-cost" className="text-sm font-medium">
+                        Unit Cost (per item) <span className="text-destructive">*</span>
+                      </Label>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-muted-foreground">$</span>
+                        <Input
+                          id="unit-cost"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={productionData.unitCost || ''}
+                          onChange={(e) => setProductionData(prev => ({ 
+                            ...prev, 
+                            unitCost: parseFloat(e.target.value) || 0 
+                          }))}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Shipping Cost */}
+                    <div>
+                      <Label htmlFor="shipping-cost" className="text-sm font-medium">
+                        Shipping & Handling
+                      </Label>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-muted-foreground">$</span>
+                        <Input
+                          id="shipping-cost"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={productionData.shippingCost || ''}
+                          onChange={(e) => setProductionData(prev => ({ 
+                            ...prev, 
+                            shippingCost: parseFloat(e.target.value) || 0 
+                          }))}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Taxes & Fees */}
+                    <div>
+                      <Label htmlFor="taxes-fees" className="text-sm font-medium">
+                        Taxes & Fees
+                      </Label>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-muted-foreground">$</span>
+                        <Input
+                          id="taxes-fees"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={productionData.taxesAndFees || ''}
+                          onChange={(e) => setProductionData(prev => ({ 
+                            ...prev, 
+                            taxesAndFees: parseFloat(e.target.value) || 0 
+                          }))}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Price Summary */}
+                  <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Unit Cost × {order?.quantity || 100}</span>
+                        <span>${((productionData.unitCost || 0) * (order?.quantity || 100)).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Shipping & Handling</span>
+                        <span>${(productionData.shippingCost || 0).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Taxes & Fees</span>
+                        <span>${(productionData.taxesAndFees || 0).toFixed(2)}</span>
+                      </div>
+                      <div className="h-px bg-border my-2" />
+                      <div className="flex justify-between font-semibold text-base">
+                        <span>Total Quote</span>
+                        <span className="text-primary">
+                          ${(((productionData.unitCost || 0) * (order?.quantity || 100)) + (productionData.shippingCost || 0) + (productionData.taxesAndFees || 0)).toFixed(2)}
+                        </span>
                       </div>
                     </div>
                   </div>
