@@ -156,7 +156,7 @@ const About = () => {
             </p>
           </motion.div>
           
-          <div className="grid md:grid-cols-2 gap-8 max-w-2xl mx-auto">
+          <div className="flex justify-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -165,19 +165,6 @@ const About = () => {
               className="text-center"
             >
               <div className="w-32 h-32 bg-gradient-to-br from-[#344C3D] to-[#4a6b56] rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-3xl text-white font-serif">RS</span>
-              </div>
-              <h3 className="text-xl font-semibold text-foreground">Rythem Shah</h3>
-              <p className="text-muted-foreground">Co-Founder</p>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-center"
-            >
-              <div className="w-32 h-32 bg-gradient-to-br from-[#96421f] to-[#b85a2b] rounded-full mx-auto mb-4 flex items-center justify-center">
                 <span className="text-3xl text-white font-serif">FM</span>
               </div>
               <h3 className="text-xl font-semibold text-foreground">FormMe Team</h3>
