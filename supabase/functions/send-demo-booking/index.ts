@@ -80,6 +80,8 @@ const handler = async (req: Request): Promise<Response> => {
             <p>We've received your demo booking request and we're excited to show you what Forme can do for your fashion designs.</p>
             
             <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <p><strong>Your Name:</strong> ${name}</p>
+              <p><strong>Your Email:</strong> ${email}</p>
               <p><strong>Requested Date:</strong> ${date}</p>
               <p><strong>Requested Time:</strong> ${time}</p>
             </div>
@@ -89,7 +91,7 @@ const handler = async (req: Request): Promise<Response> => {
             <p>Best regards,<br>The Forme Team</p>
             
             <p style="color: #666; font-size: 12px; margin-top: 30px;">
-              If you have any questions, feel free to reply to this email.
+              If you have any questions, feel free to reply to this email or contact us at formestartup22@gmail.com
             </p>
           </div>
         `,
