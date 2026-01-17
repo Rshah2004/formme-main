@@ -11,7 +11,7 @@ const Footer = () => {
     <footer className="bg-[#1a1a1a] text-white">
       <div className="container mx-auto px-6">
         {/* Top section with columns */}
-        <div className="py-16 grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="py-16 grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Column 1: Company */}
           <div>
             <h3 className="font-instrument text-xl mb-6">FormMe</h3>
@@ -55,15 +55,6 @@ const Footer = () => {
               </li>
               <li>
                 <Link 
-                  to="/marketplace" 
-                  className="text-gray-300 hover:text-white transition-colors flex items-center group"
-                >
-                  <ChevronRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <span>Marketplace</span>
-                </Link>
-              </li>
-              <li>
-                <Link 
                   to="/reviews" 
                   className="text-gray-300 hover:text-white transition-colors flex items-center group"
                 >
@@ -83,76 +74,23 @@ const Footer = () => {
             </ul>
           </div>
           
-          {/* Column 3: Services */}
-          <div>
-            <h4 className="font-medium uppercase text-sm tracking-wider mb-6">Services</h4>
-            <ul className="space-y-3">
-              <li>
-                <Link 
-                  to="/new-design" 
-                  className="text-gray-300 hover:text-white transition-colors flex items-center group"
-                >
-                  <ChevronRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <span>Design Tools</span>
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/workflow" 
-                  className="text-gray-300 hover:text-white transition-colors flex items-center group"
-                >
-                  <ChevronRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <span>Manufacturing</span>
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/marketplace" 
-                  className="text-gray-300 hover:text-white transition-colors flex items-center group"
-                >
-                  <ChevronRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <span>Sustainable Fashion</span>
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/professional-studio" 
-                  className="text-gray-300 hover:text-white transition-colors flex items-center group"
-                >
-                  <ChevronRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <span>Custom Branding</span>
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/dashboard" 
-                  className="text-gray-300 hover:text-white transition-colors flex items-center group"
-                >
-                  <ChevronRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <span>Enterprise Solutions</span>
-                </Link>
-              </li>
-            </ul>
-          </div>
-          
-          {/* Column 4: Contact */}
+          {/* Column 3: Contact */}
           <div>
             <h4 className="font-medium uppercase text-sm tracking-wider mb-6">Contact Us</h4>
             <ul className="space-y-4">
               <li className="flex items-start">
                 <MapPin className="h-5 w-5 mr-3 text-[#96421f] mt-0.5" />
                 <span className="text-gray-300">
-                  123 Fashion Avenue, Suite 500<br />
-                  San Francisco, CA 94107
+                  Vancouver, BC
                 </span>
               </li>
               <li className="flex items-center">
                 <Phone className="h-5 w-5 mr-3 text-[#96421f]" />
-                <span className="text-gray-300">+1 (555) 123-4567</span>
+                <span className="text-gray-300">+1 604 773 6394</span>
               </li>
               <li className="flex items-center">
                 <Mail className="h-5 w-5 mr-3 text-[#96421f]" />
-                <span className="text-gray-300">contact@formme.com</span>
+                <span className="text-gray-300">formestartup22@gmail.com</span>
               </li>
             </ul>
           </div>
