@@ -11,11 +11,11 @@ const Footer = () => {
     <footer className="bg-[#1a1a1a] text-white">
       <div className="container mx-auto px-6">
         {/* Top section with columns */}
-        <div className="py-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="py-10 sm:py-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 sm:gap-10">
           {/* Column 1: Company */}
-          <div>
-            <h3 className="font-instrument text-xl mb-6">FormMe</h3>
-            <p className="text-gray-300 font-light max-w-xs mb-6">
+          <div className="sm:col-span-2 md:col-span-1">
+            <h3 className="font-instrument text-xl mb-4 sm:mb-6">FormMe</h3>
+            <p className="text-gray-300 font-light max-w-xs mb-4 sm:mb-6 text-sm sm:text-base">
               Redefining fashion design with cutting-edge technology and sustainable practices.
             </p>
             <div className="flex space-x-4">
@@ -33,12 +33,12 @@ const Footer = () => {
           
           {/* Column 2: Quick Links */}
           <div>
-            <h4 className="font-medium uppercase text-sm tracking-wider mb-6">Quick Links</h4>
-            <ul className="space-y-3">
+            <h4 className="font-medium uppercase text-sm tracking-wider mb-4 sm:mb-6">Quick Links</h4>
+            <ul className="space-y-2 sm:space-y-3">
               <li>
                 <Link 
                   to="/" 
-                  className="text-gray-300 hover:text-white transition-colors flex items-center group"
+                  className="text-gray-300 hover:text-white transition-colors flex items-center group text-sm sm:text-base"
                 >
                   <ChevronRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
                   <span>Home</span>
@@ -47,7 +47,7 @@ const Footer = () => {
               <li>
                 <Link 
                   to="/about" 
-                  className="text-gray-300 hover:text-white transition-colors flex items-center group"
+                  className="text-gray-300 hover:text-white transition-colors flex items-center group text-sm sm:text-base"
                 >
                   <ChevronRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
                   <span>About Us</span>
@@ -56,7 +56,7 @@ const Footer = () => {
               <li>
                 <Link 
                   to="/reviews" 
-                  className="text-gray-300 hover:text-white transition-colors flex items-center group"
+                  className="text-gray-300 hover:text-white transition-colors flex items-center group text-sm sm:text-base"
                 >
                   <ChevronRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
                   <span>Reviews</span>
@@ -65,7 +65,7 @@ const Footer = () => {
               <li>
                 <Link 
                   to="/dashboard" 
-                  className="text-gray-300 hover:text-white transition-colors flex items-center group"
+                  className="text-gray-300 hover:text-white transition-colors flex items-center group text-sm sm:text-base"
                 >
                   <ChevronRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
                   <span>Dashboard</span>
@@ -76,21 +76,21 @@ const Footer = () => {
           
           {/* Column 3: Contact */}
           <div>
-            <h4 className="font-medium uppercase text-sm tracking-wider mb-6">Contact Us</h4>
-            <ul className="space-y-4">
+            <h4 className="font-medium uppercase text-sm tracking-wider mb-4 sm:mb-6">Contact Us</h4>
+            <ul className="space-y-3 sm:space-y-4">
               <li className="flex items-start">
-                <MapPin className="h-5 w-5 mr-3 text-[#96421f] mt-0.5" />
-                <span className="text-gray-300">
+                <MapPin className="h-5 w-5 mr-3 text-[#96421f] mt-0.5 flex-shrink-0" />
+                <span className="text-gray-300 text-sm sm:text-base">
                   Vancouver, BC
                 </span>
               </li>
               <li className="flex items-center">
-                <Phone className="h-5 w-5 mr-3 text-[#96421f]" />
-                <span className="text-gray-300">+1 604 773 6394</span>
+                <Phone className="h-5 w-5 mr-3 text-[#96421f] flex-shrink-0" />
+                <span className="text-gray-300 text-sm sm:text-base">+1 604 773 6394</span>
               </li>
               <li className="flex items-center">
-                <Mail className="h-5 w-5 mr-3 text-[#96421f]" />
-                <span className="text-gray-300">formestartup22@gmail.com</span>
+                <Mail className="h-5 w-5 mr-3 text-[#96421f] flex-shrink-0" />
+                <span className="text-gray-300 text-sm sm:text-base break-all">formestartup22@gmail.com</span>
               </li>
             </ul>
           </div>
