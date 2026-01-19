@@ -56,7 +56,7 @@ export default function BookDemoModal({ open, onOpenChange }: BookDemoModalProps
 
       if (error) throw error;
 
-      toast.success('Demo booked successfully! We will contact you soon.');
+      toast.success('Demo request sent! We will contact you soon.');
       onOpenChange(false);
       setDate(undefined);
       setTime('');
@@ -64,7 +64,22 @@ export default function BookDemoModal({ open, onOpenChange }: BookDemoModalProps
       setName('');
     } catch (error: any) {
       console.error('Error booking demo:', error);
-      toast.error('Failed to book demo. Please try again.');
+
+      // Try to surface the backend error message (e.g., email provider restrictions)
+      const providerMessage =
+        error?.context && typeof error.context.json === 'function'
+          ? await error.context
+              .json()
+              .then((b: any) => b?.error)
+              .catch(() => null)
+          : null;
+
+      const message =
+        providerMessage ||
+        (typeof error?.message === 'string' ? error.message : null) ||
+        'Failed to book demo. Please try again.';
+
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }

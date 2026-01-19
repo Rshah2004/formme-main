@@ -4,8 +4,7 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 interface DemoBookingRequest {
@@ -15,8 +14,39 @@ interface DemoBookingRequest {
   time: string;
 }
 
+async function sendResendEmail(payload: Record<string, unknown>) {
+  if (!RESEND_API_KEY) throw new Error("Missing RESEND_API_KEY");
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${RESEND_API_KEY}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const text = await res.text();
+  let data: any = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = { raw: text };
+  }
+
+  if (!res.ok) {
+    // Normalize resend errors into a throw so callers can handle per-email.
+    const message = data?.message || `Email request failed (status ${res.status}).`;
+    const err = new Error(message);
+    (err as any).status = res.status;
+    (err as any).provider = data;
+    throw err;
+  }
+
+  return data;
+}
+
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -24,88 +54,68 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { name, email, date, time }: DemoBookingRequest = await req.json();
 
+    if (!name || !email || !date || !time) {
+      return new Response(JSON.stringify({ error: "Missing required fields" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     console.log("Received demo booking request:", { name, email, date, time });
 
-    // Send email to the team
-    const teamEmailRes = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: "Forme <onboarding@resend.dev>",
+    // 1) Team email (FormMe + Rythem)
+    // NOTE: Some email providers restrict test-mode sending to only the account owner's email.
+    // We attempt both recipients; if restricted, we still send the customer confirmation.
+    let teamEmail: any = null;
+    let teamEmailError: any = null;
+    try {
+      teamEmail = await sendResendEmail({
+        from: "FormMe <onboarding@resend.dev>",
         to: ["formestartup22@gmail.com", "rythemshah2004@gmail.com"],
-        subject: `New Demo Booking Request from ${name}`,
+        reply_to: email,
+        subject: `${name} (${email}) requested a demo`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #344C3D;">New Demo Booking Request</h1>
-            <p>A new demo has been requested with the following details:</p>
-            
-            <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <p><strong>Name:</strong> ${name}</p>
-              <p><strong>Email:</strong> ${email}</p>
-              <p><strong>Requested Date:</strong> ${date}</p>
-              <p><strong>Requested Time:</strong> ${time}</p>
-            </div>
-            
-            <p>Please reach out to the customer to confirm the demo appointment.</p>
-            
-            <p style="color: #666; font-size: 12px; margin-top: 30px;">
-              This is an automated email from Forme.
+            <p style="font-size:16px; line-height:1.6;">
+              <strong>${name}</strong> (<strong>${email}</strong>) wants to schedule a meeting on <strong>${date}</strong> at <strong>${time}</strong>.
             </p>
           </div>
         `,
-      }),
+      });
+      console.log("Team email sent:", teamEmail);
+    } catch (err: any) {
+      teamEmailError = {
+        message: err?.message || "Failed to send team email",
+        status: err?.status,
+        provider: err?.provider,
+      };
+      console.log("Team email failed:", teamEmailError);
+    }
+
+    // 2) Customer confirmation email
+    const customerEmail = await sendResendEmail({
+      from: "FormMe <onboarding@resend.dev>",
+      to: [email],
+      reply_to: "formestartup22@gmail.com",
+      subject: "We received your demo request",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <p style="font-size:16px; line-height:1.6;">Hi ${name},</p>
+          <p style="font-size:16px; line-height:1.6;">The team will get back to you shortly.</p>
+          <p style="font-size:16px; line-height:1.6;">Requested: <strong>${date}</strong> at <strong>${time}</strong></p>
+          <p style="font-size:16px; line-height:1.6;">— FormMe Team</p>
+        </div>
+      `,
     });
 
-    const teamEmailData = await teamEmailRes.json();
-    console.log("Team email sent:", teamEmailData);
-
-    // Send confirmation email to the customer
-    const customerEmailRes = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: "Forme <onboarding@resend.dev>",
-        to: [email],
-        subject: "Your Demo Request Has Been Received - Forme",
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #344C3D;">Thank You for Your Interest!</h1>
-            <p>Hi ${name},</p>
-            <p>We've received your demo booking request and we're excited to show you what Forme can do for your fashion designs.</p>
-            
-            <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <p><strong>Your Name:</strong> ${name}</p>
-              <p><strong>Your Email:</strong> ${email}</p>
-              <p><strong>Requested Date:</strong> ${date}</p>
-              <p><strong>Requested Time:</strong> ${time}</p>
-            </div>
-            
-            <p>Our team will reach out to you shortly to confirm the appointment.</p>
-            
-            <p>Best regards,<br>The Forme Team</p>
-            
-            <p style="color: #666; font-size: 12px; margin-top: 30px;">
-              If you have any questions, feel free to reply to this email or contact us at formestartup22@gmail.com
-            </p>
-          </div>
-        `,
-      }),
-    });
-
-    const customerEmailData = await customerEmailRes.json();
-    console.log("Customer email sent:", customerEmailData);
+    console.log("Customer email sent:", customerEmail);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        teamEmail: teamEmailData, 
-        customerEmail: customerEmailData 
+      JSON.stringify({
+        success: true,
+        teamEmail,
+        teamEmailError,
+        customerEmail,
       }),
       {
         status: 200,
@@ -113,17 +123,14 @@ const handler = async (req: Request): Promise<Response> => {
           "Content-Type": "application/json",
           ...corsHeaders,
         },
-      }
+      },
     );
   } catch (error: any) {
     console.error("Error in send-demo-booking function:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
   }
 };
 
