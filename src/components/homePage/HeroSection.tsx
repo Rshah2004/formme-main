@@ -50,25 +50,25 @@ const HeroSection: React.FC = () => {
   };
 
   return (
-    <section className="h-screen pt-52 pl-24 max-md:px-10 max-sm:px-5 max-sm:pt-32">
-    <h1
-    className="text-[128px] font-instrument font-bold leading-none text-transparent 
-    bg-gradient-to-r from-[#09100B] via-[#4A6A5C] to-[#09100B] 
-    bg-[length:300%_100%] bg-clip-text animate-shimmer"
-    style={{ textShadow: '0px 4px 4px rgba(0, 0, 0, 0.4)' }}
-    >
+    <section className="min-h-screen pt-32 sm:pt-40 md:pt-52 px-5 sm:px-10 md:pl-24 md:pr-10">
+      <h1
+        className="text-[48px] sm:text-[72px] md:text-[96px] lg:text-[128px] font-instrument font-bold leading-none text-transparent 
+        bg-gradient-to-r from-[#09100B] via-[#4A6A5C] to-[#09100B] 
+        bg-[length:300%_100%] bg-clip-text animate-shimmer"
+        style={{ textShadow: '0px 4px 4px rgba(0, 0, 0, 0.4)' }}
+      >
         formme
-    </h1>
+      </h1>
 
-      <p className="mb-10 text-3xl text-black max-sm:text-2xl">
+      <p className="mb-8 sm:mb-10 text-xl sm:text-2xl md:text-3xl text-black">
         redefining self-expression &amp; sustainability.
       </p>
 
-      <div className="flex gap-6 max-md:flex-col max-md:max-w-[300px] max-sm:w-full">
+      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 max-w-full sm:max-w-none">
         <button
           onClick={handleDashboardClick}
-          className="w-[219px] h-[72px] flex-shrink-0 text-white text-base font-medium 
-                     rounded-[30px] relative overflow-hidden max-sm:w-full max-sm:p-5 
+          className="w-full sm:w-[180px] md:w-[219px] h-[56px] sm:h-[64px] md:h-[72px] flex-shrink-0 text-white text-sm sm:text-base font-medium 
+                     rounded-[30px] relative overflow-hidden
                      bg-[#344C3D] shadow-[3px_7px_5px_0px_rgba(0,0,0,0.25)]
                      hover:opacity-90 transition-opacity"
         >
@@ -81,8 +81,8 @@ const HeroSection: React.FC = () => {
 
         <button
           onClick={handleCreateClick}
-          className="w-[219px] h-[72px] flex-shrink-0 text-white text-base font-medium 
-                     rounded-[30px] relative overflow-hidden max-sm:w-full max-sm:p-5 
+          className="w-full sm:w-[180px] md:w-[219px] h-[56px] sm:h-[64px] md:h-[72px] flex-shrink-0 text-white text-sm sm:text-base font-medium 
+                     rounded-[30px] relative overflow-hidden
                      bg-[#974320] shadow-[3px_7px_5px_0px_rgba(0,0,0,0.25)]
                      hover:opacity-90 transition-opacity"
         >
@@ -92,14 +92,14 @@ const HeroSection: React.FC = () => {
           {/* Text content on top */}
           <span className="relative z-10">Create</span>
         </button>
-    </div>
+      </div>
     
-    <LockedFeatureDialog
-      open={!!lockedFeature}
-      onOpenChange={(open) => !open && setLockedFeature(null)}
-      featureName={lockedFeature?.name || ""}
-      description={lockedFeature?.description || ""}
-    />
+      <LockedFeatureDialog
+        open={!!lockedFeature}
+        onOpenChange={(open) => !open && setLockedFeature(null)}
+        featureName={lockedFeature?.name || ""}
+        description={lockedFeature?.description || ""}
+      />
     </section>
   );
 };
