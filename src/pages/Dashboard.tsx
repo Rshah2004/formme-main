@@ -16,6 +16,8 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { Plus, Lock, Search, Download, Shirt, Calendar, Check, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
+import MessagesView from '@/components/dashboard/MessagesView';
 
 interface Design {
   id: string;
@@ -42,19 +44,19 @@ const getStepFromStatus = (status: string): number => {
   switch (status) {
     case "draft":
     case "tech_pack_pending":
-      return 1; // Design stage
+      return 1;
     case "sent_to_manufacturer":
     case "manufacturer_review":
-      return 2; // Finalizing Manufacturer stage
+      return 2;
     case "production_approval":
     case "sample_development":
-      return 3; // Sampling stage
+      return 3;
     case "quality_check":
-      return 5; // QC stage
+      return 5;
     case "shipping":
-      return 4; // Production stage
+      return 4;
     case "delivered":
-      return 6; // Delivery stage
+      return 6;
     default:
       return 1;
   }
@@ -135,7 +137,6 @@ const OrderCard = ({ order, onClick }: { order: Order; onClick: () => void }) =>
       onClick={onClick}
     >
       <div className="flex items-center justify-between gap-6">
-        {/* Left side - Order info */}
         <div className="flex-shrink-0 min-w-[200px]">
           <p className="text-xs text-muted-foreground font-mono mb-1">{orderId}</p>
           <h3 className="font-serif font-semibold text-xl text-foreground mb-2">
@@ -155,12 +156,10 @@ const OrderCard = ({ order, onClick }: { order: Order; onClick: () => void }) =>
           </div>
         </div>
         
-        {/* Center - Progress Stepper */}
         <div className="flex-1 flex justify-center">
           <OrderProgressStepper currentStep={getStepFromStatus(order.status)} />
         </div>
         
-        {/* Right side - Status badge and arrow */}
         <div className="flex items-center gap-4 flex-shrink-0">
           <Badge 
             variant="outline" 
@@ -177,6 +176,7 @@ const OrderCard = ({ order, onClick }: { order: Order; onClick: () => void }) =>
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [manufacturerFilter, setManufacturerFilter] = useState('all');
@@ -185,7 +185,6 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const { role, loading: roleLoading } = useUserRole();
 
-  // Check authentication and fetch data
   useEffect(() => {
     const checkAuthAndFetch = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -202,36 +201,18 @@ const Dashboard = () => {
 
           if (error) throw error;
 
-          // Show only ONE order card per design (prevents duplicate-looking cards)
           const statusPriority: Record<string, number> = {
-            draft: 0,
-            tech_pack_pending: 1,
-            sent_to_manufacturer: 2,
-            manufacturer_review: 3,
-            production_approval: 4,
-            sample_development: 5,
-            quality_check: 6,
-            shipping: 7,
-            delivered: 8,
-            cancelled: -1,
+            draft: 0, tech_pack_pending: 1, sent_to_manufacturer: 2, manufacturer_review: 3,
+            production_approval: 4, sample_development: 5, quality_check: 6, shipping: 7, delivered: 8, cancelled: -1,
           };
 
           const bestByDesign = new Map<string, Order>();
           for (const order of ordersData || []) {
             const existing = bestByDesign.get(order.design_id);
-            if (!existing) {
-              bestByDesign.set(order.design_id, order);
-              continue;
-            }
-
+            if (!existing) { bestByDesign.set(order.design_id, order); continue; }
             const pA = statusPriority[order.status] ?? 0;
             const pB = statusPriority[existing.status] ?? 0;
-
-            if (pA > pB) {
-              bestByDesign.set(order.design_id, order);
-              continue;
-            }
-
+            if (pA > pB) { bestByDesign.set(order.design_id, order); continue; }
             if (pA === pB) {
               const aTime = new Date(order.updated_at || order.created_at).getTime();
               const bTime = new Date(existing.updated_at || existing.created_at).getTime();
@@ -251,17 +232,14 @@ const Dashboard = () => {
     checkAuthAndFetch();
   }, []);
 
-  // Redirect to manufacturer dashboard if user is a manufacturer
   useEffect(() => {
     if (!roleLoading && role === 'manufacturer') {
       navigate('/manufacturer');
     }
   }, [role, roleLoading, navigate]);
 
-  // Get unique manufacturers for filter
   const manufacturers = [...new Set(orders.filter(o => o.manufacturers?.name).map(o => o.manufacturers?.name))];
 
-  // Filter orders
   const filteredOrders = orders.filter(order => {
     const matchesSearch = order.designs?.name?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
@@ -269,24 +247,32 @@ const Dashboard = () => {
     return matchesSearch && matchesStatus && matchesManufacturer;
   });
 
+  const clearFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setManufacturerFilter("all");
+  };
+
   if (isAuthenticated === null || roleLoading || loading) {
     return (
       <div className="min-h-screen bg-[#FAF9F6]">
         <Navbar />
-        <main className="container mx-auto px-4 sm:px-6 py-8 mt-20 max-w-6xl">
-          <div className="animate-pulse space-y-6">
-            <div className="h-10 bg-muted rounded w-48" />
-            <div className="h-6 bg-muted rounded w-72" />
-            <div className="space-y-4 mt-8">
-              {[1, 2, 3].map(i => <div key={i} className="h-28 bg-muted rounded-lg" />)}
+        <div className="flex mt-16">
+          <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+          <div className="flex-1 p-8">
+            <div className="animate-pulse space-y-6">
+              <div className="h-10 bg-muted rounded w-48" />
+              <div className="h-6 bg-muted rounded w-72" />
+              <div className="space-y-4 mt-8">
+                {[1, 2, 3].map(i => <div key={i} className="h-28 bg-muted rounded-lg" />)}
+              </div>
             </div>
           </div>
-        </main>
+        </div>
       </div>
     );
   }
 
-  // Show sign-up prompt if not authenticated
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#FAF9F6]">
@@ -311,63 +297,196 @@ const Dashboard = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-[#FAF9F6]">
-      <Navbar />
-      <main className="container mx-auto px-4 sm:px-6 py-8 mt-20 max-w-6xl">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#344C3D] mb-1">Dashboard</h1>
-            <p className="text-muted-foreground">Track your designs from concept to delivery</p>
+  const renderDashboardContent = () => (
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-serif font-bold text-[#344C3D] mb-1">Dashboard</h1>
+          <p className="text-muted-foreground">Track your designs from concept to delivery</p>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input placeholder="Search orders..." className="pl-9 w-48 sm:w-64 bg-white border-gray-200" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+        </div>
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-serif font-semibold text-[#344C3D]">Manufacturing Orders</h2>
+          <Button onClick={() => navigate("/new-design")} className="bg-[#344C3D] hover:bg-[#344C3D]/90">
+            <Plus className="w-4 h-4 mr-2" />New Order
+          </Button>
+        </div>
+
+        {filteredOrders.length === 0 ? (
+          <Card className="p-12 text-center bg-white border-gray-100">
+            <p className="text-muted-foreground mb-4">No orders yet</p>
+            <Button onClick={() => navigate("/new-design")} className="bg-[#344C3D] hover:bg-[#344C3D]/90">Create your first design</Button>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {filteredOrders.map((order) => (
+              <OrderCard key={order.id} order={order} onClick={() => navigate({ pathname: '/workflow', search: `?designId=${order.design_id}` })} />
+            ))}
           </div>
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search orders..." 
-                className="pl-9 w-48 sm:w-64 bg-white border-gray-200" 
-                value={searchQuery} 
-                onChange={(e) => setSearchQuery(e.target.value)} 
-              />
-            </div>
-            <Button 
-              onClick={() => navigate("/new-design")} 
-              className="bg-[#344C3D] hover:bg-[#344C3D]/90 text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              New Order
-            </Button>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderOrdersContent = () => (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-serif font-bold text-[#344C3D] mb-1">Orders</h1>
+          <p className="text-muted-foreground">Manage and track all your manufacturing orders</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="border-[#344C3D] text-[#344C3D]"><Download className="w-4 h-4 mr-2" />Export</Button>
+          <Button onClick={() => navigate("/new-design")} size="sm" className="bg-[#344C3D] hover:bg-[#344C3D]/90">New Order</Button>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input placeholder="Search orders..." className="pl-9 bg-white" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-40 bg-white"><SelectValue placeholder="All Statuses" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="draft">Draft</SelectItem>
+            <SelectItem value="tech_pack_pending">Design Submitted</SelectItem>
+            <SelectItem value="sample_development">Sampling</SelectItem>
+            <SelectItem value="quality_check">Quality Check</SelectItem>
+            <SelectItem value="delivered">Delivered</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={manufacturerFilter} onValueChange={setManufacturerFilter}>
+          <SelectTrigger className="w-48 bg-white"><SelectValue placeholder="All Manufacturers" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Manufacturers</SelectItem>
+            {manufacturers.map(m => m && <SelectItem key={m} value={m}>{m}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Button variant="link" size="sm" onClick={clearFilters} className="text-[#344C3D]">Clear filters</Button>
+      </div>
+
+      <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Showing {filteredOrders.length} orders</p>
+
+      {filteredOrders.length === 0 ? (
+        <Card className="p-8 text-center bg-white">
+          <p className="text-muted-foreground mb-4">No orders match your filters</p>
+          <Button variant="outline" onClick={clearFilters}>Clear filters</Button>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {filteredOrders.map((order) => (
+            <OrderCard key={order.id} order={order} onClick={() => navigate({ pathname: '/workflow', search: `?designId=${order.design_id}` })} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderProductionContent = () => {
+    const designSubmitted = orders.filter(o => ["draft", "tech_pack_pending", "sent_to_manufacturer", "manufacturer_review"].includes(o.status));
+    const sampling = orders.filter(o => ["production_approval", "sample_development"].includes(o.status));
+    const inProduction = orders.filter(o => ["quality_check", "shipping"].includes(o.status));
+    const delivered = orders.filter(o => o.status === "delivered");
+
+    const KanbanColumn = ({ title, columnOrders, dotColor }: { title: string; columnOrders: Order[]; dotColor: string }) => (
+      <div className="flex-1 min-w-[280px]">
+        <div className="flex items-center gap-2 mb-4">
+          <span className={`w-2 h-2 rounded-full ${dotColor}`} />
+          <h3 className="font-serif font-semibold text-[#344C3D]">{title}</h3>
+          <Badge variant="secondary" className="ml-1 bg-[#344C3D]/10 text-[#344C3D]">{columnOrders.length}</Badge>
+        </div>
+        <div className="space-y-3">
+          {columnOrders.map(order => (
+            <Card key={order.id} className="p-4 cursor-pointer hover:shadow-md transition-shadow bg-white" onClick={() => navigate({ pathname: '/workflow', search: `?designId=${order.design_id}` })}>
+              <p className="text-xs text-muted-foreground font-mono mb-1">ORD-{order.id.slice(0, 8).toUpperCase()}</p>
+              <h4 className="font-semibold mb-2">{order.designs?.name || "Untitled"}</h4>
+              <div className="text-sm text-muted-foreground">
+                <p className="flex items-center gap-2"><Shirt className="w-3 h-3" />{order.manufacturers?.name || "No manufacturer"}</p>
+              </div>
+              <div className={`h-1 rounded-full mt-3 ${dotColor}`} />
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-serif font-bold text-[#344C3D] mb-1">Production Status</h1>
+            <p className="text-muted-foreground">Kanban view of your manufacturing pipeline</p>
+          </div>
+          <div className="flex items-center gap-2 bg-white rounded-lg p-1 border">
+            <Button variant="secondary" size="sm" className="bg-[#344C3D] text-white hover:bg-[#344C3D]/90">Board</Button>
+            <Button variant="ghost" size="sm">Timeline</Button>
           </div>
         </div>
 
-        {/* Manufacturing Orders Section */}
-        <div>
-          <h2 className="text-xl font-serif font-semibold text-[#344C3D] mb-4">Manufacturing Orders</h2>
-          
-          {filteredOrders.length === 0 ? (
-            <Card className="p-12 text-center bg-white border-gray-100">
-              <p className="text-muted-foreground mb-4">No orders yet</p>
-              <Button 
-                onClick={() => navigate("/new-design")}
-                className="bg-[#344C3D] hover:bg-[#344C3D]/90"
-              >
-                Create your first design
-              </Button>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {filteredOrders.map((order) => (
-                <OrderCard 
-                  key={order.id} 
-                  order={order} 
-                  onClick={() => navigate({ pathname: '/workflow', search: `?designId=${order.design_id}` })} 
-                />
-              ))}
-            </div>
-          )}
+        <div className="flex gap-6 overflow-x-auto pb-4">
+          <KanbanColumn title="Design Submitted" columnOrders={designSubmitted} dotColor="bg-[#344C3D]" />
+          <KanbanColumn title="Sampling" columnOrders={sampling} dotColor="bg-[#96421f]" />
+          <KanbanColumn title="In Production" columnOrders={inProduction} dotColor="bg-[#B58C6A]" />
+          <KanbanColumn title="Delivered" columnOrders={delivered} dotColor="bg-[#344C3D]" />
         </div>
-      </main>
+      </div>
+    );
+  };
+
+  const renderMessagesContent = () => (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-serif font-bold text-[#344C3D] mb-1">Messages</h1>
+        <p className="text-muted-foreground">Communication with manufacturers</p>
+      </div>
+      
+      <MessagesView orders={orders.map(o => ({
+        id: o.id,
+        design_id: o.design_id,
+        status: o.status,
+        created_at: o.created_at,
+        designs: o.designs ? { id: o.designs.id, name: o.designs.name } : null,
+        manufacturers: o.manufacturers
+      }))} />
+    </div>
+  );
+
+  const renderSettingsContent = () => (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-serif font-bold text-[#344C3D] mb-1">Settings</h1>
+        <p className="text-muted-foreground">Manage your account preferences</p>
+      </div>
+      <Card className="p-8 text-center bg-white"><p className="text-muted-foreground">Settings coming soon</p></Card>
+    </div>
+  );
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case "dashboard": return renderDashboardContent();
+      case "orders": return renderOrdersContent();
+      case "production": return renderProductionContent();
+      case "messages": return renderMessagesContent();
+      case "settings": return renderSettingsContent();
+      default: return renderDashboardContent();
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#FAF9F6]">
+      <Navbar />
+      <div className="flex mt-16">
+        <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <main className="flex-1 p-8 overflow-auto">{renderContent()}</main>
+      </div>
     </div>
   );
 };
