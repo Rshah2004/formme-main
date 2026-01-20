@@ -187,7 +187,7 @@ const About = () => {
               Ready to Start Your Journey?
             </h2>
             <p className="text-base sm:text-xl text-white/80 mb-6 sm:mb-8 max-w-2xl mx-auto">
-              Join thousands of designers who are already transforming their ideas into reality with FormMe.
+              Join our growing community of designers and be part of something new—help us shape the future of sustainable fashion.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
               <Link to="/auth">
