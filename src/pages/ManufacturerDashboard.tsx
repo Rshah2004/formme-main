@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -11,7 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Factory, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Factory, CheckCircle, XCircle, Clock, ClipboardList, TrendingUp, Timer, Search, Filter, ArrowUpRight } from 'lucide-react';
 import NavBar from '@/components/Navbar';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
@@ -20,20 +21,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ManufacturerMessaging } from '@/components/manufacturer/ManufacturerMessaging';
-
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'On Track':
-      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-    case 'Delayed':
-      return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-    case 'Action Required':
-      return 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200';
-    default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
-  }
-};
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const ManufacturerDashboard = () => {
   const navigate = useNavigate();
@@ -42,6 +30,7 @@ const ManufacturerDashboard = () => {
   const { role, loading: roleLoading } = useUserRole();
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Redirect to designer dashboard if user is a designer
   useEffect(() => {
@@ -189,13 +178,25 @@ const ManufacturerDashboard = () => {
   };
 
   const activeOrders = orders.length;
-  const awaitingAction = orders.filter(o => 
-    o.status === 'manufacturer_review' || o.status === 'production_approval'
-  ).length;
   const inProduction = orders.filter(o => 
     o.status === 'sample_development' || o.status === 'in_production'
   ).length;
-  const readyToShip = orders.filter(o => o.status === 'quality_check').length;
+  const pendingApproval = orders.filter(o => 
+    o.status === 'manufacturer_review' || o.status === 'production_approval'
+  ).length;
+  const completedToday = orders.filter(o => {
+    if (!o.updated_at) return false;
+    const today = new Date();
+    const updateDate = new Date(o.updated_at);
+    return o.status === 'delivered' && 
+      updateDate.toDateString() === today.toDateString();
+  }).length;
+
+  // Filter orders based on search
+  const filteredOrders = orders.filter(order => 
+    order.designs?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    order.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   if (roleLoading || loading) {
     return (
@@ -209,43 +210,81 @@ const ManufacturerDashboard = () => {
   }
 
   const kpiData = [
-    { title: 'Active Orders', value: activeOrders, color: 'text-primary' },
-    { title: 'Awaiting Your Action', value: awaitingAction, color: 'text-amber-600' },
-    { title: 'In Production', value: inProduction, color: 'text-blue-600' },
-    { title: 'Ready to Ship', value: readyToShip, color: 'text-green-600' },
+    { 
+      title: 'ACTIVE ORDERS', 
+      value: activeOrders, 
+      icon: ClipboardList,
+    },
+    { 
+      title: 'IN PRODUCTION', 
+      value: inProduction, 
+      icon: TrendingUp,
+    },
+    { 
+      title: 'PENDING APPROVAL', 
+      value: pendingApproval, 
+      icon: Timer,
+    },
+    { 
+      title: 'COMPLETED TODAY', 
+      value: completedToday, 
+      icon: CheckCircle,
+    },
   ];
+
+  const getInitials = (name: string) => {
+    if (!name) return 'DR';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const formatStageBadge = (status: string) => {
+    const formatted = status?.replace(/_/g, ' ').toUpperCase() || 'PENDING';
+    return formatted;
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <NavBar />
       
-      <div className="container mx-auto px-4 pt-32 pb-12">
-        {/* Header with Profile Action */}
-        <div className="mb-8 flex justify-between items-start">
+      <div className="container mx-auto px-6 pt-28 pb-12 max-w-7xl">
+        {/* Header */}
+        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Manufacturing Hub</h1>
-            <p className="text-muted-foreground text-lg">
-              Manage orders, discover opportunities, and grow your business
+            <h1 className="text-3xl font-serif font-bold text-primary mb-1">Manufacturing Hub</h1>
+            <p className="text-muted-foreground">
+              Manage active manufacturing pipelines and designer requests.
             </p>
           </div>
-          {!profileCreated && (
-            <Button 
-              onClick={() => setProfileCreated(true)}
-              className="gap-2"
-            >
-              <Factory className="w-4 h-4" />
-              Create Factory Profile
+          
+          {/* Search and Filter */}
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search designs..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 w-64 bg-white border-border"
+              />
+            </div>
+            <Button variant="outline" size="icon" className="shrink-0">
+              <Filter className="w-4 h-4" />
             </Button>
-          )}
+          </div>
         </div>
 
-        {/* KPI Cards - Simplified */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
+        {/* KPI Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {kpiData.map((kpi) => (
-            <Card key={kpi.title} className="border border-border">
-              <CardContent className="p-4">
-                <div className="text-xs text-muted-foreground mb-1">{kpi.title}</div>
-                <div className={`text-2xl font-semibold ${kpi.color}`}>{kpi.value}</div>
+            <Card key={kpi.title} className="bg-white border-border shadow-sm">
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+                  <kpi.icon className="w-5 h-5 text-accent" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground tracking-wide">{kpi.title}</p>
+                  <p className="text-2xl font-bold text-primary">{kpi.value}</p>
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -253,27 +292,35 @@ const ManufacturerDashboard = () => {
 
         {/* Tabs for Orders and Opportunities */}
         <Tabs defaultValue="current" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2 mb-4">
-            <TabsTrigger value="current">Current Orders</TabsTrigger>
-            <TabsTrigger value="opportunities">Find Orders</TabsTrigger>
+          <TabsList className="bg-white border border-border mb-6">
+            <TabsTrigger value="current" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              Current Orders
+            </TabsTrigger>
+            <TabsTrigger value="opportunities" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              Find Orders
+            </TabsTrigger>
           </TabsList>
 
           {/* Current Orders Tab */}
           <TabsContent value="current">
-            <Card>
-              <CardHeader>
-                <CardTitle>Active Production Orders</CardTitle>
+            <Card className="bg-white border-border shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between pb-4">
+                <CardTitle className="text-xl font-serif italic text-primary">Active Production Orders</CardTitle>
+                <Button variant="link" className="text-accent gap-1 p-0 h-auto">
+                  View History
+                  <ArrowUpRight className="w-4 h-4" />
+                </Button>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Design Name</TableHead>
-                      <TableHead>Designer</TableHead>
-                      <TableHead>Received</TableHead>
-                      <TableHead>Stage</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                    <TableRow className="border-t border-border hover:bg-transparent">
+                      <TableHead className="text-xs font-medium text-muted-foreground tracking-wide py-4 pl-6">DESIGN NAME</TableHead>
+                      <TableHead className="text-xs font-medium text-muted-foreground tracking-wide py-4">DESIGNER</TableHead>
+                      <TableHead className="text-xs font-medium text-muted-foreground tracking-wide py-4">RECEIVED</TableHead>
+                      <TableHead className="text-xs font-medium text-muted-foreground tracking-wide py-4">STAGE</TableHead>
+                      <TableHead className="text-xs font-medium text-muted-foreground tracking-wide py-4">STATUS</TableHead>
+                      <TableHead className="text-xs font-medium text-muted-foreground tracking-wide py-4 pr-6 text-right">ACTIONS</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -284,7 +331,7 @@ const ManufacturerDashboard = () => {
                           <p className="text-muted-foreground">Loading orders...</p>
                         </TableCell>
                       </TableRow>
-                    ) : orders.length === 0 ? (
+                    ) : filteredOrders.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={6} className="text-center py-12">
                           <Factory className="w-12 h-12 mx-auto mb-3 opacity-50" />
@@ -293,61 +340,46 @@ const ManufacturerDashboard = () => {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      orders.map((order) => (
-                        <TableRow key={order.id} className="hover:bg-muted/50">
-                          <TableCell className="font-medium">{order.designs?.name || 'Unknown Design'}</TableCell>
-                          <TableCell>{order.profiles?.full_name || 'Unknown'}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
+                      filteredOrders.map((order) => (
+                        <TableRow key={order.id} className="hover:bg-muted/30 border-border">
+                          <TableCell className="font-medium text-foreground py-5 pl-6">
+                            {order.designs?.name || 'Unknown Design'}
+                          </TableCell>
+                          <TableCell className="py-5">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="w-8 h-8 bg-muted">
+                                <AvatarFallback className="text-xs font-medium text-muted-foreground bg-muted">
+                                  {getInitials(order.profiles?.full_name || '')}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-sm text-foreground">
+                                {order.profiles?.full_name || 'Unknown'}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground py-5">
                             {order.created_at ? new Date(order.created_at).toLocaleDateString('en-US', {
                               month: 'short',
                               day: 'numeric',
                               year: 'numeric'
                             }) : 'N/A'}
                           </TableCell>
-                          <TableCell>
-                            <span className="group relative">
-                              <span className="text-sm text-muted-foreground group-hover:opacity-0 transition-opacity">
-                                {order.status?.replace(/_/g, ' ') || 'Pending'}
-                              </span>
-                              <Badge 
-                                variant="outline" 
-                                className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
-                              >
-                                {order.status?.replace(/_/g, ' ') || 'Pending'}
-                              </Badge>
-                            </span>
+                          <TableCell className="py-5">
+                            <Badge className="bg-accent/15 text-accent border-0 font-medium text-xs uppercase tracking-wide px-2.5 py-1">
+                              {formatStageBadge(order.status)}
+                            </Badge>
                           </TableCell>
-                          <TableCell>
-                            <span className="group relative inline-block">
-                              <span className="text-sm group-hover:opacity-0 transition-opacity">
-                                {order.status?.includes('review') ? 'Action Required' : 'On Track'}
-                              </span>
-                              <Badge 
-                                className={cn(
-                                  "absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap",
-                                  order.status?.includes('review') 
-                                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200'
-                                    : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                )}
-                              >
-                                {order.status?.includes('review') ? 'Action Required' : 'On Track'}
-                              </Badge>
-                            </span>
+                          <TableCell className="py-5">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                              <span className="text-sm font-medium text-emerald-600">On Track</span>
+                            </div>
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="py-5 pr-6 text-right">
                             <Link to={`/manufacturer/order/${order.id}`}>
-                              <span className="group relative inline-block">
-                                <span className="text-sm text-primary group-hover:opacity-0 transition-opacity">
-                                  View Order
-                                </span>
-                                <Button 
-                                  variant="default" 
-                                  size="sm"
-                                  className="absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
-                                >
-                                  View Order
-                                </Button>
-                              </span>
+                              <Button variant="outline" size="sm" className="text-foreground border-border hover:bg-muted">
+                                View Order
+                              </Button>
                             </Link>
                           </TableCell>
                         </TableRow>
@@ -361,14 +393,14 @@ const ManufacturerDashboard = () => {
 
           {/* Pending Order Requests Tab */}
           <TabsContent value="opportunities">
-            <Card>
+            <Card className="bg-white border-border shadow-sm">
               <CardHeader>
-                <CardTitle>Pending Order Requests</CardTitle>
+                <CardTitle className="text-xl font-serif italic text-primary">Pending Order Requests</CardTitle>
                 <p className="text-sm text-muted-foreground mt-1">
                   Review designer requests and accept orders that match your capabilities
                 </p>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0">
                 {loadingRequests ? (
                   <div className="text-center py-12">
                     <Clock className="w-8 h-8 mx-auto mb-2 opacity-50 animate-spin" />
@@ -383,40 +415,49 @@ const ManufacturerDashboard = () => {
                 ) : (
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>Design Name</TableHead>
-                        <TableHead>Designer</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Match Score</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                      <TableRow className="border-t border-border hover:bg-transparent">
+                        <TableHead className="text-xs font-medium text-muted-foreground tracking-wide py-4 pl-6">DESIGN NAME</TableHead>
+                        <TableHead className="text-xs font-medium text-muted-foreground tracking-wide py-4">DESIGNER</TableHead>
+                        <TableHead className="text-xs font-medium text-muted-foreground tracking-wide py-4">CATEGORY</TableHead>
+                        <TableHead className="text-xs font-medium text-muted-foreground tracking-wide py-4">MATCH SCORE</TableHead>
+                        <TableHead className="text-xs font-medium text-muted-foreground tracking-wide py-4 pr-6 text-right">ACTIONS</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {pendingRequests.filter(request => request.designs).map((request) => (
-                        <TableRow key={request.id}>
-                          <TableCell className="font-medium">
+                        <TableRow key={request.id} className="hover:bg-muted/30 border-border">
+                          <TableCell className="font-medium text-foreground py-5 pl-6">
                             {request.designs?.name || 'Unknown Design'}
                           </TableCell>
-                          <TableCell>
-                            {request.designs?.designer_name || 'Unknown Designer'}
+                          <TableCell className="py-5">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="w-8 h-8 bg-muted">
+                                <AvatarFallback className="text-xs font-medium text-muted-foreground bg-muted">
+                                  {getInitials(request.designs?.designer_name || '')}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-sm text-foreground">
+                                {request.designs?.designer_name || 'Unknown Designer'}
+                              </span>
+                            </div>
                           </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
+                          <TableCell className="py-5">
+                            <Badge variant="outline" className="border-border text-muted-foreground">
                               {request.designs?.category || 'N/A'}
                             </Badge>
                           </TableCell>
-                          <TableCell>
-                            <Badge variant="secondary">
+                          <TableCell className="py-5">
+                            <Badge className="bg-accent/15 text-accent border-0 font-medium">
                               {request.score || 0}% match
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="py-5 pr-6 text-right">
                             <div className="flex gap-2 justify-end">
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleReject(request.id)}
-                                className="gap-1"
+                                className="gap-1 border-border"
                               >
                                 <XCircle className="w-4 h-4" />
                                 Reject
