@@ -482,7 +482,7 @@ const initializedRef = useRef(false);
             {/* Back Button */}
             <Button 
               variant="ghost" 
-              className="mb-4" 
+              className="mb-4 text-primary hover:text-primary/80 hover:bg-primary/5" 
               onClick={() => navigate('/dashboard')}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -493,7 +493,7 @@ const initializedRef = useRef(false);
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h1 className="text-2xl font-bold text-foreground">{selectedDesign.name}</h1>
+                  <h1 className="text-2xl font-serif font-bold text-primary">{selectedDesign.name}</h1>
                   <Badge variant="outline" className={getStatusColor(selectedDesign.status)}>
                     {selectedDesign.status?.replace(/_/g, ' ') || 'draft'}
                   </Badge>

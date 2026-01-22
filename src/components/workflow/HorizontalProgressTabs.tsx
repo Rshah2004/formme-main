@@ -85,7 +85,7 @@ export const HorizontalProgressTabs = () => {
   return (
     <div className="w-full">
       {/* Top Level Horizontal Progress Tabs */}
-      <div className="flex items-center justify-between bg-card border border-border rounded-xl p-2 mb-6">
+      <div className="flex items-center justify-between bg-white border border-border rounded-xl p-2 mb-6 shadow-sm">
         {topLevelStages.map((stage, index) => {
           const status = getStageStatus(stage.id);
           const isCompleted = status === 'completed';
@@ -101,7 +101,7 @@ export const HorizontalProgressTabs = () => {
                 className={cn(
                   "flex items-center gap-2 px-3 py-2.5 rounded-lg transition-all flex-1 justify-center",
                   isCurrent && "bg-primary text-primary-foreground shadow-sm",
-                  isCompleted && "bg-primary/10 text-primary hover:bg-primary/20",
+                  isCompleted && "bg-accent/20 text-accent hover:bg-accent/30",
                   isLocked && "text-muted-foreground/50 cursor-not-allowed",
                   !isCurrent && !isCompleted && !isLocked && "hover:bg-muted/50 text-muted-foreground"
                 )}
@@ -109,7 +109,7 @@ export const HorizontalProgressTabs = () => {
                 <div className={cn(
                   "w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-medium",
                   isCurrent && "bg-primary-foreground/20",
-                  isCompleted && "bg-primary text-primary-foreground",
+                  isCompleted && "bg-accent text-accent-foreground",
                   isLocked && "bg-muted",
                   !isCurrent && !isCompleted && !isLocked && "bg-muted"
                 )}>
@@ -126,7 +126,7 @@ export const HorizontalProgressTabs = () => {
                 <div className={cn(
                   "w-6 h-0.5 mx-0.5",
                   index < topLevelStages.findIndex(s => s.id === activeTopLevel)
-                    ? "bg-primary"
+                    ? "bg-accent"
                     : "bg-border"
                 )} />
               )}
@@ -162,7 +162,7 @@ const TechPackSubTabs = () => {
   const currentSubIndex = getCurrentSubIndex();
 
   return (
-    <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-1.5 overflow-x-auto">
+    <div className="flex items-center gap-1 bg-white/60 border border-border/50 rounded-lg p-1.5 overflow-x-auto">
       {techPackSubStages.map((subStage, index) => {
         const isCurrent = index === currentSubIndex;
         const isCompleted = completedStages.includes(subStage.id);
@@ -173,13 +173,13 @@ const TechPackSubTabs = () => {
             onClick={() => setCurrentStage(subStage.id)}
             className={cn(
               "px-3 py-1.5 rounded-md text-xs font-medium transition-all whitespace-nowrap",
-              isCurrent && "bg-background text-foreground shadow-sm",
-              isCompleted && !isCurrent && "text-primary hover:bg-background/50",
-              !isCurrent && !isCompleted && "text-muted-foreground hover:bg-background/50"
+              isCurrent && "bg-white text-primary shadow-sm border border-border/50",
+              isCompleted && !isCurrent && "text-accent hover:bg-white/50",
+              !isCurrent && !isCompleted && "text-muted-foreground hover:bg-white/50"
             )}
           >
             {isCompleted && !isCurrent && (
-              <Check className="w-3 h-3 inline mr-1" />
+              <Check className="w-3 h-3 inline mr-1 text-accent" />
             )}
             {subStage.label}
           </button>
@@ -202,7 +202,7 @@ const ManufacturersSubTabs = () => {
   const currentSubIndex = getCurrentSubIndex();
 
   return (
-    <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-1.5 overflow-x-auto">
+    <div className="flex items-center gap-1 bg-white/60 border border-border/50 rounded-lg p-1.5 overflow-x-auto">
       {manufacturersSubStages.map((subStage, index) => {
         const isCurrent = index === currentSubIndex;
         const isCompleted = index < currentSubIndex || completedStages.includes(subStage.id);
@@ -213,13 +213,13 @@ const ManufacturersSubTabs = () => {
             onClick={() => setCurrentStage(subStage.id)}
             className={cn(
               "px-3 py-1.5 rounded-md text-xs font-medium transition-all whitespace-nowrap",
-              isCurrent && "bg-background text-foreground shadow-sm",
-              isCompleted && !isCurrent && "text-primary hover:bg-background/50",
-              !isCurrent && !isCompleted && "text-muted-foreground hover:bg-background/50"
+              isCurrent && "bg-white text-primary shadow-sm border border-border/50",
+              isCompleted && !isCurrent && "text-accent hover:bg-white/50",
+              !isCurrent && !isCompleted && "text-muted-foreground hover:bg-white/50"
             )}
           >
             {isCompleted && !isCurrent && (
-              <Check className="w-3 h-3 inline mr-1" />
+              <Check className="w-3 h-3 inline mr-1 text-accent" />
             )}
             {subStage.label}
           </button>
@@ -245,7 +245,7 @@ const ProductionSubTabs = () => {
   const currentSubIndex = getCurrentSubIndex();
 
   return (
-    <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-1.5 overflow-x-auto">
+    <div className="flex items-center gap-1 bg-white/60 border border-border/50 rounded-lg p-1.5 overflow-x-auto">
       {productionSubStages.map((subStage, index) => {
         const isCurrent = index === currentSubIndex;
         const isCompleted = index < currentSubIndex || completedStages.includes(subStage.id);
@@ -258,14 +258,14 @@ const ProductionSubTabs = () => {
             disabled={isLocked}
             className={cn(
               "px-3 py-1.5 rounded-md text-xs font-medium transition-all whitespace-nowrap",
-              isCurrent && "bg-background text-foreground shadow-sm",
-              isCompleted && !isCurrent && "text-primary hover:bg-background/50",
+              isCurrent && "bg-white text-primary shadow-sm border border-border/50",
+              isCompleted && !isCurrent && "text-accent hover:bg-white/50",
               isLocked && "text-muted-foreground/40 cursor-not-allowed",
-              !isCurrent && !isCompleted && !isLocked && "text-muted-foreground hover:bg-background/50"
+              !isCurrent && !isCompleted && !isLocked && "text-muted-foreground hover:bg-white/50"
             )}
           >
             {isCompleted && !isCurrent && (
-              <Check className="w-3 h-3 inline mr-1" />
+              <Check className="w-3 h-3 inline mr-1 text-accent" />
             )}
             {subStage.label}
           </button>
