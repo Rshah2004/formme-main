@@ -183,6 +183,7 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
+      // Pass role in user metadata - the database trigger will handle role assignment
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -190,8 +191,9 @@ const Auth = () => {
           data: {
             full_name: formData.fullName,
             company_name: formData.companyName,
+            role: userRole, // This is read by the handle_new_user trigger
           },
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/auth`,
         },
       });
 
@@ -199,67 +201,10 @@ const Auth = () => {
       if (!data.user) throw new Error("Signup failed");
 
       console.log("User created:", data.user.id);
+      console.log("Role will be assigned by database trigger:", userRole);
 
-      // Assign role - CRITICAL: This must succeed for the user to create designs
-      const { error: roleError } = await supabase.from("user_roles").insert({
-        user_id: data.user.id,
-        role: userRole,
-      });
-
-      if (roleError) {
-        console.error("Role assignment failed:", roleError);
-        throw new Error(`Failed to assign role: ${roleError.message}`);
-      }
-
-      console.log("Role assigned:", userRole);
-
-      // Upsert profile with common data
-      const { error: profileError } = await supabase.from("profiles").upsert({
-        user_id: data.user.id,
-        full_name: formData.fullName,
-        company_name: formData.companyName,
-        location: formData.location || null,
-        phone: formData.phone || null,
-        capabilities: formData.capabilities.length > 0 ? formData.capabilities : null,
-        categories: formData.categories.length > 0 ? formData.categories : null,
-        moq: formData.moq ? parseInt(formData.moq) : null,
-        lead_time: formData.leadTime ? parseInt(formData.leadTime) : null,
-      }, {
-        onConflict: 'user_id'
-      });
-
-      if (profileError) {
-        console.error("Profile upsert failed:", profileError);
-        throw new Error(`Failed to create profile: ${profileError.message}`);
-      }
-
-      // If manufacturer, create manufacturer record
-      if (userRole === "manufacturer") {
-        const { error: mfgError } = await supabase.from("manufacturers").insert({
-          user_id: data.user.id,
-          name: formData.companyName || formData.fullName,
-          description: `${formData.companyName || formData.fullName} - Professional manufacturing services`,
-          location: formData.location || null,
-          country: formData.location || null,
-          specialties: formData.capabilities.length > 0 ? formData.capabilities : null,
-          categories: formData.categories.length > 0 ? formData.categories : null,
-          certifications: null, // For industry certifications like GOTS, OEKO-TEX, etc.
-          min_order_quantity: formData.moq ? parseInt(formData.moq) : 100,
-          lead_time_days: formData.leadTime ? parseInt(formData.leadTime) : 30,
-          price_range: "$20-$40 per unit", // Default price range
-          max_capacity: formData.moq ? parseInt(formData.moq) * 10 : 1000,
-          rating: null,
-          sustainability_score: 5,
-          is_active: true,
-        });
-
-        if (mfgError) {
-          console.error("Manufacturer record creation failed:", mfgError);
-          throw new Error(`Failed to create manufacturer profile: ${mfgError.message}`);
-        }
-
-        console.log("Manufacturer record created successfully");
-      }
+      // Note: Role and basic profile are created by the database trigger (handle_new_user)
+      // We only need to update the profile with additional manufacturer-specific data if needed
 
       // Show verify email screen
       setMode("verify-email");
