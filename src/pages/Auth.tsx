@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,14 +10,38 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import { Mail, CheckCircle2 } from "lucide-react";
 
 type UserRole = "designer" | "manufacturer";
+type AuthMode = "signin" | "signup" | "verify-email" | "reset-password";
 
 const Auth = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<AuthMode>("signin");
   const [userRole, setUserRole] = useState<UserRole>("designer");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  // Check for recovery token in URL hash on mount
+  useEffect(() => {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get("access_token");
+    const type = hashParams.get("type");
+    
+    if (type === "recovery" && accessToken) {
+      setMode("reset-password");
+    }
+    
+    // Also listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setMode("reset-password");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -106,14 +130,51 @@ const Auth = () => {
       return;
     }
 
+    setIsLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo: `${window.location.origin}/auth#type=recovery`,
       });
       if (error) throw error;
       toast.success("Password reset link sent to your email!");
     } catch (error: any) {
       toast.error(error.message || "Failed to send reset email");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      
+      if (error) throw error;
+      
+      toast.success("Password updated successfully!");
+      setMode("signin");
+      setNewPassword("");
+      setConfirmPassword("");
+      // Clear the hash from URL
+      window.history.replaceState(null, "", window.location.pathname);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to reset password");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -200,8 +261,8 @@ const Auth = () => {
         console.log("Manufacturer record created successfully");
       }
 
-      toast.success("Account created successfully! You can now sign in.");
-      setMode("signin");
+      // Show verify email screen
+      setMode("verify-email");
     } catch (error: any) {
       console.error("Signup error:", error);
       toast.error(error.message || "Failed to sign up");
@@ -215,38 +276,114 @@ const Auth = () => {
       <Navbar />
       <div className="flex-1 flex items-center justify-center p-4 pt-24">
         <Card className="w-full max-w-2xl p-8 bg-white/70 backdrop-blur-md border border-border/40 shadow-lg rounded-2xl">
-        <div className="text-center mb-6">
-          <h1 className="text-4xl font-bold mb-2">formme</h1>
-          <p className="text-muted-foreground">
-            {mode === "signin" ? "Welcome back" : "Join our community"}
-          </p>
-        </div>
-
-        <Tabs value={mode} onValueChange={(v) => setMode(v as "signin" | "signup")}>
-          <div className="flex justify-center gap-8 mb-6 border-b border-border/30">
-            <button
-              type="button"
+        
+        {/* Verify Email Screen */}
+        {mode === "verify-email" && (
+          <div className="text-center py-8">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Mail className="w-8 h-8 text-primary" />
+            </div>
+            <h1 className="text-2xl font-bold mb-2">Verify your email</h1>
+            <p className="text-muted-foreground mb-6">
+              We've sent a verification link to <strong>{formData.email}</strong>. 
+              Please check your inbox and click the link to verify your account.
+            </p>
+            <p className="text-sm text-muted-foreground mb-4">
+              Didn't receive the email? Check your spam folder or try again.
+            </p>
+            <Button
+              variant="outline"
               onClick={() => setMode("signin")}
-              className={`pb-3 px-2 transition-all rounded-t-lg ${
-                mode === "signin"
-                  ? "border-b-2 border-primary font-bold text-foreground bg-white/20"
-                  : "text-muted-foreground hover:text-foreground hover:bg-white/10"
-              }`}
+              className="mr-2"
             >
-              Sign In
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("signup")}
-              className={`pb-3 px-2 transition-all rounded-t-lg ${
-                mode === "signup"
-                  ? "border-b-2 border-primary font-bold text-foreground bg-white/20"
-                  : "text-muted-foreground hover:text-foreground hover:bg-white/10"
-              }`}
-            >
-              Sign Up
-            </button>
+              Back to Sign In
+            </Button>
           </div>
+        )}
+
+        {/* Reset Password Screen */}
+        {mode === "reset-password" && (
+          <div>
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 className="w-8 h-8 text-primary" />
+              </div>
+              <h1 className="text-2xl font-bold mb-2">Set new password</h1>
+              <p className="text-muted-foreground">
+                Enter your new password below
+              </p>
+            </div>
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div>
+                <Label htmlFor="new-password">New Password</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="mt-1"
+                />
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full h-11 rounded-xl" 
+                disabled={isLoading}
+              >
+                {isLoading ? "Updating..." : "Update Password"}
+              </Button>
+            </form>
+          </div>
+        )}
+
+        {/* Sign In / Sign Up Tabs */}
+        {(mode === "signin" || mode === "signup") && (
+          <>
+            <div className="text-center mb-6">
+              <h1 className="text-4xl font-bold mb-2">formme</h1>
+              <p className="text-muted-foreground">
+                {mode === "signin" ? "Welcome back" : "Join our community"}
+              </p>
+            </div>
+
+            <Tabs value={mode} onValueChange={(v) => setMode(v as AuthMode)}>
+              <div className="flex justify-center gap-8 mb-6 border-b border-border/30">
+                <button
+                  type="button"
+                  onClick={() => setMode("signin")}
+                  className={`pb-3 px-2 transition-all rounded-t-lg ${
+                    mode === "signin"
+                      ? "border-b-2 border-primary font-bold text-foreground bg-white/20"
+                      : "text-muted-foreground hover:text-foreground hover:bg-white/10"
+                  }`}
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode("signup")}
+                  className={`pb-3 px-2 transition-all rounded-t-lg ${
+                    mode === "signup"
+                      ? "border-b-2 border-primary font-bold text-foreground bg-white/20"
+                      : "text-muted-foreground hover:text-foreground hover:bg-white/10"
+                  }`}
+                >
+                  Sign Up
+                </button>
+              </div>
 
           <TabsContent value="signin">
             <form onSubmit={handleSignIn} className="space-y-3">
@@ -574,6 +711,8 @@ const Auth = () => {
             </form>
           </TabsContent>
         </Tabs>
+        </>
+        )}
       </Card>
       </div>
       <Footer />
