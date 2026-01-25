@@ -2,6 +2,9 @@ import React from 'react';
 import { Check, Lock, Palette, FileText, Factory, Sparkles } from 'lucide-react';
 import { useWorkflow } from '@/context/WorkflowContext';
 import { cn } from '@/lib/utils';
+import { useSearchParams } from 'react-router-dom';
+import { useContractStatus } from '@/hooks/useContractStatus';
+import { toast } from 'sonner';
 
 import { Upload } from 'lucide-react';
 
@@ -57,6 +60,9 @@ export const getTopLevelStage = (currentStage: string): string => {
 
 export const HorizontalProgressTabs = () => {
   const { currentStage, completedStages, setCurrentStage } = useWorkflow();
+  const [searchParams] = useSearchParams();
+  const designId = searchParams.get('designId');
+  const { isContractFinalized } = useContractStatus(designId);
 
   const activeTopLevel = getTopLevelStage(currentStage);
   const isInTechPack = activeTopLevel === 'tech-pack';
@@ -68,6 +74,11 @@ export const HorizontalProgressTabs = () => {
     const currentIndex = stageOrder.indexOf(activeTopLevel);
     const stageIndex = stageOrder.indexOf(stageId);
 
+    // Lock tech-pack and manufacturers tabs when contract is finalized
+    if (isContractFinalized && (stageId === 'tech-pack' || stageId === 'manufacturers')) {
+      return 'locked';
+    }
+
     if (stageIndex < currentIndex) return 'completed';
     if (stageId === activeTopLevel) return 'current';
     if (stageIndex > currentIndex) return 'locked';
@@ -75,7 +86,12 @@ export const HorizontalProgressTabs = () => {
   };
 
   const handleStageClick = (stageId: string, status: string) => {
-    if (status === 'locked') return;
+    if (status === 'locked') {
+      if (isContractFinalized && (stageId === 'tech-pack' || stageId === 'manufacturers')) {
+        toast.error('This section is locked after contract finalization');
+      }
+      return;
+    }
     
     if (stageId === 'tech-pack') setCurrentStage('upload-tech-pack');
     else if (stageId === 'manufacturers') setCurrentStage('factory-match');

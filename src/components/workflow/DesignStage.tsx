@@ -4,12 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Upload, ArrowRight, Sparkles, Clock, AlertCircle } from 'lucide-react';
+import { Upload, ArrowRight, Sparkles, Clock, AlertCircle, Lock } from 'lucide-react';
 import { useWorkflow } from '@/context/WorkflowContext';
 import { useDropzone } from 'react-dropzone';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useIsAdmin, useContractStatus } from '@/hooks/useContractStatus';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface DesignStageProps {
   design: any;
@@ -17,11 +19,15 @@ interface DesignStageProps {
 
 const DesignStage = ({ design }: DesignStageProps) => {
   const { setCurrentStage, markStageComplete, updateWorkflowData } = useWorkflow();
+  const { isAdmin } = useIsAdmin();
+  const { isContractFinalized, loading: contractLoading } = useContractStatus(design?.id);
+  
   const [designName, setDesignName] = useState(design?.name || '');
   const [description, setDescription] = useState(design?.description || '');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(design?.design_file_url || null);
   const [isUploading, setIsUploading] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Track completion status
   const isDesignUploaded = !!previewUrl;
@@ -32,7 +38,19 @@ const DesignStage = ({ design }: DesignStageProps) => {
   ].filter(Boolean) as string[];
   const isComplete = incompleteItems.length === 0;
 
+  // Check for changes
+  const checkForChanges = () => {
+    const nameChanged = designName !== (design?.name || '');
+    const descChanged = description !== (design?.description || '');
+    return nameChanged || descChanged;
+  };
+
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    if (isContractFinalized) {
+      toast.error('Cannot modify design after contract is finalized');
+      return;
+    }
+
     const file = acceptedFiles[0];
     if (!file) return;
 
@@ -43,6 +61,7 @@ const DesignStage = ({ design }: DesignStageProps) => {
 
     setUploadedFile(file);
     setPreviewUrl(URL.createObjectURL(file));
+    setHasUnsavedChanges(true);
     
     setIsUploading(true);
     try {
@@ -67,6 +86,7 @@ const DesignStage = ({ design }: DesignStageProps) => {
         .update({ design_file_url: publicUrl })
         .eq('id', design.id);
 
+      setHasUnsavedChanges(false);
       toast.success('Design uploaded successfully');
     } catch (error) {
       console.error('Upload error:', error);
@@ -74,16 +94,36 @@ const DesignStage = ({ design }: DesignStageProps) => {
     } finally {
       setIsUploading(false);
     }
-  }, [design?.id]);
+  }, [design?.id, isContractFinalized]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { 'image/svg+xml': ['.svg'] },
-    maxFiles: 1
+    maxFiles: 1,
+    disabled: isContractFinalized
   });
 
+  const handleSave = async () => {
+    if (isContractFinalized) {
+      toast.error('Cannot save changes after contract is finalized');
+      return;
+    }
+
+    try {
+      await supabase
+        .from('designs')
+        .update({ name: designName, description })
+        .eq('id', design.id);
+      setHasUnsavedChanges(false);
+      toast.success('Changes saved');
+    } catch (error) {
+      console.error('Error saving:', error);
+      toast.error('Failed to save changes');
+    }
+  };
+
   const saveAndContinue = async (markComplete: boolean) => {
-    if (designName !== design?.name || description !== design?.description) {
+    if (checkForChanges() && !isContractFinalized) {
       await supabase
         .from('designs')
         .update({ name: designName, description })
@@ -101,7 +141,20 @@ const DesignStage = ({ design }: DesignStageProps) => {
       toast.error('Please upload your design first');
       return;
     }
-    await saveAndContinue(true);
+
+    // Check for unsaved changes
+    if (checkForChanges() && !isContractFinalized) {
+      const confirmed = window.confirm('You have unsaved changes. Do you want to save them before continuing?');
+      if (confirmed) {
+        await saveAndContinue(true);
+      } else {
+        // Discard and continue
+        markStageComplete('design');
+        setCurrentStage('specifications');
+      }
+    } else {
+      await saveAndContinue(true);
+    }
   };
 
   const handleFinishLater = async () => {
@@ -109,8 +162,28 @@ const DesignStage = ({ design }: DesignStageProps) => {
     toast.info('You can come back to complete this step later');
   };
 
+  const handleInputChange = (field: 'name' | 'description', value: string) => {
+    if (field === 'name') {
+      setDesignName(value);
+    } else {
+      setDescription(value);
+    }
+    setHasUnsavedChanges(checkForChanges());
+  };
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
+      {/* Contract Locked Alert */}
+      {isContractFinalized && (
+        <Alert className="border-amber-200 bg-amber-50/50">
+          <Lock className="h-4 w-4 text-amber-600" />
+          <AlertTitle className="text-amber-800">Contract Finalized</AlertTitle>
+          <AlertDescription className="text-amber-700 text-sm">
+            This design's contract has been finalized with a manufacturer. Design details are locked and cannot be modified.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold text-foreground">Upload Your Design</h2>
@@ -120,7 +193,7 @@ const DesignStage = ({ design }: DesignStageProps) => {
       </div>
 
       {/* Incomplete Status Banner */}
-      {!isComplete && (
+      {!isComplete && !isContractFinalized && (
         <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-50 border border-amber-200">
           <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
           <div>
@@ -142,9 +215,10 @@ const DesignStage = ({ design }: DesignStageProps) => {
           <div
             {...getRootProps()}
             className={cn(
-              "border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer h-[250px] flex items-center justify-center",
+              "border-2 border-dashed rounded-lg p-6 text-center transition-all h-[250px] flex items-center justify-center",
               isDragActive ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
-              previewUrl && "border-primary/30 bg-primary/5"
+              previewUrl && "border-primary/30 bg-primary/5",
+              isContractFinalized ? "cursor-not-allowed opacity-60" : "cursor-pointer"
             )}
           >
             <input {...getInputProps()} />
@@ -159,7 +233,7 @@ const DesignStage = ({ design }: DesignStageProps) => {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Click or drag to replace
+                  {isContractFinalized ? 'Design is locked' : 'Click or drag to replace'}
                 </p>
               </div>
             ) : (
@@ -175,7 +249,7 @@ const DesignStage = ({ design }: DesignStageProps) => {
                     SVG files only • Vector format preserves quality
                   </p>
                 </div>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" disabled={isContractFinalized}>
                   Browse Files
                 </Button>
               </div>
@@ -194,8 +268,17 @@ const DesignStage = ({ design }: DesignStageProps) => {
       {/* Design Details */}
       <Card className="border-border">
         <CardHeader className="pb-4">
-          <CardTitle className="text-base">Design Details</CardTitle>
-          <CardDescription>Give your design a name and description</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base">Design Details</CardTitle>
+              <CardDescription>Give your design a name and description</CardDescription>
+            </div>
+            {!isContractFinalized && hasUnsavedChanges && (
+              <Button size="sm" onClick={handleSave}>
+                Save Changes
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -203,9 +286,10 @@ const DesignStage = ({ design }: DesignStageProps) => {
             <Input
               id="designName"
               value={designName}
-              onChange={(e) => setDesignName(e.target.value)}
+              onChange={(e) => handleInputChange('name', e.target.value)}
               placeholder="e.g., Summer Linen Shirt"
               className="max-w-md"
+              disabled={isContractFinalized}
             />
           </div>
           <div className="space-y-2">
@@ -213,10 +297,11 @@ const DesignStage = ({ design }: DesignStageProps) => {
             <Textarea
               id="description"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => handleInputChange('description', e.target.value)}
               placeholder="Describe your design vision, target audience, or any special details..."
               rows={3}
               className="resize-none"
+              disabled={isContractFinalized}
             />
           </div>
         </CardContent>
@@ -237,14 +322,18 @@ const DesignStage = ({ design }: DesignStageProps) => {
 
       {/* Action Buttons */}
       <div className="flex items-center justify-between pt-2">
-        <Button 
-          variant="ghost" 
-          onClick={handleFinishLater}
-          className="gap-2 text-muted-foreground hover:text-foreground"
-        >
-          <Clock className="w-4 h-4" />
-          Finish Later
-        </Button>
+        <div className="flex items-center gap-2">
+          {isAdmin && !isContractFinalized && (
+            <Button 
+              variant="ghost" 
+              onClick={handleFinishLater}
+              className="gap-2 text-muted-foreground hover:text-foreground"
+            >
+              <Clock className="w-4 h-4" />
+              Finish Later
+            </Button>
+          )}
+        </div>
         <Button onClick={handleContinue} className="gap-2" disabled={!previewUrl}>
           Continue to Specifications
           <ArrowRight className="w-4 h-4" />

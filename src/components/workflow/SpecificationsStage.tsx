@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, ArrowLeft, Ruler, Info } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Ruler, Info, Clock, Lock } from 'lucide-react';
 import { useWorkflow } from '@/context/WorkflowContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useIsAdmin, useContractStatus } from '@/hooks/useContractStatus';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface SpecificationsStageProps {
   design: any;
@@ -17,6 +19,8 @@ const sizeOptions = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
 const SpecificationsStage = ({ design }: SpecificationsStageProps) => {
   const { setCurrentStage, markStageComplete, workflowData, updateWorkflowData } = useWorkflow();
+  const { isAdmin } = useIsAdmin();
+  const { isContractFinalized } = useContractStatus(design?.id);
   
   const [measurements, setMeasurements] = useState({
     chestWidth: workflowData.measurements?.chestWidth || '',
@@ -26,9 +30,11 @@ const SpecificationsStage = ({ design }: SpecificationsStageProps) => {
     hemWidth: '',
   });
   
+  const [originalMeasurements, setOriginalMeasurements] = useState<any>(null);
   const [baseSize, setBaseSize] = useState('M');
   const [sizeRange, setSizeRange] = useState(['S', 'M', 'L', 'XL']);
   const [grading, setGrading] = useState('1'); // inches between sizes
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Load existing specs
   useEffect(() => {
@@ -41,28 +47,44 @@ const SpecificationsStage = ({ design }: SpecificationsStageProps) => {
 
       if (specs?.measurements) {
         const m = specs.measurements as any;
-        setMeasurements({
+        const loaded = {
           chestWidth: m.chestWidth || '',
           length: m.length || '',
           sleeveLength: m.sleeveLength || '',
           shoulderWidth: m.shoulderWidth || '',
           hemWidth: m.hemWidth || '',
-        });
+        };
+        setMeasurements(loaded);
+        setOriginalMeasurements(loaded);
+        if (m.baseSize) setBaseSize(m.baseSize);
+        if (m.sizeRange) setSizeRange(m.sizeRange);
+        if (m.grading) setGrading(m.grading);
       }
     };
     loadSpecs();
   }, [design.id]);
 
+  const checkForChanges = () => {
+    if (!originalMeasurements) return false;
+    return JSON.stringify(measurements) !== JSON.stringify(originalMeasurements);
+  };
+
   const handleMeasurementChange = (key: string, value: string) => {
+    if (isContractFinalized) return;
     setMeasurements(prev => ({ ...prev, [key]: value }));
+    setHasUnsavedChanges(true);
   };
 
   const handleBack = () => {
     setCurrentStage('design');
   };
 
-  const handleContinue = async () => {
-    // Save measurements to design_specs
+  const handleSave = async () => {
+    if (isContractFinalized) {
+      toast.error('Cannot save changes after contract is finalized');
+      return;
+    }
+
     try {
       const { data: existing } = await supabase
         .from('design_specs')
@@ -88,23 +110,65 @@ const SpecificationsStage = ({ design }: SpecificationsStageProps) => {
           .insert({ design_id: design.id, measurements: measurementsData });
       }
 
+      setOriginalMeasurements(measurements);
+      setHasUnsavedChanges(false);
+      toast.success('Changes saved');
+    } catch (error) {
+      console.error('Error saving:', error);
+      toast.error('Failed to save changes');
+    }
+  };
+
+  const handleContinue = async () => {
+    // Check for unsaved changes
+    if (hasUnsavedChanges && !isContractFinalized) {
+      const confirmed = window.confirm('You have unsaved changes. Do you want to save them before continuing?');
+      if (confirmed) {
+        await handleSave();
+      }
+    }
+    
+    if (!isContractFinalized) {
       updateWorkflowData({ measurements });
       markStageComplete('specifications');
-      setCurrentStage('fabric-color');
-    } catch (error) {
-      console.error('Error saving specifications:', error);
-      toast.error('Failed to save specifications');
     }
+    setCurrentStage('fabric-color');
+  };
+
+  const handleFinishLater = async () => {
+    if (hasUnsavedChanges && !isContractFinalized) {
+      await handleSave();
+    }
+    setCurrentStage('fabric-color');
+    toast.info('You can come back to complete this step later');
   };
 
   return (
     <div className="space-y-6">
+      {/* Contract Locked Alert */}
+      {isContractFinalized && (
+        <Alert className="border-amber-200 bg-amber-50/50">
+          <Lock className="h-4 w-4 text-amber-600" />
+          <AlertTitle className="text-amber-800">Contract Finalized</AlertTitle>
+          <AlertDescription className="text-amber-700 text-sm">
+            This design's contract has been finalized. Specifications are locked and cannot be modified.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">Specifications</h2>
-        <p className="text-muted-foreground mt-1">
-          Define the measurements and sizing for your garment
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Specifications</h2>
+          <p className="text-muted-foreground mt-1">
+            Define the measurements and sizing for your garment
+          </p>
+        </div>
+        {!isContractFinalized && hasUnsavedChanges && (
+          <Button onClick={handleSave}>
+            Save Changes
+          </Button>
+        )}
       </div>
 
       {/* Measurements Card */}
@@ -127,6 +191,7 @@ const SpecificationsStage = ({ design }: SpecificationsStageProps) => {
                   value={measurements.chestWidth}
                   onChange={(e) => handleMeasurementChange('chestWidth', e.target.value)}
                   placeholder="22"
+                  disabled={isContractFinalized}
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">in</span>
               </div>
@@ -141,6 +206,7 @@ const SpecificationsStage = ({ design }: SpecificationsStageProps) => {
                   value={measurements.length}
                   onChange={(e) => handleMeasurementChange('length', e.target.value)}
                   placeholder="28"
+                  disabled={isContractFinalized}
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">in</span>
               </div>
@@ -155,6 +221,7 @@ const SpecificationsStage = ({ design }: SpecificationsStageProps) => {
                   value={measurements.sleeveLength}
                   onChange={(e) => handleMeasurementChange('sleeveLength', e.target.value)}
                   placeholder="8.5"
+                  disabled={isContractFinalized}
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">in</span>
               </div>
@@ -169,6 +236,7 @@ const SpecificationsStage = ({ design }: SpecificationsStageProps) => {
                   value={measurements.shoulderWidth}
                   onChange={(e) => handleMeasurementChange('shoulderWidth', e.target.value)}
                   placeholder="18"
+                  disabled={isContractFinalized}
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">in</span>
               </div>
@@ -183,6 +251,7 @@ const SpecificationsStage = ({ design }: SpecificationsStageProps) => {
                   value={measurements.hemWidth}
                   onChange={(e) => handleMeasurementChange('hemWidth', e.target.value)}
                   placeholder="22"
+                  disabled={isContractFinalized}
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">in</span>
               </div>
@@ -201,7 +270,7 @@ const SpecificationsStage = ({ design }: SpecificationsStageProps) => {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Base Size</Label>
-              <Select value={baseSize} onValueChange={setBaseSize}>
+              <Select value={baseSize} onValueChange={setBaseSize} disabled={isContractFinalized}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -218,7 +287,7 @@ const SpecificationsStage = ({ design }: SpecificationsStageProps) => {
 
             <div className="space-y-2">
               <Label>Grading (size difference)</Label>
-              <Select value={grading} onValueChange={setGrading}>
+              <Select value={grading} onValueChange={setGrading} disabled={isContractFinalized}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -241,12 +310,16 @@ const SpecificationsStage = ({ design }: SpecificationsStageProps) => {
                   key={size}
                   variant={sizeRange.includes(size) ? 'default' : 'outline'}
                   size="sm"
+                  disabled={isContractFinalized}
                   onClick={() => {
-                    setSizeRange(prev => 
-                      prev.includes(size) 
-                        ? prev.filter(s => s !== size)
-                        : [...prev, size].sort((a, b) => sizeOptions.indexOf(a) - sizeOptions.indexOf(b))
-                    );
+                    if (!isContractFinalized) {
+                      setSizeRange(prev => 
+                        prev.includes(size) 
+                          ? prev.filter(s => s !== size)
+                          : [...prev, size].sort((a, b) => sizeOptions.indexOf(a) - sizeOptions.indexOf(b))
+                      );
+                      setHasUnsavedChanges(true);
+                    }
                   }}
                 >
                   {size}
@@ -271,10 +344,22 @@ const SpecificationsStage = ({ design }: SpecificationsStageProps) => {
 
       {/* Navigation */}
       <div className="flex justify-between pt-4">
-        <Button variant="outline" onClick={handleBack} className="gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleBack} className="gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
+          {isAdmin && !isContractFinalized && (
+            <Button 
+              variant="ghost" 
+              onClick={handleFinishLater}
+              className="gap-2 text-muted-foreground hover:text-foreground"
+            >
+              <Clock className="w-4 h-4" />
+              Finish Later
+            </Button>
+          )}
+        </div>
         <Button onClick={handleContinue} className="gap-2">
           Continue to Fabric & Color
           <ArrowRight className="w-4 h-4" />
