@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, Clock } from 'lucide-react';
 import { useWorkflow } from '@/context/WorkflowContext';
 import { stageOrder } from '@/data/workflowData';
 import { toast } from 'sonner';
+import { useIsAdmin } from '@/hooks/useContractStatus';
 
 interface StageNavigationProps {
   onNext?: () => boolean | Promise<boolean>; // Return true if can proceed
@@ -21,10 +22,14 @@ export const StageNavigation = ({
   incompleteItems = []
 }: StageNavigationProps) => {
   const { currentStage, setCurrentStage, markStageComplete } = useWorkflow();
+  const { isAdmin } = useIsAdmin();
 
   const currentIndex = stageOrder.indexOf(currentStage as any);
   const hasNext = currentIndex < stageOrder.length - 1;
   const hasPrevious = currentIndex > 0;
+
+  // Only show Finish Later for admin users (r12@gmail.com)
+  const canShowFinishLater = showFinishLater && isAdmin;
 
   const handleNext = async () => {
     // Run validation if provided
@@ -71,7 +76,7 @@ export const StageNavigation = ({
           </Button>
         )}
         
-        {showFinishLater && hasNext && (
+        {canShowFinishLater && hasNext && (
           <Button 
             variant="ghost" 
             onClick={handleFinishLater}
