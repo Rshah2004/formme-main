@@ -27,6 +27,14 @@ const DesignerDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [manufacturerFilter, setManufacturerFilter] = useState("all");
+  const [showSignUpOverlay, setShowSignUpOverlay] = useState(false);
+
+  // Handle click on preview content to show sign-up overlay
+  const handlePreviewClick = () => {
+    if (isPreviewMode && isAuthenticated === false) {
+      setShowSignUpOverlay(true);
+    }
+  };
 
   // Get unique manufacturers for filter
   const manufacturers = [...new Set(orders.filter(o => o.manufacturers?.name).map(o => o.manufacturers?.name))];
@@ -389,13 +397,16 @@ const DesignerDashboard = () => {
       <Navbar />
       <div className="flex">
         <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} />
-        <main className="flex-1 p-8 overflow-auto">
+        <main 
+          className="flex-1 p-8 overflow-auto"
+          onClick={handlePreviewClick}
+        >
           {renderContent()}
         </main>
       </div>
       
-      {/* Preview mode overlay for unauthenticated users */}
-      {isPreviewMode && isAuthenticated === false && <DashboardPreviewOverlay />}
+      {/* Preview mode overlay - only shows when user clicks on content */}
+      {showSignUpOverlay && <DashboardPreviewOverlay onClose={() => setShowSignUpOverlay(false)} />}
     </div>
   );
 };
