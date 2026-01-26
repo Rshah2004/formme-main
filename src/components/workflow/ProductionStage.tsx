@@ -242,10 +242,15 @@ const ProductionStage = ({ design }: ProductionStageProps) => {
             <Button 
               variant="outline" 
               onClick={() => {
+                if (!orderData?.production_params_approved) {
+                  toast.error('Please approve production parameters before continuing');
+                  return;
+                }
                 markStageComplete(currentStage);
                 setCurrentStage('waiting-sample');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
+              disabled={!orderData?.production_params_approved}
               className="gap-2"
             >
               Skip Payment
@@ -253,10 +258,15 @@ const ProductionStage = ({ design }: ProductionStageProps) => {
 
             <Button 
               onClick={() => {
+                if (!orderData?.production_params_approved) {
+                  toast.error('Please approve production parameters before continuing');
+                  return;
+                }
                 markStageComplete(currentStage);
                 setCurrentStage('payment');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
+              disabled={!orderData?.production_params_approved}
               className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
             >
               Continue to Payment

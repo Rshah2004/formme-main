@@ -77,18 +77,17 @@ const About = () => {
               </h2>
               <div className="space-y-4 sm:space-y-6 text-muted-foreground text-base sm:text-lg leading-relaxed">
                 <p>
-                  FormMe was born from a simple observation: talented designers struggle to find 
-                  reliable manufacturers who align with their values of quality and sustainability.
+                  Formme is a fashion-tech platform built to reduce friction between designers and 
+                  manufacturers by streamlining tech packs, feasibility checks, and production workflows.
                 </p>
                 <p>
-                  Founded in Vancouver, BC, we set out to create a platform that simplifies the 
-                  entire journey from design concept to finished product. Our AI-powered tools 
-                  help designers create professional tech packs, while our curated network of 
-                  manufacturers ensures ethical production.
+                  The platform is being developed in close collaboration with manufacturers and 
+                  designers to reflect real production constraints.
                 </p>
                 <p>
-                  Today, we're proud to support independent designers and emerging brands 
-                  in bringing their creative visions to life—responsibly.
+                  Founded in Vancouver, BC, Formme is part of the <strong>Innovation UBC Venture Founder</strong> program. 
+                  We're committed to simplifying the journey from design concept to finished product, 
+                  with AI-powered tools and a curated network of ethical manufacturers.
                 </p>
               </div>
             </motion.div>
