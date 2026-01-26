@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,12 +14,15 @@ import {
 } from "@/components/ui/select";
 import { Plus, Search, Download, SlidersHorizontal, Shirt } from "lucide-react";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
+import DashboardPreviewOverlay from "@/components/dashboard/DashboardPreviewOverlay";
 import StatCard from "@/components/dashboard/StatCard";
 import OrderCard from "@/components/dashboard/OrderCard";
 import { useDesignerDashboard, getStepFromStatus } from "@/hooks/useDesignerDashboard";
 
 const DesignerDashboard = () => {
-  const { designs, orders, isLoading, stats, navigate } = useDesignerDashboard();
+  const [searchParams] = useSearchParams();
+  const isPreviewMode = searchParams.get('preview') === 'true';
+  const { designs, orders, isLoading, isAuthenticated, stats, navigate } = useDesignerDashboard(isPreviewMode);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -64,11 +68,25 @@ const DesignerDashboard = () => {
 
   const renderDashboardContent = () => (
     <div className="space-y-8">
+      {/* Preview Mode Badge */}
+      {isPreviewMode && !isAuthenticated && (
+        <div className="flex justify-center">
+          <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 px-4 py-1.5 text-sm font-medium">
+            PREVIEW MODE
+          </Badge>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold mb-1">Dashboard</h1>
-          <p className="text-muted-foreground">Track your designs from concept to delivery</p>
+          <p className="text-muted-foreground">
+            {isPreviewMode && !isAuthenticated 
+              ? "Previewing active workspace" 
+              : "Track your designs from concept to delivery"
+            }
+          </p>
         </div>
         <div className="flex items-center gap-4">
           <div className="relative">
@@ -78,6 +96,7 @@ const DesignerDashboard = () => {
               className="pl-9 w-64"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              disabled={isPreviewMode && !isAuthenticated}
             />
           </div>
         </div>
@@ -366,7 +385,7 @@ const DesignerDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
       <Navbar />
       <div className="flex">
         <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} />
@@ -374,6 +393,9 @@ const DesignerDashboard = () => {
           {renderContent()}
         </main>
       </div>
+      
+      {/* Preview mode overlay for unauthenticated users */}
+      {isPreviewMode && isAuthenticated === false && <DashboardPreviewOverlay />}
     </div>
   );
 };

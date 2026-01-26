@@ -263,7 +263,13 @@ const QualityStage = ({ design }: QualityStageProps) => {
           </>
         )}
 
-        <StageNavigation onNext={() => order?.qc_approved === true} nextLabel="Continue to Delivery" showBack={true} />
+        <StageNavigation 
+          onNext={() => order?.qc_approved === true} 
+          nextLabel="Continue to Delivery" 
+          showBack={true}
+          disabled={!order?.qc_submitted_at}
+          disabledMessage="Waiting for manufacturer to submit quality check photos"
+        />
       </div>
     </div>
   );

@@ -12,6 +12,8 @@ interface StageNavigationProps {
   showBack?: boolean;
   showFinishLater?: boolean;
   incompleteItems?: string[];
+  disabled?: boolean; // Disable the continue button
+  disabledMessage?: string; // Message to show when disabled
 }
 
 export const StageNavigation = ({ 
@@ -19,7 +21,9 @@ export const StageNavigation = ({
   nextLabel = 'Continue to Next Step',
   showBack = true,
   showFinishLater = true,
-  incompleteItems = []
+  incompleteItems = [],
+  disabled = false,
+  disabledMessage = 'Please complete this step before continuing'
 }: StageNavigationProps) => {
   const { currentStage, setCurrentStage, markStageComplete } = useWorkflow();
   const { isAdmin } = useIsAdmin();
@@ -32,6 +36,12 @@ export const StageNavigation = ({
   const canShowFinishLater = showFinishLater && isAdmin;
 
   const handleNext = async () => {
+    // Check if disabled
+    if (disabled) {
+      toast.error(disabledMessage);
+      return;
+    }
+    
     // Run validation if provided
     const canProceed = onNext ? await onNext() : true;
     
@@ -91,7 +101,8 @@ export const StageNavigation = ({
       {hasNext && (
         <Button 
           onClick={handleNext}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
+          disabled={disabled}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {nextLabel}
           <ArrowRight className="w-4 h-4" />

@@ -52,11 +52,12 @@ export interface DashboardStats {
   delivered: number;
 }
 
-export const useDesignerDashboard = () => {
+export const useDesignerDashboard = (previewMode: boolean = false) => {
   const navigate = useNavigate();
   const [designs, setDesigns] = useState<Design[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [stats, setStats] = useState<DashboardStats>({
     ordersPlaced: 0,
     inSampling: 0,
@@ -66,15 +67,31 @@ export const useDesignerDashboard = () => {
 
   useEffect(() => {
     checkAuth();
-    fetchData();
   }, []);
+
+  useEffect(() => {
+    // Only fetch data if authenticated or in preview mode
+    if (isAuthenticated === true) {
+      fetchData();
+    } else if (previewMode && isAuthenticated === false) {
+      // Load preview data for unauthenticated users
+      loadPreviewData();
+    }
+  }, [isAuthenticated, previewMode]);
 
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-      navigate("/auth");
+      setIsAuthenticated(false);
+      if (!previewMode) {
+        navigate("/auth");
+      } else {
+        setIsLoading(false);
+      }
       return;
     }
+
+    setIsAuthenticated(true);
 
     const { data: roleData } = await supabase
       .from("user_roles")
@@ -85,6 +102,72 @@ export const useDesignerDashboard = () => {
     if (roleData?.role !== "designer") {
       navigate("/manufacturer");
     }
+  };
+
+  const loadPreviewData = () => {
+    // Mock preview data for unauthenticated users
+    const previewOrders: Order[] = [
+      {
+        id: 'preview-1',
+        status: 'sample_development',
+        design_id: 'design-1',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        designs: {
+          id: 'design-1',
+          name: 'Sustainable Linen Jacket',
+          category: 'Outerwear',
+          created_at: new Date().toISOString(),
+          thumbnail_url: null
+        },
+        manufacturers: {
+          name: 'Textiles Porto, Portugal'
+        }
+      },
+      {
+        id: 'preview-2',
+        status: 'production_approval',
+        design_id: 'design-2',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        designs: {
+          id: 'design-2',
+          name: 'Organic Cotton Dress',
+          category: 'Dresses',
+          created_at: new Date().toISOString(),
+          thumbnail_url: null
+        },
+        manufacturers: {
+          name: 'EcoFab India'
+        }
+      },
+      {
+        id: 'preview-3',
+        status: 'quality_check',
+        design_id: 'design-3',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        designs: {
+          id: 'design-3',
+          name: 'Recycled Denim Jeans',
+          category: 'Bottoms',
+          created_at: new Date().toISOString(),
+          thumbnail_url: null
+        },
+        manufacturers: {
+          name: 'GreenStitch Turkey'
+        }
+      }
+    ];
+
+    setOrders(previewOrders);
+    setStats({
+      ordersPlaced: 3,
+      inSampling: 2,
+      inProduction: 1,
+      delivered: 0,
+    });
+    setIsLoading(false);
   };
 
   const fetchData = async () => {
@@ -136,6 +219,7 @@ export const useDesignerDashboard = () => {
     designs,
     orders,
     isLoading,
+    isAuthenticated,
     stats,
     navigate,
     refetch: fetchData,
