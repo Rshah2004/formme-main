@@ -29,10 +29,8 @@ const HeroSection: React.FC = () => {
 
   const handleDashboardClick = () => {
     if (!user) {
-      setLockedFeature({
-        name: "Dashboard",
-        description: "Create an account to access your personal dashboard and manage all your designs in one place.",
-      });
+      // Navigate to dashboard preview mode for unauthenticated users
+      navigate("/dashboard?preview=true");
     } else {
       navigate("/dashboard");
     }
