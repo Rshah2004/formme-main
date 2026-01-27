@@ -60,9 +60,9 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
       navigate("/dashboard?preview=true");
       return;
     }
-    
+
     const isAuthRequired = item === "collection" || item === "create";
-    
+
     if (isAuthRequired && !user) {
       e?.preventDefault();
       if (item === "collection") {
@@ -171,7 +171,7 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
                   {item}
                 </Link>
               ))}
-              
+
               <div className="border-t border-border pt-6 mt-2">
                 {!user ? (
                   <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
@@ -191,7 +191,7 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
           </SheetContent>
         </Sheet>
       </div>
-      
+
       <LockedFeatureDialog
         open={!!lockedFeature}
         onOpenChange={(open) => !open && setLockedFeature(null)}

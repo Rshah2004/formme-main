@@ -47,7 +47,7 @@ function App() {
           <Route path="/coming-soon" element={<ComingSoon />} />
           <Route path="/professional-studio" element={<ProfessionalStudio />} />
           {/* Designer dashboard (supports unauthenticated preview via ?preview=true) */}
-          <Route path="/dashboard" element={<DesignerDashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/workflow" element={<Workflow />} />
           <Route path="/design/:id" element={<DesignWorkspace />} />
           <Route path="/manufacturer" element={<ManufacturerDashboard />} />
