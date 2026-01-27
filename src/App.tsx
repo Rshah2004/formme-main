@@ -45,7 +45,8 @@ function App() {
           <Route path="/simple" element={<SimpleDesigner />} />
           <Route path="/coming-soon" element={<ComingSoon />} />
           <Route path="/professional-studio" element={<ProfessionalStudio />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          {/* Designer dashboard (supports unauthenticated preview via ?preview=true) */}
+          <Route path="/dashboard" element={<DesignerDashboard />} />
           <Route path="/workflow" element={<Workflow />} />
           <Route path="/design/:id" element={<DesignWorkspace />} />
           <Route path="/manufacturer" element={<ManufacturerDashboard />} />
