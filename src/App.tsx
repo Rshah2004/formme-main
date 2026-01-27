@@ -23,6 +23,7 @@ import DesignerDashboard from "./pages/DesignerDashboard";
 import Workflow from "./pages/Workflow";
 import Profile from "./pages/Profile";
 import NewDesign from "./pages/NewDesign";
+import Manufacturers from "./pages/Manufacturers";
 
 function App() {
   return (
@@ -51,6 +52,8 @@ function App() {
           <Route path="/design/:id" element={<DesignWorkspace />} />
           <Route path="/manufacturer" element={<ManufacturerDashboard />} />
           <Route path="/manufacturer/order/:id" element={<ManufacturerOrderWorkspace />} />
+          <Route path="/manufacturers" element={<Manufacturers />} />
+          <Route path="/manufacturers/:id" element={<Manufacturers />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />

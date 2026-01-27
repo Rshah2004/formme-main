@@ -53,24 +53,27 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
   const navItems = ["collection", "create", "dashboard"];
 
   const handleNavClick = (item: string, e?: React.MouseEvent) => {
-    const isAuthRequired = item === "collection" || item === "create" || item === "dashboard";
+    // Dashboard is accessible without login (preview mode)
+    if (item === "dashboard" && !user) {
+      e?.preventDefault();
+      setMobileMenuOpen(false);
+      navigate("/dashboard?preview=true");
+      return;
+    }
+    
+    const isAuthRequired = item === "collection" || item === "create";
     
     if (isAuthRequired && !user) {
       e?.preventDefault();
       if (item === "collection") {
         setLockedFeature({
-          name: "Dashboard",
-          description: "Create an account to access your personal dashboard and manage all your designs.",
+          name: "Collection",
+          description: "Create an account to access your personal collection and manage all your designs.",
         });
       } else if (item === "create") {
         setLockedFeature({
           name: "Create",
           description: "Create an account to start designing custom garments and bring your vision to life.",
-        });
-      } else {
-        setLockedFeature({
-          name: "Dashboard",
-          description: "Create an account to access the full dashboard and manage your projects.",
         });
       }
       setMobileMenuOpen(false);
