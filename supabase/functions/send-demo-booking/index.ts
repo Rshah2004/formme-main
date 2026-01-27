@@ -94,7 +94,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // 2) Customer confirmation email
     const customerEmail = await sendResendEmail({
-      from: "FormMe <onboarding@resend.dev>",
+      from: "FormMe <noreply@formme.io>",
       to: [email],
       reply_to: "formestartup22@gmail.com",
       subject: "We received your demo request",
