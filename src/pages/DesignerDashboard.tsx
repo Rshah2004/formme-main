@@ -15,14 +15,16 @@ import {
 import { Plus, Search, Download, SlidersHorizontal, Shirt } from "lucide-react";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import DashboardPreviewOverlay from "@/components/dashboard/DashboardPreviewOverlay";
+import MessagesView from "@/components/dashboard/MessagesView";
 import StatCard from "@/components/dashboard/StatCard";
 import OrderCard from "@/components/dashboard/OrderCard";
 import { useDesignerDashboard, getStepFromStatus } from "@/hooks/useDesignerDashboard";
 
 const DesignerDashboard = () => {
   const [searchParams] = useSearchParams();
-  const isPreviewMode = searchParams.get('preview') === 'true';
-  const { designs, orders, isLoading, isAuthenticated, stats, navigate } = useDesignerDashboard(isPreviewMode);
+  const previewParam = searchParams.get('preview') === 'true';
+  const { designs, orders, isLoading, isAuthenticated, stats, navigate } = useDesignerDashboard(previewParam);
+  const isPreviewMode = previewParam || isAuthenticated === false;
   const [activeTab, setActiveTab] = useState("dashboard");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -357,9 +359,22 @@ const DesignerDashboard = () => {
         <h1 className="text-3xl font-bold mb-1">Messages</h1>
         <p className="text-muted-foreground">Communication with manufacturers</p>
       </div>
-      <Card className="p-8 text-center">
-        <p className="text-muted-foreground">Select an order to view messages</p>
-      </Card>
+      {isPreviewMode && !isAuthenticated ? (
+        <Card className="p-8 text-center">
+          <p className="text-muted-foreground">Sign up to start messaging with manufacturers.</p>
+        </Card>
+      ) : (
+        <MessagesView
+          orders={orders.map((o) => ({
+            id: o.id,
+            design_id: o.design_id,
+            status: o.status,
+            created_at: o.created_at,
+            designs: o.designs ? { id: o.designs.id, name: o.designs.name } : null,
+            manufacturers: o.manufacturers,
+          }))}
+        />
+      )}
     </div>
   );
 
