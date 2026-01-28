@@ -23,7 +23,13 @@ const Auth = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+
   // Check for recovery token in URL hash on mount
+
+  useEffect(() => {
+  supabase.auth.getSession();
+}, []);
+
   useEffect(() => {
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const accessToken = hashParams.get("access_token");
@@ -132,7 +138,18 @@ const Auth = () => {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+      const { data: sessionData } = await supabase.auth.getSession();
+
+  if (!sessionData.session) {
+    toast.error("Invalid or expired password reset link");
+    return;
+  }
+
+    if (!sessionData.session) {
+  toast.error("Invalid or expired password reset link");
+  return;
+}
+
     if (newPassword !== confirmPassword) {
       toast.error("Passwords do not match");
       return;
