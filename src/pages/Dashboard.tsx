@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import MessagesView from '@/components/dashboard/MessagesView';
-
+import DashboardPreviewOverlay from '@/components/dashboard/DashboardPreviewOverlay';
 interface Design {
   id: string;
   name: string;
@@ -176,6 +176,8 @@ const OrderCard = ({ order, onClick }: { order: Order; onClick: () => void }) =>
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isPreviewMode = searchParams.get('preview') === 'true';
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -183,7 +185,39 @@ const Dashboard = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showSignUpOverlay, setShowSignUpOverlay] = useState(false);
   const { role, loading: roleLoading } = useUserRole();
+
+  // Mock preview data for unauthenticated users
+  const previewOrders: Order[] = [
+    {
+      id: 'preview-1',
+      status: 'sample_development',
+      design_id: 'design-1',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      designs: { id: 'design-1', name: 'Sustainable Linen Jacket', category: 'Outerwear', created_at: new Date().toISOString(), thumbnail_url: null },
+      manufacturers: { name: 'Textiles Porto, Portugal' }
+    },
+    {
+      id: 'preview-2',
+      status: 'production_approval',
+      design_id: 'design-2',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      designs: { id: 'design-2', name: 'Organic Cotton Dress', category: 'Dresses', created_at: new Date().toISOString(), thumbnail_url: null },
+      manufacturers: { name: 'EcoFab India' }
+    },
+    {
+      id: 'preview-3',
+      status: 'quality_check',
+      design_id: 'design-3',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      designs: { id: 'design-3', name: 'Recycled Denim Jeans', category: 'Bottoms', created_at: new Date().toISOString(), thumbnail_url: null },
+      manufacturers: { name: 'GreenStitch Turkey' }
+    }
+  ];
 
   useEffect(() => {
     const checkAuthAndFetch = async () => {
@@ -226,6 +260,9 @@ const Dashboard = () => {
         } catch (error: any) {
           toast.error("Failed to load orders");
         }
+      } else {
+        // Unauthenticated: load preview data
+        setOrders(previewOrders);
       }
       setLoading(false);
     };
@@ -273,29 +310,13 @@ const Dashboard = () => {
     );
   }
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-[#FAF9F6]">
-        <Navbar />
-        <main className="container mx-auto px-4 sm:px-6 py-8 mt-20 max-w-6xl">
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <Card className="max-w-md w-full border-border">
-              <CardContent className="p-12 text-center">
-                <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#344C3D]/10 flex items-center justify-center">
-                  <Lock className="w-10 h-10 text-[#344C3D]" />
-                </div>
-                <h2 className="text-2xl font-semibold text-foreground mb-3">Sign up to access your dashboard</h2>
-                <p className="text-muted-foreground mb-8">You need to create an account or sign in to view your production dashboard and manage your designs.</p>
-                <Link to="/auth">
-                  <Button size="lg" className="w-full bg-[#344C3D] hover:bg-[#344C3D]/90">Sign up or Sign in</Button>
-                </Link>
-              </CardContent>
-            </Card>
-          </div>
-        </main>
-      </div>
-    );
-  }
+  // Handle click on preview content to show sign-up overlay
+  const handlePreviewClick = () => {
+    if (!isAuthenticated) {
+      setShowSignUpOverlay(true);
+    }
+  };
+
 
   const renderDashboardContent = () => (
     <div className="space-y-8">
@@ -481,12 +502,25 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6]">
+    <div className="min-h-screen bg-[#FAF9F6] relative">
       <Navbar />
       <div className="flex mt-16">
         <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} />
-        <main className="flex-1 p-8 overflow-auto">{renderContent()}</main>
+        <main 
+          className="flex-1 p-8 overflow-auto"
+          onClick={!isAuthenticated ? handlePreviewClick : undefined}
+        >
+          {!isAuthenticated && (
+            <div className="flex justify-center mb-4">
+              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 px-4 py-1.5 text-sm font-medium">
+                PREVIEW MODE
+              </Badge>
+            </div>
+          )}
+          {renderContent()}
+        </main>
       </div>
+      {showSignUpOverlay && <DashboardPreviewOverlay onClose={() => setShowSignUpOverlay(false)} />}
     </div>
   );
 };
