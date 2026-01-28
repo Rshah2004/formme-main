@@ -1,12 +1,11 @@
-
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { ChevronRight, Mail, Phone, MapPin, Instagram, Twitter, Facebook } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
+import React from "react";
+import { Link } from "react-router-dom";
+import { ChevronRight, Mail, Phone, MapPin, Instagram, Twitter, Facebook } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-  
+
   return (
     <footer className="bg-[#1a1a1a] text-white">
       <div className="container mx-auto px-6">
@@ -30,14 +29,14 @@ const Footer = () => {
               </Link>
             </div>
           </div>
-          
+
           {/* Column 2: Quick Links */}
           <div>
             <h4 className="font-medium uppercase text-sm tracking-wider mb-4 sm:mb-6">Quick Links</h4>
             <ul className="space-y-2 sm:space-y-3">
               <li>
-                <Link 
-                  to="/" 
+                <Link
+                  to="/"
                   className="text-gray-300 hover:text-white transition-colors flex items-center group text-sm sm:text-base"
                 >
                   <ChevronRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -45,15 +44,15 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/about" 
+                <Link
+                  to="/about"
                   className="text-gray-300 hover:text-white transition-colors flex items-center group text-sm sm:text-base"
                 >
                   <ChevronRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
                   <span>About Us</span>
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link 
                   to="/reviews" 
                   className="text-gray-300 hover:text-white transition-colors flex items-center group text-sm sm:text-base"
@@ -61,10 +60,10 @@ const Footer = () => {
                   <ChevronRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
                   <span>Reviews</span>
                 </Link>
-              </li>
+              </li> */}
               <li>
-                <Link 
-                  to="/dashboard" 
+                <Link
+                  to="/dashboard"
                   className="text-gray-300 hover:text-white transition-colors flex items-center group text-sm sm:text-base"
                 >
                   <ChevronRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -73,16 +72,14 @@ const Footer = () => {
               </li>
             </ul>
           </div>
-          
+
           {/* Column 3: Contact */}
           <div>
             <h4 className="font-medium uppercase text-sm tracking-wider mb-4 sm:mb-6">Contact Us</h4>
             <ul className="space-y-3 sm:space-y-4">
               <li className="flex items-start">
                 <MapPin className="h-5 w-5 mr-3 text-[#96421f] mt-0.5 flex-shrink-0" />
-                <span className="text-gray-300 text-sm sm:text-base">
-                  Vancouver, BC
-                </span>
+                <span className="text-gray-300 text-sm sm:text-base">Vancouver, BC</span>
               </li>
               <li className="flex items-center">
                 <Phone className="h-5 w-5 mr-3 text-[#96421f] flex-shrink-0" />
@@ -95,16 +92,22 @@ const Footer = () => {
             </ul>
           </div>
         </div>
-        
+
         <Separator className="bg-gray-800" />
-        
+
         {/* Bottom section with copyright */}
         <div className="py-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
           <p>© {currentYear} FormMe. All rights reserved.</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link to="#" className="hover:text-white transition-colors">Privacy Policy</Link>
-            <Link to="#" className="hover:text-white transition-colors">Terms of Service</Link>
-            <Link to="#" className="hover:text-white transition-colors">Cookie Policy</Link>
+            <Link to="#" className="hover:text-white transition-colors">
+              Privacy Policy
+            </Link>
+            <Link to="#" className="hover:text-white transition-colors">
+              Terms of Service
+            </Link>
+            <Link to="#" className="hover:text-white transition-colors">
+              Cookie Policy
+            </Link>
           </div>
         </div>
       </div>
