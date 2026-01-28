@@ -128,6 +128,11 @@ const MessagesView = ({ orders }: MessagesViewProps) => {
       );
 
       setConversations(conversationsData);
+
+      // Auto-select the most recent conversation so reload doesn't look like "messages disappeared"
+      if (!selectedOrderId && conversationsData.length > 0) {
+        setSelectedOrderId(conversationsData[0].order_id);
+      }
     } catch (error) {
       console.error('Error fetching conversations:', error);
     } finally {
@@ -156,16 +161,33 @@ const MessagesView = ({ orders }: MessagesViewProps) => {
 
     setSending(true);
     try {
+      const content = newMessage.trim();
+
+      // Optimistic UI update so refresh/slow realtime doesn't look like messages vanish
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `temp-${Date.now()}`,
+          content,
+          sender_id: currentUserId,
+          created_at: new Date().toISOString(),
+          order_id: selectedOrderId,
+        },
+      ]);
+
       const { error } = await supabase
         .from('messages')
         .insert({
           order_id: selectedOrderId,
           sender_id: currentUserId,
-          content: newMessage.trim()
+          content,
         });
 
       if (error) throw error;
       setNewMessage('');
+
+      // Ensure we rehydrate from DB even if realtime isn't enabled
+      await fetchMessages(selectedOrderId);
       
       // Refresh conversations to update last message
       fetchConversations();

@@ -73,7 +73,7 @@ export const useDesignerDashboard = (previewMode: boolean = false) => {
     // Only fetch data if authenticated or in preview mode
     if (isAuthenticated === true) {
       fetchData();
-    } else if (previewMode && isAuthenticated === false) {
+    } else if (isAuthenticated === false) {
       // Load preview data for unauthenticated users
       loadPreviewData();
     }
@@ -83,11 +83,7 @@ export const useDesignerDashboard = (previewMode: boolean = false) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       setIsAuthenticated(false);
-      if (!previewMode) {
-        navigate("/auth");
-      } else {
-        setIsLoading(false);
-      }
+      setIsLoading(false);
       return;
     }
 

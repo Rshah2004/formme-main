@@ -4,7 +4,8 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 interface DemoBookingRequest {
@@ -63,17 +64,19 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Received demo booking request:", { name, email, date, time });
 
-    // 1) Team email (FormMe + Rythem)
+    const FROM_EMAIL = "Formme <demo@formme.io>";
+
+    // 1) Team email (Formme team)
     // NOTE: Some email providers restrict test-mode sending to only the account owner's email.
     // We attempt both recipients; if restricted, we still send the customer confirmation.
     let teamEmail: any = null;
     let teamEmailError: any = null;
     try {
       teamEmail = await sendResendEmail({
-        from: "FormMe <onboarding@resend.dev>",
+        from: FROM_EMAIL,
         to: ["formestartup22@gmail.com", "rythemshah2004@gmail.com"],
         reply_to: email,
-        subject: `${name} (${email}) requested a demo`,
+        subject: `${name} (${email}) wants to schedule a meeting on ${date} at ${time}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <p style="font-size:16px; line-height:1.6;">
@@ -94,14 +97,14 @@ const handler = async (req: Request): Promise<Response> => {
 
     // 2) Customer confirmation email
     const customerEmail = await sendResendEmail({
-      from: "FormMe <formestartup22@gmail.com>",
+      from: FROM_EMAIL,
       to: [email],
       reply_to: "formestartup22@gmail.com",
-      subject: "We received your demo request",
+      subject: "We received your demo request — Formme",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <p style="font-size:16px; line-height:1.6;">Hi ${name},</p>
-          <p style="font-size:16px; line-height:1.6;">The team will get back to you shortly.</p>
+          <p style="font-size:16px; line-height:1.6;">Thanks for booking a demo — the Formme platform will reach out to you shortly to confirm the details.</p>
           <p style="font-size:16px; line-height:1.6;">Requested: <strong>${date}</strong> at <strong>${time}</strong></p>
           <p style="font-size:16px; line-height:1.6;">— FormMe Team</p>
         </div>
