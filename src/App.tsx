@@ -8,6 +8,7 @@ import Reviews from "./pages/Reviews";
 import About from "./pages/About";
 import StudioSelection from "./pages/StudioSelection";
 import ComingSoon from "./pages/ComingSoon";
+import Dashboard from "./pages/Dashboard";
 import DesignWorkspace from "./pages/DesignWorkspace";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -46,7 +47,7 @@ function App() {
           <Route path="/coming-soon" element={<ComingSoon />} />
           <Route path="/professional-studio" element={<ProfessionalStudio />} />
           {/* Designer dashboard (supports unauthenticated preview via ?preview=true) */}
-          <Route path="/dashboard" element={<DesignerDashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/workflow" element={<Workflow />} />
           <Route path="/design/:id" element={<DesignWorkspace />} />
           <Route path="/manufacturer" element={<ManufacturerDashboard />} />
