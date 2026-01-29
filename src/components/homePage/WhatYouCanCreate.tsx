@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from "@/integrations/supabase/client";
 
 const categories = [
   {
@@ -53,7 +54,11 @@ export default function WhatYouCanCreate() {
           </div>
           
           <Button 
-            onClick={() => navigate('/new-design')}
+            onClick={async () => {
+              const { data: { session } } = await supabase.auth.getSession();
+
+              navigate(session ? "/dashboard" : "/auth");
+            }}
             className="mt-6 md:mt-0 bg-[#344C3D] hover:bg-[#2a3d31] text-white rounded-full px-6"
           >
             Start designing
