@@ -235,7 +235,7 @@ import HeroSection from "../components/homePage/HeroSection";
 import CraftsmanshipSection from "../components/homePage/CraftsmanshipSection";
 import PipelineSection from "../components/homePage/PipelineSection";
 import WhatYouCanCreate from "../components/homePage/WhatYouCanCreate";
-import ManufacturersPreviewSection from "../components/homePage/ManufacturersPreviewSection";
+import ManufacturerShowcase from "../components/homePage/ManufacturerShowcase";
 import StatsAndCTA from "../components/homePage/StatsAndCTA";
 import Footer from '@/components/Footer';
 
@@ -260,7 +260,7 @@ const HomePage = () => {
         <CraftsmanshipSection />
         <PipelineSection />
         <WhatYouCanCreate />
-        <ManufacturersPreviewSection />
+        <ManufacturerShowcase />
         <StatsAndCTA />
       </main>
       <Footer />
