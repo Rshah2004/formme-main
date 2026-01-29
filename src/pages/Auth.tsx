@@ -24,18 +24,13 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
 
 
-  // Check for recovery token in URL hash on mount
-
-  useEffect(() => {
-  supabase.auth.getSession();
-}, []);
-
   useEffect(() => {
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const accessToken = hashParams.get("access_token");
     const type = hashParams.get("type");
-    
-    if (type === "recovery" && accessToken) {
+        const accessToken = type.includes("access_token");
+
+    if (type.includes("recovery") && accessToken) {
+        supabase.auth.getSession(); // forces Supabase to consume the hash and set session
       setMode("reset-password");
     }
     
@@ -136,50 +131,45 @@ const Auth = () => {
     }
   };
 
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-      const { data: sessionData } = await supabase.auth.getSession();
+const handleResetPassword = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  const { data: sessionData } = await supabase.auth.getSession();
 
   if (!sessionData.session) {
     toast.error("Invalid or expired password reset link");
     return;
   }
 
-    if (!sessionData.session) {
-  toast.error("Invalid or expired password reset link");
-  return;
-}
+  if (newPassword !== confirmPassword) {
+    toast.error("Passwords do not match");
+    return;
+  }
 
-    if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-    
-    if (newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters");
-      return;
-    }
+  if (newPassword.length < 6) {
+    toast.error("Password must be at least 6 characters");
+    return;
+  }
 
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-      
-      if (error) throw error;
-      
-      toast.success("Password updated successfully!");
-      setMode("signin");
-      setNewPassword("");
-      setConfirmPassword("");
-      // Clear the hash from URL
-      window.history.replaceState(null, "", window.location.pathname);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to reset password");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  setIsLoading(true);
+  try {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (error) throw error;
+
+    toast.success("Password updated successfully!");
+    setMode("signin");
+    setNewPassword("");
+    setConfirmPassword("");
+    window.history.replaceState(null, "", window.location.pathname);
+  } catch (error: any) {
+    toast.error(error.message || "Failed to reset password");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
