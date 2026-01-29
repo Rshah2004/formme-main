@@ -38,64 +38,75 @@ const allManufacturers = [
     country: 'Bangladesh',
     specialization: 'Intimates & lingerie',
     description: 'Rose Intimates is a leading manufacturer specializing in high-quality intimate apparel and lingerie, serving international brands with premium craftsmanship.',
-    clients: [],
+    clients: ["Jack & Jones", "max", "PRIMARK", "BESTSELLER", "Carrefour", "Lee Cooper", "Reliance trends"],
     metrics: [
-      { value: '500+', label: 'SKILLED WORKERS' },
-      { value: '15,000+', label: 'DAILY PRODUCTION' },
-      { value: '12+', label: 'YEARS EXPERIENCE' },
+      { value: '1000+', label: 'SKILLED WORKERS' },
+      { value: '2.8M', label: 'MONTH PRODUCTION' },
+      { value: '11+', label: 'YEARS EXPERIENCE' },
     ],
     capabilities: [
       { icon: Globe, text: 'Export-ready for global markets' },
       { icon: CheckCircle2, text: 'Specialized in intimate apparel' },
+      {icon: CheckCircle2, text: 'Bra, Panty, Brief, Boxer, Trunk, Swimwear,T-Shirt'}
     ],
     status: 'Verified Partner',
     isPrimary: false,
     externalUrl: 'http://roseintimates.com/',
   },
-  {
-    id: 'navex',
-    name: 'Navex Impex',
-    brandName: 'NAVEX IMPEX',
-    country: 'India',
-    specialization: 'Knitwear & casual apparel',
-    description: 'Navex Impex specializes in knitwear and casual apparel manufacturing with a focus on quality and sustainable practices.',
-    clients: [],
-    metrics: [
-      { value: '800+', label: 'SKILLED WORKERS' },
-      { value: '20,000+', label: 'DAILY PRODUCTION' },
-      { value: '10+', label: 'YEARS EXPERIENCE' },
-    ],
-    capabilities: [
-      { icon: Globe, text: 'Export-ready for international markets' },
-      { icon: CheckCircle2, text: 'Specialized in knitwear production' },
-    ],
-    status: 'Private Network',
-    isPrimary: false,
-    externalUrl: null,
-  },
-  {
-    id: 'ratul',
-    name: 'Ratul Apparel',
-    brandName: 'RATUL APPAREL',
-    country: 'India',
-    specialization: 'Woven garments & exports',
-    description: 'Ratul Apparel is a leading woven garment manufacturer with expertise in export-quality production for international fashion brands.',
-    clients: [],
-    metrics: [
-      { value: '1,000+', label: 'SKILLED WORKERS' },
-      { value: '25,000+', label: 'DAILY PRODUCTION' },
-      { value: '15+', label: 'YEARS EXPERIENCE' },
-    ],
-    capabilities: [
-      { icon: Globe, text: 'Export-ready for global markets' },
-      { icon: CheckCircle2, text: 'Specialized in woven garments' },
-    ],
-    status: 'Verified Partner',
-    isPrimary: false,
-    externalUrl: null,
-  },
-];
+{
+  id: 'ratool',
+  name: 'Ratool Apparels Ltd',
+  brandName: 'RATOOL APPARELS',
+  country: 'Bangladesh',
+  specialization: 'Knit garments & apparel manufacturing',
+  description:
+    'Ratool Apparels Ltd is a large-scale knit garment manufacturer based in Bangladesh, serving international retailers across North America, Europe, and Australia with certified, export-ready production.',
+  clients: [
+    'Walmart',
+    'Costco',
+    'Aldi',
+    'Lidl',
+    'Next',
+    'Kappa',
+    'Decimas',
+    'Regatta',
+  ],
+  metrics: [
+    { value: '500+', label: 'SEWING MACHINES' },
+    { value: '1M', label: 'PRODUCTION CAPACITY PER MONTH' },
+    { value: '2011', label: 'FOUNDED' },
+  ],
+  capabilities: [
+    { icon: Globe, text: 'Export-ready for USA, Canada, Europe & Australia' },
+    { icon: CheckCircle2, text: 'Certified factory (WRAP, Oeko-Tex, Accord)' },
+    { icon: CheckCircle2, text: 'High-volume knitwear production' },
+  ],
+  status: 'Verified Partner',
+  isPrimary: false,
+  externalUrl: 'https://ratoolapparels.com',
+},
+    {
+  id: 'navex',
+  name: 'Navex Impex',
+  brandName: 'NAVEX IMPEX',
+  country: 'Pakistan',
+  specialization: 'Custom sportswear & activewear',
+  description:
+    'Small-scale manufacturer specializing in made-to-order sportswear with flexible MOQs and full customization support.',
+  clients: [],
+  metrics: [
+  ],
+  capabilities: [
+    { icon: CheckCircle2, text: 'Low-MOQ & sample-first production' },
+    { icon: CheckCircle2, text: 'Custom sportswear & teamwear' },
+    { icon: CheckCircle2, text: 'Cut & sew with printing support' },
+  ],
+  status: 'Private Network',
+  isPrimary: false,
+  externalUrl: null,
+},
 
+];
 export default function ManufacturerShowcase() {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);

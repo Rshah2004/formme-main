@@ -27,12 +27,13 @@ const Auth = () => {
   useEffect(() => {
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const type = hashParams.get("type");
-        const accessToken = type?.includes("access_token");
+    const accessToken = hashParams.get("access_token");
 
-    if (type?.includes("recovery") && accessToken) {
-        supabase.auth.getSession(); // forces Supabase to consume the hash and set session
+    if (type === "recovery" && accessToken) {
+      supabase.auth.getSession(); // consumes token
       setMode("reset-password");
     }
+
     
     // Also listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
