@@ -32,6 +32,7 @@ const otherPartners = [
     country: 'Bangladesh',
     specialization: 'Intimates & lingerie',
     status: 'Verified Partner',
+    externalUrl: 'http://roseintimates.com/',
   },
   {
     id: '2',
@@ -39,6 +40,7 @@ const otherPartners = [
     country: 'India',
     specialization: 'Knitwear & casual apparel',
     status: 'Private Network',
+    externalUrl: null,
   },
   {
     id: '3',
@@ -46,6 +48,7 @@ const otherPartners = [
     country: 'India',
     specialization: 'Woven garments & exports',
     status: 'Verified Partner',
+    externalUrl: null,
   },
 ];
 
@@ -122,13 +125,18 @@ export default function ManufacturerShowcase() {
               </div>
 
               {/* CTA */}
-              <Button
-                onClick={() => navigate('/manufacturers')}
-                variant="outline"
-                className="rounded-full px-6 py-5 text-sm border-foreground/20 hover:bg-foreground/5"
+              <a
+                href="https://supremegroupbd.com/supremestitch/"
+                target="_blank"
+                rel="noopener noreferrer"
               >
-                Explore manufacturing partner
-              </Button>
+                <Button
+                  variant="outline"
+                  className="rounded-full px-6 py-5 text-sm border-foreground/20 hover:bg-foreground/5"
+                >
+                  Explore manufacturing partner
+                </Button>
+              </a>
             </div>
 
             {/* Right Side - Brand Logo */}
@@ -201,15 +209,32 @@ export default function ManufacturerShowcase() {
                     {partner.status}
                   </Badge>
 
-                  {/* CTA */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full mt-3 text-sm text-primary hover:text-primary hover:bg-primary/5"
-                    onClick={() => navigate('/coming-soon')}
-                  >
-                    Request match
-                  </Button>
+                  {/* CTA - only show for partners with external URL */}
+                  {partner.externalUrl ? (
+                    <a
+                      href={partner.externalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block"
+                    >
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full mt-3 text-sm text-primary hover:text-primary hover:bg-primary/5"
+                      >
+                        Visit website
+                      </Button>
+                    </a>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full mt-3 text-sm text-primary hover:text-primary hover:bg-primary/5"
+                      onClick={() => navigate('/coming-soon')}
+                    >
+                      Request match
+                    </Button>
+                  )}
                 </div>
               </motion.div>
             ))}
