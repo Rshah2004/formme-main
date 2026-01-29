@@ -23,27 +23,37 @@ const Auth = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+useEffect(() => {
+  if (!window.location.hash) return;
 
-  useEffect(() => {
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const type = hashParams.get("type");
-    const accessToken = hashParams.get("access_token");
+  const normalized = window.location.hash
+    .substring(1)
+    .replaceAll("#", "&");
 
-    if (type === "recovery" && accessToken) {
-      supabase.auth.getSession(); // consumes token
-      setMode("reset-password");
-    }
+  const params = new URLSearchParams(normalized);
 
-    
-    // Also listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+  const type = params.get("type");
+  const accessToken = params.get("access_token");
+  const refreshToken = params.get("refresh_token");
+
+  if (type === "recovery" && accessToken && refreshToken) {
+    supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+
+    setMode("reset-password");
+  }
+
+  const { data: { subscription } } =
+    supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setMode("reset-password");
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+  return () => subscription.unsubscribe();
+}, []);
 
   const [formData, setFormData] = useState({
     email: "",
