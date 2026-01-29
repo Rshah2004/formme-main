@@ -462,23 +462,46 @@ const Dashboard = () => {
     );
   };
 
-  const renderMessagesContent = () => (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-serif font-bold text-[#344C3D] mb-1">Messages</h1>
-        <p className="text-muted-foreground">Communication with manufacturers</p>
+  const renderMessagesContent = () => {
+    // For preview mode (unauthenticated), show a placeholder instead of MessagesView
+    if (!isAuthenticated) {
+      return (
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-serif font-bold text-[#344C3D] mb-1">Messages</h1>
+            <p className="text-muted-foreground">Communication with manufacturers</p>
+          </div>
+          <div className="h-[400px] flex items-center justify-center border rounded-lg bg-card">
+            <div className="text-center">
+              <Lock className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
+              <p className="text-muted-foreground mb-2">Sign up to message manufacturers</p>
+              <Button onClick={() => navigate('/auth')} className="bg-[#344C3D] hover:bg-[#344C3D]/90">
+                Get Started
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-serif font-bold text-[#344C3D] mb-1">Messages</h1>
+          <p className="text-muted-foreground">Communication with manufacturers</p>
+        </div>
+        
+        <MessagesView orders={orders.map(o => ({
+          id: o.id,
+          design_id: o.design_id,
+          status: o.status,
+          created_at: o.created_at,
+          designs: o.designs ? { id: o.designs.id, name: o.designs.name } : null,
+          manufacturers: o.manufacturers
+        }))} />
       </div>
-      
-      <MessagesView orders={orders.map(o => ({
-        id: o.id,
-        design_id: o.design_id,
-        status: o.status,
-        created_at: o.created_at,
-        designs: o.designs ? { id: o.designs.id, name: o.designs.name } : null,
-        manufacturers: o.manufacturers
-      }))} />
-    </div>
-  );
+    );
+  };
 
   const renderSettingsContent = () => (
     <div className="space-y-6">
