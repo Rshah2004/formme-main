@@ -10,10 +10,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
-import { Mail, CheckCircle2 } from "lucide-react";
+import { Mail, CheckCircle2, Clock } from "lucide-react";
 
 type UserRole = "designer" | "manufacturer";
-type AuthMode = "signin" | "signup" | "verify-email" | "reset-password";
+type AuthMode = "signin" | "signup" | "verify-email" | "reset-password" | "request-submitted";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -187,34 +187,45 @@ const handleResetPassword = async (e: React.FormEvent) => {
     setIsLoading(true);
 
     try {
-      // Pass role in user metadata - the database trigger will handle role assignment
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName,
-            company_name: formData.companyName,
-            role: userRole, // This is read by the handle_new_user trigger
-          },
-          emailRedirectTo: `${window.location.origin}/auth`,
+      // Instead of creating an account directly, submit a signup request
+      // First, insert into signup_requests table
+      const { error: insertError } = await supabase
+        .from('signup_requests')
+        .insert({
+          email: formData.email,
+          full_name: formData.fullName,
+          company_name: formData.companyName || null,
+          role: userRole,
+        });
+
+      if (insertError) {
+        // Check if email already exists
+        if (insertError.code === '23505') {
+          throw new Error("A signup request with this email already exists. Our team will reach out soon.");
+        }
+        throw insertError;
+      }
+
+      // Send notification email to admins via edge function
+      const { error: notifyError } = await supabase.functions.invoke('notify-signup-request', {
+        body: {
+          email: formData.email,
+          fullName: formData.fullName,
+          companyName: formData.companyName,
+          role: userRole,
         },
       });
 
-      if (error) throw error;
-      if (!data.user) throw new Error("Signup failed");
+      if (notifyError) {
+        console.error("Failed to send notification:", notifyError);
+        // Don't throw - request was saved, just notification failed
+      }
 
-      console.log("User created:", data.user.id);
-      console.log("Role will be assigned by database trigger:", userRole);
-
-      // Note: Role and basic profile are created by the database trigger (handle_new_user)
-      // We only need to update the profile with additional manufacturer-specific data if needed
-
-      // Show verify email screen
-      setMode("verify-email");
+      // Show request submitted screen
+      setMode("request-submitted");
     } catch (error: any) {
-      console.error("Signup error:", error);
-      toast.error(error.message || "Failed to sign up");
+      console.error("Signup request error:", error);
+      toast.error(error.message || "Failed to submit request");
     } finally {
       setIsLoading(false);
     }
@@ -244,6 +255,28 @@ const handleResetPassword = async (e: React.FormEvent) => {
               variant="outline"
               onClick={() => setMode("signin")}
               className="mr-2"
+            >
+              Back to Sign In
+            </Button>
+          </div>
+        )}
+
+        {/* Request Submitted Screen */}
+        {mode === "request-submitted" && (
+          <div className="text-center py-8">
+            <div className="w-16 h-16 bg-[#C8956C]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Clock className="w-8 h-8 text-[#C8956C]" />
+            </div>
+            <h1 className="text-2xl font-bold mb-2">Request Submitted</h1>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              Thank you for your interest in joining Formme! Our team will review your request and reach out to <strong>{formData.email}</strong> shortly.
+            </p>
+            <p className="text-sm text-muted-foreground mb-6">
+              We typically respond within 1-2 business days.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => setMode("signin")}
             >
               Back to Sign In
             </Button>
@@ -304,7 +337,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
             <div className="text-center mb-6">
               <h1 className="text-4xl font-bold mb-2">formme</h1>
               <p className="text-muted-foreground">
-                {mode === "signin" ? "Welcome back" : "Join our community"}
+                {mode === "signin" ? "Welcome back" : "Request to join our community"}
               </p>
             </div>
 
@@ -330,7 +363,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       : "text-muted-foreground hover:text-foreground hover:bg-white/10"
                   }`}
                 >
-                  Sign Up
+                  Request Access
                 </button>
               </div>
 
@@ -370,6 +403,12 @@ const handleResetPassword = async (e: React.FormEvent) => {
           </TabsContent>
 
           <TabsContent value="signup">
+            {/* Request review notice */}
+            <div className="bg-[#C8956C]/10 border border-[#C8956C]/20 rounded-lg p-4 mb-4">
+              <p className="text-sm text-foreground">
+                <strong>Note:</strong> Our team will review your request before granting access. We'll reach out via email within 1-2 business days.
+              </p>
+            </div>
             <form onSubmit={handleSignUp} className="space-y-3">
               {/* Role Selection */}
               <div>
@@ -439,17 +478,6 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      required
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="signup-password" className="text-sm">Password</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       required
                       className="mt-1"
                     />
@@ -587,7 +615,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                 </>
               )}
               <Button type="submit" className="w-full mt-3 h-11 rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all" disabled={isLoading}>
-                {isLoading ? "Creating account..." : "Sign Up"}
+                {isLoading ? "Submitting request..." : "Request Access"}
               </Button>
             </form>
           </TabsContent>

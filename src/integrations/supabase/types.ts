@@ -657,6 +657,45 @@ export type Database = {
         }
         Relationships: []
       }
+      signup_requests: {
+        Row: {
+          company_name: string | null
+          email: string
+          full_name: string
+          id: string
+          notes: string | null
+          requested_at: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          role: string
+          status: string
+        }
+        Insert: {
+          company_name?: string | null
+          email: string
+          full_name: string
+          id?: string
+          notes?: string | null
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          role: string
+          status?: string
+        }
+        Update: {
+          company_name?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          notes?: string | null
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          role?: string
+          status?: string
+        }
+        Relationships: []
+      }
       techpacks: {
         Row: {
           created_at: string | null
