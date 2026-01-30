@@ -236,6 +236,7 @@ import CraftsmanshipSection from "../components/homePage/CraftsmanshipSection";
 import PipelineSection from "../components/homePage/PipelineSection";
 import WhatYouCanCreate from "../components/homePage/WhatYouCanCreate";
 import ManufacturerShowcase from "../components/homePage/ManufacturerShowcase";
+import EarlyAdoptersSection from "../components/homePage/EarlyAdoptersSection";
 import StatsAndCTA from "../components/homePage/StatsAndCTA";
 import Footer from '@/components/Footer';
 
@@ -261,6 +262,7 @@ const HomePage = () => {
         <PipelineSection />
         <WhatYouCanCreate />
         <ManufacturerShowcase />
+        <EarlyAdoptersSection />
         <StatsAndCTA />
       </main>
       <Footer />
