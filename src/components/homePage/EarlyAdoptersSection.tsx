@@ -8,7 +8,7 @@ const earlyAdopter = {
   description: "An independent fashion brand specializing in",
   fullDescription: ", currently placing real production orders through Formme-connected manufacturing partners.",
   status: "Active Production Order",
-  website: "https://9426.store",
+  website: "https://9426.ca",
 };
 
 export default function EarlyAdoptersSection() {
