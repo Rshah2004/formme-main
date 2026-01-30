@@ -17,3 +17,6 @@ verify_jwt = true
 
 [functions.create-checkout]
 verify_jwt = false
+
+[functions.notify-signup-request]
+verify_jwt = false
