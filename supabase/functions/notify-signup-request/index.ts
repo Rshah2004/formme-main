@@ -3,10 +3,12 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": "https://www.formme.io",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+
 
 // Admin emails to notify
 const ADMIN_EMAILS = ["rythemshah2004@gmail.com", "formestartup22@gmail.com"];
@@ -41,8 +43,12 @@ async function sendResendEmail(payload: Record<string, unknown>) {
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  return new Response("ok", {
+    status: 200,
+    headers: corsHeaders,
+  });
+}
+
 
   try {
     const { email, fullName, companyName, role }: SignupRequestPayload = await req.json();

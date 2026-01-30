@@ -239,6 +239,7 @@ import ManufacturerShowcase from "../components/homePage/ManufacturerShowcase";
 import EarlyAdoptersSection from "../components/homePage/EarlyAdoptersSection";
 import StatsAndCTA from "../components/homePage/StatsAndCTA";
 import Footer from '@/components/Footer';
+import Features from '@/components/Features';
 
 const HomePage = () => {
   return (

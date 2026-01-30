@@ -31,7 +31,7 @@ export default function WhatYouCanCreate() {
   const navigate = useNavigate();
   
   return (
-    <section className="py-24 bg-white">
+    <section className="py-24 -mt-36 bg-white">
       <div className="max-w-7xl mx-auto px-6">
         {/* Header row */}
         <motion.div
