@@ -28,7 +28,7 @@ useEffect(() => {
 
   const normalized = window.location.hash
     .substring(1)
-    .replaceAll("#", "&");
+    .replace(/#/g, "&");
 
   const params = new URLSearchParams(normalized);
 

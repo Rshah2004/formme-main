@@ -26,7 +26,7 @@ const steps = [
 
 export default function PipelineSection() {
   return (
-    <section className="py-24 bg-[#FAF9F6]">
+    <section className="py-24 bg-[#F5F4F0]">
       <div className="max-w-6xl mx-auto px-6">
         {/* Section header */}
         <motion.div
@@ -39,7 +39,7 @@ export default function PipelineSection() {
           <span className="text-sm font-medium tracking-widest text-[#C8956C] uppercase">
             The Pipeline
           </span>
-          <h2 className="mt-4 text-4xl md:text-5xl font-serif font-normal text-foreground">
+          <h2 className="mt-4 text-4xl md:text-5xl font-serif font-normal text-foreground italic">
             From vision to reality
           </h2>
           <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -56,23 +56,20 @@ export default function PipelineSection() {
           className="grid grid-cols-1 md:grid-cols-4 gap-8"
         >
           {steps.map((step, index) => (
-            <div key={step.title} className="text-center">
-              {/* Icon */}
-              <div className="flex justify-center mb-4">
-                <step.icon 
-                  className="w-8 h-8" 
-                  style={{ color: index === 1 || index === 3 ? '#C8956C' : '#344C3D' }}
-                  strokeWidth={1.5}
-                />
+            <div key={step.title} className="text-center relative">
+              {/* Icon with circle background */}
+              <div className="flex justify-center mb-5">
+                <div className="w-14 h-14 rounded-full bg-[#F9E8DB] flex items-center justify-center">
+                  <step.icon 
+                    className="w-6 h-6" 
+                    style={{ color: index === 1 || index === 3 ? '#C8956C' : '#344C3D' }}
+                    strokeWidth={1.5}
+                  />
+                </div>
               </div>
               
-              {/* Connector line (except last) */}
-              {index < steps.length - 1 && (
-                <div className="hidden md:block absolute top-8 left-1/2 w-full h-px bg-border" />
-              )}
-              
               {/* Title */}
-              <h3 className="text-lg font-medium text-foreground mb-2">
+              <h3 className="text-xl font-serif italic text-foreground mb-3">
                 {step.title}
               </h3>
               

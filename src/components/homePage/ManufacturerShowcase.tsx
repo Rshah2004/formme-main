@@ -1,112 +1,86 @@
-import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Globe, Users, CheckCircle2, RotateCcw, MapPin, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
+import { Globe, Users, CheckCircle2, RotateCcw, ChevronLeft, ChevronRight, ExternalLink, Factory, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-// All manufacturers data (including primary)
+// All manufacturers data
 const allManufacturers = [
   {
     id: 'supreme',
-    name: 'Supreme Stitch',
-    brandName: 'SUPREME GROUP',
-    country: 'Bangladesh',
-    specialization: 'Premium garment manufacturing',
-    description: 'Supreme Stitch (Supreme Group) is a contracted garment manufacturer on Formme, delivering high-quality garments for global leaders including',
+    label: 'STRATEGIC PARTNER',
+    name: 'Supreme Stitch (Supreme Group)',
+    description: 'Our primary manufacturing partner, delivering high-quality garments for global leaders including',
     clients: ['Champion', 'Costco', 'Hanes', 'Fanatics'],
     metrics: [
       { value: '$70M+', label: 'ANNUAL REVENUE' },
       { value: '3,000+', label: 'SKILLED WORKERS' },
-      { value: '60,000+', label: 'DAILY PRODUCTION' },
-      { value: '16+', label: 'YEARS EXPERIENCE' },
     ],
     capabilities: [
-      { icon: Globe, text: 'Export-ready for UK, Europe, USA, and Canada' },
-      { icon: Users, text: 'Supporting international apparel brands' },
-      { icon: CheckCircle2, text: 'Structured QC across sampling & bulk' },
-      { icon: RotateCcw, text: 'Repeat & long-term manufacturing orders' },
+      { icon: Globe, text: 'EXPORT-READY FOR UK, EUROPE, USA, AND CANADA' },
+      { icon: CheckCircle2, text: 'STRUCTURED QC ACROSS SAMPLING & BULK' },
     ],
-    status: 'Verified Partner',
-    isPrimary: true,
     externalUrl: 'https://supremegroupbd.com/supremestitch/',
+    brandLogo: 'SUPREME',
+    brandSubtext: 'STITCH',
+    variant: 'dark' as const, // dark card bg
   },
   {
     id: 'rose',
-    name: 'Rose Intimates',
-    brandName: 'ROSE INTIMATES',
-    country: 'Bangladesh',
-    specialization: 'Intimates & lingerie',
-    description: 'Rose Intimates is a leading manufacturer specializing in high-quality intimate apparel and lingerie, serving international brands with premium craftsmanship.',
-    clients: ["Jack & Jones", "max", "PRIMARK", "BESTSELLER", "Carrefour", "Lee Cooper", "Reliance trends"],
+    label: 'INTIMATES SPECIALIST',
+    name: 'Rose Intimates Limited',
+    description: 'A 100% export-oriented manufacturer specializing in intimates for global leaders like',
+    clients: ['Bestseller', 'Max', 'Yamamay'],
     metrics: [
-      { value: '1000+', label: 'SKILLED WORKERS' },
-      { value: '2.8M', label: 'MONTH PRODUCTION' },
-      { value: '11+', label: 'YEARS EXPERIENCE' },
+      { value: '2.8M', label: 'MONTHLY CAPACITY' },
+      { value: '1,150+', label: 'MAN POWER' },
     ],
     capabilities: [
-      { icon: Globe, text: 'Export-ready for global markets' },
-      { icon: CheckCircle2, text: 'Specialized in intimate apparel' },
-      {icon: CheckCircle2, text: 'Bra, Panty, Brief, Boxer, Trunk, Swimwear,T-Shirt'}
+      { icon: CheckCircle2, text: 'BSCI, SEDEX, OEKO-TEX CERTIFIED' },
+      { icon: Factory, text: '46 PRODUCTION LINES • AUTO CUTTING' },
     ],
-    status: 'Verified Partner',
-    isPrimary: false,
     externalUrl: 'http://roseintimates.com/',
+    brandLogo: 'ROSE',
+    brandSubtext: 'INTIMATES',
+    variant: 'light' as const, // light card bg
   },
-{
-  id: 'ratool',
-  name: 'Ratool Apparels Ltd',
-  brandName: 'RATOOL APPARELS',
-  country: 'Bangladesh',
-  specialization: 'Knit garments & apparel manufacturing',
-  description:
-    'Ratool Apparels Ltd is a large-scale knit garment manufacturer based in Bangladesh, serving international retailers across North America, Europe, and Australia with certified, export-ready production.',
-  clients: [
-    'Walmart',
-    'Costco',
-    'Aldi',
-    'Lidl',
-    'Next',
-    'Kappa',
-    'Decimas',
-    'Regatta',
-  ],
-  metrics: [
-    { value: '500+', label: 'SEWING MACHINES' },
-    { value: '1M', label: 'PRODUCTION CAPACITY PER MONTH' },
-    { value: '2011', label: 'FOUNDED' },
-  ],
-  capabilities: [
-    { icon: Globe, text: 'Export-ready for USA, Canada, Europe & Australia' },
-    { icon: CheckCircle2, text: 'Certified factory (WRAP, Oeko-Tex, Accord)' },
-    { icon: CheckCircle2, text: 'High-volume knitwear production' },
-  ],
-  status: 'Verified Partner',
-  isPrimary: false,
-  externalUrl: 'https://ratoolapparels.com',
-},
-    {
-  id: 'navex',
-  name: 'Navex Impex',
-  brandName: 'NAVEX IMPEX',
-  country: 'Pakistan',
-  specialization: 'Custom sportswear & activewear',
-  description:
-    'Small-scale manufacturer specializing in made-to-order sportswear with flexible MOQs and full customization support.',
-  clients: [],
-  metrics: [
-  ],
-  capabilities: [
-    { icon: CheckCircle2, text: 'Low-MOQ & sample-first production' },
-    { icon: CheckCircle2, text: 'Custom sportswear & teamwear' },
-    { icon: CheckCircle2, text: 'Cut & sew with printing support' },
-  ],
-  status: 'Private Network',
-  isPrimary: false,
-  externalUrl: null,
-},
-
+  {
+    id: 'ratool',
+    label: 'KNIT SPECIALIST',
+    name: 'Ratool Apparels Ltd',
+    description: 'A large-scale knit garment manufacturer serving international retailers across North America, Europe, and Australia including',
+    clients: ['Walmart', 'Costco', 'Aldi', 'Lidl'],
+    metrics: [
+      { value: '500+', label: 'SEWING MACHINES' },
+      { value: '1M', label: 'MONTHLY CAPACITY' },
+    ],
+    capabilities: [
+      { icon: Globe, text: 'EXPORT-READY FOR USA, CANADA, EUROPE & AUSTRALIA' },
+      { icon: CheckCircle2, text: 'CERTIFIED FACTORY (WRAP, OEKO-TEX, ACCORD)' },
+    ],
+    externalUrl: 'https://ratoolapparels.com',
+    brandLogo: 'RATOOL',
+    brandSubtext: 'APPARELS',
+    variant: 'dark' as const,
+  },
+  {
+    id: 'navex',
+    label: 'SPORTSWEAR SPECIALIST',
+    name: 'Navex Impex',
+    description: 'Small-scale manufacturer specializing in made-to-order sportswear with flexible MOQs and full customization support.',
+    clients: [],
+    metrics: [],
+    capabilities: [
+      { icon: Settings, text: 'LOW-MOQ & SAMPLE-FIRST PRODUCTION' },
+      { icon: CheckCircle2, text: 'CUT & SEW WITH PRINTING SUPPORT' },
+    ],
+    externalUrl: null,
+    brandLogo: 'NAVEX',
+    brandSubtext: 'IMPEX',
+    variant: 'light' as const,
+  },
 ];
+
 export default function ManufacturerShowcase() {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -122,8 +96,10 @@ export default function ManufacturerShowcase() {
     setCurrentIndex((prev) => (prev === allManufacturers.length - 1 ? 0 : prev + 1));
   };
 
+  const isDark = currentManufacturer.variant === 'dark';
+
   return (
-    <section className="py-20 md:py-28 bg-[#FAF9F6]">
+    <section className="py-20 md:py-28 bg-[#EEEDEA]">
       <div className="max-w-7xl mx-auto px-6">
         {/* Manufacturer Slider */}
         <motion.div
@@ -156,55 +132,35 @@ export default function ManufacturerShowcase() {
           </div>
 
           {/* Manufacturer Card */}
-          <div 
-            ref={sliderRef}
-            className="bg-[#FEFDFB] rounded-3xl p-8 md:p-12 shadow-sm border border-border/30 overflow-hidden"
-          >
-            <motion.div
+          <AnimatePresence mode="wait">
+            <motion.div 
               key={currentManufacturer.id}
+              ref={sliderRef}
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -50 }}
               transition={{ duration: 0.4 }}
+              className={`rounded-3xl p-8 md:p-12 shadow-sm overflow-hidden ${
+                isDark 
+                  ? 'bg-[#FEFDFB] border border-border/30' 
+                  : 'bg-white border border-gray-100'
+              }`}
             >
-              <div className="grid lg:grid-cols-5 gap-10 lg:gap-16">
+              <div className="grid lg:grid-cols-3 gap-10 lg:gap-16">
                 {/* Left Content */}
-                <div className="lg:col-span-3 space-y-6">
+                <div className="lg:col-span-2 space-y-6">
                   {/* Label */}
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium tracking-widest text-[#C8956C] uppercase">
-                      {currentManufacturer.isPrimary ? 'Strategic Partner' : 'Manufacturing Partner'}
-                    </span>
-                    <Badge
-                      variant="secondary"
-                      className={`text-xs font-normal ${
-                        currentManufacturer.status === 'Verified Partner'
-                          ? 'bg-primary/10 text-primary'
-                          : 'bg-muted text-muted-foreground'
-                      }`}
-                    >
-                      {currentManufacturer.status}
-                    </Badge>
-                  </div>
+                  <span className="text-xs font-medium tracking-widest text-[#C8956C] uppercase">
+                    {currentManufacturer.label}
+                  </span>
 
                   {/* Headline */}
-                  <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-normal text-foreground leading-tight italic">
-                    {currentManufacturer.isPrimary 
-                      ? <>Our primary manufacturing<br />partner on Formme</>
-                      : <>{currentManufacturer.name}</>
-                    }
+                  <h2 className="text-3xl md:text-4xl font-serif font-normal text-[#344C3D] leading-tight italic">
+                    {currentManufacturer.name}
                   </h2>
 
-                  {/* Country */}
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <MapPin className="w-4 h-4" />
-                    <span>{currentManufacturer.country}</span>
-                    <span className="mx-2">•</span>
-                    <span>{currentManufacturer.specialization}</span>
-                  </div>
-
                   {/* Description */}
-                  <p className="text-muted-foreground text-base md:text-lg leading-relaxed max-w-xl">
+                  <p className="text-muted-foreground text-base leading-relaxed max-w-xl">
                     {currentManufacturer.description}
                     {currentManufacturer.clients.length > 0 && (
                       <>
@@ -218,13 +174,13 @@ export default function ManufacturerShowcase() {
 
                   {/* Metrics Row */}
                   {currentManufacturer.metrics.length > 0 && (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 py-4">
+                    <div className="flex gap-12 py-4 border-b border-gray-100">
                       {currentManufacturer.metrics.map((metric, index) => (
-                        <div key={index} className="text-center md:text-left">
+                        <div key={index}>
                           <div className="text-2xl md:text-3xl font-serif font-medium text-foreground">
                             {metric.value}
                           </div>
-                          <div className="text-[10px] md:text-xs tracking-widest text-muted-foreground mt-1 uppercase">
+                          <div className="text-[10px] tracking-widest text-muted-foreground mt-1 uppercase">
                             {metric.label}
                           </div>
                         </div>
@@ -234,28 +190,22 @@ export default function ManufacturerShowcase() {
 
                   {/* Capability Badges */}
                   {currentManufacturer.capabilities.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-3">
                       {currentManufacturer.capabilities.map((capability, index) => (
                         <div
                           key={index}
-                          className="flex items-center gap-3 bg-[#FAF9F6] rounded-lg px-4 py-3"
+                          className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0"
                         >
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <capability.icon className="w-4 h-4 text-primary" />
+                          <div className="w-8 h-8 rounded-full bg-[#F9E8DB] flex items-center justify-center flex-shrink-0">
+                            <capability.icon className="w-4 h-4 text-[#C8956C]" />
                           </div>
-                          <span className="text-xs md:text-sm font-medium text-foreground uppercase tracking-wide">
+                          <span className="text-xs font-medium text-foreground uppercase tracking-wide">
                             {capability.text}
                           </span>
                         </div>
                       ))}
                     </div>
                   )}
-
-                  {/* Trust Note */}
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span className="w-2 h-2 rounded-full bg-[#C8956C]"></span>
-                    <span>Trusted partner — contract in place for designer–manufacturer collaboration.</span>
-                  </div>
 
                   {/* CTA */}
                   {currentManufacturer.externalUrl ? (
@@ -265,17 +215,14 @@ export default function ManufacturerShowcase() {
                       rel="noopener noreferrer"
                     >
                       <Button
-                        variant="outline"
-                        className="rounded-full px-6 py-5 text-sm border-foreground/20 hover:bg-foreground/5"
+                        className="rounded-full px-6 py-5 text-sm bg-[#344C3D] hover:bg-[#2a3d31] text-white"
                       >
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Explore manufacturing partner
+                        View Profile
                       </Button>
                     </a>
                   ) : (
                     <Button
-                      variant="outline"
-                      className="rounded-full px-6 py-5 text-sm border-foreground/20 hover:bg-foreground/5"
+                      className="rounded-full px-6 py-5 text-sm bg-[#344C3D] hover:bg-[#2a3d31] text-white"
                       onClick={() => navigate('/coming-soon')}
                     >
                       Request match
@@ -284,37 +231,34 @@ export default function ManufacturerShowcase() {
                 </div>
 
                 {/* Right Side - Brand Logo */}
-                <div className="lg:col-span-2 flex items-center justify-center">
-                  <div className="bg-[#FAF9F6] rounded-3xl p-10 md:p-16 w-full h-full min-h-[300px] flex flex-col items-center justify-center">
-                    <div className="text-center space-y-4">
+                <div className="flex items-center justify-center">
+                  <div className={`rounded-3xl p-10 md:p-16 w-full min-h-[280px] flex flex-col items-center justify-center ${
+                    isDark ? 'bg-[#F5F4F0]' : 'bg-[#FAF9F6]'
+                  }`}>
+                    <div className="text-center space-y-2">
                       <div className="text-3xl md:text-4xl font-bold tracking-tight text-muted-foreground/60">
-                        {currentManufacturer.brandName.split(' ')[0]}
+                        {currentManufacturer.brandLogo}
                       </div>
-                      {currentManufacturer.brandName.split(' ').length > 1 && (
-                        <div className="text-lg md:text-xl tracking-[0.3em] text-muted-foreground/50">
-                          {currentManufacturer.brandName.split(' ').slice(1).join(' ')}
-                        </div>
-                      )}
-                    </div>
-                    <div className="mt-8 text-[10px] md:text-xs tracking-[0.25em] text-muted-foreground/60 uppercase">
-                      Verified Manufacturer
+                      <div className="text-sm tracking-[0.3em] text-muted-foreground/50">
+                        {currentManufacturer.brandSubtext}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </motion.div>
-          </div>
+          </AnimatePresence>
 
           {/* Slider Dots */}
           <div className="flex justify-center gap-2 mt-6">
-            {allManufacturers.map((_, index) => (
+            {allManufacturers.map((manu, index) => (
               <button
-                key={index}
+                key={manu.id}
                 onClick={() => setCurrentIndex(index)}
-                className={`w-2.5 h-2.5 rounded-full transition-all ${
+                className={`h-2.5 rounded-full transition-all ${
                   index === currentIndex 
-                    ? 'bg-primary w-8' 
-                    : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                    ? 'bg-[#344C3D] w-8' 
+                    : 'bg-muted-foreground/30 hover:bg-muted-foreground/50 w-2.5'
                 }`}
               />
             ))}
