@@ -13,7 +13,7 @@ const earlyAdopter = {
 
 export default function EarlyAdoptersSection() {
   return (
-    <section className="py-20 md:py-28 -mt-10 bg-[#FAF9F6]">
+    <section className="py-20 md:py-28 -mt-32 bg-white">
       <div className="max-w-5xl mx-auto px-6">
         {/* Section Header */}
         <motion.div
@@ -24,7 +24,7 @@ export default function EarlyAdoptersSection() {
           className="text-center mb-14"
         >
           <span className="text-sm font-medium tracking-widest text-[#C8956C] uppercase">Early Adopters</span>
-          <h2 className="mt-4 text-4xl md:text-5xl font-serif font-normal text-foreground italic leading-tight">
+          <h2 className="text-4xl md:text-7xl font-serif font-bold text-primary italic leading-tight">
             Defining the future,
             <br />
             one partner at a time.
