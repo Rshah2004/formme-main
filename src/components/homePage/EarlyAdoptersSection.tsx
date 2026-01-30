@@ -13,7 +13,7 @@ const earlyAdopter = {
 
 export default function EarlyAdoptersSection() {
   return (
-    <section className="py-20 md:py-28 bg-white">
+    <section className="py-20 md:py-28 -mt-10 bg-[#FAF9F6]">
       <div className="max-w-5xl mx-auto px-6">
         {/* Section Header */}
         <motion.div

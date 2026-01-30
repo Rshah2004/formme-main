@@ -111,7 +111,7 @@ export default function ManufacturerShowcase() {
   const isDark = currentManufacturer.variant === "dark";
 
   return (
-    <section className="py-20 md:py-28 bg-white">
+    <section className="py-20 md:py-28 -mt-10 bg-[#EEEDEA]">
       <div className="max-w-7xl mx-auto px-6">
         {/* Manufacturer Slider */}
         <motion.div
