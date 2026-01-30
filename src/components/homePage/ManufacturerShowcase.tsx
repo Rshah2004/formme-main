@@ -1,83 +1,95 @@
-import { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Globe, Users, CheckCircle2, RotateCcw, ChevronLeft, ChevronRight, ExternalLink, Factory, Settings } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import {
+  Globe,
+  Users,
+  CheckCircle2,
+  RotateCcw,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Factory,
+  Settings,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 // All manufacturers data
 const allManufacturers = [
   {
-    id: 'supreme',
-    label: 'STRATEGIC PARTNER',
-    name: 'Supreme Stitch (Supreme Group)',
-    description: 'Our primary manufacturing partner, delivering high-quality garments for global leaders including',
-    clients: ['Champion', 'Costco', 'Hanes', 'Fanatics'],
+    id: "supreme",
+    label: "STRATEGIC PARTNER",
+    name: "Supreme Stitch (Supreme Group)",
+    description: "Our primary manufacturing partner, delivering high-quality garments for global leaders including",
+    clients: ["Champion", "Costco", "Hanes", "Fanatics"],
     metrics: [
-      { value: '$70M+', label: 'ANNUAL REVENUE' },
-      { value: '3,000+', label: 'SKILLED WORKERS' },
+      { value: "$70M+", label: "ANNUAL REVENUE" },
+      { value: "3,000+", label: "SKILLED WORKERS" },
     ],
     capabilities: [
-      { icon: Globe, text: 'EXPORT-READY FOR UK, EUROPE, USA, AND CANADA' },
-      { icon: CheckCircle2, text: 'STRUCTURED QC ACROSS SAMPLING & BULK' },
+      { icon: Globe, text: "EXPORT-READY FOR UK, EUROPE, USA, AND CANADA" },
+      { icon: CheckCircle2, text: "STRUCTURED QC ACROSS SAMPLING & BULK" },
     ],
-    externalUrl: 'https://supremegroupbd.com/supremestitch/',
-    brandLogo: 'SUPREME',
-    brandSubtext: 'STITCH',
-    variant: 'dark' as const, // dark card bg
+    externalUrl: "https://supremegroupbd.com/supremestitch/",
+    brandLogo: "SUPREME",
+    brandSubtext: "STITCH",
+    variant: "dark" as const, // dark card bg
   },
   {
-    id: 'rose',
-    label: 'INTIMATES SPECIALIST',
-    name: 'Rose Intimates Limited',
-    description: 'A 100% export-oriented manufacturer specializing in intimates for global leaders like',
-    clients: ['Bestseller', 'Max', 'Yamamay'],
+    id: "rose",
+    label: "INTIMATES SPECIALIST",
+    name: "Rose Intimates Limited",
+    description: "A 100% export-oriented manufacturer specializing in intimates for global leaders like",
+    clients: ["Bestseller", "Max", "Yamamay"],
     metrics: [
-      { value: '2.8M', label: 'MONTHLY CAPACITY' },
-      { value: '1,150+', label: 'MAN POWER' },
+      { value: "2.8M", label: "MONTHLY CAPACITY" },
+      { value: "1,150+", label: "MAN POWER" },
     ],
     capabilities: [
-      { icon: CheckCircle2, text: 'BSCI, SEDEX, OEKO-TEX CERTIFIED' },
-      { icon: Factory, text: '46 PRODUCTION LINES • AUTO CUTTING' },
+      { icon: CheckCircle2, text: "BSCI, SEDEX, OEKO-TEX CERTIFIED" },
+      { icon: Factory, text: "46 PRODUCTION LINES • AUTO CUTTING" },
     ],
-    externalUrl: 'http://roseintimates.com/',
-    brandLogo: 'ROSE',
-    brandSubtext: 'INTIMATES',
-    variant: 'light' as const, // light card bg
+    externalUrl: "http://roseintimates.com/",
+    brandLogo: "ROSE",
+    brandSubtext: "INTIMATES",
+    variant: "light" as const, // light card bg
   },
   {
-    id: 'ratool',
-    label: 'KNIT SPECIALIST',
-    name: 'Ratool Apparels Ltd',
-    description: 'A large-scale knit garment manufacturer serving international retailers across North America, Europe, and Australia including',
-    clients: ['Walmart', 'Costco', 'Aldi', 'Lidl'],
+    id: "ratool",
+    label: "KNIT SPECIALIST",
+    name: "Ratool Apparels Ltd",
+    description:
+      "A large-scale knit garment manufacturer serving international retailers across North America, Europe, and Australia including",
+    clients: ["Walmart", "Costco", "Aldi", "Lidl"],
     metrics: [
-      { value: '500+', label: 'SEWING MACHINES' },
-      { value: '1M', label: 'MONTHLY CAPACITY' },
+      { value: "500+", label: "SEWING MACHINES" },
+      { value: "1M", label: "MONTHLY CAPACITY" },
     ],
     capabilities: [
-      { icon: Globe, text: 'EXPORT-READY FOR USA, CANADA, EUROPE & AUSTRALIA' },
-      { icon: CheckCircle2, text: 'CERTIFIED FACTORY (WRAP, OEKO-TEX, ACCORD)' },
+      { icon: Globe, text: "EXPORT-READY FOR USA, CANADA, EUROPE & AUSTRALIA" },
+      { icon: CheckCircle2, text: "CERTIFIED FACTORY (WRAP, OEKO-TEX, ACCORD)" },
     ],
-    externalUrl: 'https://ratoolapparels.com',
-    brandLogo: 'RATOOL',
-    brandSubtext: 'APPARELS',
-    variant: 'dark' as const,
+    externalUrl: "https://ratoolapparels.com",
+    brandLogo: "RATOOL",
+    brandSubtext: "APPARELS",
+    variant: "dark" as const,
   },
   {
-    id: 'navex',
-    label: 'SPORTSWEAR SPECIALIST',
-    name: 'Navex Impex',
-    description: 'Small-scale manufacturer specializing in made-to-order sportswear with flexible MOQs and full customization support.',
+    id: "navex",
+    label: "SPORTSWEAR SPECIALIST",
+    name: "Navex Impex",
+    description:
+      "Small-scale manufacturer specializing in made-to-order sportswear with flexible MOQs and full customization support.",
     clients: [],
     metrics: [],
     capabilities: [
-      { icon: Settings, text: 'LOW-MOQ & SAMPLE-FIRST PRODUCTION' },
-      { icon: CheckCircle2, text: 'CUT & SEW WITH PRINTING SUPPORT' },
+      { icon: Settings, text: "LOW-MOQ & SAMPLE-FIRST PRODUCTION" },
+      { icon: CheckCircle2, text: "CUT & SEW WITH PRINTING SUPPORT" },
     ],
     externalUrl: null,
-    brandLogo: 'NAVEX',
-    brandSubtext: 'IMPEX',
-    variant: 'light' as const,
+    brandLogo: "NAVEX",
+    brandSubtext: "IMPEX",
+    variant: "light" as const,
   },
 ];
 
@@ -85,7 +97,7 @@ export default function ManufacturerShowcase() {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const sliderRef = useRef<HTMLDivElement>(null);
-  
+
   const currentManufacturer = allManufacturers[currentIndex];
 
   const goToPrevious = () => {
@@ -96,10 +108,10 @@ export default function ManufacturerShowcase() {
     setCurrentIndex((prev) => (prev === allManufacturers.length - 1 ? 0 : prev + 1));
   };
 
-  const isDark = currentManufacturer.variant === 'dark';
+  const isDark = currentManufacturer.variant === "dark";
 
   return (
-    <section className="py-20 md:py-28 bg-[#EEEDEA]">
+    <section className="py-20 md:py-28 bg-white">
       <div className="max-w-7xl mx-auto px-6">
         {/* Manufacturer Slider */}
         <motion.div
@@ -133,7 +145,7 @@ export default function ManufacturerShowcase() {
 
           {/* Manufacturer Card */}
           <AnimatePresence mode="wait">
-            <motion.div 
+            <motion.div
               key={currentManufacturer.id}
               ref={sliderRef}
               initial={{ opacity: 0, x: 50 }}
@@ -141,9 +153,7 @@ export default function ManufacturerShowcase() {
               exit={{ opacity: 0, x: -50 }}
               transition={{ duration: 0.4 }}
               className={`rounded-3xl p-8 md:p-12 shadow-sm overflow-hidden ${
-                isDark 
-                  ? 'bg-[#FEFDFB] border border-border/30' 
-                  : 'bg-white border border-gray-100'
+                isDark ? "bg-[#FEFDFB] border border-border/30" : "bg-white border border-gray-100"
               }`}
             >
               <div className="grid lg:grid-cols-3 gap-10 lg:gap-16">
@@ -164,10 +174,8 @@ export default function ManufacturerShowcase() {
                     {currentManufacturer.description}
                     {currentManufacturer.clients.length > 0 && (
                       <>
-                        {' '}
-                        <span className="font-semibold text-foreground">
-                          {currentManufacturer.clients.join(', ')}.
-                        </span>
+                        {" "}
+                        <span className="font-semibold text-foreground">{currentManufacturer.clients.join(", ")}.</span>
                       </>
                     )}
                   </p>
@@ -209,21 +217,15 @@ export default function ManufacturerShowcase() {
 
                   {/* CTA */}
                   {currentManufacturer.externalUrl ? (
-                    <a
-                      href={currentManufacturer.externalUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Button
-                        className="rounded-full px-6 py-5 text-sm bg-[#344C3D] hover:bg-[#2a3d31] text-white"
-                      >
+                    <a href={currentManufacturer.externalUrl} target="_blank" rel="noopener noreferrer">
+                      <Button className="rounded-full px-6 py-5 text-sm bg-[#344C3D] hover:bg-[#2a3d31] text-white">
                         View Profile
                       </Button>
                     </a>
                   ) : (
                     <Button
                       className="rounded-full px-6 py-5 text-sm bg-[#344C3D] hover:bg-[#2a3d31] text-white"
-                      onClick={() => navigate('/coming-soon')}
+                      onClick={() => navigate("/coming-soon")}
                     >
                       Request match
                     </Button>
@@ -232,9 +234,11 @@ export default function ManufacturerShowcase() {
 
                 {/* Right Side - Brand Logo */}
                 <div className="flex items-center justify-center">
-                  <div className={`rounded-3xl p-10 md:p-16 w-full min-h-[280px] flex flex-col items-center justify-center ${
-                    isDark ? 'bg-[#F5F4F0]' : 'bg-[#FAF9F6]'
-                  }`}>
+                  <div
+                    className={`rounded-3xl p-10 md:p-16 w-full min-h-[280px] flex flex-col items-center justify-center ${
+                      isDark ? "bg-[#F5F4F0]" : "bg-[#FAF9F6]"
+                    }`}
+                  >
                     <div className="text-center space-y-2">
                       <div className="text-3xl md:text-4xl font-bold tracking-tight text-muted-foreground/60">
                         {currentManufacturer.brandLogo}
@@ -256,9 +260,9 @@ export default function ManufacturerShowcase() {
                 key={manu.id}
                 onClick={() => setCurrentIndex(index)}
                 className={`h-2.5 rounded-full transition-all ${
-                  index === currentIndex 
-                    ? 'bg-[#344C3D] w-8' 
-                    : 'bg-muted-foreground/30 hover:bg-muted-foreground/50 w-2.5'
+                  index === currentIndex
+                    ? "bg-[#344C3D] w-8"
+                    : "bg-muted-foreground/30 hover:bg-muted-foreground/50 w-2.5"
                 }`}
               />
             ))}
