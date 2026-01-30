@@ -40,7 +40,7 @@ const allManufacturers = [
     label: "INTIMATES SPECIALIST",
     name: "Rose Intimates Limited",
     description: "A 100% export-oriented manufacturer specializing in intimates for global leaders like",
-    clients: ["Bestseller", "Max", "Yamamay"],
+    clients: ["Bestseller", "Max", "Jack & Jones"],
     metrics: [
       { value: "2.8M", label: "MONTHLY CAPACITY" },
       { value: "1,150+", label: "MAN POWER" },
