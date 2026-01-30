@@ -1,14 +1,14 @@
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 
 const earlyAdopter = {
-  name: '9426',
-  tagline: 'conceptual, high-end apparel',
-  description: 'An independent fashion brand specializing in',
-  fullDescription: ', currently placing real production orders through Formme-connected manufacturing partners.',
-  status: 'Active Production Order',
-  website: 'https://9426.store',
+  name: "9426",
+  tagline: "conceptual, high-end apparel",
+  description: "An independent fashion brand specializing in",
+  fullDescription: ", currently placing real production orders through Formme-connected manufacturing partners.",
+  status: "Active Production Order",
+  website: "https://9426.store",
 };
 
 export default function EarlyAdoptersSection() {
@@ -23,14 +23,15 @@ export default function EarlyAdoptersSection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-14"
         >
-          <span className="text-sm font-medium tracking-widest text-[#C8956C] uppercase">
-            Early Adopters
-          </span>
+          <span className="text-sm font-medium tracking-widest text-[#C8956C] uppercase">Early Adopters</span>
           <h2 className="mt-4 text-4xl md:text-5xl font-serif font-normal text-foreground italic leading-tight">
-            Defining the future,<br />one partner at a time.
+            Defining the future,
+            <br />
+            one partner at a time.
           </h2>
           <p className="mt-6 text-muted-foreground max-w-2xl mx-auto">
-            We're working closely with independent brands who are actively producing through manufacturers connected via Formme.
+            We're working closely with independent brands who are actively producing through manufacturers connected via
+            Formme.
           </p>
         </motion.div>
 
@@ -58,9 +59,9 @@ export default function EarlyAdoptersSection() {
                 {earlyAdopter.name}
                 <span className="block w-12 h-0.5 bg-[#C8956C] mt-2"></span>
               </h3>
-              
+
               <p className="text-lg text-muted-foreground leading-relaxed">
-                {earlyAdopter.description}{' '}
+                {earlyAdopter.description}{" "}
                 <span className="text-foreground italic underline decoration-[#C8956C] underline-offset-4">
                   {earlyAdopter.tagline}
                 </span>
@@ -68,11 +69,7 @@ export default function EarlyAdoptersSection() {
               </p>
 
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-4">
-                <a
-                  href={earlyAdopter.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <a href={earlyAdopter.website} target="_blank" rel="noopener noreferrer">
                   <Button className="bg-[#344C3D] hover:bg-[#2a3d31] text-white rounded-full px-6 py-5">
                     Visit the Label
                     <ArrowRight className="ml-2 w-4 h-4" />
@@ -80,14 +77,10 @@ export default function EarlyAdoptersSection() {
                 </a>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
-                    STATUS
-                  </span>
+                  <span className="text-xs font-medium tracking-widest text-muted-foreground uppercase">STATUS</span>
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-[#C8956C]"></span>
-                    <span className="text-sm font-medium text-foreground">
-                      {earlyAdopter.status}
-                    </span>
+                    <span className="text-sm font-medium text-foreground">{earlyAdopter.status}</span>
                   </div>
                 </div>
               </div>
