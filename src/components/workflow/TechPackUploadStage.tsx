@@ -94,8 +94,8 @@ const TechPackUploadStage = ({ design }: TechPackUploadStageProps) => {
 
 
   const handleContinueWithUpload = () => {
-    markStageComplete('tech-pack');
-    setCurrentStage('factory-match');
+    markStageComplete('upload-tech-pack');
+    setCurrentStage('design');
   };
 
   const handleGenerateTechPack = () => {
@@ -207,7 +207,7 @@ const TechPackUploadStage = ({ design }: TechPackUploadStageProps) => {
       {hasExistingTechPack && (
         <div className="flex justify-end">
           <Button size="lg" onClick={handleContinueWithUpload} className="gap-2">
-            Find Manufacturers
+            Design Details
             <ArrowRight className="w-4 h-4" />
           </Button>
         </div>
@@ -225,59 +225,59 @@ const TechPackUploadStage = ({ design }: TechPackUploadStageProps) => {
         </div>
       </div>
 
-      {/* Generate Tech Pack Option */}
-      <Card className="border-border hover:border-primary/30 transition-colors">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 flex items-center justify-center">
-                <Sparkles className="w-7 h-7 text-purple-500" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-foreground mb-1">
-                  Create Tech Pack with Our Generator
-                </h3>
-                <p className="text-muted-foreground">
-                  We'll guide you through creating a complete tech pack step by step
-                </p>
-              </div>
-            </div>
-            <Button variant="outline" onClick={handleGenerateTechPack} className="gap-2">
-              Generate Tech Pack
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/*/!* Generate Tech Pack Option *!/*/}
+      {/*<Card className="border-border hover:border-primary/30 transition-colors">*/}
+      {/*  <CardContent className="p-6">*/}
+      {/*    <div className="flex items-center justify-between">*/}
+      {/*      <div className="flex items-center gap-4">*/}
+      {/*        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 flex items-center justify-center">*/}
+      {/*          <Sparkles className="w-7 h-7 text-purple-500" />*/}
+      {/*        </div>*/}
+      {/*        <div>*/}
+      {/*          <h3 className="text-lg font-semibold text-foreground mb-1">*/}
+      {/*            Create Tech Pack with Our Generator*/}
+      {/*          </h3>*/}
+      {/*          <p className="text-muted-foreground">*/}
+      {/*            We'll guide you through creating a complete tech pack step by step*/}
+      {/*          </p>*/}
+      {/*        </div>*/}
+      {/*      </div>*/}
+      {/*      <Button variant="outline" onClick={handleGenerateTechPack} className="gap-2">*/}
+      {/*        Generate Tech Pack*/}
+      {/*        <ArrowRight className="w-4 h-4" />*/}
+      {/*      </Button>*/}
+      {/*    </div>*/}
+      {/*  </CardContent>*/}
+      {/*</Card>*/}
 
-      {/* What's included in tech pack */}
-      <Card className="border-border bg-muted/30">
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-muted-foreground" />
-            What should your tech pack include?
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {[
-              'Product name and description',
-              'Technical sketches or flat drawings',
-              'Size specifications and measurements',
-              'Fabric type and composition',
-              'Color codes (Pantone/hex)',
-              'Construction details',
-              'Label and tag placement',
-              'Print/embroidery specifications'
-            ].map((item, index) => (
-              <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CheckCircle className="w-4 h-4 text-primary/60 shrink-0" />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
+      {/*/!* What's included in tech pack *!/*/}
+      {/*<Card className="border-border bg-muted/30">*/}
+      {/*  <CardHeader>*/}
+      {/*    <CardTitle className="text-base flex items-center gap-2">*/}
+      {/*      <AlertCircle className="w-4 h-4 text-muted-foreground" />*/}
+      {/*      What should your tech pack include?*/}
+      {/*    </CardTitle>*/}
+      {/*  </CardHeader>*/}
+      {/*  <CardContent>*/}
+      {/*    <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">*/}
+      {/*      {[*/}
+      {/*        'Product name and description',*/}
+      {/*        'Technical sketches or flat drawings',*/}
+      {/*        'Size specifications and measurements',*/}
+      {/*        'Fabric type and composition',*/}
+      {/*        'Color codes (Pantone/hex)',*/}
+      {/*        'Construction details',*/}
+      {/*        'Label and tag placement',*/}
+      {/*        'Print/embroidery specifications'*/}
+      {/*      ].map((item, index) => (*/}
+      {/*        <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">*/}
+      {/*          <CheckCircle className="w-4 h-4 text-primary/60 shrink-0" />*/}
+      {/*          {item}*/}
+      {/*        </li>*/}
+      {/*      ))}*/}
+      {/*    </ul>*/}
+      {/*  </CardContent>*/}
+      {/*</Card>*/}
     </div>
   );
 };

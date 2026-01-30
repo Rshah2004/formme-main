@@ -101,7 +101,7 @@ const isViewingPreviousStep = () => {
       case 'fabric-color':
         return <FabricColorStage design={design} />;
       case 'tech-pack':
-      case 'tech-pack-overview':
+      case 'final-tech-pack-review':
         return <TechPackOverviewStage design={design} />;
 
       // Manufacturers stages

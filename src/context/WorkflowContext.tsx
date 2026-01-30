@@ -135,6 +135,7 @@ export const WorkflowProvider = ({ children, initialStage }: { children: ReactNo
     'design',
     'specifications',
     'fabric-color',
+    'final-tech-pack-review',
     'tech-pack',
     // Manufacturers phase
     'factory-match',

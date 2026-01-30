@@ -176,14 +176,14 @@ const FabricColorStage = ({ design }: FabricColorStageProps) => {
       });
       markStageComplete('fabric-color');
     }
-    setCurrentStage('tech-pack');
+    setCurrentStage('final-tech-pack-review');
   };
 
   const handleFinishLater = async () => {
     if (hasUnsavedChanges && !isContractFinalized) {
       await handleSave();
     }
-    setCurrentStage('tech-pack');
+    setCurrentStage('final-tech-pack-review');
     toast.info('You can come back to complete this step later');
   };
 

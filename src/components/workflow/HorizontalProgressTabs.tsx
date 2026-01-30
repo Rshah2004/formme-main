@@ -21,6 +21,7 @@ export const techPackSubStages = [
   { id: 'design', label: 'Design Details' },
   { id: 'specifications', label: 'Specifications' },
   { id: 'fabric-color', label: 'Fabric & Color' },
+  { id: 'final-tech-pack-review', label: 'Review Design Details'}
 ];
 
 // Manufacturers sub-stages
@@ -41,7 +42,7 @@ export const productionSubStages = [
 // Map current stage to top-level tab
 export const getTopLevelStage = (currentStage: string): string => {
   // Tech Pack phase (upload or generator steps)
-  if (['upload-tech-pack', 'design', 'specifications', 'fabric-color', 'tech-pack', 'tech-pack-review', 'tech-pack-overview'].includes(currentStage)) {
+  if (['upload-tech-pack', 'design', 'specifications', 'fabric-color', 'tech-pack', 'tech-pack-review', 'tech-pack-overview', 'final-tech-pack-review'].includes(currentStage)) {
     return 'tech-pack';
   }
   
@@ -172,6 +173,7 @@ const TechPackSubTabs = () => {
     if (currentStage === 'design' || currentStage === 'tech-pack' || currentStage === 'tech-pack-overview') return 1;
     if (currentStage === 'specifications') return 2;
     if (currentStage === 'fabric-color') return 3;
+    if (currentStage === 'final-tech-pack-review') return 4;
     return 0;
   };
 
