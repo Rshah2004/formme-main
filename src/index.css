@@ -41,13 +41,20 @@
   }
 }
 
+
+
 @layer base {
   * {
     @apply border-border;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', Georgia, serif;
   }
 }
 
@@ -67,5 +74,42 @@
 
   .animate-scroll-left:hover {
     animation-play-state: paused;
+  }
+}
+
+@layer components {
+  .heading-display {
+    @apply text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight;
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+
+  .heading-section {
+    @apply text-3xl md:text-4xl font-medium tracking-tight;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+  }
+
+  .label-overline {
+    @apply text-xs font-semibold tracking-[0.2em] uppercase text-primary;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .card-feature {
+    @apply bg-card rounded-2xl p-6 transition-all duration-300;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .card-feature:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-2px);
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full font-medium transition-all duration-200;
+  }
+
+  .btn-primary:hover {
+    @apply bg-primary/90;
+    transform: translateY(-1px);
   }
 }
