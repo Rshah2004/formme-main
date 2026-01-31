@@ -40,15 +40,15 @@ export default function Features() {
           className="mb-24 text-center"
         >
           <span className="inline-block text-sm font-semibold tracking-wider text-[#FFF7DE] uppercase mb-6 bg-gradient-to-r from-white/20 via-white/10 to-white/20 backdrop-blur-sm px-6 py-3 rounded-full border border-gradient-to-r from-white/30 to-white/10">
-            A Professional Approach
+            Connect With Our Manufacturers
           </span>
           
           <h2 className="text-5xl md:text-7xl font-light tracking-tight leading-tight mb-8 bg-gradient-to-r from-white via-[#FFF7DE] to-white bg-clip-text text-transparent">
-            Designed for <span className="bg-gradient-to-r from-[#FFF7DE] via-[#f5efd3] to-[#e8dc9f] bg-clip-text text-transparent font-medium">excellence</span>
+            From Vision to <span className="bg-gradient-to-r from-[#FFF7DE] via-[#f5efd3] to-[#e8dc9f] bg-clip-text text-transparent font-medium">Production</span>
           </h2>
           
           <p className="text-xl text-[#FFF7DE]/80 max-w-3xl mx-auto font-light leading-relaxed">
-            Our professional tools are crafted to deliver exceptional results, combining industry expertise with cutting-edge technology.
+            We bridge the gap between designers and manufacturers. Share your designs, get matched with the right factory, and bring your garments to life—all in one place.
           </p>
         </motion.div>
 

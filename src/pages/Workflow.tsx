@@ -199,7 +199,7 @@ const Workflow = () => {
 
 const initializedRef = useRef(false);
 
-  // Determine initial stage based on design selection
+  // Determine initial stage based on design selection and saved progress
   useEffect(() => {
       if (initializedRef.current) return;
 
@@ -302,75 +302,55 @@ const initializedRef = useRef(false);
         return;
       }
       
-      // Otherwise, determine stage from order status
-      const { data: order } = await supabase
-        .from('orders')
-        .select('status, production_params_approved, sample_approved, production_timeline_data, qc_approved')
-        .eq('design_id', designId)
-        .not('manufacturer_id', 'is', null)
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      
-      if (!order) {
-        setInitialStage('upload-tech-pack');
-        return;
-      }
-      
-      // Check if production params are approved to determine exact stage
-      const productionParamsApproved = order.production_params_approved;
-      const sampleApproved = order.sample_approved;
-      const qcApproved = order.qc_approved;
-      const productionData = order.production_timeline_data as Record<string, any> | null;
-      const productionCompleted = productionData?.production_completed === true;
+      // Check early stage progress by examining design_specs and design data
+      // This determines how far the user got in the tech pack stages
+      const [designData, specsData] = await Promise.all([
+        supabase.from('designs').select('design_file_url, name, description').eq('id', designId).maybeSingle(),
+        supabase.from('design_specs').select('measurements, fabric_type, gsm, print_type, construction_notes').eq('design_id', designId).maybeSingle()
+      ]);
 
-      // Map order status to workflow stage with more precise logic
+      const design = designData.data;
+      const specs = specsData.data;
+
+      // Determine furthest completed early stage based on saved data
+      // Stage order: upload-tech-pack -> design -> specifications -> fabric-color -> tech-pack -> factory-match
+      
       let stage = 'upload-tech-pack';
       
-      switch (order.status) {
-        case 'draft':
-          stage = 'upload-tech-pack';
-          break;
-        case 'tech_pack_pending':
-          stage = 'design';
-          break;
-        case 'sent_to_manufacturer':
-          stage = 'manufacture-selection';
-          break;
-        case 'manufacturer_review':
-        case 'production_approval':
-          stage = 'payment';
-          break;
-        case 'sample_development':
-          // If sample is approved, go to production-tracking
-          if (sampleApproved) {
-            // If production is completed, go to quality check
-            if (productionCompleted) {
-              stage = 'quality';
-            } else {
-              stage = 'production-tracking';
-            }
-          } else {
-            stage = 'sample';
-          }
-          break;
-        case 'quality_check':
-          // If QC is approved, go to shipping
-          if (qcApproved === true) {
-            stage = 'shipping';
-          } else {
-            stage = 'quality';
-          }
-          break;
-        case 'shipping':
-        case 'delivered':
-          stage = 'shipping';
-          break;
-        default:
-          stage = 'upload-tech-pack';
+      // Check if design stage is complete (has file uploaded and name)
+      const hasDesignFile = !!design?.design_file_url;
+      const hasDesignName = !!design?.name;
+      const designComplete = hasDesignFile && hasDesignName;
+      
+      // Check if specifications stage has data
+      const hasMeasurements = specs?.measurements && 
+        typeof specs.measurements === 'object' && 
+        Object.values(specs.measurements as Record<string, string>).some(v => v && v.trim() !== '');
+      
+      // Check if fabric-color stage has data
+      const hasFabricData = !!specs?.fabric_type || !!specs?.gsm || !!specs?.print_type || !!specs?.construction_notes;
+      
+      console.log('[Workflow] Early stage check - designComplete:', designComplete, 'hasMeasurements:', hasMeasurements, 'hasFabricData:', hasFabricData);
+      
+      // Determine the furthest stage user has reached
+      if (hasFabricData) {
+        // User has completed fabric-color, go to tech-pack review
+        stage = 'tech-pack';
+      } else if (hasMeasurements) {
+        // User has completed specifications, go to fabric-color
+        stage = 'fabric-color';
+      } else if (designComplete) {
+        // User has completed design, go to specifications
+        stage = 'specifications';
+      } else if (hasDesignFile || hasDesignName) {
+        // User started design stage
+        stage = 'design';
+      } else {
+        // Fresh start
+        stage = 'upload-tech-pack';
       }
       
-      console.log('[Workflow] Order status:', order.status, 'Sample approved:', sampleApproved, 'Production completed:', productionCompleted, 'QC approved:', qcApproved, 'Mapped stage:', stage);
+      console.log('[Workflow] Early stage progress mapped to:', stage);
       setInitialStage(stage);
     };
       initializedRef.current = true;
