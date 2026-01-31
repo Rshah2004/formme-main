@@ -311,10 +311,33 @@ const Dashboard = () => {
   }
 
   // Handle click on preview content to show sign-up overlay
-  const handlePreviewClick = () => {
+  const handlePreviewClick = (e: React.MouseEvent) => {
     if (!isAuthenticated) {
+      e.preventDefault();
+      e.stopPropagation();
       setShowSignUpOverlay(true);
     }
+  };
+
+  // Content wrapper for unauthenticated users with blur effect
+  const ContentWrapper = ({ children }: { children: React.ReactNode }) => {
+    if (!isAuthenticated) {
+      return (
+        <div className="relative">
+          <div 
+            className="blur-[2px] opacity-70 pointer-events-none select-none"
+            aria-hidden="true"
+          >
+            {children}
+          </div>
+          <div 
+            className="absolute inset-0 cursor-pointer"
+            onClick={handlePreviewClick}
+          />
+        </div>
+      );
+    }
+    return <>{children}</>;
   };
 
 
@@ -562,18 +585,17 @@ const Dashboard = () => {
       <Navbar />
       <div className="flex mt-16">
         <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} />
-        <main 
-          className="flex-1 p-8 overflow-auto"
-          onClick={!isAuthenticated ? handlePreviewClick : undefined}
-        >
+        <main className="flex-1 p-8 overflow-auto relative">
           {!isAuthenticated && (
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center mb-4 relative z-10">
               <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 px-4 py-1.5 text-sm font-medium">
                 PREVIEW MODE
               </Badge>
             </div>
           )}
-          {renderContent()}
+          <ContentWrapper>
+            {renderContent()}
+          </ContentWrapper>
         </main>
       </div>
       {showSignUpOverlay && <DashboardPreviewOverlay onClose={() => setShowSignUpOverlay(false)} />}
