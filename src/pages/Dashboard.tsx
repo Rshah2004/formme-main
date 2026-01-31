@@ -484,6 +484,39 @@ const Dashboard = () => {
       );
     }
     
+    // Filter orders to only show those with finalized contracts (manufacturer assigned and status beyond sent_to_manufacturer)
+    const finalizedOrders = orders.filter(o => 
+      o.manufacturers?.name && 
+      ['production_approval', 'sample_development', 'quality_check', 'shipping', 'delivered'].includes(o.status)
+    );
+
+    // If no finalized orders, show empty state with option to create new contact
+    if (finalizedOrders.length === 0) {
+      return (
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-serif font-bold text-[#344C3D] mb-1">Messages</h1>
+            <p className="text-muted-foreground">Communication with manufacturers</p>
+          </div>
+          <div className="h-[400px] flex items-center justify-center border rounded-lg bg-card">
+            <div className="text-center max-w-md">
+              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                <Lock className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h3 className="font-semibold text-lg mb-2">No manufacturers requested yet</h3>
+              <p className="text-muted-foreground text-sm mb-6">
+                Start a new order and finalize with a manufacturer to begin messaging. Once your contract is confirmed, you can chat directly with your manufacturing partner.
+              </p>
+              <Button onClick={() => navigate('/new-design')} className="bg-[#344C3D] hover:bg-[#344C3D]/90">
+                <Plus className="w-4 h-4 mr-2" />
+                Create New Order
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
     return (
       <div className="space-y-6">
         <div>
@@ -491,7 +524,7 @@ const Dashboard = () => {
           <p className="text-muted-foreground">Communication with manufacturers</p>
         </div>
         
-        <MessagesView orders={orders.map(o => ({
+        <MessagesView orders={finalizedOrders.map(o => ({
           id: o.id,
           design_id: o.design_id,
           status: o.status,

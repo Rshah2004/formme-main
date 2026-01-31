@@ -108,7 +108,88 @@ const About = () => {
         </div>
       </section>
 
-      {/* Core Values Section */}
+      {/* Shop All Collections Section - Based on reference image */}
+      <section className="py-16 sm:py-24 lg:py-32 px-4 sm:px-6 bg-white">
+        <div className="container mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Left Side - Two Cards */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="flex gap-4 sm:gap-6"
+            >
+              {/* Card 1 - Sustainability */}
+              <div className="flex-1 relative rounded-xl overflow-hidden aspect-[3/4]">
+                <img 
+                  src={valueSustainability} 
+                  alt="Sustainable fashion" 
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1a365d]/90 via-[#1a365d]/40 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                  <h4 className="text-xs uppercase tracking-wider mb-2 font-medium">SUSTAINABILITY</h4>
+                  <p className="text-sm opacity-90 leading-relaxed">
+                    We prioritize eco-friendly materials and ethical manufacturing processes to create fashion that respects our planet.
+                  </p>
+                  <button className="mt-4 text-sm underline underline-offset-4 hover:no-underline">
+                    Learn more
+                  </button>
+                </div>
+              </div>
+              
+              {/* Card 2 - Quality */}
+              <div className="flex-1 relative rounded-xl overflow-hidden aspect-[3/4]">
+                <img 
+                  src={valueQuality} 
+                  alt="Quality craftsmanship" 
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1a365d]/90 via-[#1a365d]/40 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                  <h4 className="text-xs uppercase tracking-wider mb-2 font-medium">QUALITY</h4>
+                  <p className="text-sm opacity-90 leading-relaxed">
+                    Excellence in craftsmanship is at the heart of everything we do. Every stitch, every detail matters.
+                  </p>
+                  <button className="mt-4 text-sm underline underline-offset-4 hover:no-underline">
+                    Learn more
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+            
+            {/* Right Side - Text Content */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-right"
+            >
+              <p className="text-sm uppercase tracking-widest text-muted-foreground mb-2">Our</p>
+              <h2 className="text-4xl sm:text-5xl md:text-6xl font-serif text-[#344C3D] mb-6">
+                Core Values
+              </h2>
+              <p className="text-muted-foreground text-lg leading-relaxed mb-8 max-w-md ml-auto">
+                Every decision we make is guided by a commitment to better manufacturing, sustainable practices, and ethical production.
+              </p>
+              <div className="border-t border-[#344C3D] pt-6 max-w-md ml-auto">
+                <Link to="/workflow">
+                  <Button 
+                    variant="outline" 
+                    className="border-[#344C3D] text-[#344C3D] hover:bg-[#344C3D] hover:text-white rounded-none px-8"
+                  >
+                    Explore more
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Ethical Production Section */}
       <section className="py-16 sm:py-24 lg:py-32 px-4 sm:px-6 bg-background">
         <div className="container mx-auto">
           <motion.div
@@ -116,38 +197,20 @@ const About = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-12 sm:mb-16"
+            className="max-w-4xl mx-auto text-center"
           >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif text-[#344C3D] mb-4">
-              Our Core Values
-            </h2>
+            <div className="aspect-video mb-8 overflow-hidden rounded-lg">
+              <img 
+                src={valueEthical} 
+                alt="Ethical production"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-serif text-[#344C3D] mb-4">Ethical Production</h3>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
-              Every decision we make is guided by a commitment to better manufacturing.
+              Fair wages and safe working conditions are the baseline. We partner only with manufacturers who share our commitment to treating workers with dignity and respect.
             </p>
           </motion.div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
-            {values.map((value, index) => (
-              <motion.div
-                key={value.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="text-left"
-              >
-                <div className="aspect-square mb-6 overflow-hidden rounded-lg">
-                  <img 
-                    src={value.image} 
-                    alt={value.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <h3 className="text-xl sm:text-2xl font-serif text-[#344C3D] mb-3">{value.title}</h3>
-                <p className="text-base text-muted-foreground">{value.description}</p>
-              </motion.div>
-            ))}
-          </div>
         </div>
       </section>
 
