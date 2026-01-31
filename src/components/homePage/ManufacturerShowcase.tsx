@@ -20,8 +20,8 @@ const allManufacturers = [
     id: "supreme",
     label: "STRATEGIC PARTNER",
     name: "Supreme Stitch (Supreme Group)",
-    description: "Our primary manufacturing partner, delivering high-quality garments for global leaders including",
-    clients: ["Champion", "Costco", "Hanes", "Fanatics", "Walmart"],
+    description: "Our first manufacturing partner, delivering high-quality garments for global leaders including",
+    clients: [ "Old Navy", "US POLO", "Champion", "Costco", "Hanes", "Fanatics", "Walmart"],
     metrics: [
       { value: "$70M+", label: "ANNUAL REVENUE" },
       { value: "3,000+", label: "SKILLED WORKERS" },
