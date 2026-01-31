@@ -36,6 +36,13 @@ const steps = [
   },
 ];
 const mainFeatures = [
+    {
+    icon: Factory,
+    title: "Manufacturer Matching",
+    description: "Find our verified, export-ready manufacturers for your production needs.",
+    image: manfacturerMatching,
+    label: "Manufacturer Matching"
+  },
   {
     icon: LayoutGrid,
     title: "Workspace Dashboard",
@@ -63,13 +70,6 @@ const mainFeatures = [
     description: "Manage customer and partner communications in one shared workspace.",
     image: messagesPreview,
     label: "Collaborative Inbox",
-  },
-      {
-    icon: Factory,
-    title: "Manufacturer Matching",
-    description: "Find verified, export-ready manufacturers for your production needs.",
-    image: manfacturerMatching,
-    label: "Manufacturer Matching"
   },
   {
     icon: GitBranch,
