@@ -105,7 +105,7 @@ const CraftsmanshipSection = () => {
   ];
 
   return (
-    <section className="relative py-24 px-6 bg-[#1a1a1a] font-inter">
+    <section className="relative py-16 sm:py-24 px-4 sm:px-6 bg-[#1a1a1a] font-inter">
       <div className="max-w-6xl mx-auto">
         {/* Section Header */}
         <motion.div 
@@ -113,18 +113,18 @@ const CraftsmanshipSection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-10 sm:mb-16"
         >
-          <div className="inline-flex items-center px-3 py-1 bg-white/10 rounded-full text-sm text-gray-300 mb-6">
+          <div className="inline-flex items-center px-3 py-1 bg-white/10 rounded-full text-xs sm:text-sm text-gray-300 mb-4 sm:mb-6">
             <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
             Behind the Scenes
           </div>
           
-          <h2 className="text-4xl md:text-5xl font-serif font-normal text-white mb-6 tracking-tight">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-serif font-normal text-white mb-4 sm:mb-6 tracking-tight">
             Crafted to perfection
           </h2>
           
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed px-4 sm:px-0">
             Experience the meticulous attention to detail that goes into every garment. 
             From initial design to final stitch, quality is our commitment.
           </p>
@@ -136,12 +136,12 @@ const CraftsmanshipSection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="relative mb-12"
+          className="relative mb-8 sm:mb-12"
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
         >
           {/* Video Frame */}
-          <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-800 shadow-2xl border border-white/10">
+          <div className="relative aspect-video rounded-lg sm:rounded-xl overflow-hidden bg-gray-800 shadow-2xl border border-white/10">
             <video
               ref={videoRef}
               id="craftsmanshipVideo"
@@ -168,12 +168,12 @@ const CraftsmanshipSection = () => {
             
             {/* Video Controls */}
             <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent transition-opacity duration-300 ${isHovering || isMobile ? 'opacity-100' : 'opacity-0'}`}>
-              <div className="p-6">
+              <div className="p-3 sm:p-6">
                 {/* Progress Bar */}
                 <div 
                   ref={progressBarRef}
                   onClick={handleProgressBarClick}
-                  className="w-full h-1 bg-white/30 rounded-full cursor-pointer mb-4 group"
+                  className="w-full h-1 bg-white/30 rounded-full cursor-pointer mb-3 sm:mb-4 group"
                 >
                   <div 
                     className="h-full bg-white rounded-full transition-all duration-100 group-hover:bg-blue-500"
@@ -183,38 +183,38 @@ const CraftsmanshipSection = () => {
                 
                 {/* Control Buttons */}
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2 sm:space-x-3">
                     <button
                       onClick={skipBackward}
-                      className="text-white hover:text-blue-400 transition-colors"
+                      className="text-white hover:text-blue-400 transition-colors p-1"
                       aria-label="Skip backward"
                     >
-                      <SkipBack className="w-5 h-5" />
+                      <SkipBack className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                     
                     <button
                       onClick={togglePlayPause}
-                      className="bg-white text-gray-900 hover:bg-blue-500 hover:text-white w-10 h-10 rounded-full flex items-center justify-center transition-all"
+                      className="bg-white text-gray-900 hover:bg-blue-500 hover:text-white w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all"
                       aria-label={isPlaying ? "Pause" : "Play"}
                     >
-                      {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
+                      {isPlaying ? <Pause className="w-3 h-3 sm:w-4 sm:h-4" /> : <Play className="w-3 h-3 sm:w-4 sm:h-4 ml-0.5" />}
                     </button>
                     
                     <button
                       onClick={skipForward}
-                      className="text-white hover:text-blue-400 transition-colors"
+                      className="text-white hover:text-blue-400 transition-colors p-1"
                       aria-label="Skip forward"
                     >
-                      <SkipForward className="w-5 h-5" />
+                      <SkipForward className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                   </div>
                   
                   <button
                     onClick={toggleMute}
-                    className="text-white hover:text-blue-400 transition-colors"
+                    className="text-white hover:text-blue-400 transition-colors p-1"
                     aria-label={isMuted ? "Unmute" : "Mute"}
                   >
-                    {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                    {isMuted ? <VolumeX className="w-4 h-4 sm:w-5 sm:h-5" /> : <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />}
                   </button>
                 </div>
               </div>

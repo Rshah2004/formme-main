@@ -113,9 +113,9 @@ export default function ManufacturerShowcase() {
   const isDark = currentManufacturer.variant === "dark";
 
   return (
-      <section className="py-20 md:py-28 -mt-24 bg-white">
+      <section className="py-12 sm:py-20 md:py-28 -mt-12 sm:-mt-24 bg-white">
 
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           {/* Manufacturer Slider */}
           <motion.div
               initial={{opacity: 0, y: 20}}
@@ -125,24 +125,24 @@ export default function ManufacturerShowcase() {
               className="relative"
           >
             {/* Navigation Arrows */}
-            <div className="absolute top-1/2 -translate-y-1/2 left-0 -ml-4 md:-ml-8 z-10">
+            <div className="absolute top-1/2 -translate-y-1/2 left-0 -ml-2 sm:-ml-4 md:-ml-8 z-10">
               <Button
                   variant="outline"
                   size="icon"
                   onClick={goToPrevious}
-                  className="rounded-full w-10 h-10 bg-white/80 backdrop-blur-sm shadow-lg border-gray-200 hover:bg-white"
+                  className="rounded-full w-8 h-8 sm:w-10 sm:h-10 bg-white/80 backdrop-blur-sm shadow-lg border-gray-200 hover:bg-white"
               >
-                <ChevronLeft className="w-5 h-5"/>
+                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5"/>
               </Button>
             </div>
-            <div className="absolute top-1/2 -translate-y-1/2 right-0 -mr-4 md:-mr-8 z-10">
+            <div className="absolute top-1/2 -translate-y-1/2 right-0 -mr-2 sm:-mr-4 md:-mr-8 z-10">
               <Button
                   variant="outline"
                   size="icon"
                   onClick={goToNext}
-                  className="rounded-full w-10 h-10 bg-white/80 backdrop-blur-sm shadow-lg border-gray-200 hover:bg-white"
+                  className="rounded-full w-8 h-8 sm:w-10 sm:h-10 bg-white/80 backdrop-blur-sm shadow-lg border-gray-200 hover:bg-white"
               >
-                <ChevronRight className="w-5 h-5"/>
+                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5"/>
               </Button>
             </div>
 
@@ -155,25 +155,25 @@ export default function ManufacturerShowcase() {
                   animate={{opacity: 1, x: 0}}
                   exit={{opacity: 0, x: -50}}
                   transition={{duration: 0.4}}
-                  className={`rounded-3xl p-8 md:p-12 shadow-sm overflow-hidden ${
+                  className={`rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-12 shadow-sm overflow-hidden ${
                       isDark ? "bg-[#FAF7F4]  border border-border/30" : "bg-white border border-gray-100"
                   }`}
               >
-                <div className="grid lg:grid-cols-3 gap-10 lg:gap-16">
+                <div className="grid lg:grid-cols-3 gap-6 sm:gap-10 lg:gap-16">
                   {/* Left Content */}
-                  <div className="lg:col-span-2 space-y-6">
+                  <div className="lg:col-span-2 space-y-4 sm:space-y-6">
                     {/* Label */}
-                    <span className="text-xs font-medium tracking-widest text-[#C8956C] uppercase">
+                    <span className="text-[10px] sm:text-xs font-medium tracking-widest text-[#C8956C] uppercase">
                     {currentManufacturer.label}
                   </span>
 
                     {/* Headline */}
-                    <h2 className="text-3xl md:text-4xl font-serif font-normal text-[#344C3D] leading-tight italic">
+                    <h2 className="text-xl sm:text-3xl md:text-4xl font-serif font-normal text-[#344C3D] leading-tight italic">
                       {currentManufacturer.name}
                     </h2>
 
                     {/* Description */}
-                    <p className="text-muted-foreground text-base leading-relaxed max-w-xl">
+                    <p className="text-muted-foreground text-sm sm:text-base leading-relaxed max-w-xl">
                       {currentManufacturer.description}
                       {currentManufacturer.clients.length > 0 && (
                           <>
@@ -186,13 +186,13 @@ export default function ManufacturerShowcase() {
 
                     {/* Metrics Row */}
                     {currentManufacturer.metrics.length > 0 && (
-                        <div className="flex gap-12 py-4 border-b border-gray-100">
+                        <div className="flex flex-wrap gap-6 sm:gap-12 py-3 sm:py-4 border-b border-gray-100">
                           {currentManufacturer.metrics.map((metric, index) => (
                               <div key={index}>
-                                <div className="text-2xl md:text-3xl font-serif font-medium text-foreground">
+                                <div className="text-xl sm:text-2xl md:text-3xl font-serif font-medium text-foreground">
                                   {metric.value}
                                 </div>
-                                <div className="text-[10px] tracking-widest text-muted-foreground mt-1 uppercase">
+                                <div className="text-[8px] sm:text-[10px] tracking-widest text-muted-foreground mt-1 uppercase">
                                   {metric.label}
                                 </div>
                               </div>
@@ -202,17 +202,17 @@ export default function ManufacturerShowcase() {
 
                     {/* Capability Badges */}
                     {currentManufacturer.capabilities.length > 0 && (
-                        <div className="space-y-3">
+                        <div className="space-y-2 sm:space-y-3">
                           {currentManufacturer.capabilities.map((capability, index) => (
                               <div
                                   key={index}
-                                  className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0"
+                                  className="flex items-center gap-2 sm:gap-3 py-2 sm:py-3 border-b border-gray-100 last:border-0"
                               >
                                 <div
-                                    className="w-8 h-8 rounded-full bg-[#F9E8DB] flex items-center justify-center flex-shrink-0">
-                                  <capability.icon className="w-4 h-4 text-[#C8956C]"/>
+                                    className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-[#F9E8DB] flex items-center justify-center flex-shrink-0">
+                                  <capability.icon className="w-3 h-3 sm:w-4 sm:h-4 text-[#C8956C]"/>
                                 </div>
-                                <span className="text-xs font-medium text-foreground uppercase tracking-wide">
+                                <span className="text-[10px] sm:text-xs font-medium text-foreground uppercase tracking-wide">
                             {capability.text}
                           </span>
                               </div>
@@ -223,13 +223,13 @@ export default function ManufacturerShowcase() {
                     {/* CTA */}
                     {currentManufacturer.externalUrl ? (
                         <a href={currentManufacturer.externalUrl} target="_blank" rel="noopener noreferrer">
-                          <Button className="rounded-full px-6 py-5 text-sm bg-[#344C3D] hover:bg-[#2a3d31] text-white">
+                          <Button className="rounded-full px-4 sm:px-6 py-4 sm:py-5 text-xs sm:text-sm bg-[#344C3D] hover:bg-[#2a3d31] text-white">
                             View Profile
                           </Button>
                         </a>
                     ) : (
                         <Button
-                            className="rounded-full px-6 py-5 text-sm bg-[#344C3D] hover:bg-[#2a3d31] text-white"
+                            className="rounded-full px-4 sm:px-6 py-4 sm:py-5 text-xs sm:text-sm bg-[#344C3D] hover:bg-[#2a3d31] text-white"
                             onClick={() => navigate("/coming-soon")}
                         >
                           Request match
@@ -238,7 +238,7 @@ export default function ManufacturerShowcase() {
                   </div>
 
                   {/* Right Side - Brand Logo */}
-                  <div className="flex items-center justify-center">
+                  <div className="hidden lg:flex items-center justify-center">
                     <div
                         className={`rounded-3xl p-10 md:p-16 w-full min-h-[280px] flex flex-col items-center justify-center ${
                             isDark ? "bg-[#F5F4F0]" : "bg-[#FAF9F6]"

@@ -37,24 +37,24 @@ const offers = [
 
 const WhatWeOffer: React.FC = () => {
   return (
-    <section className="py-24 bg-background">
-      <div className="container mx-auto px-6">
+    <section className="py-16 sm:py-24 bg-background">
+      <div className="container mx-auto px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-10 sm:mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-light mb-4 text-foreground">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-light mb-3 sm:mb-4 text-foreground">
             What We Offer
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto px-4 sm:px-0">
             Everything you need to design, produce, and sell custom garments — all in one platform.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {offers.map((offer, index) => (
             <motion.div
               key={offer.title}
@@ -62,15 +62,15 @@ const WhatWeOffer: React.FC = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/30 transition-all duration-300 hover:shadow-lg"
+              className="group p-6 sm:p-8 rounded-xl sm:rounded-2xl bg-card border border-border hover:border-primary/30 transition-all duration-300 hover:shadow-lg"
             >
-              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
-                <offer.icon className="w-7 h-7 text-primary" />
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl bg-primary/10 flex items-center justify-center mb-4 sm:mb-6 group-hover:bg-primary/20 transition-colors">
+                <offer.icon className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
               </div>
-              <h3 className="text-xl font-medium mb-3 text-foreground">
+              <h3 className="text-lg sm:text-xl font-medium mb-2 sm:mb-3 text-foreground">
                 {offer.title}
               </h3>
-              <p className="text-muted-foreground leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
                 {offer.description}
               </p>
             </motion.div>
