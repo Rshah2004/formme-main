@@ -24,36 +24,36 @@ export default function Features() {
   return (
     <section 
       ref={featuresRef} 
-      className="py-24 relative overflow-hidden font-inter bg-[#344C3D]"
+      className="py-16 sm:py-24 relative overflow-hidden font-inter bg-[#344C3D]"
     >
       
       
       
       
-      <div className="max-w-7xl mx-auto px-8 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 relative z-10">
         {/* Section Title */}
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="mb-24 text-center"
+          className="mb-16 sm:mb-24 text-center"
         >
-          <span className="inline-block text-sm font-semibold tracking-wider text-[#FFF7DE] uppercase mb-6 bg-gradient-to-r from-white/20 via-white/10 to-white/20 backdrop-blur-sm px-6 py-3 rounded-full border border-gradient-to-r from-white/30 to-white/10">
+          <span className="inline-block text-xs sm:text-sm font-semibold tracking-wider text-[#FFF7DE] uppercase mb-4 sm:mb-6 bg-gradient-to-r from-white/20 via-white/10 to-white/20 backdrop-blur-sm px-4 sm:px-6 py-2 sm:py-3 rounded-full border border-gradient-to-r from-white/30 to-white/10">
             Connect With Our Manufacturers
           </span>
           
-          <h2 className="text-5xl md:text-7xl font-light tracking-tight leading-tight mb-8 bg-gradient-to-r from-white via-[#FFF7DE] to-white bg-clip-text text-transparent">
+          <h2 className="text-3xl sm:text-5xl md:text-7xl font-light tracking-tight leading-tight mb-6 sm:mb-8 bg-gradient-to-r from-white via-[#FFF7DE] to-white bg-clip-text text-transparent">
             From Vision to <span className="bg-gradient-to-r from-[#FFF7DE] via-[#f5efd3] to-[#e8dc9f] bg-clip-text text-transparent font-medium">Production</span>
           </h2>
           
-          <p className="text-xl text-[#FFF7DE]/80 max-w-3xl mx-auto font-light leading-relaxed">
+          <p className="text-base sm:text-xl text-[#FFF7DE]/80 max-w-3xl mx-auto font-light leading-relaxed px-4 sm:px-0">
             We bridge the gap between designers and manufacturers. Share your designs, get matched with the right factory, and bring your garments to life—all in one place.
           </p>
         </motion.div>
 
         {/* Thin keyword marquee */}
-        <div className="mb-20">
+        <div className="mb-12 sm:mb-20">
           <KeywordMarquee speedMs={22000} />
         </div>
 
@@ -63,34 +63,34 @@ export default function Features() {
   whileInView={{ opacity: 1, y: 0 }}
   viewport={{ once: true }}
   transition={{ duration: 0.5 }}
-  className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16"
+  className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 mb-12 sm:mb-16"
 >
   <li className="text-center">
-    <div className="mx-auto w-14 h-14 rounded-full bg-black/5 border border-black/10 flex items-center justify-center text-sm font-medium">
+    <div className="mx-auto w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black/5 border border-black/10 flex items-center justify-center text-sm font-medium">
       01
     </div>
-    <h4 className="mt-4 text-xl font-medium text-white">Share your vision</h4>
-    <p className="mt-1 text-sm text-white/70">
+    <h4 className="mt-3 sm:mt-4 text-lg sm:text-xl font-medium text-white">Share your vision</h4>
+    <p className="mt-1 text-xs sm:text-sm text-white/70 px-4 sm:px-0">
       Upload sketches, references, and requirements—get everything in one place.
     </p>
   </li>
 
   <li className="text-center">
-    <div className="mx-auto w-14 h-14 rounded-full bg-black/5 border border-black/10 flex items-center justify-center text-sm font-medium">
+    <div className="mx-auto w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black/5 border border-black/10 flex items-center justify-center text-sm font-medium">
       02
     </div>
-    <h4 className="mt-4 text-xl font-medium text-white">Get matched</h4>
-    <p className="mt-1 text-sm text-white/70">
+    <h4 className="mt-3 sm:mt-4 text-lg sm:text-xl font-medium text-white">Get matched</h4>
+    <p className="mt-1 text-xs sm:text-sm text-white/70 px-4 sm:px-0">
       We connect you with the right manufacturer based on capabilities and MOQ.
     </p>
   </li>
 
   <li className="text-center">
-    <div className="mx-auto w-14 h-14 rounded-full bg-black/5 border border-black/10 flex items-center justify-center text-sm font-medium">
+    <div className="mx-auto w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black/5 border border-black/10 flex items-center justify-center text-sm font-medium">
       03
     </div>
-    <h4 className="mt-4 text-xl font-medium text-white">Produce with clarity</h4>
-    <p className="mt-1 text-sm text-white/70">
+    <h4 className="mt-3 sm:mt-4 text-lg sm:text-xl font-medium text-white">Produce with clarity</h4>
+    <p className="mt-1 text-xs sm:text-sm text-white/70 px-4 sm:px-0">
       Centralized communication, revisions, and approvals so nothing gets lost.
     </p>
   </li>

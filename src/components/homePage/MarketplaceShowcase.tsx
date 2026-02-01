@@ -76,29 +76,29 @@ const MarketplaceShowcase = () => {
   };
 
   return (
-    <section className="py-32 bg-white relative overflow-hidden font-inter">
-      <div className="max-w-7xl mx-auto px-6">        
-        <div className="text-center mb-20">
+    <section className="py-16 sm:py-32 bg-white relative overflow-hidden font-inter">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">        
+        <div className="text-center mb-12 sm:mb-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <span className="inline-block text-sm font-semibold tracking-[0.2em] text-[#8B7355] uppercase mb-6 bg-[#F5F1E8] px-6 py-3 rounded-full border border-[#E5D3B3]">
+            <span className="inline-block text-xs sm:text-sm font-semibold tracking-[0.2em] text-[#8B7355] uppercase mb-4 sm:mb-6 bg-[#F5F1E8] px-4 sm:px-6 py-2 sm:py-3 rounded-full border border-[#E5D3B3]">
               Premium Collection
             </span>
-            <h2 className="text-5xl md:text-6xl font-light tracking-tight leading-[1.1] mb-8 text-[#2C2C2C]">
+            <h2 className="text-3xl sm:text-5xl md:text-6xl font-light tracking-tight leading-[1.1] mb-6 sm:mb-8 text-[#2C2C2C]">
               Marketplace <span className="text-[#8B7355] font-normal italic">favorites</span>
             </h2>
-            <p className="text-xl text-[#5A5A5A] max-w-3xl mx-auto font-light leading-relaxed">
+            <p className="text-base sm:text-xl text-[#5A5A5A] max-w-3xl mx-auto font-light leading-relaxed px-4 sm:px-0">
               Discover our curated selection of premium garments, designed by professionals and loved by our community.
             </p>
           </motion.div>
         </div>
         
         {/* Featured Items Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 mb-12 sm:mb-16">
           {featuredItems.map((item, index) => (
             <motion.div
               key={item.id}
@@ -109,16 +109,16 @@ const MarketplaceShowcase = () => {
               className="group cursor-pointer"
             >
               {/* Product Image Container */}
-              <div className="relative bg-[#F8F6F0] rounded-2xl p-8 mb-6 overflow-hidden aspect-[4/5] group-hover:bg-[#F5F1E8] transition-colors duration-300">
+              <div className="relative bg-[#F8F6F0] rounded-xl sm:rounded-2xl p-4 sm:p-8 mb-4 sm:mb-6 overflow-hidden aspect-[4/5] group-hover:bg-[#F5F1E8] transition-colors duration-300">
                 {/* Badges */}
-                <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+                <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 flex flex-col gap-1 sm:gap-2">
                   {item.isNew && (
-                    <span className="bg-[#344C3D] text-white text-xs font-semibold px-3 py-1 rounded-full">
+                    <span className="bg-[#344C3D] text-white text-[10px] sm:text-xs font-semibold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full">
                       NEW
                     </span>
                   )}
                   {item.isBestseller && (
-                    <span className="bg-[#B8860B] text-white text-xs font-semibold px-3 py-1 rounded-full">
+                    <span className="bg-[#B8860B] text-white text-[10px] sm:text-xs font-semibold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full">
                       BESTSELLER
                     </span>
                   )}
@@ -126,16 +126,16 @@ const MarketplaceShowcase = () => {
                 
                 {/* Product Image */}
                 <div 
-                  className="w-full h-full bg-cover bg-center rounded-xl group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full bg-cover bg-center rounded-lg sm:rounded-xl group-hover:scale-105 transition-transform duration-500"
                   style={{ backgroundImage: `url(${item.image})` }}
                 ></div>
                 
                 {/* Color Options - Overlay */}
-                <div className="absolute bottom-4 left-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 hidden sm:flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   {item.colors.map((color, colorIndex) => (
                     <div
                       key={colorIndex}
-                      className="w-6 h-6 rounded-full border-2 border-white shadow-md cursor-pointer hover:scale-110 transition-transform duration-200"
+                      className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-white shadow-md cursor-pointer hover:scale-110 transition-transform duration-200"
                       style={{ backgroundColor: color }}
                     ></div>
                   ))}
@@ -143,23 +143,23 @@ const MarketplaceShowcase = () => {
               </div>
               
               {/* Product Info */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-[#8B7355] font-medium">{item.category}</span>
-                  <div className="flex items-center gap-1">
+              <div className="space-y-1 sm:space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                  <span className="text-xs sm:text-sm text-[#8B7355] font-medium">{item.category}</span>
+                  <div className="flex items-center gap-0.5">
                     {renderRating(item.rating)}
-                    <span className="text-sm text-[#5A5A5A] ml-1">({item.reviews})</span>
+                    <span className="text-xs text-[#5A5A5A] ml-1 hidden sm:inline">({item.reviews})</span>
                   </div>
                 </div>
                 
-                <h3 className="text-xl font-medium text-[#2C2C2C] group-hover:text-[#8B7355] transition-colors duration-300">
+                <h3 className="text-sm sm:text-xl font-medium text-[#2C2C2C] group-hover:text-[#8B7355] transition-colors duration-300 line-clamp-2">
                   {item.name}
                 </h3>
                 
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-semibold text-[#2C2C2C]">{item.price}</span>
+                  <span className="text-sm sm:text-lg font-semibold text-[#2C2C2C]">{item.price}</span>
                   {item.originalPrice && (
-                    <span className="text-sm text-[#8B7355] line-through">{item.originalPrice}</span>
+                    <span className="text-xs sm:text-sm text-[#8B7355] line-through">{item.originalPrice}</span>
                   )}
                 </div>
               </div>
@@ -173,22 +173,22 @@ const MarketplaceShowcase = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 mb-12 sm:mb-16"
         >
-          <div className="text-center bg-gradient-to-br from-[#F8F6F0] to-[#F5F1E8] rounded-2xl p-8">
-            <h3 className="text-4xl font-light text-[#2C2C2C] mb-3">500+</h3>
-            <p className="text-[#5A5A5A] font-medium">Premium Designs</p>
-            <p className="text-sm text-[#8B7355] mt-2">Curated by professionals</p>
+          <div className="text-center bg-gradient-to-br from-[#F8F6F0] to-[#F5F1E8] rounded-xl sm:rounded-2xl p-6 sm:p-8">
+            <h3 className="text-2xl sm:text-4xl font-light text-[#2C2C2C] mb-2 sm:mb-3">500+</h3>
+            <p className="text-[#5A5A5A] font-medium text-sm sm:text-base">Premium Designs</p>
+            <p className="text-xs sm:text-sm text-[#8B7355] mt-1 sm:mt-2">Curated by professionals</p>
           </div>
-          <div className="text-center bg-gradient-to-br from-[#F8F6F0] to-[#F5F1E8] rounded-2xl p-8">
-            <h3 className="text-4xl font-light text-[#2C2C2C] mb-3">98%</h3>
-            <p className="text-[#5A5A5A] font-medium">Customer Satisfaction</p>
-            <p className="text-sm text-[#8B7355] mt-2">Based on 2,500+ reviews</p>
+          <div className="text-center bg-gradient-to-br from-[#F8F6F0] to-[#F5F1E8] rounded-xl sm:rounded-2xl p-6 sm:p-8">
+            <h3 className="text-2xl sm:text-4xl font-light text-[#2C2C2C] mb-2 sm:mb-3">98%</h3>
+            <p className="text-[#5A5A5A] font-medium text-sm sm:text-base">Customer Satisfaction</p>
+            <p className="text-xs sm:text-sm text-[#8B7355] mt-1 sm:mt-2">Based on 2,500+ reviews</p>
           </div>
-          <div className="text-center bg-gradient-to-br from-[#F8F6F0] to-[#F5F1E8] rounded-2xl p-8">
-            <h3 className="text-4xl font-light text-[#2C2C2C] mb-3">72h</h3>
-            <p className="text-[#5A5A5A] font-medium">Production Time</p>
-            <p className="text-sm text-[#8B7355] mt-2">From order to delivery</p>
+          <div className="text-center bg-gradient-to-br from-[#F8F6F0] to-[#F5F1E8] rounded-xl sm:rounded-2xl p-6 sm:p-8">
+            <h3 className="text-2xl sm:text-4xl font-light text-[#2C2C2C] mb-2 sm:mb-3">72h</h3>
+            <p className="text-[#5A5A5A] font-medium text-sm sm:text-base">Production Time</p>
+            <p className="text-xs sm:text-sm text-[#8B7355] mt-1 sm:mt-2">From order to delivery</p>
           </div>
         </motion.div>
         

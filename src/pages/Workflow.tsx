@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import Navbar from '@/components/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -458,23 +459,24 @@ const initializedRef = useRef(false);
         <div className="min-h-screen bg-background">
           <Navbar />
           
-          <main className="container mx-auto px-6 py-6 mt-20 max-w-7xl">
+          <main className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 mt-16 sm:mt-20 max-w-7xl">
             {/* Back Button */}
             <Button 
               variant="ghost" 
-              className="mb-4 text-primary hover:text-primary/80 hover:bg-primary/5" 
+              className="mb-3 sm:mb-4 text-primary hover:text-primary/80 hover:bg-primary/5 -ml-2 sm:ml-0" 
               onClick={() => navigate('/dashboard')}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
+              <span className="hidden sm:inline">Back to Dashboard</span>
+              <span className="sm:hidden">Back</span>
             </Button>
 
             {/* Compact Header */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h1 className="text-2xl font-serif font-bold text-primary">{selectedDesign.name}</h1>
-                  <Badge variant="outline" className={getStatusColor(selectedDesign.status)}>
+            <div className="mb-4 sm:mb-6">
+              <div className="flex items-start sm:items-center justify-between mb-3 sm:mb-4 gap-2">
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-lg sm:text-2xl font-serif font-bold text-primary truncate">{selectedDesign.name}</h1>
+                  <Badge variant="outline" className={cn("mt-1", getStatusColor(selectedDesign.status))}>
                     {selectedDesign.status?.replace(/_/g, ' ') || 'draft'}
                   </Badge>
                 </div>

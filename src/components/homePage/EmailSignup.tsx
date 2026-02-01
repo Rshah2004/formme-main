@@ -47,8 +47,8 @@ const EmailSignup: React.FC = () => {
   };
 
   return (
-    <section className="py-24 bg-primary">
-      <div className="container mx-auto px-6">
+    <section className="py-16 sm:py-24 bg-primary">
+      <div className="container mx-auto px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -56,14 +56,14 @@ const EmailSignup: React.FC = () => {
           viewport={{ once: true }}
           className="max-w-2xl mx-auto text-center"
         >
-          <div className="w-16 h-16 rounded-full bg-primary-foreground/10 flex items-center justify-center mx-auto mb-6">
-            <Mail className="w-8 h-8 text-primary-foreground" />
+          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary-foreground/10 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+            <Mail className="w-6 h-6 sm:w-8 sm:h-8 text-primary-foreground" />
           </div>
           
-          <h2 className="text-3xl md:text-4xl font-light mb-4 text-primary-foreground">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-light mb-3 sm:mb-4 text-primary-foreground">
             Stay in the Loop
           </h2>
-          <p className="text-primary-foreground/80 text-lg mb-8">
+          <p className="text-primary-foreground/80 text-base sm:text-lg mb-6 sm:mb-8 px-4 sm:px-0">
             Be the first to know about new features, exclusive launches, and early access opportunities.
           </p>
 
@@ -77,7 +77,7 @@ const EmailSignup: React.FC = () => {
               <span className="text-lg font-medium">You're on the list!</span>
             </motion.div>
           ) : (
-            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 sm:gap-4 max-w-md mx-auto px-4 sm:px-0">
               <Input
                 type="email"
                 placeholder="Enter your email"
@@ -102,7 +102,7 @@ const EmailSignup: React.FC = () => {
             </form>
           )}
 
-          <p className="text-primary-foreground/60 text-sm mt-6">
+          <p className="text-primary-foreground/60 text-xs sm:text-sm mt-4 sm:mt-6">
             No spam, ever. Unsubscribe anytime.
           </p>
         </motion.div>

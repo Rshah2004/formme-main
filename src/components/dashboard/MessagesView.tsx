@@ -225,10 +225,10 @@ const MessagesView = ({ orders }: MessagesViewProps) => {
   }
 
   return (
-    <div className="h-[calc(100vh-200px)] flex border rounded-lg overflow-hidden bg-card">
+    <div className="h-[calc(100vh-200px)] sm:h-[calc(100vh-200px)] flex flex-col md:flex-row border rounded-lg overflow-hidden bg-card">
       {/* Conversations List */}
       <div className={cn(
-        "w-80 border-r flex flex-col",
+        "w-full md:w-80 border-b md:border-b-0 md:border-r flex flex-col",
         selectedOrderId && "hidden md:flex"
       )}>
         <div className="p-4 border-b">

@@ -88,22 +88,22 @@ const DesignerDashboard = () => {
       )}
 
       {/* Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
         <div>
-          <h1 className="text-3xl font-bold mb-1">Dashboard</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1">Dashboard</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
             {isPreviewMode && !isAuthenticated 
               ? "Previewing active workspace" 
               : "Track your designs from concept to delivery"
             }
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="relative">
+        <div className="flex items-center gap-4 w-full sm:w-auto">
+          <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input 
               placeholder="Search orders..." 
-              className="pl-9 w-64"
+              className="pl-9 w-full"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               disabled={isPreviewMode && !isAuthenticated}
@@ -113,7 +113,7 @@ const DesignerDashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard 
           title="Orders Placed" 
           value={stats.ordersPlaced} 
@@ -142,16 +142,16 @@ const DesignerDashboard = () => {
 
       {/* Manufacturing Orders Section */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Manufacturing Orders</h2>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-              <SlidersHorizontal className="w-4 h-4 mr-2" />
-              Filter
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+          <h2 className="text-lg sm:text-xl font-semibold">Manufacturing Orders</h2>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-initial">
+              <SlidersHorizontal className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Filter</span>
             </Button>
-            <Button onClick={() => navigate("/new-design")} size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              New Order
+            <Button onClick={() => navigate("/new-design")} size="sm" className="flex-1 sm:flex-initial">
+              <Plus className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">New Order</span>
             </Button>
           </div>
         </div>
@@ -188,62 +188,65 @@ const DesignerDashboard = () => {
   const renderOrdersContent = () => (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
         <div>
-          <h1 className="text-3xl font-bold mb-1">Orders</h1>
-          <p className="text-muted-foreground">Manage and track all your manufacturing orders</p>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1">Orders</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">Manage and track all your manufacturing orders</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="w-4 h-4 mr-2" />
-            Export
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Button variant="outline" size="sm" className="flex-1 sm:flex-initial">
+            <Download className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Export</span>
           </Button>
-          <Button onClick={() => navigate("/new-design")} size="sm">
-            New Order
+          <Button onClick={() => navigate("/new-design")} size="sm" className="flex-1 sm:flex-initial">
+            <span className="hidden sm:inline">New Order</span>
+            <Plus className="w-4 h-4 sm:hidden" />
           </Button>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-xs">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+        <div className="relative flex-1 sm:max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
             placeholder="Search orders..." 
-            className="pl-9"
+            className="pl-9 w-full"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="All Statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="tech_pack_pending">Design Submitted</SelectItem>
-            <SelectItem value="sent_to_manufacturer">Finding Manufacturer</SelectItem>
-            <SelectItem value="sample_development">Sampling</SelectItem>
-            <SelectItem value="quality_check">Quality Check</SelectItem>
-            <SelectItem value="shipping">In Production</SelectItem>
-            <SelectItem value="delivered">Delivered</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={manufacturerFilter} onValueChange={setManufacturerFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="All Manufacturers" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Manufacturers</SelectItem>
-            {manufacturers.map(m => m && (
-              <SelectItem key={m} value={m}>{m}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button variant="link" size="sm" onClick={clearFilters}>
-          Clear filters
-        </Button>
+        <div className="flex gap-2 flex-wrap">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue placeholder="All Statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="tech_pack_pending">Design Submitted</SelectItem>
+              <SelectItem value="sent_to_manufacturer">Finding Manufacturer</SelectItem>
+              <SelectItem value="sample_development">Sampling</SelectItem>
+              <SelectItem value="quality_check">Quality Check</SelectItem>
+              <SelectItem value="shipping">In Production</SelectItem>
+              <SelectItem value="delivered">Delivered</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={manufacturerFilter} onValueChange={setManufacturerFilter}>
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="All Manufacturers" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Manufacturers</SelectItem>
+              {manufacturers.map(m => m && (
+                <SelectItem key={m} value={m}>{m}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button variant="link" size="sm" onClick={clearFilters} className="hidden sm:flex">
+            Clear filters
+          </Button>
+        </div>
       </div>
 
       {/* Orders Count */}
@@ -297,7 +300,7 @@ const DesignerDashboard = () => {
     const delivered = orders.filter(o => o.status === "delivered");
 
     const KanbanColumn = ({ title, orders: columnOrders, dotColor }: { title: string; orders: typeof orders; dotColor: string }) => (
-      <div className="flex-1 min-w-[300px]">
+      <div className="w-full md:flex-1 md:min-w-[280px]">
         <div className="flex items-center gap-2 mb-4">
           <span className={`w-2 h-2 rounded-full ${dotColor}`} />
           <h3 className="font-semibold">{title}</h3>
@@ -332,10 +335,10 @@ const DesignerDashboard = () => {
 
     return (
       <div className="space-y-6">
-        <div className="flex justify-between items-start">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
           <div>
-            <h1 className="text-3xl font-bold mb-1">Production Status</h1>
-            <p className="text-muted-foreground">Kanban view of your manufacturing pipeline</p>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-1">Production Status</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">Kanban view of your manufacturing pipeline</p>
           </div>
           <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
             <Button variant="secondary" size="sm">Board</Button>
@@ -343,7 +346,7 @@ const DesignerDashboard = () => {
           </div>
         </div>
 
-        <div className="flex gap-6 overflow-x-auto pb-4">
+        <div className="flex flex-col md:flex-row gap-4 md:gap-6 overflow-x-auto pb-4">
           <KanbanColumn title="Design Submitted" orders={designSubmitted} dotColor="bg-blue-500" />
           <KanbanColumn title="Sampling" orders={sampling} dotColor="bg-purple-500" />
           <KanbanColumn title="In Production" orders={inProduction} dotColor="bg-orange-500" />
@@ -356,8 +359,8 @@ const DesignerDashboard = () => {
   const renderMessagesContent = () => (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-1">Messages</h1>
-        <p className="text-muted-foreground">Communication with manufacturers</p>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-1">Messages</h1>
+        <p className="text-muted-foreground text-sm sm:text-base">Communication with manufacturers</p>
       </div>
       {isPreviewMode && !isAuthenticated ? (
         <Card className="p-8 text-center">
@@ -381,10 +384,10 @@ const DesignerDashboard = () => {
   const renderSettingsContent = () => (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-1">Settings</h1>
-        <p className="text-muted-foreground">Manage your account preferences</p>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-1">Settings</h1>
+        <p className="text-muted-foreground text-sm sm:text-base">Manage your account preferences</p>
       </div>
-      <Card className="p-8 text-center">
+      <Card className="p-6 sm:p-8 text-center">
         <p className="text-muted-foreground">Settings coming soon</p>
       </Card>
     </div>
@@ -413,7 +416,7 @@ const DesignerDashboard = () => {
       <div className="flex">
         <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} />
         <main 
-          className="flex-1 p-8 overflow-auto"
+          className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto"
           onClick={handlePreviewClick}
         >
           {renderContent()}
