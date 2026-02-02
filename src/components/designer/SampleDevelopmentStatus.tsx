@@ -2,30 +2,30 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Clock, AlertTriangle, XCircle, Calendar, Package, Layers, MessageCircle } from 'lucide-react';
+import { CheckCircle, Clock, AlertTriangle, XCircle, MessageCircle, Image as ImageIcon } from 'lucide-react';
 import { orderApi } from '@/lib/api';
 import { toast } from 'sonner';
 import { ExpandedChatOverlay } from '@/components/chat/ExpandedChatOverlay';
 import { StageResolutionBanner } from '@/components/chat/StageResolutionBanner';
 
-interface ProductionParametersStatusProps {
+interface SampleDevelopmentStatusProps {
   order: any;
   onApprove?: () => void;
   onReject?: () => void;
   onRefresh?: () => void;
 }
 
-export const ProductionParametersStatus = ({ 
+export const SampleDevelopmentStatus = ({ 
   order,
   onApprove,
   onReject,
   onRefresh
-}: ProductionParametersStatusProps) => {
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+}: SampleDevelopmentStatusProps) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
 
   const getStatus = () => {
-    if (order?.production_params_approved === true) {
+    if (order?.sample_approved === true) {
       return {
         status: 'approved',
         label: 'Approved',
@@ -33,10 +33,10 @@ export const ProductionParametersStatus = ({
         color: 'text-accent-foreground',
         bgColor: 'bg-accent',
         borderColor: 'border-accent',
-        description: 'You have approved the production parameters. Manufacturer can proceed with sample development.'
+        description: 'Sample has been approved. Production can proceed.'
       };
     }
-    if (order?.production_params_approved === false) {
+    if (order?.sample_approved === false) {
       return {
         status: 'rejected',
         label: 'Changes Requested',
@@ -44,10 +44,10 @@ export const ProductionParametersStatus = ({
         color: 'text-destructive',
         bgColor: 'bg-destructive/10',
         borderColor: 'border-destructive/30',
-        description: 'Changes have been requested. Use the resolution chat to discuss and resolve issues.'
+        description: 'Changes have been requested for the sample. Use the resolution chat to discuss and resolve.'
       };
     }
-    if (order?.production_params_submitted_at) {
+    if (order?.sample_submitted_at) {
       return {
         status: 'pending_approval',
         label: 'Pending Your Approval',
@@ -55,17 +55,17 @@ export const ProductionParametersStatus = ({
         color: 'text-primary',
         bgColor: 'bg-primary/10',
         borderColor: 'border-primary/30',
-        description: 'Manufacturer has submitted production parameters for your review.'
+        description: 'Manufacturer has submitted sample photos for your review.'
       };
     }
     return {
       status: 'not_submitted',
-      label: 'Awaiting Submission',
+      label: 'Awaiting Sample',
       icon: Clock,
       color: 'text-muted-foreground',
       bgColor: 'bg-muted/50',
       borderColor: 'border-border',
-      description: 'Waiting for manufacturer to submit production parameters.'
+      description: 'Waiting for manufacturer to submit sample photos.'
     };
   };
 
@@ -73,11 +73,11 @@ export const ProductionParametersStatus = ({
     if (!order?.id) return;
     setIsSubmitting(true);
     try {
-      await orderApi.approveProductionParams(order.id);
-      toast.success('Production parameters approved!');
+      await orderApi.approveSample(order.id);
+      toast.success('Sample approved!');
       onApprove?.();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to approve parameters');
+      toast.error(error.message || 'Failed to approve sample');
     } finally {
       setIsSubmitting(false);
     }
@@ -92,11 +92,14 @@ export const ProductionParametersStatus = ({
   const showActions = statusInfo.status === 'pending_approval';
   const needsResolution = statusInfo.status === 'rejected';
 
+  // Get sample photos from production_timeline_data
+  const samplePhotos = order?.production_timeline_data?.sample_photos || [];
+
   return (
     <>
       {needsResolution && (
         <StageResolutionBanner
-          stageName="Production Parameters"
+          stageName="Sample Development"
           isChangesRequested={true}
           onOpenChat={() => setChatOpen(true)}
           className="mb-4"
@@ -106,7 +109,7 @@ export const ProductionParametersStatus = ({
       <Card className={`${statusInfo.borderColor} ${statusInfo.bgColor}`}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Production Parameters</CardTitle>
+            <CardTitle className="text-lg">Sample Development</CardTitle>
             <div className="flex items-center gap-2">
               {needsResolution && (
                 <Button
@@ -136,35 +139,24 @@ export const ProductionParametersStatus = ({
             </p>
           </div>
 
-          {order?.production_params_submitted_at && (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-2">
-              {order.lead_time_days && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Lead Time</p>
-                    <p className="text-sm font-medium">{order.lead_time_days} days</p>
-                  </div>
-                </div>
-              )}
-              {order.fabric_type && (
-                <div className="flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Fabric Sourcing</p>
-                    <p className="text-sm font-medium">{order.fabric_type}</p>
-                  </div>
-                </div>
-              )}
-              {order.quantity && (
-                <div className="flex items-center gap-2">
-                  <Package className="w-4 h-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Quantity</p>
-                    <p className="text-sm font-medium">{order.quantity} units</p>
-                  </div>
-                </div>
-              )}
+          {/* Sample Photos Grid */}
+          {samplePhotos.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2">
+              {samplePhotos.map((url: string, index: number) => (
+                <a 
+                  key={index} 
+                  href={url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="aspect-square rounded-lg overflow-hidden border hover:border-primary transition-colors"
+                >
+                  <img 
+                    src={url} 
+                    alt={`Sample ${index + 1}`} 
+                    className="w-full h-full object-cover"
+                  />
+                </a>
+              ))}
             </div>
           )}
 
@@ -176,7 +168,7 @@ export const ProductionParametersStatus = ({
                 className="flex-1"
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
-                Approve
+                Approve Sample
               </Button>
               <Button
                 variant="outline"
@@ -196,8 +188,8 @@ export const ProductionParametersStatus = ({
           isOpen={chatOpen}
           onClose={() => setChatOpen(false)}
           orderId={order.id}
-          stage="production_parameters"
-          stageName="Production Parameters"
+          stage="sample_development"
+          stageName="Sample Development"
           isDesigner={true}
           onStageApproved={() => {
             setChatOpen(false);

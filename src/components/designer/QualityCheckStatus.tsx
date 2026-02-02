@@ -2,30 +2,30 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Clock, AlertTriangle, XCircle, Calendar, Package, Layers, MessageCircle } from 'lucide-react';
+import { CheckCircle, Clock, AlertTriangle, XCircle, MessageCircle, Image as ImageIcon } from 'lucide-react';
 import { orderApi } from '@/lib/api';
 import { toast } from 'sonner';
 import { ExpandedChatOverlay } from '@/components/chat/ExpandedChatOverlay';
 import { StageResolutionBanner } from '@/components/chat/StageResolutionBanner';
 
-interface ProductionParametersStatusProps {
+interface QualityCheckStatusProps {
   order: any;
   onApprove?: () => void;
   onReject?: () => void;
   onRefresh?: () => void;
 }
 
-export const ProductionParametersStatus = ({ 
+export const QualityCheckStatus = ({ 
   order,
   onApprove,
   onReject,
   onRefresh
-}: ProductionParametersStatusProps) => {
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+}: QualityCheckStatusProps) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
 
   const getStatus = () => {
-    if (order?.production_params_approved === true) {
+    if (order?.qc_approved === true) {
       return {
         status: 'approved',
         label: 'Approved',
@@ -33,10 +33,10 @@ export const ProductionParametersStatus = ({
         color: 'text-accent-foreground',
         bgColor: 'bg-accent',
         borderColor: 'border-accent',
-        description: 'You have approved the production parameters. Manufacturer can proceed with sample development.'
+        description: 'Quality check has been approved. Ready for shipping.'
       };
     }
-    if (order?.production_params_approved === false) {
+    if (order?.qc_approved === false) {
       return {
         status: 'rejected',
         label: 'Changes Requested',
@@ -44,10 +44,10 @@ export const ProductionParametersStatus = ({
         color: 'text-destructive',
         bgColor: 'bg-destructive/10',
         borderColor: 'border-destructive/30',
-        description: 'Changes have been requested. Use the resolution chat to discuss and resolve issues.'
+        description: 'Quality issues have been flagged. Use the resolution chat to discuss and resolve.'
       };
     }
-    if (order?.production_params_submitted_at) {
+    if (order?.qc_submitted_at) {
       return {
         status: 'pending_approval',
         label: 'Pending Your Approval',
@@ -55,17 +55,17 @@ export const ProductionParametersStatus = ({
         color: 'text-primary',
         bgColor: 'bg-primary/10',
         borderColor: 'border-primary/30',
-        description: 'Manufacturer has submitted production parameters for your review.'
+        description: 'Manufacturer has submitted QC photos for your review.'
       };
     }
     return {
       status: 'not_submitted',
-      label: 'Awaiting Submission',
+      label: 'Awaiting QC',
       icon: Clock,
       color: 'text-muted-foreground',
       bgColor: 'bg-muted/50',
       borderColor: 'border-border',
-      description: 'Waiting for manufacturer to submit production parameters.'
+      description: 'Waiting for manufacturer to submit quality check photos.'
     };
   };
 
@@ -73,11 +73,11 @@ export const ProductionParametersStatus = ({
     if (!order?.id) return;
     setIsSubmitting(true);
     try {
-      await orderApi.approveProductionParams(order.id);
-      toast.success('Production parameters approved!');
+      await orderApi.approveQC(order.id);
+      toast.success('Quality check approved!');
       onApprove?.();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to approve parameters');
+      toast.error(error.message || 'Failed to approve QC');
     } finally {
       setIsSubmitting(false);
     }
@@ -92,11 +92,20 @@ export const ProductionParametersStatus = ({
   const showActions = statusInfo.status === 'pending_approval';
   const needsResolution = statusInfo.status === 'rejected';
 
+  // Get QC photos by size
+  const qcPhotos = {
+    S: order?.qc_photos_s,
+    M: order?.qc_photos_m,
+    L: order?.qc_photos_l,
+    XL: order?.qc_photos_xl
+  };
+  const hasQcPhotos = Object.values(qcPhotos).some(Boolean);
+
   return (
     <>
       {needsResolution && (
         <StageResolutionBanner
-          stageName="Production Parameters"
+          stageName="Quality Check"
           isChangesRequested={true}
           onOpenChat={() => setChatOpen(true)}
           className="mb-4"
@@ -106,7 +115,7 @@ export const ProductionParametersStatus = ({
       <Card className={`${statusInfo.borderColor} ${statusInfo.bgColor}`}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Production Parameters</CardTitle>
+            <CardTitle className="text-lg">Quality Check</CardTitle>
             <div className="flex items-center gap-2">
               {needsResolution && (
                 <Button
@@ -136,35 +145,36 @@ export const ProductionParametersStatus = ({
             </p>
           </div>
 
-          {order?.production_params_submitted_at && (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-2">
-              {order.lead_time_days && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Lead Time</p>
-                    <p className="text-sm font-medium">{order.lead_time_days} days</p>
+          {/* QC Photos by Size */}
+          {hasQcPhotos && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+              {Object.entries(qcPhotos).map(([size, url]) => (
+                url && (
+                  <div key={size} className="space-y-1">
+                    <Badge variant="outline" className="text-xs">{size}</Badge>
+                    <a 
+                      href={url as string} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="block aspect-square rounded-lg overflow-hidden border hover:border-primary transition-colors"
+                    >
+                      <img 
+                        src={url as string} 
+                        alt={`QC Size ${size}`} 
+                        className="w-full h-full object-cover"
+                      />
+                    </a>
                   </div>
-                </div>
-              )}
-              {order.fabric_type && (
-                <div className="flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Fabric Sourcing</p>
-                    <p className="text-sm font-medium">{order.fabric_type}</p>
-                  </div>
-                </div>
-              )}
-              {order.quantity && (
-                <div className="flex items-center gap-2">
-                  <Package className="w-4 h-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Quantity</p>
-                    <p className="text-sm font-medium">{order.quantity} units</p>
-                  </div>
-                </div>
-              )}
+                )
+              ))}
+            </div>
+          )}
+
+          {/* QC Notes */}
+          {order?.qc_notes && (
+            <div className="p-3 bg-background/50 rounded-md">
+              <p className="text-xs font-medium text-muted-foreground mb-1">QC Notes:</p>
+              <p className="text-sm">{order.qc_notes}</p>
             </div>
           )}
 
@@ -176,7 +186,7 @@ export const ProductionParametersStatus = ({
                 className="flex-1"
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
-                Approve
+                Approve QC
               </Button>
               <Button
                 variant="outline"
@@ -184,7 +194,7 @@ export const ProductionParametersStatus = ({
                 disabled={isSubmitting}
               >
                 <MessageCircle className="w-4 h-4 mr-2" />
-                Request Changes
+                Report Issues
               </Button>
             </div>
           )}
@@ -196,8 +206,8 @@ export const ProductionParametersStatus = ({
           isOpen={chatOpen}
           onClose={() => setChatOpen(false)}
           orderId={order.id}
-          stage="production_parameters"
-          stageName="Production Parameters"
+          stage="quality_check"
+          stageName="Quality Check"
           isDesigner={true}
           onStageApproved={() => {
             setChatOpen(false);

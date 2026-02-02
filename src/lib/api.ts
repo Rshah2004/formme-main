@@ -182,6 +182,55 @@ export const orderApi = {
   }
 };
 
+// Chat-based pipeline actions API
+export const chatApi = {
+  async sendStructuredMessage(params: {
+    order_id: string;
+    message_type: 'text' | 'request_changes' | 'fix_applied' | 'approved';
+    content: string;
+    stage?: string;
+    parent_message_id?: string;
+    attachments?: string[];
+    action_metadata?: Record<string, any>;
+  }) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const { error } = await supabase
+      .from('messages')
+      .insert({
+        order_id: params.order_id,
+        sender_id: user.id,
+        content: params.content,
+        message_type: params.message_type,
+        stage: params.stage || null,
+        parent_message_id: params.parent_message_id || null,
+        attachments: params.attachments || null,
+        action_metadata: params.action_metadata || {}
+      });
+
+    if (error) throw error;
+    return { success: true };
+  },
+
+  async uploadChatAttachment(orderId: string, file: File): Promise<string> {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${orderId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    
+    const { data, error } = await supabase.storage
+      .from('design-files')
+      .upload(`chat-attachments/${fileName}`, file);
+    
+    if (error) throw error;
+    
+    const { data: { publicUrl } } = supabase.storage
+      .from('design-files')
+      .getPublicUrl(`chat-attachments/${fileName}`);
+    
+    return publicUrl;
+  }
+};
+
 export const manufacturerApi = {
   async findMatches(params: { design_id: string; quantity?: string; lead_time?: string; location?: string; price_range?: string; min_price?: string; max_price?: string }) {
     const { data, error } = await supabase.functions.invoke('manufacturer-matching', {
