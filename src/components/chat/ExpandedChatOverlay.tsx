@@ -46,6 +46,8 @@ interface ExpandedChatOverlayProps {
   isDesigner: boolean;
   onStageApproved?: () => void;
   onChangesRequested?: () => void;
+  // NEW: Allow pre-populating the chat with an initial issue message
+  initialIssueMessage?: string;
 }
 
 export const ExpandedChatOverlay: React.FC<ExpandedChatOverlayProps> = ({
@@ -56,7 +58,8 @@ export const ExpandedChatOverlay: React.FC<ExpandedChatOverlayProps> = ({
   stageName,
   isDesigner,
   onStageApproved,
-  onChangesRequested
+  onChangesRequested,
+  initialIssueMessage
 }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -65,6 +68,7 @@ export const ExpandedChatOverlay: React.FC<ExpandedChatOverlayProps> = ({
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [pendingAttachments, setPendingAttachments] = useState<File[]>([]);
   const [uploadingAttachments, setUploadingAttachments] = useState(false);
+  const [hasProcessedInitialMessage, setHasProcessedInitialMessage] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -76,6 +80,22 @@ export const ExpandedChatOverlay: React.FC<ExpandedChatOverlayProps> = ({
     };
     getCurrentUser();
   }, []);
+
+  // Auto-send initial issue message when chat opens
+  useEffect(() => {
+    if (isOpen && initialIssueMessage && currentUserId && !hasProcessedInitialMessage && !loading) {
+      setHasProcessedInitialMessage(true);
+      // Send the request_changes message with the issue content
+      handleSendMessage('request_changes', undefined, { reason: initialIssueMessage });
+    }
+  }, [isOpen, initialIssueMessage, currentUserId, hasProcessedInitialMessage, loading]);
+
+  // Reset the processed flag when chat closes
+  useEffect(() => {
+    if (!isOpen) {
+      setHasProcessedInitialMessage(false);
+    }
+  }, [isOpen]);
 
   // Fetch messages
   useEffect(() => {
@@ -276,6 +296,7 @@ export const ExpandedChatOverlay: React.FC<ExpandedChatOverlayProps> = ({
       .pop();
   };
 
+  // Check if current user can approve (they're the requester and there's a fix from the other party)
   const canApprove = () => {
     if (!isDesigner) return false;
     const latestFix = getLatestFixMessage();
@@ -288,9 +309,33 @@ export const ExpandedChatOverlay: React.FC<ExpandedChatOverlayProps> = ({
     return !approvalForFix;
   };
 
+  // Check if the current user is the one who needs to see the approve button
+  // (i.e., if the other party has submitted a fix)
+  const getStageStatus = () => {
+    const changesRequested = messages.filter(m => m.message_type === 'request_changes' && m.stage === stage);
+    const fixesApplied = messages.filter(m => m.message_type === 'fix_applied' && m.stage === stage);
+    const approvals = messages.filter(m => m.message_type === 'approved' && m.stage === stage);
+
+    if (approvals.length > 0) {
+      return 'approved';
+    }
+    if (fixesApplied.length > changesRequested.length) {
+      return 'fix_pending_approval';
+    }
+    if (changesRequested.length > 0) {
+      return 'changes_requested';
+    }
+    return 'open';
+  };
+
   const renderMessageBubble = (msg: ChatMessage) => {
     const isCurrentUser = msg.sender_id === currentUserId;
     const isActionMessage = msg.message_type !== 'text';
+    const latestFix = getLatestFixMessage();
+    const isLatestFix = msg.id === latestFix?.id;
+    
+    // Show approve button on fix_applied messages for the designer
+    const showApproveButton = msg.message_type === 'fix_applied' && isDesigner && isLatestFix && canApprove();
 
     if (isActionMessage) {
       return (
@@ -311,8 +356,30 @@ export const ExpandedChatOverlay: React.FC<ExpandedChatOverlayProps> = ({
             </div>
             <p className="text-sm">{msg.content}</p>
             
+            {/* Show attachments in action messages too */}
+            {msg.attachments && msg.attachments.length > 0 && (
+              <div className="mt-3 space-y-1">
+                {msg.attachments.map((url, idx) => (
+                  <a
+                    key={idx}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-xs p-2 rounded bg-background/50 hover:bg-background/80"
+                  >
+                    {url.match(/\.(jpg|jpeg|png|gif|webp)$/i) 
+                      ? <ImageIcon className="w-4 h-4" /> 
+                      : <FileText className="w-4 h-4" />
+                    }
+                    <span className="truncate flex-1">Attachment {idx + 1}</span>
+                    <Download className="w-4 h-4" />
+                  </a>
+                ))}
+              </div>
+            )}
+            
             {/* Approve button for fix_applied messages */}
-            {msg.message_type === 'fix_applied' && isDesigner && canApprove() && msg.id === getLatestFixMessage()?.id && (
+            {showApproveButton && (
               <div className="flex gap-2 justify-center mt-3">
                 <Button 
                   size="sm" 
@@ -403,6 +470,8 @@ export const ExpandedChatOverlay: React.FC<ExpandedChatOverlayProps> = ({
     );
   };
 
+  const currentStatus = getStageStatus();
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-4xl h-[90vh] p-0 flex flex-col">
@@ -419,9 +488,19 @@ export const ExpandedChatOverlay: React.FC<ExpandedChatOverlayProps> = ({
               </p>
             </div>
           </div>
-          <Badge variant="outline" className="text-destructive border-destructive/30">
-            <AlertTriangle className="w-3 h-3 mr-1" />
-            Changes Requested
+          <Badge 
+            variant="outline" 
+            className={cn(
+              currentStatus === 'approved' && "text-accent-foreground border-accent",
+              currentStatus === 'fix_pending_approval' && "text-primary border-primary/30",
+              currentStatus === 'changes_requested' && "text-destructive border-destructive/30",
+              currentStatus === 'open' && "text-muted-foreground"
+            )}
+          >
+            {currentStatus === 'approved' && <><CheckCircle className="w-3 h-3 mr-1" />Approved</>}
+            {currentStatus === 'fix_pending_approval' && <><Clock className="w-3 h-3 mr-1" />Fix Pending Approval</>}
+            {currentStatus === 'changes_requested' && <><AlertTriangle className="w-3 h-3 mr-1" />Changes Requested</>}
+            {currentStatus === 'open' && 'Open'}
           </Badge>
         </div>
 
@@ -445,7 +524,7 @@ export const ExpandedChatOverlay: React.FC<ExpandedChatOverlayProps> = ({
         <div className="px-4 py-2 border-t bg-muted/20">
           <div className="flex gap-2 flex-wrap">
             {/* Designer actions */}
-            {isDesigner && (
+            {isDesigner && currentStatus !== 'approved' && (
               <Button
                 size="sm"
                 variant="outline"
@@ -464,7 +543,7 @@ export const ExpandedChatOverlay: React.FC<ExpandedChatOverlayProps> = ({
             )}
             
             {/* Manufacturer actions */}
-            {!isDesigner && (
+            {!isDesigner && currentStatus !== 'approved' && (
               <Button
                 size="sm"
                 variant="outline"
@@ -523,7 +602,7 @@ export const ExpandedChatOverlay: React.FC<ExpandedChatOverlayProps> = ({
             <Textarea
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Type a message or add attachments..."
+              placeholder="Type a message or attach files..."
               className="resize-none min-h-[60px]"
               rows={2}
               onKeyDown={(e) => {

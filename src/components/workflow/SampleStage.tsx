@@ -79,6 +79,7 @@ const SampleStage = ({ design }: SampleStageProps) => {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [pendingIssueMessage, setPendingIssueMessage] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const fetchOrderData = async () => {
@@ -213,10 +214,13 @@ const SampleStage = ({ design }: SampleStageProps) => {
         .eq('id', orderData.id);
 
       await orderApi.rejectSample(orderData.id, feedbackNotes);
-      toast.success('Opening chat to discuss feedback with manufacturer');
       
-      // Open chat instead of just showing toast
+      // Set the pending issue message to auto-populate the chat
+      setPendingIssueMessage(feedbackNotes);
+      
+      // Open chat with the issue message pre-filled
       setChatOpen(true);
+      toast.success('Opening chat to discuss feedback with manufacturer');
     } catch (error) {
       console.error('Error rejecting sample:', error);
       toast.error('Failed to send feedback');
@@ -610,13 +614,18 @@ const SampleStage = ({ design }: SampleStageProps) => {
       {orderData?.id && (
         <ExpandedChatOverlay
           isOpen={chatOpen}
-          onClose={() => setChatOpen(false)}
+          onClose={() => {
+            setChatOpen(false);
+            setPendingIssueMessage(undefined);
+          }}
           orderId={orderData.id}
           stage="sample_development"
           stageName="Sample Development"
           isDesigner={true}
+          initialIssueMessage={pendingIssueMessage}
           onStageApproved={() => {
             setChatOpen(false);
+            setPendingIssueMessage(undefined);
             // Refetch order data
             window.location.reload();
           }}
