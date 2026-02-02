@@ -3,9 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, User, Factory } from 'lucide-react';
+import { Send, User, Factory, Paperclip, X, FileText, Image as ImageIcon, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 interface Message {
   id: string;
@@ -13,6 +15,8 @@ interface Message {
   sender_id: string;
   created_at: string;
   is_designer: boolean;
+  attachments?: string[];
+  message_type?: string;
 }
 
 interface FactoryMessagingProps {
@@ -26,7 +30,10 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [pendingAttachments, setPendingAttachments] = useState<File[]>([]);
+  const [uploadingAttachments, setUploadingAttachments] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -42,7 +49,6 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
     const fetchMessages = async () => {
       setLoading(true);
       try {
-        // First get the order to determine designer_id
         const { data: orderData, error: orderError } = await supabase
           .from('orders')
           .select('designer_id')
@@ -59,7 +65,6 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
 
         if (error) throw error;
 
-        // Mark messages from designer (not from current user perspective)
         const messagesWithRole = data.map(msg => ({
           ...msg,
           is_designer: msg.sender_id === orderData.designer_id
@@ -75,7 +80,6 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
 
     fetchMessages();
 
-    // Subscribe to new messages
     const channel = supabase
       .channel(`messages-${orderId}`)
       .on(
@@ -89,18 +93,15 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
         async (payload) => {
           const newMsg = payload.new as Message;
           
-          // Get designer_id to properly mark messages
           const { data: orderData } = await supabase
             .from('orders')
             .select('designer_id')
             .eq('id', orderId)
             .single();
           
-          // Only add if not already in the list (prevent duplicates from optimistic updates)
           setMessages(prev => {
             const exists = prev.some(msg => msg.id === newMsg.id || (msg.id.startsWith('temp-') && msg.content === newMsg.content && msg.sender_id === newMsg.sender_id));
             if (exists) {
-              // Replace temp message with real one
               return prev.map(msg => 
                 (msg.id.startsWith('temp-') && msg.content === newMsg.content && msg.sender_id === newMsg.sender_id)
                   ? { ...newMsg, is_designer: newMsg.sender_id === orderData?.designer_id }
@@ -113,7 +114,6 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
             }];
           });
           
-          // Scroll to bottom
           setTimeout(() => {
             scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
           }, 100);
@@ -127,29 +127,61 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
   }, [orderId, currentUserId]);
 
   useEffect(() => {
-    // Scroll to bottom when messages change
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const uploadAttachments = async (files: File[]): Promise<string[]> => {
+    const uploadedUrls: string[] = [];
+    
+    for (const file of files) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${orderId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from('design-files')
+        .upload(`chat-attachments/${fileName}`, file);
+      
+      if (error) throw error;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('design-files')
+        .getPublicUrl(`chat-attachments/${fileName}`);
+      
+      uploadedUrls.push(publicUrl);
+    }
+    
+    return uploadedUrls;
+  };
+
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !orderId || !currentUserId) return;
+    if (!newMessage.trim() && pendingAttachments.length === 0) return;
+    if (!orderId || !currentUserId) return;
 
     setSending(true);
+    setUploadingAttachments(pendingAttachments.length > 0);
+    
     try {
+      let attachmentUrls: string[] = [];
+      
+      if (pendingAttachments.length > 0) {
+        attachmentUrls = await uploadAttachments(pendingAttachments);
+      }
+
       const { error } = await supabase
         .from('messages')
         .insert({
           order_id: orderId,
           sender_id: currentUserId,
-          content: newMessage.trim()
+          content: newMessage.trim() || `Sent ${attachmentUrls.length} attachment(s)`,
+          attachments: attachmentUrls.length > 0 ? attachmentUrls : null
         });
 
       if (error) throw error;
 
       setNewMessage('');
+      setPendingAttachments([]);
       toast.success('Message sent');
       
-      // Immediately add the message to the local state for instant feedback
       const { data: orderData } = await supabase
         .from('orders')
         .select('designer_id')
@@ -158,15 +190,15 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
 
       const tempMessage = {
         id: `temp-${Date.now()}`,
-        content: newMessage.trim(),
+        content: newMessage.trim() || `Sent ${attachmentUrls.length} attachment(s)`,
         sender_id: currentUserId,
         created_at: new Date().toISOString(),
-        is_designer: currentUserId === orderData?.designer_id
+        is_designer: currentUserId === orderData?.designer_id,
+        attachments: attachmentUrls
       };
 
       setMessages(prev => [...prev, tempMessage]);
       
-      // Scroll to bottom immediately
       setTimeout(() => {
         scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 50);
@@ -174,7 +206,27 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
       toast.error(error.message || 'Failed to send message');
     } finally {
       setSending(false);
+      setUploadingAttachments(false);
     }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setPendingAttachments(prev => [...prev, ...files].slice(0, 10));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setPendingAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const getFileIcon = (file: File) => {
+    if (file.type.startsWith('image/')) {
+      return <ImageIcon className="w-3 h-3" />;
+    }
+    return <FileText className="w-3 h-3" />;
   };
 
   if (!orderId) {
@@ -218,13 +270,42 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
                     </div>
                   )}
                   <div
-                    className={`max-w-[70%] rounded-2xl px-4 py-3 ${
+                    className={cn(
+                      "max-w-[70%] rounded-2xl px-4 py-3",
                       msg.sender_id === currentUserId
                         ? 'bg-primary text-primary-foreground rounded-br-sm'
                         : 'bg-muted text-foreground rounded-bl-sm'
-                    }`}
+                    )}
                   >
                     <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                    
+                    {/* Attachments */}
+                    {msg.attachments && msg.attachments.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        {msg.attachments.map((url, idx) => (
+                          <a
+                            key={idx}
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={cn(
+                              "flex items-center gap-2 text-xs p-2 rounded transition-colors",
+                              msg.sender_id === currentUserId 
+                                ? "bg-primary-foreground/20 hover:bg-primary-foreground/30" 
+                                : "bg-background/50 hover:bg-background/70"
+                            )}
+                          >
+                            {url.match(/\.(jpg|jpeg|png|gif|webp)$/i) 
+                              ? <ImageIcon className="w-4 h-4" /> 
+                              : <FileText className="w-4 h-4" />
+                            }
+                            <span className="truncate flex-1">Attachment {idx + 1}</span>
+                            <Download className="w-4 h-4" />
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                    
                     <p className="text-xs opacity-70 mt-1">
                       {new Date(msg.created_at).toLocaleDateString([], {
                         month: '2-digit',
@@ -245,12 +326,46 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
           )}
         </ScrollArea>
       </div>
+      
+      {/* Pending attachments */}
+      {pendingAttachments.length > 0 && (
+        <div className="px-6 py-2 border-t">
+          <div className="flex flex-wrap gap-2">
+            {pendingAttachments.map((file, idx) => (
+              <Badge key={idx} variant="secondary" className="gap-1 pr-1">
+                {getFileIcon(file)}
+                <span className="truncate max-w-[100px]">{file.name}</span>
+                <button onClick={() => removeAttachment(idx)} className="ml-1 hover:text-destructive">
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+      
       <div className="p-6 pt-4 border-t bg-background">
         <div className="flex gap-3 items-end">
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            multiple
+            onChange={handleFileSelect}
+            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingAttachments || pendingAttachments.length >= 10}
+          >
+            <Paperclip className="w-5 h-5" />
+          </Button>
           <Textarea
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type a message..."
+            placeholder="Type a message or attach files..."
             className="resize-none min-h-[60px]"
             rows={2}
             onKeyDown={(e) => {
@@ -262,7 +377,7 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
           />
           <Button
             onClick={handleSendMessage}
-            disabled={!newMessage.trim() || sending}
+            disabled={(!newMessage.trim() && pendingAttachments.length === 0) || sending}
             size="lg"
             className="shrink-0 h-[60px] w-[60px] rounded-full"
           >

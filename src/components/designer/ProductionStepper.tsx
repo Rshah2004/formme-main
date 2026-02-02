@@ -33,18 +33,21 @@ export const ProductionStepper = ({
     switch (stepId) {
       case 'tech-pack-review':
         if (order.tech_pack_feasible === true) return 'complete';
-        if (order.tech_pack_feasible === false) return 'needs_action';
+        if (order.tech_pack_feasible === false) return 'changes_requested';
         return 'pending';
       case 'production-parameters':
         if (order.production_params_approved === true) return 'complete';
+        if (order.production_params_approved === false) return 'changes_requested';
         if (order.production_params_submitted_at && order.production_params_approved === null) return 'needs_action';
         return 'pending';
       case 'sample-development':
         if (order.sample_approved === true) return 'complete';
+        if (order.sample_approved === false) return 'changes_requested';
         if (order.sample_submitted_at && order.sample_approved === null) return 'needs_action';
         return 'pending';
       case 'quality-check':
         if (order.qc_approved === true) return 'complete';
+        if (order.qc_approved === false) return 'changes_requested';
         if (order.qc_submitted_at && order.qc_approved === null) return 'needs_action';
         return 'pending';
       case 'shipping':
@@ -74,10 +77,13 @@ export const ProductionStepper = ({
           >
             <span>{step.label}</span>
             {status === 'complete' && (
-              <span className="w-2 h-2 rounded-full bg-green-500" />
+              <span className="w-2 h-2 rounded-full bg-accent-foreground" />
             )}
             {status === 'needs_action' && (
-              <span className="w-2 h-2 rounded-full bg-amber-500" />
+              <span className="w-2 h-2 rounded-full bg-primary" />
+            )}
+            {status === 'changes_requested' && (
+              <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
             )}
           </button>
         );
