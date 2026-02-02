@@ -13,6 +13,8 @@ import { FactoryDocuments } from './FactoryDocuments';
 import { supabase } from '@/integrations/supabase/client';
 import { orderApi } from '@/lib/api';
 import { toast } from 'sonner';
+import { ExpandedChatOverlay } from '@/components/chat/ExpandedChatOverlay';
+import { StageResolutionBanner } from '@/components/chat/StageResolutionBanner';
 
 interface SampleStageProps { design: Design; }
 
@@ -76,6 +78,7 @@ const SampleStage = ({ design }: SampleStageProps) => {
   const [orderData, setOrderData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   useEffect(() => {
     const fetchOrderData = async () => {
@@ -210,7 +213,10 @@ const SampleStage = ({ design }: SampleStageProps) => {
         .eq('id', orderData.id);
 
       await orderApi.rejectSample(orderData.id, feedbackNotes);
-      toast.success('Sample feedback sent to manufacturer');
+      toast.success('Opening chat to discuss feedback with manufacturer');
+      
+      // Open chat instead of just showing toast
+      setChatOpen(true);
     } catch (error) {
       console.error('Error rejecting sample:', error);
       toast.error('Failed to send feedback');
@@ -598,6 +604,26 @@ const SampleStage = ({ design }: SampleStageProps) => {
             <FactoryDocuments />
           </div>
         </div>
+      )}
+
+      {/* Resolution Chat Overlay */}
+      {orderData?.id && (
+        <ExpandedChatOverlay
+          isOpen={chatOpen}
+          onClose={() => setChatOpen(false)}
+          orderId={orderData.id}
+          stage="sample_development"
+          stageName="Sample Development"
+          isDesigner={true}
+          onStageApproved={() => {
+            setChatOpen(false);
+            // Refetch order data
+            window.location.reload();
+          }}
+          onChangesRequested={() => {
+            // Already handled
+          }}
+        />
       )}
     </div>
   );

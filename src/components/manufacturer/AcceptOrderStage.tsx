@@ -14,7 +14,10 @@ import {
   XCircle,
   AlertTriangle,
   User,
-  MapPin
+  MapPin,
+  Download,
+  ExternalLink,
+  Image as ImageIcon
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -32,6 +35,13 @@ export const AcceptOrderStage = ({ order, onAccept, onDecline, matchStatus }: Ac
 
   const designSpecs = order?.design_specs;
   const techPackData = order?.tech_pack_data;
+  const techpack = order?.techpack;
+  const design = order?.designs;
+
+  // Get tech pack URL from multiple sources
+  const techPackUrl = techpack?.pdf_url || design?.tech_pack_url || null;
+  const designFileUrl = design?.design_file_url || null;
+  const thumbnailUrl = design?.thumbnail_url || null;
 
   const handleAccept = async () => {
     if (!order?.manufacturer_id) return;
@@ -82,16 +92,16 @@ export const AcceptOrderStage = ({ order, onAccept, onDecline, matchStatus }: Ac
   // If already accepted, show confirmation
   if (matchStatus === 'accepted') {
     return (
-      <Card className="border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-900/20">
+      <Card className="border-accent bg-accent/10">
         <CardContent className="py-8">
           <div className="flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center mb-4">
-              <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+            <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center mb-4">
+              <CheckCircle className="w-8 h-8 text-accent-foreground" />
             </div>
-            <h3 className="text-xl font-semibold text-green-800 dark:text-green-200 mb-2">
+            <h3 className="text-xl font-semibold text-accent-foreground mb-2">
               Order Accepted
             </h3>
-            <p className="text-green-700 dark:text-green-300 max-w-md">
+            <p className="text-muted-foreground max-w-md">
               You've accepted this order. Please proceed to "Review & Feasibility" to review the tech pack and submit your production parameters.
             </p>
           </div>
@@ -103,16 +113,16 @@ export const AcceptOrderStage = ({ order, onAccept, onDecline, matchStatus }: Ac
   // If declined
   if (matchStatus === 'rejected') {
     return (
-      <Card className="border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/20">
+      <Card className="border-destructive/30 bg-destructive/10">
         <CardContent className="py-8">
           <div className="flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center mb-4">
-              <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
+            <div className="w-16 h-16 rounded-full bg-destructive/20 flex items-center justify-center mb-4">
+              <XCircle className="w-8 h-8 text-destructive" />
             </div>
-            <h3 className="text-xl font-semibold text-red-800 dark:text-red-200 mb-2">
+            <h3 className="text-xl font-semibold text-destructive mb-2">
               Order Declined
             </h3>
-            <p className="text-red-700 dark:text-red-300 max-w-md">
+            <p className="text-muted-foreground max-w-md">
               You've declined this order request.
             </p>
           </div>
@@ -124,15 +134,15 @@ export const AcceptOrderStage = ({ order, onAccept, onDecline, matchStatus }: Ac
   return (
     <div className="space-y-6">
       {/* Pending Decision Banner */}
-      <Card className="border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/20">
+      <Card className="border-primary/30 bg-primary/5">
         <CardContent className="py-4">
           <div className="flex items-center gap-3">
-            <AlertTriangle className="w-6 h-6 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+            <AlertTriangle className="w-6 h-6 text-primary flex-shrink-0" />
             <div>
-              <p className="font-medium text-amber-800 dark:text-amber-200">
+              <p className="font-medium text-foreground">
                 New Order Request
               </p>
-              <p className="text-sm text-amber-700 dark:text-amber-300">
+              <p className="text-sm text-muted-foreground">
                 Review the order details below and decide if you want to take this project.
               </p>
             </div>
@@ -140,11 +150,110 @@ export const AcceptOrderStage = ({ order, onAccept, onDecline, matchStatus }: Ac
         </CardContent>
       </Card>
 
-      {/* Order Overview */}
+      {/* Design Files & Tech Pack Section - Shown Before Agreeing */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5" />
+            Design Files & Tech Pack
+          </CardTitle>
+          <CardDescription>
+            Preview the design assets before agreeing to review
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Design Thumbnail */}
+          {thumbnailUrl && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Design Preview</p>
+              <div className="relative group w-fit">
+                <img
+                  src={thumbnailUrl}
+                  alt="Design thumbnail"
+                  className="max-w-[300px] max-h-[200px] object-contain rounded-lg border"
+                />
+                <a
+                  href={thumbnailUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg"
+                >
+                  <ExternalLink className="w-6 h-6 text-white" />
+                </a>
+              </div>
+            </div>
+          )}
+
+          {/* Tech Pack Download */}
+          {techPackUrl ? (
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Tech Pack</p>
+              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border">
+                <FileText className="w-8 h-8 text-primary" />
+                <div className="flex-1">
+                  <p className="font-medium text-sm">Tech Pack PDF</p>
+                  <p className="text-xs text-muted-foreground">
+                    {techpack?.version ? `Version ${techpack.version}` : 'Latest version'}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={techPackUrl} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="w-4 h-4 mr-1" />
+                      View
+                    </a>
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={techPackUrl} download>
+                      <Download className="w-4 h-4 mr-1" />
+                      Download
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 bg-muted/30 rounded-lg border border-dashed text-center">
+              <FileText className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">No tech pack uploaded yet</p>
+            </div>
+          )}
+
+          {/* Design File Download */}
+          {designFileUrl && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Design File</p>
+              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border">
+                <ImageIcon className="w-8 h-8 text-primary" />
+                <div className="flex-1">
+                  <p className="font-medium text-sm">Original Design File</p>
+                  <p className="text-xs text-muted-foreground">Designer uploaded file</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={designFileUrl} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="w-4 h-4 mr-1" />
+                      View
+                    </a>
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={designFileUrl} download>
+                      <Download className="w-4 h-4 mr-1" />
+                      Download
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Order Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Package className="w-5 h-5" />
             Order Overview
           </CardTitle>
           <CardDescription>
@@ -156,11 +265,11 @@ export const AcceptOrderStage = ({ order, onAccept, onDecline, matchStatus }: Ac
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">Design Name</p>
-              <p className="font-medium">{order?.designs?.name || 'N/A'}</p>
+              <p className="font-medium">{design?.name || 'N/A'}</p>
             </div>
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">Category</p>
-              <p className="font-medium">{order?.designs?.category || 'N/A'}</p>
+              <p className="font-medium">{design?.category || 'N/A'}</p>
             </div>
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground flex items-center gap-1">
@@ -203,40 +312,44 @@ export const AcceptOrderStage = ({ order, onAccept, onDecline, matchStatus }: Ac
           <Separator />
 
           {/* Design Specifications */}
-          {designSpecs && (
-            <div>
-              <h4 className="font-medium mb-3 flex items-center gap-2">
-                <Ruler className="w-4 h-4" />
-                Design Specifications
-              </h4>
-              <div className="grid grid-cols-2 gap-4">
-                {designSpecs.fabric_type && (
+          <div>
+            <h4 className="font-medium mb-3 flex items-center gap-2">
+              <Ruler className="w-4 h-4" />
+              Design Specifications
+            </h4>
+            {designSpecs ? (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Fabric Type</p>
-                    <Badge variant="secondary">{designSpecs.fabric_type}</Badge>
+                    <Badge variant="secondary">{designSpecs.fabric_type || 'Not specified'}</Badge>
                   </div>
-                )}
-                {designSpecs.gsm && (
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">GSM</p>
-                    <Badge variant="secondary">{designSpecs.gsm}</Badge>
+                    <Badge variant="secondary">{designSpecs.gsm || 'Not specified'}</Badge>
                   </div>
-                )}
-                {designSpecs.print_type && (
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Print Type</p>
-                    <Badge variant="secondary">{designSpecs.print_type}</Badge>
+                    <Badge variant="secondary">{designSpecs.print_type || 'Not specified'}</Badge>
+                  </div>
+                  {designSpecs.measurements && (
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Measurements</p>
+                      <Badge variant="secondary">Available</Badge>
+                    </div>
+                  )}
+                </div>
+                {designSpecs.construction_notes && (
+                  <div className="mt-4 p-3 bg-muted/30 rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-1">Construction Notes</p>
+                    <p className="text-sm">{designSpecs.construction_notes}</p>
                   </div>
                 )}
-              </div>
-              {designSpecs.construction_notes && (
-                <div className="mt-4 p-3 bg-muted/30 rounded-lg">
-                  <p className="text-sm text-muted-foreground mb-1">Construction Notes</p>
-                  <p className="text-sm">{designSpecs.construction_notes}</p>
-                </div>
-              )}
-            </div>
-          )}
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">No specifications provided yet.</p>
+            )}
+          </div>
 
           {/* Location Preference */}
           {order?.preferred_location && (
@@ -261,7 +374,7 @@ export const AcceptOrderStage = ({ order, onAccept, onDecline, matchStatus }: Ac
                   <Package className="w-4 h-4" />
                   Sustainability Priority
                 </h4>
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                <Badge variant="outline" className="bg-accent/10 text-accent-foreground border-accent/30">
                   {order.sustainability_priority}
                 </Badge>
               </div>
@@ -281,7 +394,7 @@ export const AcceptOrderStage = ({ order, onAccept, onDecline, matchStatus }: Ac
         </CardContent>
       </Card>
 
-      {/* Decision Buttons - Tech Pack Review Request Style */}
+      {/* Decision Buttons */}
       <Card>
         <CardContent className="py-6">
           <h3 className="text-xl font-bold mb-2">Tech Pack Review Request</h3>
@@ -292,7 +405,7 @@ export const AcceptOrderStage = ({ order, onAccept, onDecline, matchStatus }: Ac
             <Button 
               onClick={handleAccept}
               disabled={accepting || declining}
-              className="bg-[#2d3b2d] hover:bg-[#3d4b3d] text-white gap-2"
+              className="gap-2"
             >
               <Clock className="w-4 h-4" />
               {accepting ? 'Accepting...' : 'Agree to Review Tech Pack'}
