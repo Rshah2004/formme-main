@@ -24,6 +24,8 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { ExpandedChatOverlay } from '@/components/chat/ExpandedChatOverlay';
+import { StageResolutionBanner } from '@/components/chat/StageResolutionBanner';
 
 interface ManufacturerReviewFeasibilityProps {
   order: any;
@@ -65,6 +67,8 @@ export const ManufacturerReviewFeasibility = ({
 }: ManufacturerReviewFeasibilityProps) => {
   const [activeSection, setActiveSection] = useState<'tech-pack' | 'production'>('tech-pack');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [pendingIssueMessage, setPendingIssueMessage] = useState<string | undefined>(undefined);
   
   // Tech Pack Review State
   const [checklist, setChecklist] = useState<ChecklistItem[]>([
@@ -230,7 +234,12 @@ export const ManufacturerReviewFeasibility = ({
         })
         .eq('id', order.id);
       
-      toast.info('Change request sent to designer');
+      // Set the pending issue message to auto-populate the chat
+      setPendingIssueMessage(notes);
+      
+      // Open chat with the issue message
+      setChatOpen(true);
+      toast.info('Opening chat to discuss changes with designer');
     } catch (error) {
       toast.error('Failed to send change request');
     } finally {
@@ -1097,6 +1106,30 @@ export const ManufacturerReviewFeasibility = ({
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Resolution Chat Overlay */}
+      {order?.id && (
+        <ExpandedChatOverlay
+          isOpen={chatOpen}
+          onClose={() => {
+            setChatOpen(false);
+            setPendingIssueMessage(undefined);
+          }}
+          orderId={order.id}
+          stage="tech_pack_review"
+          stageName="Tech Pack Review"
+          isDesigner={false}
+          initialIssueMessage={pendingIssueMessage}
+          onStageApproved={() => {
+            setChatOpen(false);
+            setPendingIssueMessage(undefined);
+            onTechPackConfirmed();
+          }}
+          onChangesRequested={() => {
+            // Already handled
+          }}
+        />
+      )}
     </div>
   );
 };

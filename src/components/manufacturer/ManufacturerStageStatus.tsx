@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Clock, AlertTriangle, XCircle, MessageCircle, Lock } from 'lucide-react';
+import { CheckCircle, Clock, AlertTriangle, Lock, MessageCircle } from 'lucide-react';
 import { ExpandedChatOverlay } from '@/components/chat/ExpandedChatOverlay';
 import { StageResolutionBanner } from '@/components/chat/StageResolutionBanner';
 import type { ChatStage } from '@/components/chat/ExpandedChatOverlay';
@@ -77,6 +77,45 @@ const STAGE_CONFIG: Record<ChatStage, StageConfigItem> = {
   }
 };
 
+// Helper to get the issue notes field for each stage
+const getIssueNotesField = (stage: ChatStage): string | undefined => {
+  switch (stage) {
+    case 'tech_pack_review':
+      return 'tech_pack_feasibility_notes';
+    case 'production_parameters':
+      return 'production_timeline_data'; // Check for rejection_reason inside this JSON
+    case 'sample_development':
+      return 'production_timeline_data'; // Check for designer_feedback inside this JSON
+    case 'quality_check':
+      return 'qc_notes';
+    default:
+      return undefined;
+  }
+};
+
+const getIssueMessage = (order: any, stage: ChatStage): string | undefined => {
+  switch (stage) {
+    case 'tech_pack_review':
+      return order?.tech_pack_feasibility_notes;
+    case 'production_parameters':
+      // Check production_timeline_data for rejection reason
+      if (order?.production_timeline_data?.rejection_reason) {
+        return order.production_timeline_data.rejection_reason;
+      }
+      return undefined;
+    case 'sample_development':
+      // Check production_timeline_data for designer feedback
+      if (order?.production_timeline_data?.designer_feedback) {
+        return order.production_timeline_data.designer_feedback;
+      }
+      return undefined;
+    case 'quality_check':
+      return order?.qc_notes;
+    default:
+      return undefined;
+  }
+};
+
 export const ManufacturerStageStatus = ({ 
   order,
   stage,
@@ -141,6 +180,7 @@ export const ManufacturerStageStatus = ({
   const statusInfo = getStatus();
   const Icon = statusInfo.icon;
   const needsResolution = statusInfo.status === 'rejected';
+  const issueMessage = getIssueMessage(order, stage);
 
   return (
     <>
@@ -150,7 +190,7 @@ export const ManufacturerStageStatus = ({
           isChangesRequested={true}
           onOpenChat={() => setChatOpen(true)}
           className="mb-4"
-          message="Designer has requested changes. Open the resolution chat to discuss, submit your fix, and get approval to proceed."
+          message={issueMessage || "Designer has requested changes. Open the resolution chat to discuss, submit your fix, and get approval to proceed."}
         />
       )}
 
@@ -191,6 +231,14 @@ export const ManufacturerStageStatus = ({
               <p className="text-sm text-foreground">
                 {statusInfo.description}
               </p>
+              
+              {/* Show the issue message from the designer */}
+              {needsResolution && issueMessage && (
+                <div className="mt-3 p-3 bg-destructive/5 border border-destructive/20 rounded-md">
+                  <p className="text-xs font-medium text-destructive mb-1">Issue reported by designer:</p>
+                  <p className="text-sm text-foreground whitespace-pre-wrap">{issueMessage}</p>
+                </div>
+              )}
               
               {statusInfo.isLocked && !needsResolution && (
                 <p className="text-xs text-muted-foreground">

@@ -14,8 +14,11 @@ import {
   AlertTriangle,
   Clock,
   Upload,
-  ClipboardCheck
+  ClipboardCheck,
+  MessageCircle
 } from 'lucide-react';
+import { ExpandedChatOverlay } from '@/components/chat/ExpandedChatOverlay';
+import { StageResolutionBanner } from '@/components/chat/StageResolutionBanner';
 
 interface QualityCheckStageProps {
   order: any;
@@ -67,6 +70,7 @@ export const QualityCheckStage = ({
     l: order.qc_photos_l || '',
     xl: order.qc_photos_xl || ''
   });
+  const [chatOpen, setChatOpen] = useState(false);
 
   const isWaitingApproval = order.qc_submitted_at && order.qc_approved === null;
   const isApproved = order.qc_approved === true;
@@ -111,6 +115,16 @@ export const QualityCheckStage = ({
         status={getStepStatus()}
       />
 
+      {/* Resolution Banner - Show when designer has requested changes */}
+      {isRejected && (
+        <StageResolutionBanner
+          stageName="Quality Check"
+          isChangesRequested={true}
+          onOpenChat={() => setChatOpen(true)}
+          message={order?.qc_notes || "Designer has reported quality issues. Open the chat to discuss and submit fixes."}
+        />
+      )}
+
       {/* Status Cards */}
       {isWaitingApproval && (
         <Card className="bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-900">
@@ -142,6 +156,37 @@ export const QualityCheckStage = ({
                 <p className="text-sm text-green-700 dark:text-green-300">
                   Proceed to Shipping & Logistics
                 </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Issues Reported Card - Show when rejected */}
+      {isRejected && (
+        <Card className="bg-destructive/10 border-destructive/30">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-destructive mt-0.5" />
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <p className="font-medium text-destructive">
+                    Quality Issues Reported
+                  </p>
+                  <Button
+                    size="sm"
+                    onClick={() => setChatOpen(true)}
+                    className="gap-1"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    Open Chat to Resolve
+                  </Button>
+                </div>
+                {order?.qc_notes && (
+                  <div className="mt-2 p-3 bg-background/50 rounded-md">
+                    <p className="text-sm whitespace-pre-wrap">{order.qc_notes}</p>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
@@ -305,6 +350,23 @@ export const QualityCheckStage = ({
             </p>
           </CardContent>
         </Card>
+      )}
+
+      {/* Resolution Chat Overlay */}
+      {order?.id && (
+        <ExpandedChatOverlay
+          isOpen={chatOpen}
+          onClose={() => setChatOpen(false)}
+          orderId={order.id}
+          stage="quality_check"
+          stageName="Quality Check"
+          isDesigner={false}
+          onStageApproved={() => {
+            setChatOpen(false);
+            window.location.reload();
+          }}
+          onChangesRequested={() => {}}
+        />
       )}
     </div>
   );

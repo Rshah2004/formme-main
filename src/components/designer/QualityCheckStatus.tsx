@@ -7,6 +7,15 @@ import { orderApi } from '@/lib/api';
 import { toast } from 'sonner';
 import { ExpandedChatOverlay } from '@/components/chat/ExpandedChatOverlay';
 import { StageResolutionBanner } from '@/components/chat/StageResolutionBanner';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 interface QualityCheckStatusProps {
   order: any;
@@ -23,6 +32,9 @@ export const QualityCheckStatus = ({
 }: QualityCheckStatusProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [issueDialogOpen, setIssueDialogOpen] = useState(false);
+  const [issueMessage, setIssueMessage] = useState('');
+  const [pendingIssueMessage, setPendingIssueMessage] = useState<string | undefined>(undefined);
 
   const getStatus = () => {
     if (order?.qc_approved === true) {
@@ -83,8 +95,35 @@ export const QualityCheckStatus = ({
     }
   };
 
-  const handleRequestChanges = () => {
-    setChatOpen(true);
+  const handleOpenIssueDialog = () => {
+    setIssueMessage('');
+    setIssueDialogOpen(true);
+  };
+
+  const handleSubmitIssue = async () => {
+    if (!issueMessage.trim()) {
+      toast.error('Please describe the issue');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      // First reject the QC with the issue message
+      await orderApi.rejectQC(order.id, issueMessage);
+      setIssueDialogOpen(false);
+      
+      // Set the pending issue message to auto-populate the chat
+      setPendingIssueMessage(issueMessage);
+      setIssueMessage('');
+      
+      // Open the chat with the issue message pre-filled
+      setChatOpen(true);
+      onReject?.();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to report issues');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const statusInfo = getStatus();
@@ -109,6 +148,7 @@ export const QualityCheckStatus = ({
           isChangesRequested={true}
           onOpenChat={() => setChatOpen(true)}
           className="mb-4"
+          message={order?.qc_notes || undefined}
         />
       )}
 
@@ -190,7 +230,7 @@ export const QualityCheckStatus = ({
               </Button>
               <Button
                 variant="outline"
-                onClick={handleRequestChanges}
+                onClick={handleOpenIssueDialog}
                 disabled={isSubmitting}
               >
                 <MessageCircle className="w-4 h-4 mr-2" />
@@ -201,16 +241,55 @@ export const QualityCheckStatus = ({
         </CardContent>
       </Card>
 
+      {/* Issue Dialog */}
+      <Dialog open={issueDialogOpen} onOpenChange={setIssueDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Report Quality Issues</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Describe the issues found</Label>
+              <Textarea
+                value={issueMessage}
+                onChange={(e) => setIssueMessage(e.target.value)}
+                placeholder="Describe the quality issues in detail..."
+                rows={4}
+              />
+              <p className="text-xs text-muted-foreground">
+                This message will be sent to the manufacturer and the chat will open for further discussion.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIssueDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSubmitIssue} 
+              disabled={isSubmitting || !issueMessage.trim()}
+            >
+              Submit & Open Chat
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {order?.id && (
         <ExpandedChatOverlay
           isOpen={chatOpen}
-          onClose={() => setChatOpen(false)}
+          onClose={() => {
+            setChatOpen(false);
+            setPendingIssueMessage(undefined);
+          }}
           orderId={order.id}
           stage="quality_check"
           stageName="Quality Check"
           isDesigner={true}
+          initialIssueMessage={pendingIssueMessage}
           onStageApproved={() => {
             setChatOpen(false);
+            setPendingIssueMessage(undefined);
             onApprove?.();
             onRefresh?.();
           }}
