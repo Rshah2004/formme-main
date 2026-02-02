@@ -94,10 +94,10 @@ const ManufacturerOrderWorkspace = () => {
 
         if (orderError) throw orderError;
 
-        // Fetch design details
+        // Fetch design details with URLs
         const { data: designData, error: designError } = await supabase
           .from('designs')
-          .select('id, name, category, user_id')
+          .select('id, name, category, user_id, design_file_url, tech_pack_url, thumbnail_url')
           .eq('id', orderData.design_id)
           .maybeSingle();
 
@@ -108,6 +108,15 @@ const ManufacturerOrderWorkspace = () => {
           .from('design_specs')
           .select('*')
           .eq('design_id', orderData.design_id)
+          .maybeSingle();
+
+        // Fetch techpack if exists
+        const { data: techpackData } = await supabase
+          .from('techpacks')
+          .select('id, pdf_url, version, created_at')
+          .eq('design_id', orderData.design_id)
+          .order('version', { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         // Fetch designer profile
@@ -132,6 +141,7 @@ const ManufacturerOrderWorkspace = () => {
           ...orderData,
           designs: designData,
           design_specs: specsData,
+          techpack: techpackData,
           profiles: profile 
             ? { full_name: profile.full_name || profile.company_name || 'Unknown' }
             : { full_name: 'Unknown' },
