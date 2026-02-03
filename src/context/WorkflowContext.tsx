@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 interface WorkflowData {
   // Tech Pack
@@ -118,11 +118,21 @@ const initialData: WorkflowData = {
 
 
 export const WorkflowProvider = ({ children, initialStage }: { children: ReactNode; initialStage?: string }) => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [workflowData, setWorkflowData] = useState<WorkflowData>(initialData);
   const [currentStage, setCurrentStageState] = useState(initialStage || 'upload-tech-pack');
   const [completedStages, setCompletedStages] = useState<string[]>([]);
   const [furthestStage, setFurthestStage] = useState<string>(initialStage || 'upload-tech-pack');
+
+  // Sync URL when stage changes
+  const updateUrlWithStage = useCallback((stage: string) => {
+    const designId = searchParams.get('designId');
+    if (designId) {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set('stage', stage);
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     console.log('[CTX] currentStage changed →', currentStage);
@@ -207,6 +217,9 @@ export const WorkflowProvider = ({ children, initialStage }: { children: ReactNo
     
     if (force || isStageAccessible(stage) || completedStages.includes(stage) || isImmediateNext) {
       setCurrentStageState(stage);
+      
+      // Update URL with new stage
+      updateUrlWithStage(stage);
       
       // Update furthest stage if we're advancing
       if (stageIndex > stages.indexOf(furthestStage)) {

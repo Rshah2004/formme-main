@@ -451,6 +451,11 @@ export type Database = {
           sample_approved: boolean | null
           sample_submitted_at: string | null
           shipping_address: string | null
+          shipping_carton_count: number | null
+          shipping_confirmed_at: string | null
+          shipping_notes: string | null
+          shipping_terms: string | null
+          shipping_tracking_number: string | null
           shrinkage: string | null
           status: Database["public"]["Enums"]["order_status"] | null
           sustainability_priority: string | null
@@ -495,6 +500,11 @@ export type Database = {
           sample_approved?: boolean | null
           sample_submitted_at?: string | null
           shipping_address?: string | null
+          shipping_carton_count?: number | null
+          shipping_confirmed_at?: string | null
+          shipping_notes?: string | null
+          shipping_terms?: string | null
+          shipping_tracking_number?: string | null
           shrinkage?: string | null
           status?: Database["public"]["Enums"]["order_status"] | null
           sustainability_priority?: string | null
@@ -539,6 +549,11 @@ export type Database = {
           sample_approved?: boolean | null
           sample_submitted_at?: string | null
           shipping_address?: string | null
+          shipping_carton_count?: number | null
+          shipping_confirmed_at?: string | null
+          shipping_notes?: string | null
+          shipping_terms?: string | null
+          shipping_tracking_number?: string | null
           shrinkage?: string | null
           status?: Database["public"]["Enums"]["order_status"] | null
           sustainability_priority?: string | null
