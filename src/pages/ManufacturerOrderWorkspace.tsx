@@ -120,6 +120,18 @@ const ManufacturerOrderWorkspace = () => {
           .limit(1)
           .maybeSingle();
 
+        // Fetch color variant images if exists
+        const { data: imageVariants } = await supabase
+          .from('design_variants')
+          .select('id, size, color, quantity, image_url, created_at')
+          .eq('design_id', orderData.design_id)
+
+        // Fetch pattern variant if exists
+        const { data: printVariants } = await supabase
+          .from('design_print_colors')
+          .select('id, print_type, notes, file_url, created_at')
+          .eq('design_id', orderData.design_id)
+
         // Fetch designer profile
         const { data: profile } = await supabase
           .from('profiles')
@@ -146,7 +158,9 @@ const ManufacturerOrderWorkspace = () => {
           profiles: profile 
             ? { full_name: profile.full_name || profile.company_name || 'Unknown' }
             : { full_name: 'Unknown' },
-          match_status: matchStatusValue
+          match_status: matchStatusValue,
+          image_variants: imageVariants,
+          print_variants: printVariants
         });
 
         // Auto-navigate based on status

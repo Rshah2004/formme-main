@@ -98,7 +98,10 @@ const DesignStage = ({ design }: DesignStageProps) => {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { 'image/svg+xml': ['.svg'] },
+    accept: {
+      'image/svg+xml': ['.svg'],
+      'application/pdf': ['.pdf'],
+    },
     maxFiles: 1,
     disabled: isContractFinalized
   });
