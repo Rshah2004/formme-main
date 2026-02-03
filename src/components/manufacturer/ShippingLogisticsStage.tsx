@@ -44,21 +44,22 @@ export const ShippingLogisticsStage = ({
   onConfirmReadyForShipment,
   isSubmitting = false
 }: ShippingLogisticsStageProps) => {
+  // Initialize from order data if shipping was already confirmed
   const [formData, setFormData] = useState<ShippingData>({
-    shippingResponsibility: 'fob',
+    shippingResponsibility: (order.shipping_terms as ShippingData['shippingResponsibility']) || 'fob',
     destinationCountry: order.preferred_location || '',
     packingMethod: 'standard',
-    cartonCount: 1,
-    trackingNumber: '',
-    notes: ''
+    cartonCount: order.shipping_carton_count || 1,
+    trackingNumber: order.shipping_tracking_number || '',
+    notes: order.shipping_notes || ''
   });
 
-  const isConfirmed = order.status === 'shipping' || order.status === 'delivered';
+  const isConfirmed = !!order.shipping_confirmed_at || order.status === 'shipping' || order.status === 'delivered';
   const canSubmit = formData.destinationCountry && formData.cartonCount > 0;
 
   const getStepStatus = () => {
     if (order.status === 'delivered') return 'completed';
-    if (order.status === 'shipping') return 'ready';
+    if (order.status === 'shipping' || order.shipping_confirmed_at) return 'ready';
     return 'in_progress';
   };
 

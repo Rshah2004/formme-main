@@ -14,6 +14,7 @@ import { FloatingMessagesWidget } from '@/components/workflow/FloatingMessagesWi
 import { ManufacturerMessaging } from '@/components/manufacturer/ManufacturerMessaging';
 import { ManufacturerReviewFeasibility } from '@/components/manufacturer/ManufacturerReviewFeasibility';
 import { AcceptOrderStage } from '@/components/manufacturer/AcceptOrderStage';
+import { ShippingLogisticsStage } from '@/components/manufacturer/ShippingLogisticsStage';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -1077,73 +1078,48 @@ const ManufacturerOrderWorkspace = () => {
 
             {/* Shipping Content */}
             {activeTab === 'shipping' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Shipping & Logistics</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <h3 className="font-semibold">Upload Documents</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    {[
-                      'Packing List',
-                      'Invoice',
-                      'Customs Documents',
-                      'Shipping Label',
-                    ].map((doc) => (
-                      <div key={doc} className="space-y-2">
-                        <Label className="text-sm">{doc}</Label>
-                        <div className="border border-border rounded-lg p-3 text-center">
-                          <Input type="file" className="hidden" id={doc.toLowerCase().replace(' ', '-')} />
-                          <Label htmlFor={doc.toLowerCase().replace(' ', '-')} className="cursor-pointer">
-                            <Button variant="outline" size="sm" className="gap-2" asChild>
-                              <span>
-                                <Upload className="w-3 h-3" />
-                                Upload
-                              </span>
-                            </Button>
-                          </Label>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <Label>Tracking Status</Label>
-                  <div className="space-y-2">
-                    {['In Transit', 'At Customs', 'Delivered'].map((status) => (
-                      <label key={status} className="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="tracking" className="w-4 h-4" />
-                        <span className="text-sm">{status}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="pt-4 border-t">
-                  <h3 className="font-semibold mb-3">Tracking Timeline</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full bg-primary" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Order Shipped</p>
-                        <p className="text-xs text-muted-foreground">Jan 15, 2025</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full bg-muted" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-muted-foreground">
-                          In Transit
-                        </p>
-                        <p className="text-xs text-muted-foreground">Expected Jan 20</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              <ShippingLogisticsStage
+                order={order}
+                isSubmitting={submitting}
+                onConfirmReadyForShipment={async (shippingData) => {
+                  if (!order?.id) return;
+                  
+                  setSubmitting(true);
+                  try {
+                    const { error } = await supabase
+                      .from('orders')
+                      .update({
+                        shipping_terms: shippingData.shippingResponsibility,
+                        shipping_carton_count: shippingData.cartonCount,
+                        shipping_tracking_number: shippingData.trackingNumber || null,
+                        shipping_notes: shippingData.notes || null,
+                        shipping_confirmed_at: new Date().toISOString(),
+                        status: 'shipping'
+                      })
+                      .eq('id', order.id);
+
+                    if (error) throw error;
+
+                    toast.success('Shipping confirmed! Designer will be notified.');
+                    
+                    // Refresh order data
+                    const { data: updatedOrder } = await supabase
+                      .from('orders')
+                      .select('*')
+                      .eq('id', order.id)
+                      .single();
+                    
+                    if (updatedOrder) {
+                      setOrder({ ...order, ...updatedOrder });
+                    }
+                  } catch (error) {
+                    console.error('Error confirming shipping:', error);
+                    toast.error('Failed to confirm shipping');
+                  } finally {
+                    setSubmitting(false);
+                  }
+                }}
+              />
             )}
           </div>
         </div>
