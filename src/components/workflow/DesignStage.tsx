@@ -54,8 +54,14 @@ const DesignStage = ({ design }: DesignStageProps) => {
     const file = acceptedFiles[0];
     if (!file) return;
 
-    if (!file.type.includes('svg')) {
-      toast.error('Please upload an SVG file');
+    const allowedTypes = [
+      'image/svg+xml',
+      'application/pdf',
+      'image/png',
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Please upload an SVG, PDF, or PNG file');
       return;
     }
 
@@ -101,6 +107,7 @@ const DesignStage = ({ design }: DesignStageProps) => {
     accept: {
       'image/svg+xml': ['.svg'],
       'application/pdf': ['.pdf'],
+      'image/png': ['.png'],
     },
     maxFiles: 1,
     disabled: isContractFinalized
@@ -212,7 +219,7 @@ const DesignStage = ({ design }: DesignStageProps) => {
       <Card className="border-border">
         <CardHeader className="pb-4">
           <CardTitle className="text-base">Design File</CardTitle>
-          <CardDescription>Upload your garment design as an SVG file</CardDescription>
+          <CardDescription>Upload your garment design as an SVG, PNG, or PDF file</CardDescription>
         </CardHeader>
         <CardContent>
           <div

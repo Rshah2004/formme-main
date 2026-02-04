@@ -79,7 +79,6 @@ const ManufacturerOrderWorkspace = () => {
   const [qcPhotosL, setQcPhotosL] = useState<string>('');
   const [qcPhotosXL, setQcPhotosXL] = useState<string>('');
   const [qcNotes, setQcNotes] = useState('');
-  const [qcResult, setQcResult] = useState<string>('');
 
   useEffect(() => {
   const fetchOrder = async () => {
@@ -445,8 +444,13 @@ const ManufacturerOrderWorkspace = () => {
 
     setSubmitting(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
+      const safeName = `qc-${Date.now()}.${ext}`;
+
       const fileExt = file.name.split('.').pop();
-      const fileName = `${order.id}/qc-${size.toLowerCase()}-${Date.now()}.${fileExt}`;
+      const fileName = `${order.designer_id}/qc/${safeName}`;
       
       const { error: uploadError, data } = await supabase.storage
         .from('design-files')
@@ -474,7 +478,7 @@ const ManufacturerOrderWorkspace = () => {
   };
 
   const handleSubmitQC = async () => {
-    if (!order?.id || !qcResult) return;
+    if (!order?.id ) return;
 
     setSubmitting(true);
     try {
@@ -486,7 +490,6 @@ const ManufacturerOrderWorkspace = () => {
           qc_photos_l: qcPhotosL || null,
           qc_photos_xl: qcPhotosXL || null,
           qc_notes: qcNotes || null,
-          qc_result: qcResult,
           qc_submitted_at: new Date().toISOString(),
           qc_approved: null // Reset approval status
         })
@@ -1046,35 +1049,11 @@ const ManufacturerOrderWorkspace = () => {
                   />
                 </div>
                 
-                <div className="space-y-3">
-                  <Label>Overall QC Result</Label>
-                  <div className="flex gap-3">
-                    <Button 
-                      variant={qcResult === 'passed' ? 'default' : 'outline'} 
-                      className="flex-1 gap-2"
-                      onClick={() => setQcResult('passed')}
-                      disabled={order?.qc_approved === true}
-                    >
-                      <CheckCircle className="w-4 h-4" />
-                      Passed
-                    </Button>
-                    <Button 
-                      variant={qcResult === 'needs_fixes' ? 'default' : 'outline'} 
-                      className="flex-1 gap-2"
-                      onClick={() => setQcResult('needs_fixes')}
-                      disabled={order?.qc_approved === true}
-                    >
-                      <XCircle className="w-4 h-4" />
-                      Needs Fixes
-                    </Button>
-                  </div>
-                </div>
-                
                 <div className="flex items-center gap-3 pt-4 border-t">
                   <Button 
                     className="flex-1"
                     onClick={handleSubmitQC}
-                    disabled={submitting || !qcResult || order?.qc_approved === true}
+                    disabled={submitting || order?.qc_approved === true}
                   >
                     {submitting ? 'Submitting...' : 'Submit QC to Designer'}
                   </Button>
@@ -1095,7 +1074,7 @@ const ManufacturerOrderWorkspace = () => {
               <ShippingLogisticsStage
                 order={order}
                 isSubmitting={submitting}
-                onConfirmReadyForShipment={async (shippingData) => {
+                onSubmitShipping={async (shippingData) => {
                   if (!order?.id) return;
                   
                   setSubmitting(true);
@@ -1103,10 +1082,10 @@ const ManufacturerOrderWorkspace = () => {
                     const { error } = await supabase
                       .from('orders')
                       .update({
-                        shipping_terms: shippingData.shippingResponsibility,
-                        shipping_carton_count: shippingData.cartonCount,
-                        shipping_tracking_number: shippingData.trackingNumber || null,
-                        shipping_notes: shippingData.notes || null,
+                        shipping_tracking_url: shippingData.shipping_tracking_url,
+                        shipping_carrier: shippingData.shipping_carrier,
+                        shipped_at: shippingData.shipped_at || null,
+                        shipping_notes: shippingData.shipping_notes || null,
                         shipping_confirmed_at: new Date().toISOString(),
                         status: 'shipping'
                       })
