@@ -8,6 +8,9 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format, addDays } from 'date-fns';
 import { 
   FileDown, 
   CheckCircle, 
@@ -18,7 +21,7 @@ import {
   Clock,
   Package,
   Layers,
-  Calendar,
+  CalendarIcon,
   Lock,
   AlertCircle
 } from 'lucide-react';
@@ -26,6 +29,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ExpandedChatOverlay } from '@/components/chat/ExpandedChatOverlay';
 import { StageResolutionBanner } from '@/components/chat/StageResolutionBanner';
+import { cn } from '@/lib/utils';
 
 interface ManufacturerReviewFeasibilityProps {
   order: any;
@@ -44,6 +48,7 @@ interface ChecklistItem {
 
 interface ProductionFeasibilityData {
   estimatedLeadTimeDays: number;
+  estimatedDeliveryDate: Date | null;
   moqAchievable: boolean;
   moqNote?: string;
   fabricSourcing: 'designer_provided' | 'manufacturer_sourcing';
@@ -127,6 +132,7 @@ export const ManufacturerReviewFeasibility = ({
 
   const [productionData, setProductionData] = useState<ProductionFeasibilityData>({
     estimatedLeadTimeDays: order?.lead_time_days || 21,
+    estimatedDeliveryDate: order?.production_completion_date ? new Date(order.production_completion_date) : null,
     moqAchievable: true,
     fabricSourcing: 'manufacturer_sourcing',
     capacityAvailable: true,
@@ -279,6 +285,7 @@ export const ManufacturerReviewFeasibility = ({
       // Save complete production details to production_timeline_data for designer review
       const productionTimelineData = {
         lead_time_days: productionData.estimatedLeadTimeDays,
+        estimated_delivery_date: productionData.estimatedDeliveryDate?.toISOString() || null,
         moq_achievable: productionData.moqAchievable,
         moq_note: productionNotes.moq || null,
         fabric_sourcing: productionData.fabricSourcing,
@@ -303,6 +310,7 @@ export const ManufacturerReviewFeasibility = ({
           tech_pack_feasibility_notes: techPackNotes || null,
           tech_pack_checklist: JSON.parse(JSON.stringify(checklist)),
           production_start_date: new Date().toISOString(),
+          production_completion_date: productionData.estimatedDeliveryDate?.toISOString().split('T')[0] || null,
           lead_time_days: productionData.estimatedLeadTimeDays,
           fabric_type: productionData.fabricSourcing === 'manufacturer_sourcing' ? 'Manufacturer sourcing' : 'Designer provided',
           production_params_submitted_at: new Date().toISOString(),
@@ -312,7 +320,7 @@ export const ManufacturerReviewFeasibility = ({
           // IMPORTANT: Do NOT set order status here.
           // The designer must explicitly click "Finalize Contract" to select a manufacturer.
           updated_at: new Date().toISOString()
-        })
+        } as any)
         .eq('id', order.id);
       
       toast.success('Production feasibility confirmed. Awaiting designer approval.');
@@ -687,29 +695,59 @@ export const ManufacturerReviewFeasibility = ({
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-2">
                     <Clock className="w-5 h-5 text-primary" />
-                    <CardTitle className="text-lg">Lead Time Confirmation</CardTitle>
+                    <CardTitle className="text-lg">Lead Time / Delivery Date</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1 max-w-xs">
-                      <Label htmlFor="lead-time">Days from order confirmation to delivery</Label>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Input
-                          id="lead-time"
-                          type="number"
-                          min="1"
-                          max="180"
-                          value={productionData.estimatedLeadTimeDays}
-                          onChange={(e) => setProductionData(prev => ({ 
-                            ...prev, 
-                            estimatedLeadTimeDays: parseInt(e.target.value) || 0 
-                          }))}
-                          className="w-24"
-                        />
-                        <span className="text-muted-foreground">days</span>
-                      </div>
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Expected Delivery Date</Label>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Select the date when you expect to deliver the completed order
+                      </p>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !productionData.estimatedDeliveryDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {productionData.estimatedDeliveryDate ? (
+                              format(productionData.estimatedDeliveryDate, "PPP")
+                            ) : (
+                              <span>Pick a delivery date</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={productionData.estimatedDeliveryDate || undefined}
+                            onSelect={(date) => {
+                              setProductionData(prev => ({
+                                ...prev,
+                                estimatedDeliveryDate: date || null,
+                                estimatedLeadTimeDays: date ? Math.ceil((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : prev.estimatedLeadTimeDays
+                              }));
+                            }}
+                            disabled={(date) => date < new Date()}
+                            initialFocus
+                            className={cn("p-3 pointer-events-auto")}
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
+                    {productionData.estimatedDeliveryDate && (
+                      <div className="p-3 bg-muted/50 rounded-lg text-sm">
+                        <span className="text-muted-foreground">Estimated lead time: </span>
+                        <span className="font-medium">
+                          {Math.ceil((productionData.estimatedDeliveryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

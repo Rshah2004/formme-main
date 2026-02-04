@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Upload, ArrowRight, Sparkles, Clock, AlertCircle, Lock } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Upload, ArrowRight, Sparkles, Clock, AlertCircle, Lock, FileText, X, Plus } from 'lucide-react';
 import { useWorkflow } from '@/context/WorkflowContext';
 import { useDropzone } from 'react-dropzone';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +16,12 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface DesignStageProps {
   design: any;
+}
+
+interface DesignFile {
+  name: string;
+  url: string;
+  type: string;
 }
 
 const DesignStage = ({ design }: DesignStageProps) => {
@@ -28,13 +35,21 @@ const DesignStage = ({ design }: DesignStageProps) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(design?.design_file_url || null);
   const [isUploading, setIsUploading] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  
+  // New fields
+  const [quantity, setQuantity] = useState<string>(design?.quantity?.toString() || '');
+  const [sampleTypePreference, setSampleTypePreference] = useState<'digital' | 'physical'>('physical');
+  const [designFiles, setDesignFiles] = useState<DesignFile[]>([]);
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
 
   // Track completion status
   const isDesignUploaded = !!previewUrl;
   const isNameFilled = designName.trim().length > 0;
+  const isQuantityFilled = quantity.trim().length > 0 && parseInt(quantity) > 0;
   const incompleteItems = [
     !isDesignUploaded && 'Design file upload',
     !isNameFilled && 'Design name',
+    !isQuantityFilled && 'Quantity required',
   ].filter(Boolean) as string[];
   const isComplete = incompleteItems.length === 0;
 
@@ -113,6 +128,67 @@ const DesignStage = ({ design }: DesignStageProps) => {
     disabled: isContractFinalized
   });
 
+  // Handle multiple design files upload
+  const onDropFiles = useCallback(async (acceptedFiles: File[]) => {
+    if (isContractFinalized) {
+      toast.error('Cannot modify design after contract is finalized');
+      return;
+    }
+
+    setIsUploadingFiles(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const uploadedFiles: DesignFile[] = [];
+      
+      for (const file of acceptedFiles) {
+        const fileExt = file.name.split('.').pop();
+        const filePath = `${user.id}/${design.id}/files/${Date.now()}_${file.name}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('design-files')
+          .upload(filePath, file, { upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('design-files')
+          .getPublicUrl(filePath);
+
+        uploadedFiles.push({
+          name: file.name,
+          url: publicUrl,
+          type: file.type
+        });
+      }
+
+      setDesignFiles(prev => [...prev, ...uploadedFiles]);
+      setHasUnsavedChanges(true);
+      toast.success(`${uploadedFiles.length} file(s) uploaded successfully`);
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload files');
+    } finally {
+      setIsUploadingFiles(false);
+    }
+  }, [design?.id, isContractFinalized]);
+
+  const { getRootProps: getFilesRootProps, getInputProps: getFilesInputProps, isDragActive: isFilesDragActive } = useDropzone({
+    onDrop: onDropFiles,
+    accept: {
+      'image/*': ['.png', '.jpg', '.jpeg', '.svg'],
+      'application/pdf': ['.pdf'],
+      'application/zip': ['.zip'],
+    },
+    disabled: isContractFinalized
+  });
+
+  const removeDesignFile = (index: number) => {
+    setDesignFiles(prev => prev.filter((_, i) => i !== index));
+    setHasUnsavedChanges(true);
+  };
+
   const handleSave = async () => {
     if (isContractFinalized) {
       toast.error('Cannot save changes after contract is finalized');
@@ -120,10 +196,37 @@ const DesignStage = ({ design }: DesignStageProps) => {
     }
 
     try {
+      // Save to designs table
       await supabase
         .from('designs')
         .update({ name: designName, description })
         .eq('id', design.id);
+
+      // Save quantity and other data to orders table (via production_timeline_data)
+      // This will be read by manufacturer in AcceptOrderStage
+      const { data: existingOrder } = await supabase
+        .from('orders')
+        .select('id, production_timeline_data')
+        .eq('design_id', design.id)
+        .maybeSingle();
+
+      if (existingOrder) {
+        const existingData = (typeof existingOrder.production_timeline_data === 'object' && existingOrder.production_timeline_data !== null) 
+          ? existingOrder.production_timeline_data as Record<string, any>
+          : {};
+        await supabase
+          .from('orders')
+          .update({
+            quantity: parseInt(quantity) || null,
+            production_timeline_data: {
+              ...existingData,
+              sample_type_preference: sampleTypePreference,
+              design_files: designFiles
+            }
+          } as any)
+          .eq('id', existingOrder.id);
+      }
+
       setHasUnsavedChanges(false);
       toast.success('Changes saved');
     } catch (error) {
@@ -133,11 +236,8 @@ const DesignStage = ({ design }: DesignStageProps) => {
   };
 
   const saveAndContinue = async (markComplete: boolean) => {
-    if (checkForChanges() && !isContractFinalized) {
-      await supabase
-        .from('designs')
-        .update({ name: designName, description })
-        .eq('id', design.id);
+    if ((checkForChanges() || hasUnsavedChanges) && !isContractFinalized) {
+      await handleSave();
     }
 
     if (markComplete) {
@@ -303,6 +403,25 @@ const DesignStage = ({ design }: DesignStageProps) => {
             />
           </div>
           <div className="space-y-2">
+            <Label htmlFor="quantity">Quantity Required *</Label>
+            <Input
+              id="quantity"
+              type="number"
+              min="1"
+              value={quantity}
+              onChange={(e) => {
+                setQuantity(e.target.value);
+                setHasUnsavedChanges(true);
+              }}
+              placeholder="e.g., 500"
+              className="max-w-md"
+              disabled={isContractFinalized}
+            />
+            <p className="text-xs text-muted-foreground">
+              Minimum order quantity for production
+            </p>
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="description">Description (optional)</Label>
             <Textarea
               id="description"
@@ -314,6 +433,103 @@ const DesignStage = ({ design }: DesignStageProps) => {
               disabled={isContractFinalized}
             />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Sample Type Preference */}
+      <Card className="border-border">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Sample Requirements</CardTitle>
+          <CardDescription>Select what type of sample you need from the manufacturer</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <RadioGroup
+            value={sampleTypePreference}
+            onValueChange={(value: 'digital' | 'physical') => {
+              setSampleTypePreference(value);
+              setHasUnsavedChanges(true);
+            }}
+            disabled={isContractFinalized}
+          >
+            <div className="flex items-start gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+              <RadioGroupItem value="physical" id="physical-sample" className="mt-1" />
+              <div className="flex-1">
+                <Label htmlFor="physical-sample" className="cursor-pointer font-medium">
+                  Physical Sample
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Request an actual physical sample to be shipped to you before production
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+              <RadioGroupItem value="digital" id="digital-sample" className="mt-1" />
+              <div className="flex-1">
+                <Label htmlFor="digital-sample" className="cursor-pointer font-medium">
+                  Digital Sample
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Receive high-quality photos/renders of the sample instead of physical delivery
+                </p>
+              </div>
+            </div>
+          </RadioGroup>
+        </CardContent>
+      </Card>
+
+      {/* Additional Design Files */}
+      <Card className="border-border">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Additional Design Files</CardTitle>
+          <CardDescription>Upload reference images, patterns, artwork, or any supporting documents</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div
+            {...getFilesRootProps()}
+            className={cn(
+              "border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer",
+              isFilesDragActive ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
+              isContractFinalized && "cursor-not-allowed opacity-60"
+            )}
+          >
+            <input {...getFilesInputProps()} />
+            <div className="flex flex-col items-center gap-2">
+              <Plus className="w-8 h-8 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                {isFilesDragActive ? "Drop files here" : "Drag & drop or click to upload multiple files"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Images, PDFs, ZIPs supported
+              </p>
+            </div>
+          </div>
+
+          {isUploadingFiles && (
+            <div className="mt-3 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              Uploading files...
+            </div>
+          )}
+
+          {designFiles.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {designFiles.map((file, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-2 bg-muted/50 rounded-lg">
+                  <FileText className="w-4 h-4 text-primary flex-shrink-0" />
+                  <span className="text-sm flex-1 truncate">{file.name}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => removeDesignFile(idx)}
+                    disabled={isContractFinalized}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
