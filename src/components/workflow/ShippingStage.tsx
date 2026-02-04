@@ -121,143 +121,79 @@ const ShippingStage = ({ design }: ShippingStageProps) => {
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 space-y-6">
           {/* Shipping Details from Manufacturer */}
+{isShippingConfirmed && (
+  <section>
+    <h3 className="text-sm font-semibold text-foreground mb-3">
+      Shipping Details
+    </h3>
+
+    <Card>
+      <CardContent className="p-6 space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Carrier</p>
+            <p className="text-sm font-medium">
+              {order.shipping_carrier}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Dispatch Date</p>
+            <p className="text-sm font-medium">
+              {new Date(order.shipped_at).toLocaleDateString()}
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-xs text-muted-foreground mb-1">Tracking</p>
+          <a
+            href={order.shipping_tracking_url}
+            target="_blank"
+            rel="noreferrer"
+            className="text-sm text-primary underline"
+          >
+            View tracking link
+          </a>
+        </div>
+
+        {order.shipping_notes && (
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Notes</p>
+            <p className="text-sm">{order.shipping_notes}</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  </section>
+)}
           {isShippingConfirmed && (
-            <section>
-              <h3 className="text-sm font-semibold text-foreground mb-3">Shipping Details</h3>
-              <Card className="border-border">
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    {order?.shipping_terms && (
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Shipping Terms</p>
-                        <p className="text-sm font-medium uppercase">{order.shipping_terms}</p>
-                      </div>
-                    )}
-                    {order?.shipping_carton_count && (
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Carton Count</p>
-                        <p className="text-sm font-medium">{order.shipping_carton_count} cartons</p>
-                      </div>
-                    )}
-                    {order?.shipping_tracking_number && (
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Tracking Number</p>
-                        <p className="text-sm font-medium font-mono">{order.shipping_tracking_number}</p>
-                      </div>
-                    )}
-                    {order?.shipping_notes && (
-                      <div className="col-span-2">
-                        <p className="text-xs text-muted-foreground mb-1">Notes</p>
-                        <p className="text-sm">{order.shipping_notes}</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </section>
-          )}
+  <section>
+    <h3 className="text-sm font-semibold text-foreground mb-3">
+      Package Photos
+    </h3>
 
-          {/* Shipment Progress */}
-          <section>
-            <h3 className="text-sm font-semibold text-foreground mb-3">Shipment Status</h3>
-            <Card className="border-border">
-              <CardContent className="p-6">
-                <div className="space-y-6">
-                  {/* Progress Bar */}
-                  <div className="relative">
-                    <div className="flex items-center justify-between">
-                      {shipmentStages.map((stage, idx) => {
-                        const Icon = stage.icon;
-                        const isComplete = idx <= currentStageIndex;
-                        const isCurrent = idx === currentStageIndex;
-                        
-                        return (
-                          <div key={stage.key} className="flex flex-col items-center relative flex-1">
-                            {idx < shipmentStages.length - 1 && (
-                              <div 
-                                className={`absolute left-1/2 top-5 h-0.5 w-full ${
-                                  isComplete ? 'bg-primary' : 'bg-border'
-                                }`}
-                              />
-                            )}
-                            <div 
-                              className={`w-10 h-10 rounded-full flex items-center justify-center border-2 z-10 ${
-                                isComplete 
-                                  ? 'bg-primary border-primary' 
-                                  : 'bg-background border-border'
-                              }`}
-                            >
-                              <Icon className={`w-5 h-5 ${isComplete ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
-                            </div>
-                            <p className={`text-xs mt-2 text-center max-w-[80px] ${
-                              isCurrent ? 'font-semibold text-primary' : 'text-muted-foreground'
-                            }`}>
-                              {stage.label}
-                            </p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Status Update */}
-                  <div className="bg-muted/50 rounded-lg p-4 mt-6">
-                    <p className="text-sm font-medium mb-1">Latest Update</p>
-                    <p className="text-sm text-muted-foreground">
-                      {!isShippingConfirmed 
-                        ? 'Waiting for manufacturer to confirm shipping details.'
-                        : isDelivered 
-                          ? 'Your order has been delivered!'
-                          : `Your order is currently ${shipmentStages[currentStageIndex]?.label?.toLowerCase() || 'being processed'}.`
-                      }
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </section>
-
-          {/* Invoices & Documents - Only show when shipping is confirmed */}
-          {isShippingConfirmed && (
-            <section>
-              <h3 className="text-sm font-semibold text-foreground mb-3">Shipping Documents</h3>
-              <Tabs defaultValue="invoices" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="invoices">Invoices</TabsTrigger>
-                  <TabsTrigger value="customs">Customs</TabsTrigger>
-                </TabsList>
-                <TabsContent value="invoices">
-                  <Card className="border-border">
-                    <CardContent className="p-6">
-                      <div className="space-y-3">
-                        {mockInvoices.map((invoice, idx) => (
-                          <div key={idx} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                            <div>
-                              <p className="text-sm font-medium">{invoice.name}</p>
-                              <p className="text-xs text-muted-foreground">{invoice.date}</p>
-                            </div>
-                            <Button size="sm" variant="ghost" className="gap-2">
-                              <Download className="w-4 h-4" />
-                              Download
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-                <TabsContent value="customs">
-                  <Card className="border-border">
-                    <CardContent className="p-6">
-                      <p className="text-sm text-muted-foreground text-center py-8">
-                        No customs documents available yet
-                      </p>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              </Tabs>
-            </section>
-          )}
+    <Card>
+      <CardContent className="p-6">
+        {order.shipping_package_images?.length > 0 ? (
+          <div className="grid grid-cols-3 gap-3">
+            {order.shipping_package_images.map((url: string) => (
+              <img
+                key={url}
+                src={url}
+                className="h-24 w-full object-cover rounded-md border"
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-lg border-2 border-dashed p-8 text-center text-muted-foreground">
+            No package photos provided
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  </section>
+)}
 
           {/* Confirm Delivery - Only show when shipped */}
           {isShippingConfirmed && (
