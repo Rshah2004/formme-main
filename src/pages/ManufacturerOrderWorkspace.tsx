@@ -15,6 +15,7 @@ import { ManufacturerMessaging } from '@/components/manufacturer/ManufacturerMes
 import { ManufacturerReviewFeasibility } from '@/components/manufacturer/ManufacturerReviewFeasibility';
 import { AcceptOrderStage } from '@/components/manufacturer/AcceptOrderStage';
 import { ShippingLogisticsStage } from '@/components/manufacturer/ShippingLogisticsStage';
+import { OrderInfoDrawer } from '@/components/manufacturer/OrderInfoDrawer';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
