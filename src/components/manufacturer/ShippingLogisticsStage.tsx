@@ -4,18 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle
-} from '@/components/ui/alert-dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { StepHeader } from './StepHeader';
-import { useRef } from 'react';
-
-import { supabase } from '@/integrations/supabase/client';
 import { 
   CheckCircle, 
   Ship,
@@ -24,143 +15,57 @@ import {
   FileText,
   AlertTriangle
 } from 'lucide-react';
-import { useEffect } from 'react';
 
 interface ShippingLogisticsStageProps {
   order: any;
-onSubmitShipping: (data: ShippingData) => Promise<void>;
+  onConfirmReadyForShipment: (data: ShippingData) => Promise<void>;
   isSubmitting?: boolean;
 }
 
 export interface ShippingData {
-  shipping_tracking_url: string;
-  shipping_carrier: string;
-  shipped_at: string;
-  shipping_notes?: string;
-  shipping_package_images?: string[];
+  shippingResponsibility: 'fob' | 'cif' | 'exw' | 'dap' | 'ddp';
+  destinationCountry: string;
+  packingMethod: string;
+  cartonCount: number;
+  trackingNumber?: string;
+  notes?: string;
 }
+
+const shippingTerms = [
+  { value: 'fob', label: 'FOB (Free On Board)', description: 'Seller delivers to port, buyer handles shipping' },
+  { value: 'cif', label: 'CIF (Cost, Insurance, Freight)', description: 'Seller covers shipping to destination port' },
+  { value: 'exw', label: 'EXW (Ex Works)', description: 'Buyer handles all shipping from factory' },
+  { value: 'dap', label: 'DAP (Delivered at Place)', description: 'Seller delivers to specified destination' },
+  { value: 'ddp', label: 'DDP (Delivered Duty Paid)', description: 'Seller handles all costs including duties' }
+];
 
 export const ShippingLogisticsStage = ({
   order,
-  onSubmitShipping,
+  onConfirmReadyForShipment,
   isSubmitting = false
 }: ShippingLogisticsStageProps) => {
   // Initialize from order data if shipping was already confirmed
   const [formData, setFormData] = useState<ShippingData>({
-    shipping_tracking_url: order.shipping_tracking_url || '',
-    shipping_carrier: order.shipping_carrier || '',
-    shipped_at: order.shipped_at || '',
-    shipping_notes: order.shipping_notes || '',
-    shipping_package_images: order.shipping_package_images || []
+    shippingResponsibility: (order.shipping_terms as ShippingData['shippingResponsibility']) || 'fob',
+    destinationCountry: order.preferred_location || '',
+    packingMethod: 'standard',
+    cartonCount: order.shipping_carton_count || 1,
+    trackingNumber: order.shipping_tracking_number || '',
+    notes: order.shipping_notes || ''
   });
-const [showValidationDialog, setShowValidationDialog] = useState(false);
-const fileInputRef = useRef<HTMLInputElement>(null);
-const [uploadingCount, setUploadingCount] = useState(0);
 
-const uploadImage = async (file: File) => {
-  setUploadingCount(c => c + 1);
-  try {
-    const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
-    const safeName = `shipping-${Date.now()}.${ext}`;
-    const path = `${order.designer_id}/shipping/${safeName}`;
+  const isConfirmed = !!order.shipping_confirmed_at || order.status === 'shipping' || order.status === 'delivered';
+  const canSubmit = formData.destinationCountry && formData.cartonCount > 0;
 
-    const {error: uploadError} = await supabase
-        .storage
-        .from('design-files')
-        .upload(path, file);
-
-    if (uploadError) {
-      console.error(uploadError);
-      return;
-    }
-
-    const {data} = supabase.storage
-        .from('design-files')
-        .getPublicUrl(path);
-
-    const updatedImages = [
-      ...formData.shipping_package_images,
-      data.publicUrl
-    ];
-
-    const {error: dbError} = await supabase
-        .from('orders')
-        .update({shipping_package_images: updatedImages})
-        .eq('id', order.id);
-
-    if (dbError) {
-      console.error(dbError);
-      return;
-    }
-
-    setFormData(prev => ({
-      ...prev,
-      shipping_package_images: updatedImages
-    }));
-  }catch (err) {
-    console.error(err);
-  }finally {
-    setUploadingCount(c => c - 1);
-  }
-};
-
-
-const removeImage = async (urlToRemove: string) => {
-  const updatedImages = formData.shipping_package_images.filter(
-    url => url !== urlToRemove
-  );
-
-  const { error } = await supabase
-    .from('orders')
-    .update({ shipping_package_images: updatedImages })
-    .eq('id', order.id);
-
-  if (error) {
-    console.error(error);
-    return;
-  }
-
-  setFormData(prev => ({
-    ...prev,
-    shipping_package_images: updatedImages
-  }));
-};
-
-
-useEffect(() => {
-  if (!order) return;
-
-  setFormData({
-    shipping_tracking_url: order.shipping_tracking_url || '',
-    shipping_carrier: order.shipping_carrier || '',
-    shipped_at: order.shipped_at || '',
-    shipping_notes: order.shipping_notes || '',
-    shipping_package_images: order.shipping_package_images || []
-  });
-}, [order]);
-
-const isValid =
-  formData.shipping_tracking_url.trim().length > 0 &&
-  formData.shipping_carrier.trim().length > 0 &&
-  formData.shipped_at.trim().length > 0;
-
-const isConfirmed = !!order.shipping_confirmed_at;
+  const getStepStatus = () => {
+    if (order.status === 'delivered') return 'completed';
+    if (order.status === 'shipping' || order.shipping_confirmed_at) return 'ready';
+    return 'in_progress';
+  };
 
   const handleSubmit = async () => {
-    if (!isValid) {
-      setShowValidationDialog(true)
-      return;
-    }
-
-    await onSubmitShipping({
-      shipping_tracking_url: formData.shipping_tracking_url,
-      shipping_carrier: formData.shipping_carrier,
-      shipped_at: formData.shipped_at,
-      shipping_notes: formData.shipping_notes,
-      shipping_package_images: formData.shipping_package_images
-    });
-  }
-
+    await onConfirmReadyForShipment(formData);
+  };
 
   return (
     <div className="space-y-6">
@@ -169,6 +74,7 @@ const isConfirmed = !!order.shipping_confirmed_at;
         stepTitle="Shipping & Logistics Lock"
         owner="Manufacturer"
         requiredAction="Confirm shipment details and mark ready"
+        status={getStepStatus()}
       />
 
       {/* Warning */}
@@ -190,6 +96,129 @@ const isConfirmed = !!order.shipping_confirmed_at;
         </Card>
       )}
 
+      {isConfirmed && (
+        <Card className="bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-900">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              <div>
+                <p className="font-medium text-green-900 dark:text-green-100">
+                  Shipment Confirmed
+                </p>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  Order is {order.status === 'delivered' ? 'delivered' : 'in transit'}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Shipping Terms */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <Ship className="w-5 h-5 text-primary" />
+            <CardTitle className="text-lg">Shipping Responsibility</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Select
+            value={formData.shippingResponsibility}
+            onValueChange={(value: ShippingData['shippingResponsibility']) => 
+              setFormData(prev => ({ ...prev, shippingResponsibility: value }))
+            }
+            disabled={isConfirmed}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {shippingTerms.map((term) => (
+                <SelectItem key={term.value} value={term.value}>
+                  <div>
+                    <span className="font-medium">{term.label}</span>
+                    <p className="text-xs text-muted-foreground">{term.description}</p>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
+      {/* Destination */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-primary" />
+            <CardTitle className="text-lg">Destination</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label>Destination Country *</Label>
+            <Input
+              value={formData.destinationCountry}
+              onChange={(e) => setFormData(prev => ({ ...prev, destinationCountry: e.target.value }))}
+              placeholder="e.g., United States"
+              className="mt-1"
+              disabled={isConfirmed}
+            />
+          </div>
+          {order.shipping_address && (
+            <div>
+              <Label className="text-muted-foreground">Full Address</Label>
+              <p className="text-sm mt-1">{order.shipping_address}</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Packing */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <Package className="w-5 h-5 text-primary" />
+            <CardTitle className="text-lg">Packing Details</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Packing Method</Label>
+              <Select
+                value={formData.packingMethod}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, packingMethod: value }))}
+                disabled={isConfirmed}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="standard">Standard Carton</SelectItem>
+                  <SelectItem value="poly_bag">Poly Bag in Carton</SelectItem>
+                  <SelectItem value="hanging">Hanging (on hangers)</SelectItem>
+                  <SelectItem value="flat_pack">Flat Pack</SelectItem>
+                  <SelectItem value="custom">Custom Packaging</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Carton Count *</Label>
+              <Input
+                type="number"
+                min="1"
+                value={formData.cartonCount}
+                onChange={(e) => setFormData(prev => ({ ...prev, cartonCount: parseInt(e.target.value) || 0 }))}
+                className="mt-1"
+                disabled={isConfirmed}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Tracking */}
       <Card>
         <CardHeader className="pb-3">
@@ -200,192 +229,48 @@ const isConfirmed = !!order.shipping_confirmed_at;
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-          <Label>Tracking Link *</Label>
-          <Input
-            value={formData.shipping_tracking_url}
-            onChange={(e) =>
-              setFormData(prev => ({
-                ...prev,
-                shipping_tracking_url: e.target.value
-              }))
-            }
-            placeholder="https://dhl.com/track/..."
-          />
+            <Label>Tracking Number (optional)</Label>
+            <Input
+              value={formData.trackingNumber}
+              onChange={(e) => setFormData(prev => ({ ...prev, trackingNumber: e.target.value }))}
+              placeholder="Enter tracking number when available"
+              className="mt-1"
+              disabled={isConfirmed}
+            />
           </div>
-
           <div>
             <Label>Notes (optional)</Label>
             <Textarea
-              value={formData.shipping_notes}
-              onChange={(e) => setFormData(prev => ({ ...prev, shipping_notes: e.target.value }))}
+              value={formData.notes}
+              onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
               placeholder="Any special handling instructions or notes..."
               rows={2}
               className="mt-1"
+              disabled={isConfirmed}
             />
           </div>
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Shipment Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label>Carrier / Forwarder *</Label>
-            <Input
-              value={formData.shipping_carrier}
-              onChange={(e) =>
-                setFormData(prev => ({
-                  ...prev,
-                  shipping_carrier: e.target.value
-                }))
-              }
-            />
-          </div>
-
-          <div>
-            <Label>Dispatch Date *</Label>
-            <Input
-              type="date"
-              value={formData.shipped_at}
-              onChange={(e) =>
-                setFormData(prev => ({
-                  ...prev,
-                  shipped_at: e.target.value
-                }))
-              }
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-<Card>
-  <CardHeader className="pb-3">
-    <CardTitle className="text-lg">Package Photos (optional)</CardTitle>
-  </CardHeader>
-
-  <CardContent className="space-y-4">
-    {/* Hidden file input */}
-    <input
-      type="file"
-      accept="image/*"
-      multiple
-      ref={fileInputRef}
-      className="hidden"
-      onChange={(e) => {
-        Array.from(e.target.files || []).forEach(uploadImage);
-        e.target.value = '';
-      }}
-    />
-
-    <div className="grid grid-cols-3 gap-3">
-      {/* Existing images */}
-      {formData.shipping_package_images.map((url) => (
-        <div key={url} className="relative group">
-          <img
-            src={url}
-            className="h-24 w-full object-cover rounded-md border"
-          />
-
-          {
-            <button
-              type="button"
-              onClick={() => removeImage(url)}
-              className="
-                absolute top-1 right-1
-                w-6 h-6 rounded-full
-                bg-black/70 text-white
-                flex items-center justify-center
-                opacity-0 group-hover:opacity-100
-                transition
-              "
-            >
-              ×
-            </button>
-          }
-        </div>
-      ))}
-
-      {/* Uploading placeholders */}
-      {Array.from({ length: uploadingCount }).map((_, i) => (
-        <div
-          key={`uploading-${i}`}
-          className="
-            h-24 w-full rounded-md border
-            flex items-center justify-center
-            bg-muted/50
-          "
-        >
-          <div className="w-5 h-5 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin" />
-        </div>
-      ))}
-
-
-      {/* + Add photo tile */}
-      {
-        <div
-          onClick={() => fileInputRef.current?.click()}
-          className="
-            h-24 w-full rounded-md
-            border-2 border-dashed
-            flex flex-col items-center justify-center
-            cursor-pointer
-            hover:bg-muted/50
-            transition
-          "
-        >
-          <span className="text-2xl font-medium">+</span>
-          <span className="text-xs text-muted-foreground mt-1">
-            Add photo
-          </span>
-        </div>
-      }
-    </div>
-  </CardContent>
-</Card>
-
-
-      <AlertDialog open={showValidationDialog} onOpenChange={setShowValidationDialog}>
-    <AlertDialogContent>
-      <AlertDialogHeader>
-        <AlertDialogTitle>Missing shipping details</AlertDialogTitle>
-        <AlertDialogDescription>
-          Please fill in all required fields before submitting:
-          <ul className="list-disc pl-5 mt-2 space-y-1">
-            {!formData.shipping_tracking_url && <li>Tracking link</li>}
-            {!formData.shipping_carrier && <li>Carrier / forwarder</li>}
-            {!formData.shipped_at && <li>Dispatch date</li>}
-          </ul>
-        </AlertDialogDescription>
-      </AlertDialogHeader>
-
-      <AlertDialogAction>
-        Okay
-      </AlertDialogAction>
-    </AlertDialogContent>
-  </AlertDialog>
-
-
 
       {/* Action */}
-      {
+      {!isConfirmed && (
         <Card className="border-2 border-primary/20">
           <CardContent className="p-6">
             <Button 
               size="lg"
               className="w-full gap-2"
               onClick={handleSubmit}
-              disabled={isSubmitting}
+              disabled={isSubmitting || !canSubmit}
             >
               <CheckCircle className="w-5 h-5" />
-              Submit Shipping Details
+              Confirm Ready for Shipment
             </Button>
             <p className="text-xs text-center text-muted-foreground mt-3">
               This is the final irreversible step. Ensure all details are correct.
             </p>
           </CardContent>
         </Card>
-      }
+      )}
     </div>
   );
 };

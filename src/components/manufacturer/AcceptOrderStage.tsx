@@ -37,8 +37,6 @@ export const AcceptOrderStage = ({ order, onAccept, onDecline, matchStatus }: Ac
   const techPackData = order?.tech_pack_data;
   const techpack = order?.techpack;
   const design = order?.designs;
-  const imageVariants = order?.image_variants || [];
-  const printVariants = order?.print_variants || [];
 
   // Get tech pack URL from multiple sources
   const techPackUrl = techpack?.pdf_url || design?.tech_pack_url || null;
@@ -250,127 +248,12 @@ export const AcceptOrderStage = ({ order, onAccept, onDecline, matchStatus }: Ac
           )}
         </CardContent>
       </Card>
-      {/* Color & Size Variants */}
-<Card>
-  <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                Design Variants
-              </CardTitle>
-  </CardHeader>
-
-  <CardContent className="space-y-4">
-    {/* Thumbnail */}
-    {/* Tech Pack */}
-    {/* Design File */}
-    <div>
-      <h2 className="font-medium mb-3 flex items-center gap-2">
-        Color and size Variants
-      </h2>
-
-      {/* Color & Size Variants */}
-      {imageVariants.length > 0 && (
-          <div className="space-y-2">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {imageVariants.map((variant: any) => (
-                  <div
-                      key={variant.id}
-                      className="border rounded-lg p-3 space-y-2 bg-muted/30"
-                  >
-                    {variant.image_url ? (
-                        <img
-                            src={variant.image_url}
-                            alt="Variant"
-                            className="w-full h-32 object-contain rounded-md border"
-                        />
-                    ) : (
-                        <div
-                            className="h-32 flex items-center justify-center border rounded-md text-muted-foreground text-sm">
-                          No image uploaded
-                        </div>
-                    )}
-
-                    <div className="text-sm space-y-1">
-                      {variant.color && (
-                          <div>
-                            <span className="text-muted-foreground">Color:</span>{' '}
-                            <span className="font-medium">{variant.color}</span>
-                          </div>
-                      )}
-                      {variant.size && (
-                          <div>
-                            <span className="text-muted-foreground">Size:</span>{' '}
-                            <span className="font-medium">{variant.size}</span>
-                          </div>
-                      )}
-                      {variant.quantity && (
-                          <div>
-                            <span className="text-muted-foreground">Qty:</span>{' '}
-                            <span className="font-medium">{variant.quantity}</span>
-                          </div>
-                      )}
-                    </div>
-
-                    {variant.image_url && (
-                        <Button variant="outline" size="sm" asChild className="w-full">
-                          <a href={variant.image_url} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="w-4 h-4 mr-1"/>
-                            View
-                          </a>
-                        </Button>
-                    )}
-                  </div>
-              ))}
-            </div>
-          </div>
-      )}
-    </div>
-      <Separator/>
-      <div>
-        <h2 className="font-medium mb-3 flex items-center gap-2">
-          Print & Artwork
-        </h2>
-        {/* Print Variants (you should add this too) */}
-        {printVariants.length > 0 && (
-            <div className="space-y-2">
-
-              <div className="space-y-3">
-                {printVariants.map((print: any) => (
-                    <div
-                        key={print.id}
-                        className="flex items-center gap-4 p-3 border rounded-lg bg-muted/30"
-                    >
-                      <ImageIcon className="w-8 h-8 text-primary"/>
-
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{print.print_type}</p>
-                        {print.notes && (
-                            <p className="text-xs text-muted-foreground">{print.notes}</p>
-                        )}
-                      </div>
-
-                      {print.file_url && (
-                          <Button variant="outline" size="sm" asChild>
-                            <a href={print.file_url} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="w-4 h-4 mr-1"/>
-                              View
-                            </a>
-                          </Button>
-                      )}
-                    </div>
-                ))}
-              </div>
-            </div>
-        )}
-      </div>
-  </CardContent>
-</Card>
-
 
       {/* Order Overview */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Package className="w-5 h-5"/>
+            <Package className="w-5 h-5" />
             Order Overview
           </CardTitle>
           <CardDescription>
@@ -385,7 +268,7 @@ export const AcceptOrderStage = ({ order, onAccept, onDecline, matchStatus }: Ac
               <p className="font-medium">{design?.name || 'N/A'}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Ca tegory</p>
+              <p className="text-sm text-muted-foreground">Category</p>
               <p className="font-medium">{design?.category || 'N/A'}</p>
             </div>
             <div className="space-y-1">
@@ -444,6 +327,10 @@ export const AcceptOrderStage = ({ order, onAccept, onDecline, matchStatus }: Ac
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">GSM</p>
                     <Badge variant="secondary">{designSpecs.gsm || 'Not specified'}</Badge>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Print Type</p>
+                    <Badge variant="secondary">{designSpecs.print_type || 'Not specified'}</Badge>
                   </div>
                   {designSpecs.measurements && (
                     <div className="space-y-1">

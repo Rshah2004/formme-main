@@ -30,14 +30,6 @@ interface SizeColorEntry {
   size: 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL';
   color: string;
   quantity: string;
-  imageUrl?: string;
-}
-
-interface PrintColorEntry {
-  id: string;
-  printType: string;
-  notes: string;
-  fileUrl?: string;
 }
 
 const fabricTypes = [
@@ -69,7 +61,6 @@ const printTypes = [
   'Other'
 ];
 
-
 const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'] as const;
 
 const FabricColorStage = ({ design }: FabricColorStageProps) => {
@@ -86,22 +77,15 @@ const FabricColorStage = ({ design }: FabricColorStageProps) => {
   const [constructionNotes, setConstructionNotes] = useState(workflowData.constructionNotes || '');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [originalData, setOriginalData] = useState<any>(null);
-
+  
   // Pattern upload state
   const [patternUrl, setPatternUrl] = useState<string | null>(null);
   const [isUploadingPattern, setIsUploadingPattern] = useState(false);
-  const [printDirty, setPrintDirty] = useState(false);
-
+  
   // Size/Color variants
   const [sizeColorEntries, setSizeColorEntries] = useState<SizeColorEntry[]>([
     { id: '1', size: 'M', color: '', quantity: '' }
   ]);
-
-  const [printColorEntries, setPrintColorEntries] = useState<PrintColorEntry[]>([
-    { id: '1', printType: 'None', notes: '', fileUrl: '' }
-  ]);
-
-
 
   // Calculate total fiber percentage
   const totalFiberPercent = fabrics.reduce((sum, f) => sum + (parseFloat(f.fiberPercent) || 0), 0);
@@ -140,37 +124,6 @@ const FabricColorStage = ({ design }: FabricColorStageProps) => {
         if (specs.artwork_url) setPatternUrl(specs.artwork_url);
         setOriginalData(specs);
       }
-      const { data: variants } = await supabase
-        .from('design_variants')
-        .select('id, size, color, quantity, image_url')
-        .eq('design_id', design.id);
-
-      if (variants && variants.length > 0) {
-        setSizeColorEntries(
-          variants.map(v => ({
-            id: v.id,
-            size: v.size,
-            color: v.color ?? '',
-            quantity: v.quantity?.toString() ?? '',
-            imageUrl: v.image_url ?? undefined
-          }))
-        );
-      }
-      const { data: prints } = await supabase
-        .from('design_print_colors')
-        .select('*')
-        .eq('design_id', design.id);
-
-      if (prints && prints.length > 0) {
-        setPrintColorEntries(
-          prints.map(p => ({
-            id: p.id,
-            printType: p.print_type ?? 'None',
-            notes: p.notes ?? '',
-            fileUrl: p.file_url ?? undefined,
-          }))
-        );
-      }
     };
     loadSpecs();
   }, [design.id]);
@@ -199,48 +152,6 @@ const FabricColorStage = ({ design }: FabricColorStageProps) => {
     setHasUnsavedChanges(true);
   };
 
-  const addPrintEntry = () => {
-  if (isContractFinalized) return;
-
-  setPrintColorEntries(prev => [
-    ...prev,
-    {
-      id: Date.now().toString(),
-      printType: 'None',
-      notes: '',
-      fileUrl: undefined,
-    }
-  ]);
-
-  setPrintDirty(true);
-  setHasUnsavedChanges(true);
-};
-
-const removePrintEntry = (id: string) => {
-  if (isContractFinalized) return;
-  if (printColorEntries.length === 1) return;
-
-  setPrintColorEntries(prev => prev.filter(p => p.id !== id));
-  setPrintDirty(true);
-  setHasUnsavedChanges(true);
-};
-
-const updatePrintEntry = (
-  id: string,
-  field: keyof PrintColorEntry,
-  value: string
-) => {
-  if (isContractFinalized) return;
-
-  setPrintColorEntries(prev =>
-    prev.map(p => p.id === id ? { ...p, [field]: value } : p)
-  );
-
-  setPrintDirty(true);
-  setHasUnsavedChanges(true);
-};
-
-
   // Size/Color handlers
   const addSizeColorEntry = () => {
     if (isContractFinalized) return;
@@ -266,41 +177,6 @@ const updatePrintEntry = (
     setSizeColorEntries(prev => prev.map(e => e.id === id ? { ...e, [field]: value } : e));
     setHasUnsavedChanges(true);
   };
-const onVariantImageUpload = async (file: File, variantId: string) => {
-  if (isContractFinalized) return;
-
-  const ext = file.name.split('.').pop();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  const path = `${user.id}/${design.id}/variants/${variantId}.${ext}`;
-  await supabase.storage
-    .from('design-files')
-    .upload(path, file, { upsert: true });
-
-  const { data } = supabase.storage
-    .from('design-files')
-    .getPublicUrl(path);
-
-  setSizeColorEntries(prev =>
-    prev.map(v =>
-      v.id === variantId ? { ...v, imageUrl: data.publicUrl } : v
-    )
-  );
-
-  setHasUnsavedChanges(true);
-};
-
-const onVariantImageRemove = (variantId: string) => {
-  if (isContractFinalized) return;
-
-  setSizeColorEntries(prev =>
-    prev.map(v =>
-      v.id === variantId ? { ...v, imageUrl: undefined } : v
-    )
-  );
-
-  setHasUnsavedChanges(true);
-};
 
   // Pattern upload handler
   const onPatternDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -356,52 +232,6 @@ const onVariantImageRemove = (variantId: string) => {
     toast.success('Pattern removed');
   };
 
-  const onPrintImageUpload = async (file: File, printId: string) => {
-  if (isContractFinalized) return;
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-
-  const ext = file.name.split('.').pop();
-  const path = `${user.id}/${design.id}/prints/${printId}.${ext}`;
-
-  const { error } = await supabase.storage
-    .from('design-files')
-    .upload(path, file, { upsert: true });
-
-  if (error) {
-    toast.error('Failed to upload print image');
-    return;
-  }
-
-  const { data } = supabase.storage
-    .from('design-files')
-    .getPublicUrl(path);
-
-  setPrintColorEntries(prev =>
-    prev.map(p =>
-      p.id === printId ? { ...p, fileUrl: data.publicUrl } : p
-    )
-  );
-
-  setPrintDirty(true);
-  setHasUnsavedChanges(true);
-};
-
-const onPrintImageRemove = (printId: string) => {
-  if (isContractFinalized) return;
-
-  setPrintColorEntries(prev =>
-    prev.map(p =>
-      p.id === printId ? { ...p, fileUrl: undefined } : p
-    )
-  );
-
-  setPrintDirty(true);
-  setHasUnsavedChanges(true);
-};
-
-
   const handleBack = () => {
     setCurrentStage('specifications');
   };
@@ -420,20 +250,7 @@ const onPrintImageRemove = (printId: string) => {
 
     try {
       const fabricData = fabrics.map(f => ({ type: f.type, fiberPercent: f.fiberPercent }));
-      const { data: hasVariant } = await supabase
-        .from('design_variants')
-        .select('*')
-        .eq('design_id', design.id)
-
-      // Save variant images first.
-      const variantsToSave = sizeColorEntries.map(entry => ({
-        id: entry.id,
-        size: entry.size,
-        color: entry.color,
-        quantity: entry.quantity,
-        imageUrl: entry.imageUrl ?? null
-      }));
-
+      
       const { data: existing } = await supabase
         .from('design_specs')
         .select('id')
@@ -448,25 +265,6 @@ const onPrintImageRemove = (printId: string) => {
         artwork_url: patternUrl || null,
       };
 
-      // Save variants to a separate table if needed
-      if (hasVariant) {
-        await supabase
-        .from('design_variants')
-        .delete()
-        .eq('design_id', design.id);
-      }
-    await supabase
-      .from('design_variants')
-      .upsert(
-        variantsToSave.map(v => ({
-          design_id: design.id,
-          size: v.size,
-          color: v.color,
-          quantity: parseInt(v.quantity) || null,
-          image_url: v.imageUrl ?? null
-        }))
-      );
-
       if (existing) {
         await supabase
           .from('design_specs')
@@ -477,26 +275,7 @@ const onPrintImageRemove = (printId: string) => {
           .from('design_specs')
           .insert({ design_id: design.id, ...specsData });
       }
-      if (printDirty) {
-        // wipe old print entries
-        await supabase
-          .from('design_print_colors')
-          .delete()
-          .eq('design_id', design.id);
 
-        // insert current ones
-        await supabase
-          .from('design_print_colors')
-          .insert(
-            printColorEntries.map(p => ({
-              design_id: design.id,
-              print_type: p.printType !== 'None' ? p.printType : null,
-              notes: p.notes || null,
-              file_url: p.fileUrl || null,
-            }))
-          );
-      }
-      setPrintDirty(false);
       setHasUnsavedChanges(false);
       toast.success('Changes saved');
     } catch (error) {
@@ -679,6 +458,66 @@ const onPrintImageRemove = (printId: string) => {
         </CardContent>
       </Card>
 
+      {/* Pattern Upload Card */}
+      <Card className="border-border">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <ImageIcon className="w-5 h-5 text-primary" />
+            <CardTitle className="text-lg">Pattern Upload</CardTitle>
+          </div>
+          <CardDescription>Upload a pattern image (PNG, JPG) for your garment</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {patternUrl ? (
+            <div className="flex items-start gap-4">
+              <div className="w-32 h-32 rounded-lg border overflow-hidden bg-muted">
+                <img 
+                  src={patternUrl} 
+                  alt="Pattern" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium mb-2">Pattern uploaded</p>
+                <p className="text-xs text-muted-foreground mb-3">Click remove to upload a different pattern</p>
+                {!isContractFinalized && (
+                  <Button variant="outline" size="sm" onClick={removePattern} className="gap-1">
+                    <Trash2 className="w-4 h-4" />
+                    Remove Pattern
+                  </Button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div
+              {...getPatternRootProps()}
+              className={cn(
+                "border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer",
+                isPatternDragActive ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
+                isContractFinalized && "cursor-not-allowed opacity-60"
+              )}
+            >
+              <input {...getPatternInputProps()} />
+              <div className="space-y-2">
+                <div className="w-10 h-10 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+                  <Upload className="w-5 h-5 text-primary" />
+                </div>
+                <p className="text-sm font-medium">
+                  {isPatternDragActive ? "Drop pattern here" : "Drag & drop pattern image"}
+                </p>
+                <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
+              </div>
+            </div>
+          )}
+          {isUploadingPattern && (
+            <div className="mt-3 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              Uploading...
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Size & Color Variants Card */}
       <Card className="border-border">
         <CardHeader>
@@ -726,7 +565,8 @@ const onPrintImageRemove = (printId: string) => {
                   disabled={isContractFinalized}
                 />
               </div>
-              <div className="col-span-2 space-y-2">
+
+              <div className="col-span-3 space-y-2">
                 <Label>Quantity</Label>
                 <Input
                   type="number"
@@ -736,56 +576,6 @@ const onPrintImageRemove = (printId: string) => {
                   min={0}
                   disabled={isContractFinalized}
                 />
-              </div>
-
-              <div className="col-span-2 space-y-2">
-                <Label>Image</Label>
-                <div className="relative">
-                  {entry.imageUrl ? (
-                    <div className="relative group">
-                      <div className="w-12 h-12 rounded-md border overflow-hidden">
-                        <img 
-                          src={entry.imageUrl} 
-                          alt={`${entry.size} ${entry.color}`} 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      {!isContractFinalized && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-destructive/90 hover:bg-destructive text-white p-1"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onVariantImageRemove(entry.id);
-                          }}
-                        >
-                          <X className="w-3 h-3" />
-                        </Button>
-                      )}
-                    </div>
-                  ) : (
-                    <label className="cursor-pointer">
-                      <div className="w-12 h-12 border-2 border-dashed rounded-md flex items-center justify-center hover:bg-muted/50">
-                        <Plus className="w-4 h-4 text-muted-foreground" />
-                        <input 
-                          type="file" 
-                          className="hidden" 
-                          accept="image/*"
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              await onVariantImageUpload(file, entry.id);
-                            }
-                            // Reset the input to allow selecting the same file again
-                            e.target.value = '';
-                          }}
-                        />
-                      </div>
-                    </label>
-                  )}
-                </div>
               </div>
 
               <div className="col-span-1">
@@ -806,131 +596,57 @@ const onPrintImageRemove = (printId: string) => {
       </Card>
 
       {/* Print & Color Card */}
-<Card className="border-border">
-  <CardHeader>
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <Palette className="w-5 h-5 text-primary" />
-        <CardTitle className="text-lg">Print & Color</CardTitle>
-      </div>
-      {!isContractFinalized && (
-        <Button variant="outline" size="sm" onClick={addPrintEntry} className="gap-1">
-          <Plus className="w-4 h-4" />
-          Add Print
-        </Button>
-      )}
-    </div>
-    <CardDescription>
-      Specify printing methods, images and color notes
-    </CardDescription>
-  </CardHeader>
-
-  <CardContent className="space-y-4">
-    {printColorEntries.map(entry => (
-      <div
-        key={entry.id}
-        className="grid grid-cols-12 gap-3 items-end p-4 bg-muted/30 rounded-lg"
-      >
-        {/* Print type */}
-        <div className="col-span-3 space-y-2">
-          <Label>Print Type</Label>
-          <Select
-            value={entry.printType}
-            onValueChange={(v) =>
-              updatePrintEntry(entry.id, 'printType', v)
-            }
-            disabled={isContractFinalized}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {printTypes.map(type => (
-                <SelectItem key={type} value={type}>
-                  {type}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        {/* Notes */}
-        <div className="col-span-4 space-y-2">
-          <Label>Notes</Label>
-          <Input
-            value={entry.notes}
-            onChange={(e) =>
-              updatePrintEntry(entry.id, 'notes', e.target.value)
-            }
-            placeholder="Pantone, finish, layers, etc."
-            disabled={isContractFinalized}
-          />
-        </div>
-
-        {/* Artwork */}
-        <div className="col-span-2 space-y-2">
-          <Label>Artwork</Label>
-          {entry.fileUrl ? (
-            <div className="relative group">
-              <div className="w-12 h-12 rounded-md border overflow-hidden">
-                <img
-                  src={entry.fileUrl}
-                  alt="Print artwork"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              {!isContractFinalized && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-destructive/90 text-white"
-                  onClick={() => onPrintImageRemove(entry.id)}
-                >
-                  <X className="w-3 h-3" />
-                </Button>
-              )}
+      <Card className="border-border">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Palette className="w-5 h-5 text-primary" />
+            <CardTitle className="text-lg">Print & Color Notes</CardTitle>
+          </div>
+          <CardDescription>Specify any printing or color treatments</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Print Type</Label>
+              <Select 
+                value={printType} 
+                onValueChange={(val) => { 
+                  if (!isContractFinalized) { 
+                    setPrintType(val); 
+                    setHasUnsavedChanges(true); 
+                  }
+                }}
+                disabled={isContractFinalized}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {printTypes.map(type => (
+                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          ) : (
-            !isContractFinalized && (
-              <label className="cursor-pointer">
-                <div className="w-12 h-12 border-2 border-dashed rounded-md flex items-center justify-center hover:bg-muted/50">
-                  <Plus className="w-4 h-4 text-muted-foreground" />
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        await onPrintImageUpload(file, entry.id);
-                      }
-                      e.target.value = '';
-                    }}
-                  />
-                </div>
-              </label>
-            )
-          )}
-        </div>
+          </div>
 
-
-        {/* Remove */}
-        <div className="col-span-1">
-          {printColorEntries.length > 1 && !isContractFinalized && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => removePrintEntry(entry.id)}
-              className="text-muted-foreground hover:text-destructive"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          )}
-        </div>
-      </div>
-    ))}
-  </CardContent>
-</Card>
+          <div className="space-y-2">
+            <Label>Color Notes</Label>
+            <Textarea
+              value={colorNotes}
+              onChange={(e) => { 
+                if (!isContractFinalized) { 
+                  setColorNotes(e.target.value); 
+                  setHasUnsavedChanges(true); 
+                }
+              }}
+              placeholder="Describe your color preferences, Pantone references, or any specific color requirements..."
+              rows={3}
+              disabled={isContractFinalized}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Construction Notes Card */}
       <Card className="border-border">
