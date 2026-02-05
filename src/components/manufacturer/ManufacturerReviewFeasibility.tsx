@@ -85,7 +85,7 @@ export const ManufacturerReviewFeasibility = ({
   const [chatOpen, setChatOpen] = useState(false);
   const [pendingIssueMessage, setPendingIssueMessage] = useState<string | undefined>(undefined);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  
+
   // Tech Pack Review State
   const [checklist, setChecklist] = useState<ChecklistItem[]>([
     {
@@ -854,8 +854,8 @@ export const ManufacturerReviewFeasibility = ({
                   <div className="mt-4 p-4 bg-muted/50 rounded-lg">
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Unit Cost × {order?.quantity || 100}</span>
-                        <span>${((productionData.unitCost || 0) * (order?.quantity || 100)).toFixed(2)}</span>
+                        <span className="text-muted-foreground">Unit Cost × {order?.quantity}</span>
+                        <span>${((productionData.unitCost || 0) * (order?.quantity)).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Shipping & Handling</span>
@@ -869,7 +869,7 @@ export const ManufacturerReviewFeasibility = ({
                       <div className="flex justify-between font-semibold text-base">
                         <span>Total Quote</span>
                         <span className="text-primary">
-                          ${(((productionData.unitCost || 0) * (order?.quantity || 100)) + (productionData.shippingCost || 0) + (productionData.taxesAndFees || 0)).toFixed(2)}
+                          ${(((productionData.unitCost || 0) * (order?.quantity)) + (productionData.shippingCost || 0) + (productionData.taxesAndFees || 0)).toFixed(2)}
                         </span>
                       </div>
                     </div>

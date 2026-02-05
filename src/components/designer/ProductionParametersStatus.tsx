@@ -156,12 +156,12 @@ export const ProductionParametersStatus = ({
                   </div>
                 </div>
               )}
-              {order.quantity && (
+              {order.design_quantities && (
                 <div className="flex items-center gap-2">
                   <Package className="w-4 h-4 text-muted-foreground" />
                   <div>
                     <p className="text-xs text-muted-foreground">Quantity</p>
-                    <p className="text-sm font-medium">{order.quantity} units</p>
+                    <p className="text-sm font-medium">{order.design_quantities} units</p>
                   </div>
                 </div>
               )}

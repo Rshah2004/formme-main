@@ -148,8 +148,21 @@ export const orderApi = {
     const { data, error } = await supabase.functions.invoke('order-management', {
       body: { action: 'reject_sample', order_id, notes }
     });
-    if (error) throw error;
-    if (!data.success) throw new Error(data.error);
+    if (error) {
+      console.error("rejectSample failed:", {
+        status: error.status,
+        body: error.message,
+      });
+    }
+    if (!data.success) {
+      console.error("rejectSample failed:", {
+        status: data.message,
+        body: data.error,
+      });
+
+      throw new Error(data.error);
+
+    }
     return data.data;
   },
 

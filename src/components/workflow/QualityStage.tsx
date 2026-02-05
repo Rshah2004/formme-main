@@ -275,7 +275,10 @@ const QualityStage = ({ design }: QualityStageProps) => {
         )}
 
         <StageNavigation 
-          onNext={() => order?.qc_approved === true} 
+          onNext={async () => {
+            await handleApprove();
+            return true;
+          }}
           nextLabel="Continue to Delivery" 
           showBack={true}
           disabled={!order?.qc_submitted_at}

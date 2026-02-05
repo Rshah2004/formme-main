@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,13 +32,13 @@ const DesignStage = ({ design }: DesignStageProps) => {
   const [designName, setDesignName] = useState(design?.name || '');
   const [description, setDescription] = useState(design?.description || '');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(design?.design_file_url || null);
+const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
   // New fields
   const [quantity, setQuantity] = useState<string>(design?.quantity?.toString() || '');
-  const [sampleTypePreference, setSampleTypePreference] = useState<'digital' | 'physical'>('physical');
+  const [sampleTypePreference, setSampleTypePreference] = useState<'digital' | 'physical'>(design?.sample_type_preference || 'physical');
   const [designFiles, setDesignFiles] = useState<DesignFile[]>([]);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
 
@@ -59,6 +59,73 @@ const DesignStage = ({ design }: DesignStageProps) => {
     const descChanged = description !== (design?.description || '');
     return nameChanged || descChanged;
   };
+const withCacheBust = (url: string) => `${url}?t=${Date.now()}`;
+
+    // Load existing specs
+useEffect(() => {
+  if (!design?.id) return;
+
+  const hydrateFromDB = async () => {
+    const { data: designRow, error } = await supabase
+      .from('designs')
+      .select(`
+        name,
+        description,
+        quantity,
+        sample_type_preference,
+        design_file_url
+      `)
+      .eq('id', design.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Failed to hydrate design', error);
+      return;
+    }
+
+    if (!designRow) return;
+
+    // ---- basic fields ----
+    setDesignName(designRow.name ?? '');
+    setDescription(designRow.description ?? '');
+    setQuantity(
+      designRow.quantity !== null && designRow.quantity !== undefined
+        ? String(designRow.quantity)
+        : ''
+    );
+    setSampleTypePreference(
+      designRow.sample_type_preference ?? 'physical'
+    );
+
+    // ---- files ----
+    const urls = Array.isArray(designRow.design_file_url)
+      ? designRow.design_file_url
+      : designRow.design_file_url
+        ? [designRow.design_file_url]
+        : [];
+
+    if (!previewUrl) {
+  setPreviewUrl(
+  urls[0] ? withCacheBust(urls[0]) : null
+);
+
+}
+
+
+    setDesignFiles(
+      urls.map((url: string) => ({
+        name: url.split('/').pop() ?? 'design-file',
+        url,
+        type: 'unknown',
+      }))
+    );
+
+    // DB is source of truth → no unsaved changes after hydrate
+    setHasUnsavedChanges(false);
+  };
+
+  hydrateFromDB();
+}, [design?.id]);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (isContractFinalized) {
@@ -81,7 +148,6 @@ const DesignStage = ({ design }: DesignStageProps) => {
     }
 
     setUploadedFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
     setHasUnsavedChanges(true);
     
     setIsUploading(true);
@@ -104,9 +170,10 @@ const DesignStage = ({ design }: DesignStageProps) => {
 
       await supabase
         .from('designs')
-        .update({ design_file_url: publicUrl })
+          .update({ design_file_url: [publicUrl] })
         .eq('id', design.id);
-
+      const cacheBustedUrl = `${publicUrl}?t=${Date.now()}`;
+      setPreviewUrl(cacheBustedUrl);
       setHasUnsavedChanges(false);
       toast.success('Design uploaded successfully');
     } catch (error) {
@@ -144,7 +211,7 @@ const DesignStage = ({ design }: DesignStageProps) => {
       
       for (const file of acceptedFiles) {
         const fileExt = file.name.split('.').pop();
-        const filePath = `${user.id}/${design.id}/files/${Date.now()}_${file.name}`;
+        const filePath = `${user.id}/${design.id}/design.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('design-files')
@@ -155,6 +222,25 @@ const DesignStage = ({ design }: DesignStageProps) => {
         const { data: { publicUrl } } = supabase.storage
           .from('design-files')
           .getPublicUrl(filePath);
+
+        const { data: designRow } = await supabase
+          .from('designs')
+          .select('design_file_url')
+          .eq('id', design.id)
+            .single()
+
+        const existingUrls: string[] = Array.isArray(designRow?.design_file_url)
+        ? designRow.design_file_url
+        : [];
+
+
+        await supabase
+        .from('designs')
+        .update({
+          design_file_url: [publicUrl]
+        })
+        .eq('id', design.id);
+
 
         uploadedFiles.push({
           name: file.name,
@@ -199,30 +285,22 @@ const DesignStage = ({ design }: DesignStageProps) => {
       // Save to designs table
       await supabase
         .from('designs')
-        .update({ name: designName, description })
+        .update({ name: designName, description, quantity, sample_type_preference: sampleTypePreference })
         .eq('id', design.id);
 
       // Save quantity and other data to orders table (via production_timeline_data)
       // This will be read by manufacturer in AcceptOrderStage
       const { data: existingOrder } = await supabase
         .from('orders')
-        .select('id, production_timeline_data')
+        .select('id')
         .eq('design_id', design.id)
         .maybeSingle();
-
+      console.warn('whats existing order', existingOrder);
       if (existingOrder) {
-        const existingData = (typeof existingOrder.production_timeline_data === 'object' && existingOrder.production_timeline_data !== null) 
-          ? existingOrder.production_timeline_data as Record<string, any>
-          : {};
         await supabase
           .from('orders')
           .update({
             quantity: parseInt(quantity) || null,
-            production_timeline_data: {
-              ...existingData,
-              sample_type_preference: sampleTypePreference,
-              design_files: designFiles
-            }
           } as any)
           .eq('id', existingOrder.id);
       }
@@ -239,6 +317,10 @@ const DesignStage = ({ design }: DesignStageProps) => {
     if ((checkForChanges() || hasUnsavedChanges) && !isContractFinalized) {
       await handleSave();
     }
+      updateWorkflowData({
+        quantity: quantity,
+        sampleType: sampleTypePreference,
+      });
 
     if (markComplete) {
       markStageComplete('design');
@@ -477,61 +559,61 @@ const DesignStage = ({ design }: DesignStageProps) => {
         </CardContent>
       </Card>
 
-      {/* Additional Design Files */}
-      <Card className="border-border">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-base">Additional Design Files</CardTitle>
-          <CardDescription>Upload reference images, patterns, artwork, or any supporting documents</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div
-            {...getFilesRootProps()}
-            className={cn(
-              "border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer",
-              isFilesDragActive ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
-              isContractFinalized && "cursor-not-allowed opacity-60"
-            )}
-          >
-            <input {...getFilesInputProps()} />
-            <div className="flex flex-col items-center gap-2">
-              <Plus className="w-8 h-8 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">
-                {isFilesDragActive ? "Drop files here" : "Drag & drop or click to upload multiple files"}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Images, PDFs, ZIPs supported
-              </p>
-            </div>
-          </div>
+      {/*/!* Additional Design Files *!/*/}
+      {/*<Card className="border-border">*/}
+      {/*  <CardHeader className="pb-4">*/}
+      {/*    <CardTitle className="text-base">Additional Design Files</CardTitle>*/}
+      {/*    <CardDescription>Upload reference images, patterns, artwork, or any supporting documents</CardDescription>*/}
+      {/*  </CardHeader>*/}
+      {/*  <CardContent>*/}
+      {/*    <div*/}
+      {/*      {...getFilesRootProps()}*/}
+      {/*      className={cn(*/}
+      {/*        "border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer",*/}
+      {/*        isFilesDragActive ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",*/}
+      {/*        isContractFinalized && "cursor-not-allowed opacity-60"*/}
+      {/*      )}*/}
+      {/*    >*/}
+      {/*      <input {...getFilesInputProps()} />*/}
+      {/*      <div className="flex flex-col items-center gap-2">*/}
+      {/*        <Plus className="w-8 h-8 text-muted-foreground" />*/}
+      {/*        <p className="text-sm text-muted-foreground">*/}
+      {/*          {isFilesDragActive ? "Drop files here" : "Drag & drop or click to upload multiple files"}*/}
+      {/*        </p>*/}
+      {/*        <p className="text-xs text-muted-foreground">*/}
+      {/*          Images, PDFs, ZIPs supported*/}
+      {/*        </p>*/}
+      {/*      </div>*/}
+      {/*    </div>*/}
 
-          {isUploadingFiles && (
-            <div className="mt-3 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              Uploading files...
-            </div>
-          )}
+      {/*    {isUploadingFiles && (*/}
+      {/*      <div className="mt-3 flex items-center justify-center gap-2 text-sm text-muted-foreground">*/}
+      {/*        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />*/}
+      {/*        Uploading files...*/}
+      {/*      </div>*/}
+      {/*    )}*/}
 
-          {designFiles.length > 0 && (
-            <div className="mt-4 space-y-2">
-              {designFiles.map((file, idx) => (
-                <div key={idx} className="flex items-center gap-3 p-2 bg-muted/50 rounded-lg">
-                  <FileText className="w-4 h-4 text-primary flex-shrink-0" />
-                  <span className="text-sm flex-1 truncate">{file.name}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => removeDesignFile(idx)}
-                    disabled={isContractFinalized}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/*    {designFiles.length > 0 && (*/}
+      {/*      <div className="mt-4 space-y-2">*/}
+      {/*        {designFiles.map((file, idx) => (*/}
+      {/*          <div key={idx} className="flex items-center gap-3 p-2 bg-muted/50 rounded-lg">*/}
+      {/*            <FileText className="w-4 h-4 text-primary flex-shrink-0" />*/}
+      {/*            <span className="text-sm flex-1 truncate">{file.name}</span>*/}
+      {/*            <Button*/}
+      {/*              variant="ghost"*/}
+      {/*              size="icon"*/}
+      {/*              className="h-6 w-6"*/}
+      {/*              onClick={() => removeDesignFile(idx)}*/}
+      {/*              disabled={isContractFinalized}*/}
+      {/*            >*/}
+      {/*              <X className="w-4 h-4" />*/}
+      {/*            </Button>*/}
+      {/*          </div>*/}
+      {/*        ))}*/}
+      {/*      </div>*/}
+      {/*    )}*/}
+      {/*  </CardContent>*/}
+      {/*</Card>*/}
 
       {/* Tip Card */}
       <Card className="border-primary/20 bg-primary/5">

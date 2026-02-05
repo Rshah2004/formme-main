@@ -84,7 +84,7 @@ const ManufacturerOrderWorkspace = () => {
   useEffect(() => {
   const fetchOrder = async () => {
       if (!id) return;
-      
+
       try {
         // Fetch order with design and design specs
         const { data: orderData, error: orderError } = await supabase
@@ -98,7 +98,7 @@ const ManufacturerOrderWorkspace = () => {
         // Fetch design details with URLs
         const { data: designData, error: designError } = await supabase
           .from('designs')
-          .select('id, name, category, user_id, design_file_url, tech_pack_url, thumbnail_url')
+          .select('id, name, category, user_id, design_file_url, tech_pack_url, thumbnail_url, quantity, sample_type_preference')
           .eq('id', orderData.design_id)
           .maybeSingle();
 
@@ -121,9 +121,9 @@ const ManufacturerOrderWorkspace = () => {
           .maybeSingle();
 
         // Fetch color variant images if exists
-        const { data: imageVariants } = await (supabase as any)
-          .from('design_variants' as any)
-          .select('id, size, color, quantity, image_url, created_at')
+        const { data: imageVariants } = await supabase
+          .from('design_variants')
+          .select('id, size, color, image_url, created_at, design_variant_quantity')
           .eq('design_id', orderData.design_id)
 
         // Fetch pattern variant if exists

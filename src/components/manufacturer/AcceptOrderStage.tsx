@@ -39,7 +39,7 @@ export const AcceptOrderStage = ({ order, onAccept, onDecline, matchStatus }: Ac
   const design = order?.designs;
   const imageVariants = order?.image_variants || [];
   const printVariants = order?.print_variants || [];
-
+console.warn('quantity', order);
   // Get tech pack URL from multiple sources
   const techPackUrl = techpack?.pdf_url || design?.tech_pack_url || null;
   const designFileUrl = design?.design_file_url || null;

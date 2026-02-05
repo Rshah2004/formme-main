@@ -57,7 +57,7 @@ export const OrderSummaryCard = ({ order }: OrderSummaryCardProps) => {
             <div>
               <p className="text-xs text-muted-foreground">Quantity</p>
               <p className="text-sm font-semibold">
-                {order.quantity ? `${order.quantity} units` : 'TBD'}
+                {order.design_quantities ? `${order.design_quantities} units` : 'TBD'}
               </p>
             </div>
           </div>

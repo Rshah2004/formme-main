@@ -17,6 +17,7 @@ interface WorkflowData {
   
   // Factory Match
   quantity: string;
+  sampleType: string;
   leadTime: string;
   location: string;
   priceRange: string;

@@ -169,7 +169,6 @@ const SampleStage = ({ design }: SampleStageProps) => {
   const allItemsApproved = checklist.every(item => item.approved && !item.rejected);
   const hasRejectedItems = checklist.some(item => item.rejected);
   const canProceed = allItemsApproved && !hasRejectedItems;
-
   const handleApproveItem = (id: string) => {
     setChecklist(prev => prev.map(item =>
       item.id === id
