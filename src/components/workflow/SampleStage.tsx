@@ -15,6 +15,16 @@ import { orderApi } from '@/lib/api';
 import { toast } from 'sonner';
 import { ExpandedChatOverlay } from '@/components/chat/ExpandedChatOverlay';
 import { StageResolutionBanner } from '@/components/chat/StageResolutionBanner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface SampleStageProps { design: Design; }
 
@@ -80,6 +90,7 @@ const SampleStage = ({ design }: SampleStageProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [pendingIssueMessage, setPendingIssueMessage] = useState<string | undefined>(undefined);
+  const [showApproveConfirmDialog, setShowApproveConfirmDialog] = useState(false);
 
   useEffect(() => {
     const fetchOrderData = async () => {
@@ -587,7 +598,7 @@ const SampleStage = ({ design }: SampleStageProps) => {
               
               {canProceed && (
                 <Button 
-                  onClick={handleApproveAll}
+                  onClick={() => setShowApproveConfirmDialog(true)}
                   disabled={isSubmitting}
                   className="gap-2"
                 >
@@ -634,6 +645,29 @@ const SampleStage = ({ design }: SampleStageProps) => {
           }}
         />
       )}
+
+      {/* Confirmation Dialog for Approve Sample */}
+      <AlertDialog open={showApproveConfirmDialog} onOpenChange={setShowApproveConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Approve Sample & Continue to Production?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to approve the sample and move to production? This action will notify the manufacturer to begin production.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowApproveConfirmDialog(false);
+                handleApproveAll();
+              }}
+            >
+              Yes, Approve & Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

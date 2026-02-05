@@ -187,45 +187,26 @@ const handleResetPassword = async (e: React.FormEvent) => {
     setIsLoading(true);
 
     try {
-      // Instead of creating an account directly, submit a signup request
-      // First, insert into signup_requests table
-      const { error: insertError } = await supabase
-        .from('signup_requests')
-        .insert({
-          email: formData.email,
-          full_name: formData.fullName,
-          company_name: formData.companyName || null,
-          role: userRole,
-        });
-
-      if (insertError) {
-        // Check if email already exists
-        if (insertError.code === '23505') {
-          throw new Error("A signup request with this email already exists. Our team will reach out soon.");
-        }
-        throw insertError;
-      }
-
-      // Send notification email to admins via edge function
-      const { error: notifyError } = await supabase.functions.invoke('notify-signup-request', {
-        body: {
-          email: formData.email,
-          fullName: formData.fullName,
-          companyName: formData.companyName,
-          role: userRole,
+      // Direct signup - create account immediately
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+            company_name: formData.companyName || null,
+            role: userRole,
+          },
         },
       });
 
-      if (notifyError) {
-        console.error("Failed to send notification:", notifyError);
-        // Don't throw - request was saved, just notification failed
-      }
+      if (error) throw error;
 
-      // Show request submitted screen
-      setMode("request-submitted");
+      toast.success("Account created! You can now sign in.");
+      setMode("signin");
     } catch (error: any) {
-      console.error("Signup request error:", error);
-      toast.error(error.message || "Failed to submit request");
+      console.error("Signup error:", error);
+      toast.error(error.message || "Failed to create account");
     } finally {
       setIsLoading(false);
     }
@@ -337,7 +318,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
             <div className="text-center mb-6">
               <h1 className="text-4xl font-bold mb-2">formme</h1>
               <p className="text-muted-foreground">
-                {mode === "signin" ? "Welcome back" : "Request to join our community"}
+                {mode === "signin" ? "Welcome back" : "Create your account"}
               </p>
             </div>
 
@@ -363,7 +344,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       : "text-muted-foreground hover:text-foreground hover:bg-white/10"
                   }`}
                 >
-                  Request Access
+                  Sign Up
                 </button>
               </div>
 
@@ -403,12 +384,6 @@ const handleResetPassword = async (e: React.FormEvent) => {
           </TabsContent>
 
           <TabsContent value="signup">
-            {/* Request review notice */}
-            <div className="bg-[#C8956C]/10 border border-[#C8956C]/20 rounded-lg p-4 mb-4">
-              <p className="text-sm text-foreground">
-                <strong>Note:</strong> Our team will review your request before granting access. We'll reach out via email within 1-2 business days.
-              </p>
-            </div>
             <form onSubmit={handleSignUp} className="space-y-3">
               {/* Role Selection */}
               <div>
@@ -479,6 +454,18 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       required
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="signup-password" className="text-sm">Password</Label>
+                    <Input
+                      id="signup-password"
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      required
+                      minLength={6}
                       className="mt-1"
                     />
                   </div>

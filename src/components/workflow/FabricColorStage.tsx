@@ -140,14 +140,14 @@ const FabricColorStage = ({ design }: FabricColorStageProps) => {
         if (specs.artwork_url) setPatternUrl(specs.artwork_url);
         setOriginalData(specs);
       }
-      const { data: variants } = await supabase
-        .from('design_variants')
+      const { data: variants } = await (supabase as any)
+        .from('design_variants' as any)
         .select('id, size, color, quantity, image_url')
         .eq('design_id', design.id);
 
       if (variants && variants.length > 0) {
         setSizeColorEntries(
-          variants.map(v => ({
+          variants.map((v: any) => ({
             id: v.id,
             size: v.size,
             color: v.color ?? '',
@@ -156,14 +156,14 @@ const FabricColorStage = ({ design }: FabricColorStageProps) => {
           }))
         );
       }
-      const { data: prints } = await supabase
-        .from('design_print_colors')
+      const { data: prints } = await (supabase as any)
+        .from('design_print_colors' as any)
         .select('*')
         .eq('design_id', design.id);
 
       if (prints && prints.length > 0) {
         setPrintColorEntries(
-          prints.map(p => ({
+          prints.map((p: any) => ({
             id: p.id,
             printType: p.print_type ?? 'None',
             notes: p.notes ?? '',
@@ -420,8 +420,8 @@ const onPrintImageRemove = (printId: string) => {
 
     try {
       const fabricData = fabrics.map(f => ({ type: f.type, fiberPercent: f.fiberPercent }));
-      const { data: hasVariant } = await supabase
-        .from('design_variants')
+      const { data: hasVariant } = await (supabase as any)
+        .from('design_variants' as any)
         .select('*')
         .eq('design_id', design.id)
 
@@ -450,13 +450,13 @@ const onPrintImageRemove = (printId: string) => {
 
       // Save variants to a separate table if needed
       if (hasVariant) {
-        await supabase
-        .from('design_variants')
+        await (supabase as any)
+        .from('design_variants' as any)
         .delete()
         .eq('design_id', design.id);
       }
-    await supabase
-      .from('design_variants')
+    await (supabase as any)
+      .from('design_variants' as any)
       .upsert(
         variantsToSave.map(v => ({
           design_id: design.id,
@@ -479,14 +479,14 @@ const onPrintImageRemove = (printId: string) => {
       }
       if (printDirty) {
         // wipe old print entries
-        await supabase
-          .from('design_print_colors')
+        await (supabase as any)
+          .from('design_print_colors' as any)
           .delete()
           .eq('design_id', design.id);
 
         // insert current ones
-        await supabase
-          .from('design_print_colors')
+        await (supabase as any)
+          .from('design_print_colors' as any)
           .insert(
             printColorEntries.map(p => ({
               design_id: design.id,

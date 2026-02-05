@@ -121,14 +121,14 @@ const ManufacturerOrderWorkspace = () => {
           .maybeSingle();
 
         // Fetch color variant images if exists
-        const { data: imageVariants } = await supabase
-          .from('design_variants')
+        const { data: imageVariants } = await (supabase as any)
+          .from('design_variants' as any)
           .select('id, size, color, quantity, image_url, created_at')
           .eq('design_id', orderData.design_id)
 
         // Fetch pattern variant if exists
-        const { data: printVariants } = await supabase
-          .from('design_print_colors')
+        const { data: printVariants } = await (supabase as any)
+          .from('design_print_colors' as any)
           .select('id, print_type, notes, file_url, created_at')
           .eq('design_id', orderData.design_id)
 

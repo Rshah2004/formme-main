@@ -396,8 +396,12 @@ export const AcceptOrderStage = ({ order, onAccept, onDecline, matchStatus }: Ac
             </div>
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">Order Quantity</p>
-              <p className="font-medium">{order?.quantity || 'TBD'} units</p>
+             <p className="font-medium">{(order as any)?.quantity || 'TBD'} units</p>
             </div>
+           <div className="space-y-1">
+             <p className="text-sm text-muted-foreground">Sample Type Preference</p>
+             <p className="font-medium capitalize">{(order as any)?.sample_type_preference || 'Not specified'}</p>
+           </div>
           </div>
 
           <Separator />
