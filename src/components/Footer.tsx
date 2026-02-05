@@ -13,9 +13,9 @@ const Footer = () => {
         <div className="py-10 sm:py-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 sm:gap-10">
           {/* Column 1: Company */}
           <div className="sm:col-span-2 md:col-span-1">
-            <h3 className="font-instrument text-xl mb-4 sm:mb-6">FormMe</h3>
+            <h3 className="font-instrument text-xl mb-4 sm:mb-6">Formme</h3>
             <p className="text-gray-300 font-light max-w-xs mb-4 sm:mb-6 text-sm sm:text-base">
-              Redefining fashion design with cutting-edge technology and sustainable practices.
+              Connecting manufacturers and designers. 
             </p>
             <div className="flex space-x-4">
               <Link to="#" className="text-gray-400 hover:text-white transition-colors">
@@ -43,7 +43,7 @@ const Footer = () => {
                   <span>Home</span>
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link
                   to="/about"
                   className="text-gray-300 hover:text-white transition-colors flex items-center group text-sm sm:text-base"
@@ -51,7 +51,7 @@ const Footer = () => {
                   <ChevronRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
                   <span>About Us</span>
                 </Link>
-              </li>
+              </li> */}
               {/* <li>
                 <Link 
                   to="/reviews" 
@@ -97,7 +97,7 @@ const Footer = () => {
 
         {/* Bottom section with copyright */}
         <div className="py-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
-          <p>© {currentYear} FormMe. All rights reserved.</p>
+          <p>© {currentYear} Formme. All rights reserved.</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link to="#" className="hover:text-white transition-colors">
               Privacy Policy
