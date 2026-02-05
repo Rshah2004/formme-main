@@ -10,6 +10,16 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { format, addDays } from 'date-fns';
 import { 
   FileDown, 
@@ -74,6 +84,7 @@ export const ManufacturerReviewFeasibility = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [pendingIssueMessage, setPendingIssueMessage] = useState<string | undefined>(undefined);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   
   // Tech Pack Review State
   const [checklist, setChecklist] = useState<ChecklistItem[]>([
@@ -627,7 +638,7 @@ export const ManufacturerReviewFeasibility = ({
                   <Button 
                     size="lg"
                     className="w-full gap-2"
-                    onClick={handleConfirmTechPack}
+                    onClick={() => setShowConfirmDialog(true)}
                     disabled={isSubmitting}
                   >
                     Proceed to Production Confirmation
@@ -1168,6 +1179,29 @@ export const ManufacturerReviewFeasibility = ({
           }}
         />
       )}
+
+      {/* Confirmation Dialog for Proceed to Production Confirmation */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Proceed to Production Confirmation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to proceed? This will save your tech pack review and move you to the production confirmation section where you'll need to provide binding production parameters.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowConfirmDialog(false);
+                handleConfirmTechPack();
+              }}
+            >
+              Yes, Proceed
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

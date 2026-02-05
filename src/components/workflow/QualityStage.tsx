@@ -8,6 +8,16 @@ import { StageNavigation } from './StageNavigation';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useWorkflow } from '@/context/WorkflowContext';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface QualityStageProps {
   design: any;
@@ -17,6 +27,7 @@ const QualityStage = ({ design }: QualityStageProps) => {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { setCurrentStage } = useWorkflow();
+  const [showApproveConfirmDialog, setShowApproveConfirmDialog] = useState(false);
 
   useEffect(() => {
     fetchOrder();
@@ -240,7 +251,7 @@ const QualityStage = ({ design }: QualityStageProps) => {
 
                 {order.qc_approved === null && (
                   <div className="flex gap-3 pt-4">
-                    <Button onClick={handleApprove} className="flex-1">
+                    <Button onClick={() => setShowApproveConfirmDialog(true)} className="flex-1">
                       <CheckCircle className="w-4 h-4 mr-2" />
                       Approve Quality Check
                     </Button>
@@ -271,6 +282,29 @@ const QualityStage = ({ design }: QualityStageProps) => {
           disabledMessage="Waiting for manufacturer to submit quality check photos"
         />
       </div>
+
+      {/* Confirmation Dialog for Approve QC */}
+      <AlertDialog open={showApproveConfirmDialog} onOpenChange={setShowApproveConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Approve Quality Check & Continue to Shipping?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to approve the quality check and move to shipping? This action will notify the manufacturer that the order is ready for shipment.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowApproveConfirmDialog(false);
+                handleApprove();
+              }}
+            >
+              Yes, Approve & Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
