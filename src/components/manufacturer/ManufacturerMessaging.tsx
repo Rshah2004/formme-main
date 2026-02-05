@@ -17,6 +17,8 @@ interface Designer {
   designName: string;
   orderId: string;
   unreadCount: number;
+  lastMessage?: string | null;
+  lastMessageAt?: string | null;
 }
 
 type ManufacturerOpenMessagesDetail = {
@@ -50,88 +52,109 @@ export const ManufacturerMessaging = () => {
     setPendingOrderId(null);
   }, [pendingOrderId, designers]);
 
-  useEffect(() => {
-    const fetchDesigners = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+  const fetchDesigners = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-        // Get manufacturer ID
-        const { data: manufacturer } = await supabase
-          .from('manufacturers')
-          .select('id')
-          .eq('user_id', user.id)
-          .maybeSingle();
+      const { data: manufacturer } = await supabase
+        .from('manufacturers')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-        if (!manufacturer) return;
+      if (!manufacturer) return;
 
-        // Fetch all orders for this manufacturer
-        const { data: orders, error } = await supabase
-          .from('orders')
-          .select(`
+      const { data: orders, error } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          designer_id,
+          design_id,
+          designs (
             id,
-            designer_id,
-            design_id,
-            designs (
-              id,
-              name
-            )
-          `)
-          .eq('manufacturer_id', manufacturer.id);
+            name
+          )
+        `)
+        .eq('manufacturer_id', manufacturer.id);
 
-        if (error) throw error;
-
-        if (orders && orders.length > 0) {
-          // Fetch designer profiles and unread counts
-          const designerList = await Promise.all(
-            orders.map(async (order) => {
-              // Fetch profile using the designer_id which is the user_id
-              const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('full_name, company_name')
-                .eq('user_id', order.designer_id)
-                .maybeSingle();
-
-              if (profileError) {
-                console.error('Error fetching profile:', profileError);
-              }
-
-              // Count unread messages for this order
-              const { count } = await supabase
-                .from('messages')
-                .select('*', { count: 'exact', head: true })
-                .eq('order_id', order.id)
-                .eq('is_read', false)
-                .neq('sender_id', user.id);
-
-              // Use full_name first, then company_name, then fallback
-              const designerName = profile?.full_name?.trim() 
-                ? profile.full_name 
-                : profile?.company_name?.trim() 
-                  ? profile.company_name 
-                  : 'Unknown Designer';
-
-              return {
-                id: order.designer_id,
-                name: designerName,
-                designName: order.designs?.name || 'Unknown Design',
-                orderId: order.id,
-                unreadCount: count || 0,
-              };
-            })
-          );
-
-          setDesigners(designerList);
-          setTotalUnread(designerList.reduce((sum, d) => sum + d.unreadCount, 0));
-        }
-      } catch (error) {
-        console.error('Error fetching designers:', error);
+      if (error) throw error;
+      if (!orders || orders.length === 0) {
+        setDesigners([]);
+        setTotalUnread(0);
+        return;
       }
-    };
 
+      const orderIds = orders.map((o) => o.id);
+
+      const { data: latestMessages } = await supabase
+        .from('messages')
+        .select('order_id, content, created_at')
+        .in('order_id', orderIds)
+        .order('created_at', { ascending: false });
+
+      const latestByOrder = new Map<string, { content: string; created_at: string }>();
+      (latestMessages || []).forEach((msg) => {
+        if (!latestByOrder.has(msg.order_id)) {
+          latestByOrder.set(msg.order_id, { content: msg.content, created_at: msg.created_at });
+        }
+      });
+
+      const designerList = await Promise.all(
+        orders.map(async (order) => {
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('full_name, company_name')
+            .eq('user_id', order.designer_id)
+            .maybeSingle();
+
+          if (profileError) {
+            console.error('Error fetching profile:', profileError);
+          }
+
+          const { count } = await supabase
+            .from('messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('order_id', order.id)
+            .eq('is_read', false)
+            .neq('sender_id', user.id);
+
+          const designerName = profile?.full_name?.trim() 
+            ? profile.full_name 
+            : profile?.company_name?.trim() 
+              ? profile.company_name 
+              : 'Unknown Designer';
+
+          const last = latestByOrder.get(order.id);
+
+          return {
+            id: order.designer_id,
+            name: designerName,
+            designName: order.designs?.name || 'Unknown Design',
+            orderId: order.id,
+            unreadCount: count || 0,
+            lastMessage: last?.content || null,
+            lastMessageAt: last?.created_at || null,
+          };
+        })
+      );
+
+      const sorted = designerList.sort((a, b) => {
+        const aTime = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+        const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+        return bTime - aTime;
+      });
+
+      setDesigners(sorted);
+      setTotalUnread(sorted.reduce((sum, d) => sum + d.unreadCount, 0));
+    } catch (error) {
+      console.error('Error fetching designers:', error);
+    }
+  };
+
+  useEffect(() => {
     fetchDesigners();
 
-    // Subscribe to new messages
     const channel = supabase
       .channel('manufacturer-messages')
       .on(
@@ -141,9 +164,16 @@ export const ManufacturerMessaging = () => {
           schema: 'public',
           table: 'messages',
         },
-        () => {
-          fetchDesigners();
-        }
+        () => fetchDesigners()
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+        },
+        () => fetchDesigners()
       )
       .subscribe();
 
@@ -167,13 +197,7 @@ export const ManufacturerMessaging = () => {
         .eq('is_read', false)
         .neq('sender_id', user.id);
 
-      // Update unread count locally
-      setDesigners(prev =>
-        prev.map(d =>
-          d.orderId === designer.orderId ? { ...d, unreadCount: 0 } : d
-        )
-      );
-      setTotalUnread(prev => Math.max(0, prev - designer.unreadCount));
+      await fetchDesigners();
     } catch (error) {
       console.error('Error marking messages as read:', error);
     }
@@ -196,14 +220,14 @@ export const ManufacturerMessaging = () => {
 
       {/* Messages Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-5xl h-[600px] p-0">
-          <div className="flex h-full">
+        <DialogContent className="max-w-6xl h-[75vh] max-h-[720px] p-0 overflow-hidden">
+          <div className="flex h-full min-h-0">
             {/* Left Sidebar - Designers List */}
-            <div className="w-80 border-r border-border flex flex-col">
+            <div className="w-[320px] border-r border-border flex flex-col h-full min-h-0">
               <DialogHeader className="p-4 border-b border-border">
                 <DialogTitle>Messages</DialogTitle>
               </DialogHeader>
-              <ScrollArea className="flex-1">
+              <ScrollArea className="flex-1 h-full">
                 <div className="p-2">
                   {designers.length === 0 ? (
                     <div className="text-center py-12 text-muted-foreground">
@@ -232,6 +256,9 @@ export const ManufacturerMessaging = () => {
                         <p className="text-xs text-muted-foreground truncate">
                           {designer.designName}
                         </p>
+                        <p className="text-xs text-muted-foreground truncate mt-1">
+                          {designer.lastMessage || 'No messages yet'}
+                        </p>
                       </button>
                     ))
                   )}
@@ -240,16 +267,16 @@ export const ManufacturerMessaging = () => {
             </div>
 
             {/* Right Side - Chat Area */}
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col h-full min-h-0">
               {selectedDesigner ? (
-                <div className="flex-1 flex flex-col">
-                  <div className="p-4 border-b border-border">
+                <div className="flex-1 flex flex-col h-full min-h-0">
+                  <div className="p-4 border-b border-border bg-background sticky top-0 z-10">
                     <h3 className="font-semibold">{selectedDesigner.name}</h3>
                     <p className="text-sm text-muted-foreground">
                       {selectedDesigner.designName}
                     </p>
                   </div>
-                  <div className="flex-1 overflow-hidden">
+                  <div className="flex-1 min-h-0">
                     <FactoryMessaging
                       designId={selectedDesigner.orderId}
                       orderId={selectedDesigner.orderId}

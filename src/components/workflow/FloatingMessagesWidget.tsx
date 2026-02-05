@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { MessageCircle, ArrowLeft } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { FactoryMessaging } from './FactoryMessaging';
 import { ManufacturerContactsList } from './ManufacturerContactsList';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface FloatingMessagesWidgetProps {
   designId: string;
@@ -15,7 +16,6 @@ export const FloatingMessagesWidget: React.FC<FloatingMessagesWidgetProps> = ({ 
   const [unreadCount, setUnreadCount] = useState(0);
   const [selectedManufacturer, setSelectedManufacturer] = useState<any>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
-  const [showContacts, setShowContacts] = useState(true);
 
   useEffect(() => {
     fetchUnreadCount();
@@ -48,18 +48,10 @@ export const FloatingMessagesWidget: React.FC<FloatingMessagesWidgetProps> = ({ 
   const handleSelectManufacturer = (manufacturer: any, orderIdParam?: string) => {
     setSelectedManufacturer(manufacturer);
     setOrderId(orderIdParam || null);
-    setShowContacts(false);
-  };
-
-  const handleBack = () => {
-    setShowContacts(true);
-    setSelectedManufacturer(null);
-    setOrderId(null);
   };
 
   const handleOpenChat = () => {
     setOpen(true);
-    setShowContacts(true);
   };
 
   return (
@@ -84,36 +76,50 @@ export const FloatingMessagesWidget: React.FC<FloatingMessagesWidgetProps> = ({ 
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-3xl max-h-[80vh]">
-          <div className="p-2">
-            {showContacts ? (
-              <>
-                <h2 className="text-lg font-semibold mb-4">Manufacturer Contacts</h2>
-                <ManufacturerContactsList
-                  designId={designId}
-                  onSelectManufacturer={handleSelectManufacturer}
-                />
-              </>
-            ) : (
-              <>
-                <div className="flex items-center gap-3 mb-4">
-                  <button onClick={handleBack} className="p-1 hover:bg-muted rounded">
-                    <ArrowLeft className="w-5 h-5" />
-                  </button>
-                  <h2 className="text-lg font-semibold">
-                    Chat with {selectedManufacturer?.name}
-                  </h2>
+        <DialogContent className="max-w-6xl h-[75vh] max-h-[720px] p-0 overflow-hidden">
+          <div className="flex h-full min-h-0">
+            {/* Left Sidebar */}
+            <div className="w-[320px] border-r border-border flex flex-col h-full min-h-0">
+              <DialogHeader className="p-4 border-b border-border">
+                <DialogTitle>Manufacturer Contacts</DialogTitle>
+              </DialogHeader>
+              <ScrollArea className="flex-1 h-full">
+                <div className="p-3">
+                  <ManufacturerContactsList
+                    designId={designId}
+                    onSelectManufacturer={handleSelectManufacturer}
+                  />
                 </div>
-                {orderId ? (
-                  <FactoryMessaging designId={designId} orderId={orderId} />
+              </ScrollArea>
+            </div>
+
+            {/* Right Chat Pane */}
+            <div className="flex-1 flex flex-col h-full min-h-0">
+              <div className="p-4 border-b border-border bg-background sticky top-0 z-10">
+                <h2 className="text-lg font-semibold">
+                  {selectedManufacturer ? `Chat with ${selectedManufacturer?.name}` : 'Select a manufacturer'}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {selectedManufacturer?.location || 'Choose a contact to start chatting'}
+                </p>
+              </div>
+              <div className="flex-1 min-h-0">
+                {selectedManufacturer ? (
+                  orderId ? (
+                    <FactoryMessaging designId={designId} orderId={orderId} />
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p>No active order with this manufacturer yet.</p>
+                      <p className="text-sm mt-1">Send a request to start a conversation.</p>
+                    </div>
+                  )
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p>No active order with this manufacturer yet.</p>
-                    <p className="text-sm mt-1">Send a request to start a conversation.</p>
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    <p>Select a manufacturer from the left to view messages.</p>
                   </div>
                 )}
-              </>
-            )}
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

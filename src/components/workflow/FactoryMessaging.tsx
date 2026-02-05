@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, User, Factory, Paperclip, X, FileText, Image as ImageIcon, Download } from 'lucide-react';
+import { Send, User, Factory, Paperclip, X, FileText, Image as ImageIcon, Download, Check, CheckCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +17,7 @@ interface Message {
   is_designer: boolean;
   attachments?: string[];
   message_type?: string;
+  is_read?: boolean;
 }
 
 interface FactoryMessagingProps {
@@ -248,79 +249,90 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-hidden">
-        <ScrollArea className="h-[500px] px-6">
+    <div className="flex flex-col h-full bg-background min-h-0">
+      <div className="flex-1 min-h-0">
+        <ScrollArea className="h-full px-6">
           {loading ? (
             <p className="text-sm text-muted-foreground text-center py-8">Loading messages...</p>
           ) : messages.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">
-              No messages yet. Start the conversation!
-            </p>
+            <div className="text-center py-12 text-muted-foreground">
+              <p className="text-sm">No messages yet. Start the conversation.</p>
+            </div>
           ) : (
-            <div className="space-y-4 py-4">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex gap-3 ${msg.sender_id === currentUserId ? 'justify-end' : 'justify-start'}`}
-                >
-                  {msg.sender_id !== currentUserId && (
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <Factory className="w-5 h-5 text-primary" />
-                    </div>
-                  )}
+            <div className="space-y-4 py-6">
+              {messages.map((msg) => {
+                const isMe = msg.sender_id === currentUserId;
+                return (
                   <div
-                    className={cn(
-                      "max-w-[70%] rounded-2xl px-4 py-3",
-                      msg.sender_id === currentUserId
-                        ? 'bg-primary text-primary-foreground rounded-br-sm'
-                        : 'bg-muted text-foreground rounded-bl-sm'
-                    )}
+                    key={msg.id}
+                    className={`flex items-end gap-3 ${isMe ? 'justify-end' : 'justify-start'}`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                    
-                    {/* Attachments */}
-                    {msg.attachments && msg.attachments.length > 0 && (
-                      <div className="mt-2 space-y-1">
-                        {msg.attachments.map((url, idx) => (
-                          <a
-                            key={idx}
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={cn(
-                              "flex items-center gap-2 text-xs p-2 rounded transition-colors",
-                              msg.sender_id === currentUserId 
-                                ? "bg-primary-foreground/20 hover:bg-primary-foreground/30" 
-                                : "bg-background/50 hover:bg-background/70"
-                            )}
-                          >
-                            {url.match(/\.(jpg|jpeg|png|gif|webp)$/i) 
-                              ? <ImageIcon className="w-4 h-4" /> 
-                              : <FileText className="w-4 h-4" />
-                            }
-                            <span className="truncate flex-1">Attachment {idx + 1}</span>
-                            <Download className="w-4 h-4" />
-                          </a>
-                        ))}
+                    {!isMe && (
+                      <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center shrink-0">
+                        <Factory className="w-4 h-4 text-foreground/70" />
                       </div>
                     )}
-                    
-                    <p className="text-xs opacity-70 mt-1">
-                      {new Date(msg.created_at).toLocaleDateString([], {
-                        month: '2-digit',
-                        day: '2-digit',
-                        year: 'numeric'
-                      })}
-                    </p>
-                  </div>
-                  {msg.sender_id === currentUserId && (
-                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0">
-                      <User className="w-5 h-5 text-primary-foreground" />
+                    <div className={cn("max-w-[72%] space-y-1", isMe && "items-end")}>
+                      <div
+                        className={cn(
+                          "rounded-2xl px-4 py-3 shadow-sm",
+                          isMe
+                            ? "bg-primary text-primary-foreground rounded-br-md"
+                            : "bg-muted text-foreground rounded-bl-md"
+                        )}
+                      >
+                        <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+
+                        {msg.attachments && msg.attachments.length > 0 && (
+                          <div className="mt-3 space-y-2">
+                            {msg.attachments.map((url, idx) => (
+                              <a
+                                key={idx}
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={cn(
+                                  "flex items-center gap-2 text-xs p-2 rounded-md transition-colors",
+                                  isMe
+                                    ? "bg-primary-foreground/20 hover:bg-primary-foreground/30"
+                                    : "bg-background/60 hover:bg-background/80"
+                                )}
+                              >
+                                {url.match(/\.(jpg|jpeg|png|gif|webp)$/i) 
+                                  ? <ImageIcon className="w-4 h-4" /> 
+                                  : <FileText className="w-4 h-4" />
+                                }
+                                <span className="truncate flex-1">Attachment {idx + 1}</span>
+                                <Download className="w-4 h-4" />
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className={cn("flex items-center gap-1 text-[11px] text-muted-foreground", isMe ? "justify-end" : "justify-start")}>
+                        <span>
+                          {new Date(msg.created_at).toLocaleString([], {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                        {isMe && (
+                          msg.is_read
+                            ? <CheckCheck className="w-3.5 h-3.5 text-primary/70" />
+                            : <Check className="w-3.5 h-3.5 text-muted-foreground/70" />
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
-              ))}
+                    {isMe && (
+                      <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center shrink-0">
+                        <User className="w-4 h-4 text-primary-foreground" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
               <div ref={scrollRef} />
             </div>
           )}
@@ -344,7 +356,7 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
         </div>
       )}
       
-      <div className="p-6 pt-4 border-t bg-background">
+      <div className="p-4 border-t bg-background sticky bottom-0 z-10">
         <div className="flex gap-3 items-end">
           <input
             type="file"
@@ -362,24 +374,27 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
           >
             <Paperclip className="w-5 h-5" />
           </Button>
-          <Textarea
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type a message or attach files..."
-            className="resize-none min-h-[60px]"
-            rows={2}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
-              }
-            }}
-          />
+          <div className="flex-1 rounded-xl border bg-muted/30 px-3 py-2 focus-within:ring-2 focus-within:ring-primary/30">
+            <Textarea
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Write a message..."
+              className="border-0 bg-transparent resize-none min-h-[54px] focus-visible:ring-0"
+              rows={2}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+            />
+          </div>
           <Button
             onClick={handleSendMessage}
             disabled={(!newMessage.trim() && pendingAttachments.length === 0) || sending}
             size="lg"
-            className="shrink-0 h-[60px] w-[60px] rounded-full"
+            className="shrink-0 h-[54px] w-[54px] rounded-full"
           >
             <Send className="w-5 h-5" />
           </Button>

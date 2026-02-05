@@ -105,7 +105,7 @@ export const ManufacturerContactsList = ({ onSelectManufacturer, designId }: Man
       {/* All Manufacturers */}
       <div>
         <h3 className="text-sm font-semibold text-muted-foreground mb-2">All Manufacturers</h3>
-        <div className="space-y-2 max-h-[300px] overflow-y-auto">
+        <div className="space-y-2">
           {filteredManufacturers.map((manufacturer) => {
             const order = getOrderForManufacturer(manufacturer.id);
             const chatExists = !!order;
