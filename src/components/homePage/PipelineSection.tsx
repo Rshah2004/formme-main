@@ -151,7 +151,7 @@ export default function PipelineSection() {
                 Streamline Your Production Process
               </h2>
               <p className="text-muted-foreground text-lg">
-                FormMe provides a powerful, all-in-one workspace to manage your garment
+                Formme provides a powerful, all-in-one workspace to manage your garment
                 production from initial design to final delivery.
               </p>
             </div>
