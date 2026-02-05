@@ -29,7 +29,7 @@ interface SizeColorEntry {
   id: string;
   size: 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL';
   color: string;
-  quantity: string;
+  design_variant_quantity: string;
   imageUrl?: string;
 }
 
@@ -94,7 +94,7 @@ const FabricColorStage = ({ design }: FabricColorStageProps) => {
 
   // Size/Color variants
   const [sizeColorEntries, setSizeColorEntries] = useState<SizeColorEntry[]>([
-    { id: '1', size: 'M', color: '', quantity: '' }
+    { id: '1', size: 'M', color: '', design_variant_quantity: '' }
   ]);
 
   const [printColorEntries, setPrintColorEntries] = useState<PrintColorEntry[]>([
@@ -142,7 +142,7 @@ const FabricColorStage = ({ design }: FabricColorStageProps) => {
       }
       const { data: variants } = await supabase
         .from('design_variants')
-        .select('id, size, color, quantity, image_url')
+        .select('id, size, color, design_variant_quantity, image_url')
         .eq('design_id', design.id);
 
       if (variants && variants.length > 0) {
@@ -151,7 +151,7 @@ const FabricColorStage = ({ design }: FabricColorStageProps) => {
             id: v.id,
             size: v.size,
             color: v.color ?? '',
-            quantity: v.quantity?.toString() ?? '',
+            design_variant_quantity: v.design_variant_quantity?.toString() ?? '',
             imageUrl: v.image_url ?? undefined
           }))
         );
@@ -248,7 +248,7 @@ const updatePrintEntry = (
       id: Date.now().toString(),
       size: 'M',
       color: '',
-      quantity: ''
+      design_variant_quantity: ''
     }]);
     setHasUnsavedChanges(true);
   };
@@ -430,7 +430,7 @@ const onPrintImageRemove = (printId: string) => {
         id: entry.id,
         size: entry.size,
         color: entry.color,
-        quantity: entry.quantity,
+        design_variant_quantity: entry.design_variant_quantity,
         imageUrl: entry.imageUrl ?? null
       }));
 
@@ -462,7 +462,7 @@ const onPrintImageRemove = (printId: string) => {
           design_id: design.id,
           size: v.size,
           color: v.color,
-          quantity: parseInt(v.quantity) || null,
+          design_variant_quantity: parseInt(v.design_variant_quantity) || null,
           image_url: v.imageUrl ?? null
         }))
       );
@@ -730,8 +730,8 @@ const onPrintImageRemove = (printId: string) => {
                 <Label>Quantity</Label>
                 <Input
                   type="number"
-                  value={entry.quantity}
-                  onChange={(e) => updateSizeColorEntry(entry.id, 'quantity', e.target.value)}
+                  value={entry.design_variant_quantity}
+                  onChange={(e) => updateSizeColorEntry(entry.id, 'design_variant_quantity', e.target.value)}
                   placeholder="100"
                   min={0}
                   disabled={isContractFinalized}

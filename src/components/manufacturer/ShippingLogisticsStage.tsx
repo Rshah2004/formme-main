@@ -85,7 +85,7 @@ const uploadImage = async (file: File) => {
 
     const {error: dbError} = await supabase
         .from('orders')
-        .update({shipping_package_images: updatedImages})
+        .update({shipping_package_images: updatedImages} as any)
         .eq('id', order.id);
 
     if (dbError) {
@@ -112,7 +112,7 @@ const removeImage = async (urlToRemove: string) => {
 
   const { error } = await supabase
     .from('orders')
-    .update({ shipping_package_images: updatedImages })
+    .update({ shipping_package_images: updatedImages } as any)
     .eq('id', order.id);
 
   if (error) {

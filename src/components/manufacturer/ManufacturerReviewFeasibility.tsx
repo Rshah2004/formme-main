@@ -10,6 +10,16 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { format, addDays } from 'date-fns';
 import { 
   FileDown, 
@@ -74,7 +84,8 @@ export const ManufacturerReviewFeasibility = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [pendingIssueMessage, setPendingIssueMessage] = useState<string | undefined>(undefined);
-  
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
   // Tech Pack Review State
   const [checklist, setChecklist] = useState<ChecklistItem[]>([
     {
@@ -627,7 +638,7 @@ export const ManufacturerReviewFeasibility = ({
                   <Button 
                     size="lg"
                     className="w-full gap-2"
-                    onClick={handleConfirmTechPack}
+                    onClick={() => setShowConfirmDialog(true)}
                     disabled={isSubmitting}
                   >
                     Proceed to Production Confirmation
@@ -843,8 +854,8 @@ export const ManufacturerReviewFeasibility = ({
                   <div className="mt-4 p-4 bg-muted/50 rounded-lg">
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Unit Cost × {order?.quantity || 100}</span>
-                        <span>${((productionData.unitCost || 0) * (order?.quantity || 100)).toFixed(2)}</span>
+                        <span className="text-muted-foreground">Unit Cost × {order?.quantity}</span>
+                        <span>${((productionData.unitCost || 0) * (order?.quantity)).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Shipping & Handling</span>
@@ -858,7 +869,7 @@ export const ManufacturerReviewFeasibility = ({
                       <div className="flex justify-between font-semibold text-base">
                         <span>Total Quote</span>
                         <span className="text-primary">
-                          ${(((productionData.unitCost || 0) * (order?.quantity || 100)) + (productionData.shippingCost || 0) + (productionData.taxesAndFees || 0)).toFixed(2)}
+                          ${(((productionData.unitCost || 0) * (order?.quantity)) + (productionData.shippingCost || 0) + (productionData.taxesAndFees || 0)).toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -1168,6 +1179,29 @@ export const ManufacturerReviewFeasibility = ({
           }}
         />
       )}
+
+      {/* Confirmation Dialog for Proceed to Production Confirmation */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Proceed to Production Confirmation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to proceed? This will save your tech pack review and move you to the production confirmation section where you'll need to provide binding production parameters.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowConfirmDialog(false);
+                handleConfirmTechPack();
+              }}
+            >
+              Yes, Proceed
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
