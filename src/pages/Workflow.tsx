@@ -210,13 +210,6 @@ const initializedRef = useRef(false);
     }
 
     const determineStage = async () => {
-      const urlStage = searchParams.get('stage');
-      
-      // If URL has a stage, use it
-      if (urlStage) {
-        setInitialStage(urlStage);
-        return;
-      }
       
       // First check if contract is finalized (any order with manufacturer_id and status production_approval+)
       const { data: finalizedOrder, error: finalizedOrderError } = await supabase
@@ -312,6 +305,14 @@ const initializedRef = useRef(false);
 
       const design = designData.data;
       const specs = specsData.data;
+
+      const urlStage = searchParams.get('stage');
+      
+      // If URL has a stage, use it
+      if (urlStage) {
+        setInitialStage(urlStage);
+        return;
+      }
 
       // Determine furthest completed early stage based on saved data
       // Stage order: upload-tech-pack -> design -> specifications -> fabric-color -> tech-pack -> factory-match

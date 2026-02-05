@@ -184,7 +184,6 @@ const TechPackSubTabs = () => {
       {techPackSubStages.map((subStage, index) => {
         const isCurrent = index === currentSubIndex;
         const isCompleted = completedStages.includes(subStage.id);
-
         return (
           <button
             key={subStage.id}

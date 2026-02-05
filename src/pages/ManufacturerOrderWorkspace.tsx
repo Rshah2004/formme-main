@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import NavBar from '@/components/Navbar';
-import { MessageSquare, FileDown, Upload, CheckCircle, XCircle, ArrowLeft, Clock } from 'lucide-react';
+import { MessageSquare, FileDown, Upload, CheckCircle, XCircle, ArrowLeft, Clock, Info } from 'lucide-react';
 import { ManufacturerStepper } from '@/components/workflow/ManufacturerStepper';
 import { FactoryMessaging } from '@/components/workflow/FactoryMessaging';
 import { FloatingMessagesWidget } from '@/components/workflow/FloatingMessagesWidget';
@@ -544,7 +544,7 @@ const ManufacturerOrderWorkspace = () => {
     <div className="min-h-screen bg-background">
       <NavBar />
       
-      <div className="container mx-auto px-4 pt-32 pb-12">
+      <div className="container mx-auto px-4 pt-36 sm:pt-40 pb-12">
         {/* Back Button */}
         <Link to="/manufacturer" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" />
@@ -619,6 +619,15 @@ const ManufacturerOrderWorkspace = () => {
               <MessageSquare className="w-4 h-4" />
               Message Designer
             </Button>
+            <OrderInfoDrawer
+              order={order}
+              trigger={(
+                <Button variant="outline" className="gap-2" aria-label="See design details">
+                  <Info className="w-4 h-4" />
+                  See design details
+                </Button>
+              )}
+            />
           </div>
         </div>
 

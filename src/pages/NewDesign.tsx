@@ -121,8 +121,8 @@ const NewDesign = () => {
       }
 
       toast.success("Design created successfully!");
-      // Navigate directly to tech pack stage using proper object syntax
-      navigate(`/workflow?designId=${design.id}`);
+      // Start pipeline at upload tech pack
+      navigate(`/workflow?designId=${design.id}&stage=upload-tech-pack`);
     } catch (error: any) {
       console.error("Full error details:", error);
       toast.error(error.message || "Failed to create design");

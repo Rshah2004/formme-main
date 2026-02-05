@@ -20,7 +20,7 @@ interface ManufacturerProfile {
 }
 
 // Regional location mapping - comprehensive list of countries by region
-const REGION_COUNTRIES: Record<string, string[]> = {
+export const REGION_COUNTRIES: Record<string, string[]> = {
   asia: [
     'afghanistan', 'armenia', 'azerbaijan', 'bahrain', 'bangladesh', 'bhutan', 
     'brunei', 'cambodia', 'china', 'cyprus', 'georgia', 'india', 'indonesia', 
@@ -78,7 +78,7 @@ const REGION_COUNTRIES: Record<string, string[]> = {
   ],
 };
 
-function isLocationMatch(designerLocation: string, manufacturerLocation: string): boolean {
+export function isLocationMatch(designerLocation: string, manufacturerLocation: string): boolean {
   const designerLoc = designerLocation.toLowerCase().trim();
   const manufacturerLoc = manufacturerLocation.toLowerCase().trim();
   
@@ -133,7 +133,7 @@ export function calculateMatchScore(
   console.log('  Designer criteria:', designer);
   console.log('  Manufacturer profile:', manufacturer);
   
-  // 1. Category Score (HIGHEST PRIORITY - 35%)
+  // 1. Category Score (HIGHEST PRIORITY - 40%)
   let categoryScore = 0;
   if (designer.categories && designer.categories.length > 0 && 
       manufacturer.categories && manufacturer.categories.length > 0) {
@@ -145,21 +145,21 @@ export function calculateMatchScore(
     categoryScore = (matchingCategories.length / designer.categories.length) * 100;
     console.log(`  Category Score: ${categoryScore} (matching: ${matchingCategories.length}/${designer.categories.length})`);
   } else {
-    console.log('  Category Score: 0 (no categories to compare)');
+    categoryScore = 50;
+    console.log('  Category Score: 50 (no categories to compare)');
   }
 
-  // 2. Quantity Score (MOQ) - 20%
+  // 2. Quantity Score (MOQ) - 30%
   let quantityScore = 0;
   let quantityPenalty = false;
   
   if (designer.quantity <= 0) {
-    quantityScore = 50; // Default if no quantity specified
+    quantityScore = 50; // Neutral if no quantity specified
     console.log('  Quantity Score: 50 (no quantity specified)');
   } else if (designer.quantity < manufacturer.moq) {
-    // Below MOQ - severe penalty in strict mode
-    const rawScore = (designer.quantity / manufacturer.moq) * 100;
-    quantityScore = designer.applyStrictFilters ? Math.min(rawScore, 10) : rawScore;
-    quantityPenalty = designer.applyStrictFilters;
+    // Below MOQ - no fit
+    quantityScore = 0;
+    quantityPenalty = true;
     console.log(`  Quantity Score: ${quantityScore.toFixed(1)} (below MOQ: ${designer.quantity} < ${manufacturer.moq})${quantityPenalty ? ' - STRICT PENALTY' : ''}`);
   } else if (manufacturer.maxCapacity && designer.quantity > manufacturer.maxCapacity) {
     // Exceeds capacity - severe penalty in strict mode
@@ -173,21 +173,20 @@ export function calculateMatchScore(
     console.log(`  Quantity Score: 100 (perfect fit: ${designer.quantity} between ${manufacturer.moq} and ${manufacturer.maxCapacity || 'unlimited'})`);
   }
 
-  // 3. Location Score (CRITICAL PRIORITY - 30%)
-  let locationScore = 40; // default for no match
+  // 3. Location Score - 15%
+  let locationScore = 50; // neutral default
   let locationPenalty = false;
   
   if (isLocationMatch(designer.location || 'any', manufacturer.location || '')) {
     locationScore = 100;
   } else {
-    // In strict mode, non-matching location gets 0 score to ensure total stays under 50
-    locationScore = designer.applyStrictFilters ? 0 : 40;
+    locationScore = designer.applyStrictFilters ? 0 : 50;
     locationPenalty = designer.applyStrictFilters;
   }
   console.log(`  Location Score: ${locationScore}${locationPenalty ? ' - CRITICAL PENALTY (0)' : ''}`);
 
-  // 4. Price Score - 10%
-  let priceScore = 50; // default
+  // 4. Price Score - 15%
+  let priceScore = 50; // neutral default
   let pricePenalty = false;
   
   // If designer specified min/max price, use that for scoring
@@ -212,9 +211,9 @@ export function calculateMatchScore(
         const designerRangeSize = userMax - userMin || 1;
         priceScore = (overlapSize / designerRangeSize) * 100;
       }
-      // No overlap - severe penalty in strict mode
+      // No overlap - penalty
       else {
-        priceScore = designer.applyStrictFilters ? 10 : 30;
+        priceScore = designer.applyStrictFilters ? 0 : 30;
         pricePenalty = designer.applyStrictFilters;
       }
     }
@@ -227,40 +226,16 @@ export function calculateMatchScore(
     console.log(`  Price Score: ${priceScore} (default)`);
   }
 
-  // 5. Lead Time Score - 3%
-  const leadRanges: Record<string, [number, number]> = {
-    "1-3": [7, 21],
-    "4-6": [28, 42],
-    "7-10": [49, 70],
-    "10+": [70, 365]
-  };
-  
-  const [minDays, maxDays] = leadRanges[designer.leadTime] || [0, 365];
-  let leadTimeScore = 0;
-  
-  if (manufacturer.leadTime >= minDays && manufacturer.leadTime <= maxDays) {
-    leadTimeScore = 100;
-  } else if (manufacturer.leadTime > maxDays) {
-    leadTimeScore = (maxDays / manufacturer.leadTime) * 100;
-  }
-  console.log(`  Lead Time Score: ${leadTimeScore.toFixed(1)}`);
-
-  // 6. Reliability Score - 2%
-  const reliabilityScore = manufacturer.rating
-    ? (manufacturer.rating / 5) * 100
-    : 50;
-  console.log(`  Reliability Score: ${reliabilityScore.toFixed(1)}`);
+  // Lead time and rating are not used for now
 
   // Final Weighted Score with Location as critical priority
   const finalScore =
-    0.35 * categoryScore +
-    0.30 * locationScore +
-    0.20 * quantityScore +
-    0.10 * priceScore +
-    0.03 * leadTimeScore +
-    0.02 * reliabilityScore;
+    0.40 * categoryScore +
+    0.30 * quantityScore +
+    0.15 * locationScore +
+    0.15 * priceScore;
 
-  console.log(`  FINAL SCORE: ${Math.round(finalScore)} (breakdown: cat=${(0.35*categoryScore).toFixed(1)}, loc=${(0.30*locationScore).toFixed(1)}, qty=${(0.20*quantityScore).toFixed(1)}, price=${(0.10*priceScore).toFixed(1)}, lead=${(0.03*leadTimeScore).toFixed(1)}, rating=${(0.02*reliabilityScore).toFixed(1)})`);
+  console.log(`  FINAL SCORE: ${Math.round(finalScore)} (breakdown: cat=${(0.40*categoryScore).toFixed(1)}, qty=${(0.30*quantityScore).toFixed(1)}, loc=${(0.15*locationScore).toFixed(1)}, price=${(0.15*priceScore).toFixed(1)})`);
 
   return Math.round(finalScore);
 }

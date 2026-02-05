@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useWorkflow } from '@/context/WorkflowContext';
@@ -25,6 +25,26 @@ const TechPackUploadStage = ({ design }: TechPackUploadStageProps) => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(design?.tech_pack_url || null);
+
+  useEffect(() => {
+    const hydrateTechPack = async () => {
+      if (!design?.id) return;
+      const { data, error } = await supabase
+        .from('designs')
+        .select('tech_pack_url')
+        .eq('id', design.id)
+        .maybeSingle();
+      if (error) {
+        console.error('Failed to fetch tech pack url:', error);
+        return;
+      }
+      if (data?.tech_pack_url) {
+        setUploadedUrl(data.tech_pack_url);
+      }
+    };
+
+    hydrateTechPack();
+  }, [design?.id]);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -58,16 +78,6 @@ const TechPackUploadStage = ({ design }: TechPackUploadStageProps) => {
         .from('designs')
         .update({ tech_pack_url: urlData.publicUrl })
         .eq('id', design.id);
-
-      // Also save to techpacks table so manufacturers can access it
-      await supabase
-        .from('techpacks')
-        .upsert({
-          design_id: design.id,
-          pdf_url: urlData.publicUrl,
-          pdf_file_id: fileName,
-          generated_by: 'user-upload',
-        }, { onConflict: 'design_id' });
 
       setUploadedUrl(urlData.publicUrl);
       toast.success('Tech pack uploaded successfully!');

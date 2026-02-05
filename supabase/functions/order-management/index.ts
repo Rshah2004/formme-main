@@ -151,7 +151,7 @@ async function createOrder(supabase: any, userId: string, params: any) {
   // Verify user owns the design
   const { data: design, error: designError } = await supabase
     .from('designs')
-    .select('id, user_id')
+    .select('id, user_id, sample_type_preference')
     .eq('id', design_id)
     .single();
 
@@ -214,6 +214,9 @@ async function createOrder(supabase: any, userId: string, params: any) {
         quantity: quantity || 100,
         status: 'sent_to_manufacturer',
         notes,
+        production_timeline_data: {
+          sample_type_preference: design.sample_type_preference ?? null,
+        },
       });
 
       createdOrders += 1;
@@ -242,6 +245,9 @@ async function createOrder(supabase: any, userId: string, params: any) {
       quantity: quantity || 100,
       status: 'draft',
       notes,
+      production_timeline_data: {
+        sample_type_preference: design.sample_type_preference ?? null,
+      },
     })
     .select()
     .single();

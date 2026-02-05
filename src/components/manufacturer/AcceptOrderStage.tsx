@@ -39,10 +39,33 @@ export const AcceptOrderStage = ({ order, onAccept, onDecline, matchStatus }: Ac
   const design = order?.designs;
   const imageVariants = order?.image_variants || [];
   const printVariants = order?.print_variants || [];
+  const measurements = Array.isArray(designSpecs?.measurements)
+    ? designSpecs.measurements
+    : designSpecs?.measurements
+      ? Object.entries(designSpecs.measurements).map(([name, value]) => ({ name, value }))
+      : [];
+  const parseFabricType = (value: any): any[] => {
+    if (!value) return [];
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [parsed];
+      } catch {
+        return [value];
+      }
+    }
+    return [value];
+  };
+  const fabricEntries = parseFabricType(designSpecs?.fabric_type);
 console.warn('quantity', order);
   // Get tech pack URL from multiple sources
   const techPackUrl = techpack?.pdf_url || design?.tech_pack_url || null;
-  const designFileUrl = design?.design_file_url || null;
+  const designFiles: string[] = Array.isArray(design?.design_file_url)
+    ? design.design_file_url
+    : design?.design_file_url
+      ? [design.design_file_url]
+      : [];
   const thumbnailUrl = design?.thumbnail_url || null;
 
   const handleAccept = async () => {
@@ -221,30 +244,37 @@ console.warn('quantity', order);
             </div>
           )}
 
-          {/* Design File Download */}
-          {designFileUrl && (
+          {/* Design Files */}
+          {designFiles.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm font-medium">Design File</p>
-              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border">
-                <ImageIcon className="w-8 h-8 text-primary" />
-                <div className="flex-1">
-                  <p className="font-medium text-sm">Original Design File</p>
-                  <p className="text-xs text-muted-foreground">Designer uploaded file</p>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" asChild>
-                    <a href={designFileUrl} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="w-4 h-4 mr-1" />
-                      View
-                    </a>
-                  </Button>
-                  <Button variant="outline" size="sm" asChild>
-                    <a href={designFileUrl} download>
-                      <Download className="w-4 h-4 mr-1" />
-                      Download
-                    </a>
-                  </Button>
-                </div>
+              <p className="text-sm font-medium">Design Files</p>
+              <div className="space-y-2">
+                {designFiles.map((url, idx) => {
+                  const name = url.split('/').pop() || `design-file-${idx + 1}`;
+                  return (
+                    <div key={`${url}-${idx}`} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border">
+                      <ImageIcon className="w-8 h-8 text-primary" />
+                      <div className="flex-1">
+                        <p className="font-medium text-sm truncate">{name}</p>
+                        <p className="text-xs text-muted-foreground">Designer uploaded file</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={url} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="w-4 h-4 mr-1" />
+                            View
+                          </a>
+                        </Button>
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={url} download>
+                            <Download className="w-4 h-4 mr-1" />
+                            Download
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -400,7 +430,11 @@ console.warn('quantity', order);
             </div>
            <div className="space-y-1">
              <p className="text-sm text-muted-foreground">Sample Type Preference</p>
-             <p className="font-medium capitalize">{(order as any)?.sample_type_preference || 'Not specified'}</p>
+             <p className="font-medium capitalize">
+               {order?.production_timeline_data?.sample_type_preference ||
+                order?.designs?.sample_type_preference ||
+                'Not specified'}
+             </p>
            </div>
           </div>
 
@@ -443,19 +477,50 @@ console.warn('quantity', order);
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Fabric Type</p>
-                    <Badge variant="secondary">{designSpecs.fabric_type || 'Not specified'}</Badge>
+                    {fabricEntries.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {fabricEntries.map((fabric: any, idx: number) => {
+                          const label = typeof fabric === 'string'
+                            ? fabric
+                            : [fabric.type, fabric.fiberPercent ? `${fabric.fiberPercent}%` : null]
+                                .filter(Boolean)
+                                .join(' ');
+                          return (
+                            <Badge key={`${label}-${idx}`} variant="secondary">
+                              {label || 'Fabric'}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <Badge variant="secondary">Not specified</Badge>
+                    )}
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">GSM</p>
                     <Badge variant="secondary">{designSpecs.gsm || 'Not specified'}</Badge>
                   </div>
-                  {designSpecs.measurements && (
+                  {measurements.length > 0 && (
                     <div className="space-y-1">
                       <p className="text-sm text-muted-foreground">Measurements</p>
-                      <Badge variant="secondary">Available</Badge>
+                      <Badge variant="secondary">{measurements.length} items</Badge>
                     </div>
                   )}
                 </div>
+                {measurements.length > 0 && (
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {measurements.map((m: any, idx: number) => (
+                      <div key={`${m.name || m.label || 'measurement'}-${idx}`} className="flex items-center justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2 text-sm">
+                        <span className="text-muted-foreground truncate">
+                          {m.name || m.label || 'Measurement'}
+                        </span>
+                        <span className="font-medium">
+                          {m.value ?? m.measurement ?? '—'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {designSpecs.construction_notes && (
                   <div className="mt-4 p-3 bg-muted/30 rounded-lg">
                     <p className="text-sm text-muted-foreground mb-1">Construction Notes</p>

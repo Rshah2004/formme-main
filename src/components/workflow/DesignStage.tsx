@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Upload, ArrowRight, Sparkles, Clock, AlertCircle, Lock, FileText, X, Plus } from 'lucide-react';
+import { Upload, ArrowRight, Sparkles, Clock, AlertCircle, Lock, FileText, X } from 'lucide-react';
 import { useWorkflow } from '@/context/WorkflowContext';
 import { useDropzone } from 'react-dropzone';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,7 +32,7 @@ const DesignStage = ({ design }: DesignStageProps) => {
   const [designName, setDesignName] = useState(design?.name || '');
   const [description, setDescription] = useState(design?.description || '');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
@@ -40,7 +40,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [quantity, setQuantity] = useState<string>(design?.quantity?.toString() || '');
   const [sampleTypePreference, setSampleTypePreference] = useState<'digital' | 'physical'>(design?.sample_type_preference || 'physical');
   const [designFiles, setDesignFiles] = useState<DesignFile[]>([]);
-  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
 
   // Track completion status
   const isDesignUploaded = !!previewUrl;
@@ -132,90 +131,53 @@ useEffect(() => {
       toast.error('Cannot modify design after contract is finalized');
       return;
     }
-
-    const file = acceptedFiles[0];
-    if (!file) return;
+  
+    if (!acceptedFiles.length) return;
 
     const allowedTypes = [
       'image/svg+xml',
       'application/pdf',
       'image/png',
+      'image/jpeg',
+      'image/jpg',
     ];
 
-    if (!allowedTypes.includes(file.type)) {
-      toast.error('Please upload an SVG, PDF, or PNG file');
+    const invalid = acceptedFiles.find((file) => !allowedTypes.includes(file.type));
+    if (invalid) {
+      toast.error('Please upload SVG, PDF, PNG, or JPG files');
       return;
     }
 
-    setUploadedFile(file);
+    setUploadedFile(acceptedFiles[0]);
     setHasUnsavedChanges(true);
-    
+
     setIsUploading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${user.id}/${design.id}/design.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('design-files')
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('design-files')
-        .getPublicUrl(filePath);
-
-      await supabase
+      const { data: designRow } = await supabase
         .from('designs')
-          .update({ design_file_url: [publicUrl] })
-        .eq('id', design.id);
-      const cacheBustedUrl = `${publicUrl}?t=${Date.now()}`;
-      setPreviewUrl(cacheBustedUrl);
-      setHasUnsavedChanges(false);
-      toast.success('Design uploaded successfully');
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('Failed to upload design');
-    } finally {
-      setIsUploading(false);
-    }
-  }, [design?.id, isContractFinalized]);
+        .select('design_file_url')
+        .eq('id', design.id)
+        .maybeSingle();
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'image/svg+xml': ['.svg'],
-      'application/pdf': ['.pdf'],
-      'image/png': ['.png'],
-    },
-    maxFiles: 1,
-    disabled: isContractFinalized
-  });
-
-  // Handle multiple design files upload
-  const onDropFiles = useCallback(async (acceptedFiles: File[]) => {
-    if (isContractFinalized) {
-      toast.error('Cannot modify design after contract is finalized');
-      return;
-    }
-
-    setIsUploadingFiles(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const existingUrls: string[] = Array.isArray(designRow?.design_file_url)
+        ? designRow.design_file_url
+        : designRow?.design_file_url
+          ? [designRow.design_file_url]
+          : [];
 
       const uploadedFiles: DesignFile[] = [];
-      
+      const uploadedUrls: string[] = [];
+
       for (const file of acceptedFiles) {
-        const fileExt = file.name.split('.').pop();
-        const filePath = `${user.id}/${design.id}/design.${fileExt}`;
-        
+        const safeName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
+        const filePath = `${user.id}/${design.id}/${safeName}`;
+
         const { error: uploadError } = await supabase.storage
           .from('design-files')
-          .upload(filePath, file, { upsert: true });
+          .upload(filePath, file, { upsert: false });
 
         if (uploadError) throw uploadError;
 
@@ -223,56 +185,68 @@ useEffect(() => {
           .from('design-files')
           .getPublicUrl(filePath);
 
-        const { data: designRow } = await supabase
-          .from('designs')
-          .select('design_file_url')
-          .eq('id', design.id)
-            .single()
-
-        const existingUrls: string[] = Array.isArray(designRow?.design_file_url)
-        ? designRow.design_file_url
-        : [];
-
-
-        await supabase
-        .from('designs')
-        .update({
-          design_file_url: [publicUrl]
-        })
-        .eq('id', design.id);
-
-
+        uploadedUrls.push(publicUrl);
         uploadedFiles.push({
           name: file.name,
           url: publicUrl,
-          type: file.type
+          type: file.type,
         });
       }
 
-      setDesignFiles(prev => [...prev, ...uploadedFiles]);
-      setHasUnsavedChanges(true);
-      toast.success(`${uploadedFiles.length} file(s) uploaded successfully`);
+      const nextUrls = [...existingUrls, ...uploadedUrls];
+
+      await supabase
+        .from('designs')
+        .update({ design_file_url: nextUrls })
+        .eq('id', design.id);
+
+      if (!previewUrl && nextUrls[0]) {
+        setPreviewUrl(withCacheBust(nextUrls[0]));
+      }
+
+      setDesignFiles((prev) => [...prev, ...uploadedFiles]);
+      setHasUnsavedChanges(false);
+      toast.success('Design files uploaded successfully');
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error('Failed to upload files');
+      toast.error('Failed to upload design files');
     } finally {
-      setIsUploadingFiles(false);
+      setIsUploading(false);
     }
-  }, [design?.id, isContractFinalized]);
+  }, [design?.id, isContractFinalized, previewUrl]);
 
-  const { getRootProps: getFilesRootProps, getInputProps: getFilesInputProps, isDragActive: isFilesDragActive } = useDropzone({
-    onDrop: onDropFiles,
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
     accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.svg'],
+      'image/svg+xml': ['.svg'],
       'application/pdf': ['.pdf'],
-      'application/zip': ['.zip'],
+      'image/png': ['.png'],
+      'image/jpeg': ['.jpg', '.jpeg'],
     },
+    multiple: true,
     disabled: isContractFinalized
   });
 
-  const removeDesignFile = (index: number) => {
-    setDesignFiles(prev => prev.filter((_, i) => i !== index));
+  const removeDesignFile = async (index: number) => {
+    const nextFiles = designFiles.filter((_, i) => i !== index);
+    setDesignFiles(nextFiles);
     setHasUnsavedChanges(true);
+
+    try {
+      const nextUrls = nextFiles.map((f) => f.url);
+      await supabase
+        .from('designs')
+        .update({ design_file_url: nextUrls })
+        .eq('id', design.id);
+
+      if (nextUrls.length === 0) {
+        setPreviewUrl(null);
+      } else if (previewUrl && !nextUrls.includes(previewUrl.split('?')[0])) {
+        setPreviewUrl(withCacheBust(nextUrls[0]));
+      }
+    } catch (error) {
+      console.error('Error updating design files:', error);
+    }
   };
 
   const handleSave = async () => {
@@ -288,21 +262,26 @@ useEffect(() => {
         .update({ name: designName, description, quantity, sample_type_preference: sampleTypePreference })
         .eq('id', design.id);
 
-      // Save quantity and other data to orders table (via production_timeline_data)
-      // This will be read by manufacturer in AcceptOrderStage
-      const { data: existingOrder } = await supabase
+      // Save quantity + sample type preference to orders (if any exist)
+      const { data: existingOrders } = await supabase
         .from('orders')
-        .select('id')
-        .eq('design_id', design.id)
-        .maybeSingle();
-      console.warn('whats existing order', existingOrder);
-      if (existingOrder) {
-        await supabase
-          .from('orders')
-          .update({
-            quantity: parseInt(quantity) || null,
-          } as any)
-          .eq('id', existingOrder.id);
+        .select('id, production_timeline_data')
+        .eq('design_id', design.id);
+
+      if (existingOrders && existingOrders.length > 0) {
+        for (const order of existingOrders) {
+          const currentTimeline = (order.production_timeline_data as Record<string, any>) || {};
+          await supabase
+            .from('orders')
+            .update({
+              quantity: parseInt(quantity) || null,
+              production_timeline_data: {
+                ...currentTimeline,
+                sample_type_preference: sampleTypePreference,
+              },
+            } as any)
+            .eq('id', order.id);
+        }
       }
 
       setHasUnsavedChanges(false);
@@ -401,7 +380,7 @@ useEffect(() => {
       <Card className="border-border">
         <CardHeader className="pb-4">
           <CardTitle className="text-base">Design File</CardTitle>
-          <CardDescription>Upload your garment design as an SVG, PNG, or PDF file</CardDescription>
+          <CardDescription>Upload your garment design files (SVG, PNG, JPG, or PDF)</CardDescription>
         </CardHeader>
         <CardContent>
           <div
@@ -438,7 +417,7 @@ useEffect(() => {
                     {isDragActive ? "Drop your design here" : "Drag & drop your design"}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    SVG files only • Vector format preserves quality
+                    SVG, PNG, JPG, PDF • Vector format preserves quality
                   </p>
                 </div>
                 <Button variant="outline" size="sm" disabled={isContractFinalized}>
@@ -452,6 +431,26 @@ useEffect(() => {
             <div className="mt-3 flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               Uploading...
+            </div>
+          )}
+
+          {designFiles.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {designFiles.map((file, idx) => (
+                <div key={`${file.url}-${idx}`} className="flex items-center gap-3 p-2 bg-muted/50 rounded-lg">
+                  <FileText className="w-4 h-4 text-primary flex-shrink-0" />
+                  <span className="text-sm flex-1 truncate">{file.name}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => removeDesignFile(idx)}
+                    disabled={isContractFinalized}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
             </div>
           )}
         </CardContent>

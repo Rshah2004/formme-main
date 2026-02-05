@@ -13,7 +13,7 @@ import { FactoryDocuments } from './FactoryDocuments';
 import { supabase } from '@/integrations/supabase/client';
 import { orderApi } from '@/lib/api';
 import { toast } from 'sonner';
-import { calculateMatchScore } from '@/utils/matchingAlgorithm';
+import { calculateMatchScore, isLocationMatch } from '@/utils/matchingAlgorithm';
 import { useNavigate } from 'react-router-dom';
 
 interface Design {
@@ -92,40 +92,71 @@ const FactoryMatchStage = ({ design }: FactoryMatchStageProps) => {
     console.log('[calculateAndSortManufacturers] Design category:', designCategory);
     console.log('[calculateAndSortManufacturers] Workflow data:', workflowData);
     
+    const quantityValue = Number(workflowData.quantity || 0) || 0;
+    const hasFilters = Boolean(
+      (quantityValue && quantityValue > 0) ||
+      (workflowData.location && workflowData.location !== 'any') ||
+      workflowData.minPrice ||
+      workflowData.maxPrice
+    );
+
     let filtered = manufacturersList;
     
-    // Only apply category filter (mandatory)
-    if (designCategory && applyFilters && !viewAll) {
-      console.log('[calculateAndSortManufacturers] Filtering by category:', designCategory);
-      filtered = manufacturersList.filter(m => {
-        const hasMatch = m.categories?.some((cat: string) => 
-          cat.toLowerCase().includes(designCategory.toLowerCase()) ||
-          designCategory.toLowerCase().includes(cat.toLowerCase())
-        );
-        console.log(`  ${m.name}: ${hasMatch ? 'PASS' : 'FAIL'} (categories: ${m.categories?.join(', ')})`);
-        return hasMatch;
+    // Category is a scoring signal only (do not hard-filter)
+
+    // Hard filters for quantity, location, and price
+    if (applyFilters && hasFilters && !viewAll) {
+      filtered = filtered.filter((m) => {
+        // Quantity vs MOQ
+        if (quantityValue > 0) {
+          const moq = m.min_order_quantity ?? 0;
+          if (quantityValue < moq) return false;
+        }
+
+        // Location region/country match
+        if (workflowData.location && workflowData.location !== 'any') {
+          const manufacturerLocation = m.country || m.location || '';
+          if (!isLocationMatch(workflowData.location, manufacturerLocation)) return false;
+        }
+
+        // Price overlap
+        const minPrice = workflowData.minPrice ? parseInt(workflowData.minPrice) : undefined;
+        const maxPrice = workflowData.maxPrice ? parseInt(workflowData.maxPrice) : undefined;
+        if (minPrice !== undefined || maxPrice !== undefined) {
+          if (!m.price_range) return false;
+          const match = m.price_range.match(/\$(\d+)-\$(\d+)/);
+          if (match) {
+            const mMin = parseInt(match[1]);
+            const mMax = parseInt(match[2]);
+            const userMin = minPrice ?? 0;
+            const userMax = maxPrice ?? Infinity;
+            const overlaps = mMin <= userMax && mMax >= userMin;
+            if (!overlaps) return false;
+          }
+        }
+
+        return true;
       });
-      console.log('[calculateAndSortManufacturers] After category filter:', filtered.length, 'manufacturers');
     }
 
     // Calculate match scores for all manufacturers - scoring logic handles penalties
     const withScores = filtered.map(manufacturer => {
       const criteria = {
-        quantity: parseInt(workflowData.quantity || '0'),
+        quantity: quantityValue,
         leadTime: workflowData.leadTime || '4-6',
         location: workflowData.location || 'any',
         priceRange: workflowData.priceRange || 'mid',
         categories: designCategory ? [designCategory] : [],
         minPrice: workflowData.minPrice ? parseInt(workflowData.minPrice) : undefined,
         maxPrice: workflowData.maxPrice ? parseInt(workflowData.maxPrice) : undefined,
-        applyStrictFilters: applyFilters && !viewAll
+        applyStrictFilters: applyFilters && hasFilters && !viewAll
       };
       
       const profile = {
         moq: manufacturer.min_order_quantity || 0,
         maxCapacity: manufacturer.max_capacity || undefined,
         leadTime: manufacturer.lead_time_days || 30,
-        location: manufacturer.location || '',
+        location: manufacturer.country || manufacturer.location || '',
         priceTier: manufacturer.price_range || 'mid',
         rating: manufacturer.rating || undefined,
         categories: manufacturer.categories || []
@@ -407,6 +438,10 @@ const FactoryMatchStage = ({ design }: FactoryMatchStageProps) => {
                                 <span className="flex items-center gap-1">
                                   <Clock className="w-3 h-3" />
                                   {factory.lead_time_days || 'N/A'} days
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <FactoryIcon className="w-3 h-3" />
+                                  MOQ {factory.min_order_quantity ?? 'N/A'}
                                 </span>
                                 <span className="flex items-center gap-1">
                                   <DollarSign className="w-3 h-3" />

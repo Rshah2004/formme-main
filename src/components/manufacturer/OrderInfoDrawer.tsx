@@ -14,9 +14,24 @@ export const OrderInfoDrawer = ({ order, trigger }: OrderInfoDrawerProps) => {
   const design = order?.designs;
   const designSpecs = order?.design_specs;
   const techpack = order?.techpack;
+  const techPackUrl = techpack?.pdf_url || design?.tech_pack_url || null;
+  const imageVariants = order?.image_variants || [];
+  const printVariants = order?.print_variants || [];
+  const measurements = Array.isArray(designSpecs?.measurements)
+    ? designSpecs.measurements
+    : designSpecs?.measurements
+      ? Object.entries(designSpecs.measurements).map(([name, value]) => ({ name, value }))
+      : [];
 
-  const sampleType = order?.production_timeline_data?.sample_type_preference || 'Not specified';
-  const designFiles = order?.production_timeline_data?.design_files || [];
+  const sampleType =
+    order?.production_timeline_data?.sample_type_preference ||
+    order?.designs?.sample_type_preference ||
+    'Not specified';
+  const designFiles: string[] = Array.isArray(order?.designs?.design_file_url)
+    ? order.designs.design_file_url
+    : order?.designs?.design_file_url
+      ? [order.designs.design_file_url]
+      : order?.production_timeline_data?.design_files || [];
   const quantity = order?.quantity || 'Not specified';
 
   return (
@@ -28,7 +43,7 @@ export const OrderInfoDrawer = ({ order, trigger }: OrderInfoDrawerProps) => {
           </Button>
         )}
       </SheetTrigger>
-      <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
+      <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto pt-20">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Package className="w-5 h-5" />
@@ -129,6 +144,23 @@ export const OrderInfoDrawer = ({ order, trigger }: OrderInfoDrawerProps) => {
                 <span className="font-medium">{designSpecs?.print_type || 'None'}</span>
               </div>
             </div>
+            {measurements.length > 0 && (
+              <div className="mt-3 space-y-2">
+                <p className="text-xs text-muted-foreground">Measurements</p>
+                <div className="grid grid-cols-1 gap-2">
+                  {measurements.map((m: any, idx: number) => (
+                    <div key={`${m.name || m.label || 'measurement'}-${idx}`} className="flex items-center justify-between gap-3 rounded-md border bg-muted/30 px-2 py-1.5 text-xs">
+                      <span className="text-muted-foreground truncate">
+                        {m.name || m.label || 'Measurement'}
+                      </span>
+                      <span className="font-medium">
+                        {m.value ?? m.measurement ?? '—'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             {designSpecs?.construction_notes && (
               <div className="mt-3 p-2 bg-muted/50 rounded text-sm">
                 <p className="text-muted-foreground text-xs mb-1">Construction Notes</p>
@@ -169,30 +201,37 @@ export const OrderInfoDrawer = ({ order, trigger }: OrderInfoDrawerProps) => {
                   Design Files
                 </h3>
                 <div className="space-y-2">
-                  {designFiles.map((file: any, idx: number) => (
+                  {designFiles.map((file: any, idx: number) => {
+                    const url = typeof file === 'string' ? file : file.url;
+                    const name =
+                      typeof file === 'string'
+                        ? file.split('/').pop() || `design-file-${idx + 1}`
+                        : file.name || `design-file-${idx + 1}`;
+                    return (
                     <a
-                      key={idx}
-                      href={file.url}
+                      key={`${url}-${idx}`}
+                      href={url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 p-2 bg-muted/50 rounded hover:bg-muted transition-colors"
                     >
                       <FileText className="w-4 h-4 text-primary" />
-                      <span className="text-sm truncate flex-1">{file.name}</span>
+                      <span className="text-sm truncate flex-1">{name}</span>
                     </a>
-                  ))}
+                  );
+                  })}
                 </div>
               </section>
             </>
           )}
 
           {/* Tech Pack Link */}
-          {techpack?.pdf_url && (
+          {techPackUrl && (
             <>
               <Separator />
               <section>
                 <a
-                  href={techpack.pdf_url}
+                  href={techPackUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 p-3 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors"
@@ -203,6 +242,74 @@ export const OrderInfoDrawer = ({ order, trigger }: OrderInfoDrawerProps) => {
                     <p className="text-xs text-muted-foreground">PDF Document</p>
                   </div>
                 </a>
+              </section>
+            </>
+          )}
+
+          {imageVariants.length > 0 && (
+            <>
+              <Separator />
+              <section>
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <Image className="w-4 h-4" />
+                  Color Variants
+                </h3>
+                <div className="space-y-3">
+                  {imageVariants.map((variant: any) => (
+                    <div key={variant.id} className="flex items-center gap-3 p-2 bg-muted/50 rounded">
+                      {variant.image_url ? (
+                        <img
+                          src={variant.image_url}
+                          alt={`${variant.color || 'Variant'} ${variant.size || ''}`}
+                          className="w-12 h-12 rounded object-cover border"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded border bg-background" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {variant.color || 'Color variant'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {variant.size ? `Size ${variant.size}` : 'Size not specified'}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </>
+          )}
+
+          {printVariants.length > 0 && (
+            <>
+              <Separator />
+              <section>
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <Palette className="w-4 h-4" />
+                  Print Artwork
+                </h3>
+                <div className="space-y-2">
+                  {printVariants.map((variant: any) => (
+                    <a
+                      key={variant.id}
+                      href={variant.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 p-2 bg-muted/50 rounded hover:bg-muted transition-colors"
+                    >
+                      <FileText className="w-4 h-4 text-primary" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {variant.print_type || 'Print artwork'}
+                        </p>
+                        {variant.notes && (
+                          <p className="text-xs text-muted-foreground truncate">{variant.notes}</p>
+                        )}
+                      </div>
+                    </a>
+                  ))}
+                </div>
               </section>
             </>
           )}
