@@ -93,6 +93,29 @@ const allManufacturers = [
     brandSubtext: "IMPEX",
     variant: "light" as const,
   },
+  {
+    id: "apparelwin",
+    label: "MANUFACTURING PARTNER",
+    name: "ApparelWin (Guangzhou, China)",
+    description:
+      "A full-service apparel manufacturing partner specializing in small-batch and emerging brand production, supporting designers globally with flexible MOQs. Works with",
+    clients: ["1,800+ fashion brands", "across 65+ countries"],
+    metrics: [
+      { value: "1,800+", label: "BRANDS SERVED" },
+      { value: "65+", label: "COUNTRIES" },
+      { value: "30+", label: "MIN ORDER QTY" },
+      { value: "3–4 wks", label: "BULK LEAD TIME" },
+    ],
+    capabilities: [
+      { icon: Globe, text: "EXPORT-READY FOR USA, CANADA, UK, EUROPE & AUSTRALIA" },
+      { icon: Settings, text: "LOW-MOQ, CUT & SEW, PRINTING, EMBROIDERY & CUSTOM LABELS" },
+      { icon: CheckCircle2, text: "DEDICATED PRODUCTION MANAGER & STRUCTURED QC" },
+    ],
+    externalUrl: "https://apparelwin.com",
+    brandLogo: "APPAREL",
+    brandSubtext: "WIN",
+    variant: "dark" as const,
+  },
 ];
 
 export default function ManufacturerShowcase() {
