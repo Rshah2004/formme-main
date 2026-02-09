@@ -447,7 +447,6 @@ export type Database = {
           qc_photos_xl: string | null
           qc_result: string | null
           qc_submitted_at: string | null
-          design_quantities: number | null
           quantity: number | null
           sample_approved: boolean | null
           sample_submitted_at: string | null
@@ -547,7 +546,6 @@ export type Database = {
           qc_result?: string | null
           qc_submitted_at?: string | null
           quantity?: number | null
-          design_quantities: number | null
           sample_approved?: boolean | null
           sample_submitted_at?: string | null
           shipping_address?: string | null
