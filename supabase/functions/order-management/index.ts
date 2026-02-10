@@ -8,6 +8,35 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+const NOTIFY_FUNCTION_URL = Deno.env.get("NOTIFY_FUNCTION_URL");
+const NOTIFY_WEBHOOK_SECRET = Deno.env.get("NOTIFY_WEBHOOK_SECRET");
+
+const notifyEvent = async (payload: Record<string, unknown>) => {
+  if (!NOTIFY_FUNCTION_URL) return;
+  try {
+    const res = await fetch(NOTIFY_FUNCTION_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(NOTIFY_WEBHOOK_SECRET ? { "x-webhook-secret": NOTIFY_WEBHOOK_SECRET } : {}),
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      console.log("[ORDER-MANAGEMENT] notify_event_failed", {
+        status: res.status,
+        body: text,
+      });
+    }
+  } catch (error) {
+    console.log("[ORDER-MANAGEMENT] notify_event_error", {
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
 // Helper logging function
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -123,6 +152,15 @@ serve(async (req) => {
       case "get_orders_for_design":
         result = await getOrdersForDesign(supabaseClient, user.id, params);
         break;
+      case "send_message":
+        result = await sendMessage(supabaseClient, user.id, params);
+        break;
+      case "submit_production_update":
+        result = await submitProductionUpdate(supabaseClient, user.id, params);
+        break;
+      case "confirm_shipping":
+        result = await confirmShipping(supabaseClient, user.id, params);
+        break;
       default:
         throw new Error(`Unknown action: ${action}`);
     }
@@ -134,7 +172,12 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : typeof error === "string"
+          ? error
+          : JSON.stringify(error);
     logStep("ERROR", { message: errorMessage });
     return new Response(JSON.stringify({ success: false, error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -289,6 +332,15 @@ async function updateOrderStatus(supabase: any, userId: string, params: any) {
     .single();
     
   if (error) throw error;
+
+  if (["shipping", "delivered"].includes(new_status)) {
+    await notifyEvent({
+      event_type: "order_status_changed",
+      order_id,
+      new_status,
+    });
+  }
+
   return updated;
 }
 
@@ -366,6 +418,200 @@ async function getOrdersForDesign(supabase: any, userId: string, params: any) {
   return orders;
 }
 
+// ============== MESSAGING ==============
+
+async function sendMessage(supabase: any, userId: string, params: any) {
+  const {
+    order_id,
+    content,
+    message_type = 'text',
+    stage = null,
+    parent_message_id = null,
+    attachments = null,
+    action_metadata = {},
+  } = params;
+
+  if (!order_id || !content) throw new Error("order_id and content are required");
+
+  const { data: order, error: orderError } = await supabase
+    .from('orders')
+    .select('id, designer_id, manufacturers(user_id)')
+    .eq('id', order_id)
+    .single();
+
+  if (orderError || !order) throw new Error("Order not found");
+
+  const isDesigner = order.designer_id === userId;
+  const isManufacturer = order.manufacturers?.user_id === userId;
+  if (!isDesigner && !isManufacturer) throw new Error("Not authorized to send messages for this order");
+
+  const { data: message, error } = await supabase
+    .from('messages')
+    .insert({
+      order_id,
+      sender_id: userId,
+      content,
+      message_type,
+      stage,
+      parent_message_id,
+      attachments,
+      action_metadata,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  await notifyEvent({
+    event_type: "message_created",
+    message_id: message.id,
+    order_id,
+    sender_id: userId,
+  });
+
+  return message;
+}
+
+// ============== PRODUCTION UPDATES ==============
+
+async function submitProductionUpdate(supabase: any, userId: string, params: any) {
+  const {
+    order_id,
+    update_status,
+    update_message,
+    timeline_patch,
+    append_photos,
+    new_status,
+  } = params;
+
+  if (!order_id || !update_status) throw new Error("order_id and update_status are required");
+
+  const { data: order, error: orderError } = await supabase
+    .from('orders')
+    .select('id, manufacturer_id, production_timeline_data')
+    .eq('id', order_id)
+    .single();
+
+  if (orderError || !order) throw new Error("Order not found");
+
+  const { data: manufacturer } = await supabase
+    .from('manufacturers')
+    .select('id')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (!manufacturer || order.manufacturer_id !== manufacturer.id) {
+    throw new Error("Not authorized to update this order");
+  }
+
+  const existingTimeline = order.production_timeline_data || {};
+  const existingPhotos = Array.isArray(existingTimeline.production_photos)
+    ? existingTimeline.production_photos
+    : [];
+  const newPhotos = Array.isArray(append_photos) ? append_photos : [];
+
+  const updatedTimelineData = {
+    ...existingTimeline,
+    ...(timeline_patch || {}),
+    ...(newPhotos.length > 0 ? { production_photos: [...existingPhotos, ...newPhotos] } : {}),
+  };
+
+  const { error: updateError } = await supabase
+    .from('orders')
+    .update({
+      production_timeline_data: updatedTimelineData,
+      ...(new_status ? { status: new_status } : {}),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', order_id);
+
+  if (updateError) throw updateError;
+
+  const { data: update, error: insertError } = await supabase
+    .from('production_updates')
+    .insert({
+      order_id,
+      status: update_status,
+      message: update_message || null,
+    })
+    .select()
+    .single();
+
+  if (insertError) throw insertError;
+
+  await notifyEvent({
+    event_type: "order_update_created",
+    order_id,
+    update_id: update.id,
+    update_status,
+    update_message: update_message || null,
+  });
+
+  return update;
+}
+
+// ============== SHIPPING CONFIRMATION ==============
+
+async function confirmShipping(supabase: any, userId: string, params: any) {
+  const {
+    order_id,
+    shipping_tracking_url,
+    shipping_carrier,
+    shipped_at,
+    shipping_notes,
+    shipping_tracking_number,
+    shipping_carton_count,
+    shipping_terms,
+  } = params;
+
+  if (!order_id) throw new Error("order_id is required");
+
+  const { data: order, error: orderError } = await supabase
+    .from('orders')
+    .select('id, manufacturer_id')
+    .eq('id', order_id)
+    .single();
+
+  if (orderError || !order) throw new Error("Order not found");
+
+  const { data: manufacturer } = await supabase
+    .from('manufacturers')
+    .select('id')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (!manufacturer || order.manufacturer_id !== manufacturer.id) {
+    throw new Error("Not authorized to update this order");
+  }
+
+  const { data: updated, error } = await supabase
+    .from('orders')
+    .update({
+      shipping_tracking_url: shipping_tracking_url || null,
+      shipping_carrier: shipping_carrier || null,
+      shipped_at: shipped_at || null,
+      shipping_notes: shipping_notes || null,
+      shipping_tracking_number: shipping_tracking_number || null,
+      shipping_carton_count: shipping_carton_count || null,
+      shipping_terms: shipping_terms || null,
+      shipping_confirmed_at: new Date().toISOString(),
+      status: 'shipping',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', order_id)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  await notifyEvent({
+    event_type: "shipping_confirmed",
+    order_id,
+  });
+
+  return updated;
+}
+
 // ============== MANUFACTURER MATCHING ==============
 
 async function sendToManufacturers(supabase: any, userId: string, params: any) {
@@ -434,6 +680,14 @@ async function sendToManufacturers(supabase: any, userId: string, params: any) {
       })
       .select()
       .single();
+
+    if (order?.id) {
+      await notifyEvent({
+        event_type: "order_status_changed",
+        order_id: order.id,
+        new_status: "sent_to_manufacturer",
+      });
+    }
 
     results.push({ manufacturerId, orderId: order?.id, reused: false });
     created += 1;
@@ -509,6 +763,12 @@ async function finalizeManufacturer(supabase: any, userId: string, params: any) 
     .eq('id', selectedOrder.id);
 
   if (finalizeError) throw finalizeError;
+
+  await notifyEvent({
+    event_type: "order_status_changed",
+    order_id: selectedOrder.id,
+    new_status: "production_approval",
+  });
 
   // Cancel all other orders for this design
   const { error: cancelError, count: cancelledCount } = await supabase
@@ -596,6 +856,23 @@ async function approveManufacturerMatch(supabase: any, userId: string, params: a
     .eq('manufacturer_id', manufacturer.id);
 
   if (orderError) throw orderError;
+
+  const { data: updatedOrder } = await supabase
+    .from('orders')
+    .select('id')
+    .eq('design_id', design_id)
+    .eq('manufacturer_id', manufacturer.id)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (updatedOrder?.id) {
+    await notifyEvent({
+      event_type: "order_status_changed",
+      order_id: updatedOrder.id,
+      new_status: "manufacturer_review",
+    });
+  }
   
   return { approved: true };
 }
@@ -668,6 +945,14 @@ async function confirmTechPackFeasibility(supabase: any, userId: string, params:
     .single();
 
   if (error) throw error;
+
+  await notifyEvent({
+    event_type: "designer_feedback",
+    order_id,
+    feedback_type: "production_params_rejected",
+    feedback_message: notes ?? null,
+  });
+
   return updated;
 }
 
@@ -707,6 +992,13 @@ async function requestTechPackChanges(supabase: any, userId: string, params: any
     .single();
 
   if (error) throw error;
+
+  await notifyEvent({
+    event_type: "sample_reviewed",
+    order_id,
+    sample_approved: true,
+  });
+
   return updated;
 }
 
@@ -757,6 +1049,13 @@ async function confirmProductionFeasibility(supabase: any, userId: string, param
     .single();
 
   if (error) throw error;
+
+  await notifyEvent({
+    event_type: "sample_reviewed",
+    order_id,
+    sample_approved: false,
+  });
+
   return updated;
 }
 
@@ -790,6 +1089,13 @@ async function approveProductionParams(supabase: any, userId: string, params: an
     .single();
 
   if (error) throw error;
+
+  await notifyEvent({
+    event_type: "qc_reviewed",
+    order_id,
+    qc_approved: true,
+  });
+
   return updated;
 }
 
@@ -820,13 +1126,20 @@ async function rejectProductionParams(supabase: any, userId: string, params: any
     .single();
 
   if (error) throw error;
+
+  await notifyEvent({
+    event_type: "qc_reviewed",
+    order_id,
+    qc_approved: false,
+  });
+
   return updated;
 }
 
 // ============== SAMPLE DEVELOPMENT ==============
 
 async function submitSample(supabase: any, userId: string, params: any) {
-  const { order_id, photos, notes, turnaround_days } = params;
+  const { order_id, photos, notes, turnaround_days, tracking_url } = params;
   
   // Verify manufacturer owns this order
   const { data: manufacturer } = await supabase
@@ -851,13 +1164,17 @@ async function submitSample(supabase: any, userId: string, params: any) {
     ...order.production_timeline_data,
     sample_photos: photos,
     sample_notes: notes,
-    sample_turnaround_days: turnaround_days
+    sample_tracking_url: tracking_url ?? order.production_timeline_data?.sample_tracking_url ?? null,
+    sample_turnaround_days: turnaround_days,
+    sample_last_updated: new Date().toISOString(),
   };
 
   const { data: updated, error } = await supabase
     .from('orders')
     .update({
       sample_submitted_at: new Date().toISOString(),
+      sample_approved: null,
+      status: 'sample_development',
       production_timeline_data: updatedTimelineData,
       updated_at: new Date().toISOString()
     })
@@ -866,6 +1183,12 @@ async function submitSample(supabase: any, userId: string, params: any) {
     .single();
 
   if (error) throw error;
+
+  await notifyEvent({
+    event_type: "sample_submitted",
+    order_id,
+  });
+
   return updated;
 }
 
@@ -875,7 +1198,7 @@ async function approveSample(supabase: any, userId: string, params: any) {
   // Verify designer owns this order
   const { data: order } = await supabase
     .from('orders')
-    .select('designer_id, sample_submitted_at')
+    .select('designer_id, sample_submitted_at, production_timeline_data')
     .eq('id', order_id)
     .single();
     
@@ -887,14 +1210,24 @@ async function approveSample(supabase: any, userId: string, params: any) {
     throw new Error("Sample has not been submitted yet");
   }
 
+  const updatePayload: any = {
+    sample_approved: true,
+    status: 'quality_check',
+    notes: notes,
+    updated_at: new Date().toISOString()
+  };
+
+  if (notes && notes.trim().length > 0) {
+    updatePayload.production_timeline_data = {
+      ...(order.production_timeline_data || {}),
+      sample_designer_notes: notes,
+      sample_designer_notes_updated_at: new Date().toISOString()
+    };
+  }
+
   const { data: updated, error } = await supabase
     .from('orders')
-    .update({
-      sample_approved: true,
-      status: 'quality_check',
-      notes: notes,
-      updated_at: new Date().toISOString()
-    })
+    .update(updatePayload)
     .eq('id', order_id)
     .select()
     .single();
@@ -956,16 +1289,17 @@ async function submitQC(supabase: any, userId: string, params: any) {
     throw new Error("Not authorized to update this order");
   }
 
+  const qcPhotos = photos && typeof photos === "object" ? photos : {};
   const { data: updated, error } = await supabase
     .from('orders')
     .update({
       qc_submitted_at: new Date().toISOString(),
-      qc_photos_s: photos?.s,
-      qc_photos_m: photos?.m,
-      qc_photos_l: photos?.l,
-      qc_photos_xl: photos?.xl,
-      qc_result: result,
-      qc_notes: notes + (fail_reason ? `\nFail Reason: ${fail_reason}` : '') + (rework_path ? `\nRework Path: ${rework_path}` : ''),
+      qc_photos_s: qcPhotos?.s ?? null,
+      qc_photos_m: qcPhotos?.m ?? null,
+      qc_photos_l: qcPhotos?.l ?? null,
+      qc_photos_xl: qcPhotos?.xl ?? null,
+      qc_notes: (notes ?? '') + (fail_reason ? `\nFail Reason: ${fail_reason}` : '') + (rework_path ? `\nRework Path: ${rework_path}` : ''),
+      qc_approved: null,
       updated_at: new Date().toISOString()
     })
     .eq('id', order_id)
@@ -973,6 +1307,12 @@ async function submitQC(supabase: any, userId: string, params: any) {
     .single();
 
   if (error) throw error;
+
+  await notifyEvent({
+    event_type: "qc_submitted",
+    order_id,
+  });
+
   return updated;
 }
 

@@ -88,6 +88,7 @@ const SampleStage = ({ design }: SampleStageProps) => {
   const [orderData, setOrderData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMarkingReceived, setIsMarkingReceived] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [pendingIssueMessage, setPendingIssueMessage] = useState<string | undefined>(undefined);
   const [showApproveConfirmDialog, setShowApproveConfirmDialog] = useState(false);
@@ -160,6 +161,10 @@ const SampleStage = ({ design }: SampleStageProps) => {
   const samplePhotos = orderData?.production_timeline_data?.sample_photos || [];
   const sampleNotes = orderData?.production_timeline_data?.sample_notes || '';
   const hasSampleData = samplePhotos.length > 0 || orderData?.sample_submitted_at;
+  const sampleTypePreference = orderData?.production_timeline_data?.sample_type_preference || workflowData.sampleType || 'physical';
+  const isPhysicalSample = sampleTypePreference === 'physical';
+  const sampleReceivedAt = orderData?.production_timeline_data?.sample_received_at;
+  const canReviewSample = !isPhysicalSample || !!sampleReceivedAt;
   
   // Check if sample was previously rejected and manufacturer resubmitted
   const wasRejected = orderData?.sample_approved === false;
@@ -209,24 +214,36 @@ const SampleStage = ({ design }: SampleStageProps) => {
       const feedbackNotes = rejectedItems
         .map(item => `• ${item.label}: ${item.rejectionNote}`)
         .join('\n');
+      const additionalNotes = workflowData.fitNotes?.trim();
+      const combinedNotes = additionalNotes
+        ? `${feedbackNotes}\n\nAdditional notes: ${additionalNotes}`
+        : feedbackNotes;
 
       // Save checklist state and reject sample
+      const timelineUpdate = {
+        ...orderData.production_timeline_data,
+        sample_checklist: checklist,
+        designer_feedback: feedbackNotes,
+        ...(additionalNotes
+          ? {
+              sample_designer_notes: additionalNotes,
+              sample_designer_notes_updated_at: new Date().toISOString()
+            }
+          : {})
+      };
+
       await supabase
         .from('orders')
         .update({
           sample_approved: false,
-          production_timeline_data: {
-            ...orderData.production_timeline_data,
-            sample_checklist: checklist,
-            designer_feedback: feedbackNotes
-          }
+          production_timeline_data: timelineUpdate
         })
         .eq('id', orderData.id);
 
-      await orderApi.rejectSample(orderData.id, feedbackNotes);
+      await orderApi.rejectSample(orderData.id, combinedNotes);
       
       // Set the pending issue message to auto-populate the chat
-      setPendingIssueMessage(feedbackNotes);
+      setPendingIssueMessage(combinedNotes);
       
       // Open chat with the issue message pre-filled
       setChatOpen(true);
@@ -274,6 +291,38 @@ const SampleStage = ({ design }: SampleStageProps) => {
     return 'pending';
   };
 
+  const handleMarkSampleReceived = async () => {
+    if (!orderData?.id || !orderData?.sample_submitted_at) return;
+
+    setIsMarkingReceived(true);
+    try {
+      const receivedAt = new Date().toISOString();
+      await supabase
+        .from('orders')
+        .update({
+          production_timeline_data: {
+            ...(orderData.production_timeline_data || {}),
+            sample_received_at: receivedAt
+          }
+        })
+        .eq('id', orderData.id);
+
+      setOrderData((prev: any) => ({
+        ...prev,
+        production_timeline_data: {
+          ...(prev?.production_timeline_data || {}),
+          sample_received_at: receivedAt
+        }
+      }));
+      toast.success('Sample marked as received');
+    } catch (error) {
+      console.error('Error marking sample received:', error);
+      toast.error('Failed to mark sample as received');
+    } finally {
+      setIsMarkingReceived(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -312,7 +361,11 @@ const SampleStage = ({ design }: SampleStageProps) => {
       <StageHeader 
         icon={Package} 
         title="View your design sample" 
-        description="Review each aspect of the sample and approve or request changes before production begins." 
+        description={
+          isPhysicalSample
+            ? "Track your physical sample, mark it received, then review and approve before production begins."
+            : "Review each aspect of the sample and approve or request changes before production begins."
+        } 
         contextInfo={[
           { label: 'Factory', value: workflowData.selectedFactory?.name || 'Not selected' }, 
           { label: 'Quantity', value: workflowData.quantity || 'Not set' }
@@ -342,6 +395,45 @@ const SampleStage = ({ design }: SampleStageProps) => {
       ) : (
         <div className="grid grid-cols-3 gap-6">
           <div className="col-span-2 space-y-6">
+            {isPhysicalSample && !sampleReceivedAt && (
+              <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900">
+                <CardContent className="p-5">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+                      <Package className="w-5 h-5 text-amber-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-amber-900 dark:text-amber-100">
+                        Track your sample shipment
+                      </p>
+                      <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                        Your sample has been submitted. Mark it as received once it arrives to unlock the approval checklist.
+                      </p>
+                      {orderData?.production_timeline_data?.sample_tracking_url ? (
+                        <p className="text-sm text-amber-800 dark:text-amber-200 mt-2">
+                          Tracking: {orderData.production_timeline_data.sample_tracking_url}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-amber-700/80 dark:text-amber-300/80 mt-2">
+                          Tracking link not provided yet.
+                        </p>
+                      )}
+                      <div className="mt-3">
+                        <Button
+                          onClick={handleMarkSampleReceived}
+                          disabled={isMarkingReceived || !orderData?.sample_submitted_at}
+                          className="gap-2"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                          {isMarkingReceived ? 'Marking...' : 'Mark Sample Received'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Resubmission notice */}
             {isResubmission && (
               <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-900">
@@ -396,222 +488,232 @@ const SampleStage = ({ design }: SampleStageProps) => {
             </section>
 
             {/* Sample Approval Checklist */}
-            <section>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-foreground">Sample Approval Checklist</h3>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs">
-                    {checklist.filter(i => i.approved).length}/{checklist.length} Approved
-                  </Badge>
-                  {hasRejectedItems && (
-                    <Badge variant="destructive" className="text-xs">
-                      {checklist.filter(i => i.rejected).length} Issues
-                    </Badge>
+            {canReviewSample ? (
+              <>
+                <section>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-foreground">Sample Approval Checklist</h3>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">
+                        {checklist.filter(i => i.approved).length}/{checklist.length} Approved
+                      </Badge>
+                      {hasRejectedItems && (
+                        <Badge variant="destructive" className="text-xs">
+                          {checklist.filter(i => i.rejected).length} Issues
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {checklist.map((item) => {
+                      const status = getItemStatus(item);
+                      
+                      return (
+                        <Card 
+                          key={item.id}
+                          className={`border transition-all ${
+                            status === 'approved' 
+                              ? 'border-green-200 bg-green-50/50 dark:bg-green-950/10' 
+                              : status === 'rejected'
+                              ? 'border-red-200 bg-red-50/50 dark:bg-red-950/10'
+                              : 'border-border'
+                          }`}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex items-start gap-3 flex-1">
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
+                                  status === 'approved' 
+                                    ? 'bg-green-100 dark:bg-green-900' 
+                                    : status === 'rejected'
+                                    ? 'bg-red-100 dark:bg-red-900'
+                                    : 'bg-muted'
+                                }`}>
+                                  {status === 'approved' ? (
+                                    <CheckCircle className="w-4 h-4 text-green-600" />
+                                  ) : status === 'rejected' ? (
+                                    <XCircle className="w-4 h-4 text-red-600" />
+                                  ) : (
+                                    <div className="w-2 h-2 rounded-full bg-muted-foreground/50" />
+                                  )}
+                                </div>
+                                <div className="flex-1">
+                                  <p className={`font-medium text-sm ${
+                                    status === 'approved' 
+                                      ? 'text-green-900 dark:text-green-100' 
+                                      : status === 'rejected'
+                                      ? 'text-red-900 dark:text-red-100'
+                                      : 'text-foreground'
+                                  }`}>
+                                    {item.label}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground mt-0.5">
+                                    {item.description}
+                                  </p>
+                                  
+                                  {/* Rejection note display */}
+                                  {item.rejected && item.rejectionNote && (
+                                    <div className="mt-2 p-2 bg-red-100/50 dark:bg-red-900/30 rounded text-sm flex items-start gap-2">
+                                      <MessageSquare className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                                      <span className="text-red-800 dark:text-red-200">{item.rejectionNote}</span>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Rejection form */}
+                                  {showRejectionForm === item.id && (
+                                    <div className="mt-3 space-y-2">
+                                      <Textarea
+                                        placeholder="Describe what needs to be fixed..."
+                                        value={rejectionNote}
+                                        onChange={(e) => setRejectionNote(e.target.value)}
+                                        className="text-sm resize-none"
+                                        rows={2}
+                                      />
+                                      <div className="flex gap-2">
+                                        <Button 
+                                          size="sm" 
+                                          variant="destructive"
+                                          onClick={() => handleRejectItem(item.id)}
+                                        >
+                                          Flag Issue
+                                        </Button>
+                                        <Button 
+                                          size="sm" 
+                                          variant="ghost"
+                                          onClick={() => {
+                                            setShowRejectionForm(null);
+                                            setRejectionNote('');
+                                          }}
+                                        >
+                                          Cancel
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              {/* Action buttons */}
+                              {showRejectionForm !== item.id && (
+                                <div className="flex gap-2 shrink-0">
+                                  {status === 'pending' && (
+                                    <>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="gap-1 text-green-600 border-green-200 hover:bg-green-50"
+                                        onClick={() => handleApproveItem(item.id)}
+                                      >
+                                        <CheckCircle className="w-3.5 h-3.5" />
+                                        Approve
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="gap-1 text-red-600 border-red-200 hover:bg-red-50"
+                                        onClick={() => setShowRejectionForm(item.id)}
+                                      >
+                                        <XCircle className="w-3.5 h-3.5" />
+                                        Issue
+                                      </Button>
+                                    </>
+                                  )}
+                                  {status === 'approved' && (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="text-xs text-muted-foreground"
+                                      onClick={() => setShowRejectionForm(item.id)}
+                                    >
+                                      Change
+                                    </Button>
+                                  )}
+                                  {status === 'rejected' && (
+                                    <div className="flex gap-1">
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="gap-1 text-green-600 border-green-200 hover:bg-green-50"
+                                        onClick={() => handleApproveItem(item.id)}
+                                      >
+                                        <CheckCircle className="w-3.5 h-3.5" />
+                                        Approve
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="text-xs"
+                                        onClick={() => handleClearRejection(item.id)}
+                                      >
+                                        Clear
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-sm font-semibold text-foreground mb-3">Additional Notes (Optional)</h3>
+                  <Card className="border-border">
+                    <CardContent className="p-6">
+                      <Textarea 
+                        placeholder="Any additional notes or instructions for the manufacturer..." 
+                        value={workflowData.fitNotes || ''} 
+                        onChange={(e) => updateWorkflowData({ fitNotes: e.target.value })} 
+                        className="min-h-[100px] text-sm resize-none" 
+                      />
+                    </CardContent>
+                  </Card>
+                </section>
+
+                <div className="flex items-center gap-4 pt-4 border-t">
+                  {hasRejectedItems && allItemsReviewed && (
+                    <Button 
+                      onClick={handleSubmitRejection}
+                      disabled={isSubmitting}
+                      variant="destructive"
+                      className="gap-2"
+                    >
+                      <AlertTriangle className="w-4 h-4" />
+                      {isSubmitting ? 'Sending...' : 'Send Feedback to Manufacturer'}
+                    </Button>
+                  )}
+                  
+                  {canProceed && (
+                    <Button 
+                      onClick={() => setShowApproveConfirmDialog(true)}
+                      disabled={isSubmitting}
+                      className="gap-2"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      {isSubmitting ? 'Approving...' : 'Approve Sample & Continue to Production'}
+                    </Button>
+                  )}
+
+                  {!allItemsReviewed && (
+                    <p className="text-sm text-muted-foreground">
+                      Review all {checklist.length} items to continue
+                    </p>
                   )}
                 </div>
-              </div>
-              
-              <div className="space-y-3">
-                {checklist.map((item) => {
-                  const status = getItemStatus(item);
-                  
-                  return (
-                    <Card 
-                      key={item.id}
-                      className={`border transition-all ${
-                        status === 'approved' 
-                          ? 'border-green-200 bg-green-50/50 dark:bg-green-950/10' 
-                          : status === 'rejected'
-                          ? 'border-red-200 bg-red-50/50 dark:bg-red-950/10'
-                          : 'border-border'
-                      }`}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex items-start gap-3 flex-1">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
-                              status === 'approved' 
-                                ? 'bg-green-100 dark:bg-green-900' 
-                                : status === 'rejected'
-                                ? 'bg-red-100 dark:bg-red-900'
-                                : 'bg-muted'
-                            }`}>
-                              {status === 'approved' ? (
-                                <CheckCircle className="w-4 h-4 text-green-600" />
-                              ) : status === 'rejected' ? (
-                                <XCircle className="w-4 h-4 text-red-600" />
-                              ) : (
-                                <div className="w-2 h-2 rounded-full bg-muted-foreground/50" />
-                              )}
-                            </div>
-                            <div className="flex-1">
-                              <p className={`font-medium text-sm ${
-                                status === 'approved' 
-                                  ? 'text-green-900 dark:text-green-100' 
-                                  : status === 'rejected'
-                                  ? 'text-red-900 dark:text-red-100'
-                                  : 'text-foreground'
-                              }`}>
-                                {item.label}
-                              </p>
-                              <p className="text-xs text-muted-foreground mt-0.5">
-                                {item.description}
-                              </p>
-                              
-                              {/* Rejection note display */}
-                              {item.rejected && item.rejectionNote && (
-                                <div className="mt-2 p-2 bg-red-100/50 dark:bg-red-900/30 rounded text-sm flex items-start gap-2">
-                                  <MessageSquare className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                                  <span className="text-red-800 dark:text-red-200">{item.rejectionNote}</span>
-                                </div>
-                              )}
-                              
-                              {/* Rejection form */}
-                              {showRejectionForm === item.id && (
-                                <div className="mt-3 space-y-2">
-                                  <Textarea
-                                    placeholder="Describe what needs to be fixed..."
-                                    value={rejectionNote}
-                                    onChange={(e) => setRejectionNote(e.target.value)}
-                                    className="text-sm resize-none"
-                                    rows={2}
-                                  />
-                                  <div className="flex gap-2">
-                                    <Button 
-                                      size="sm" 
-                                      variant="destructive"
-                                      onClick={() => handleRejectItem(item.id)}
-                                    >
-                                      Flag Issue
-                                    </Button>
-                                    <Button 
-                                      size="sm" 
-                                      variant="ghost"
-                                      onClick={() => {
-                                        setShowRejectionForm(null);
-                                        setRejectionNote('');
-                                      }}
-                                    >
-                                      Cancel
-                                    </Button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Action buttons */}
-                          {showRejectionForm !== item.id && (
-                            <div className="flex gap-2 shrink-0">
-                              {status === 'pending' && (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="gap-1 text-green-600 border-green-200 hover:bg-green-50"
-                                    onClick={() => handleApproveItem(item.id)}
-                                  >
-                                    <CheckCircle className="w-3.5 h-3.5" />
-                                    Approve
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="gap-1 text-red-600 border-red-200 hover:bg-red-50"
-                                    onClick={() => setShowRejectionForm(item.id)}
-                                  >
-                                    <XCircle className="w-3.5 h-3.5" />
-                                    Issue
-                                  </Button>
-                                </>
-                              )}
-                              {status === 'approved' && (
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="text-xs text-muted-foreground"
-                                  onClick={() => setShowRejectionForm(item.id)}
-                                >
-                                  Change
-                                </Button>
-                              )}
-                              {status === 'rejected' && (
-                                <div className="flex gap-1">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="gap-1 text-green-600 border-green-200 hover:bg-green-50"
-                                    onClick={() => handleApproveItem(item.id)}
-                                  >
-                                    <CheckCircle className="w-3.5 h-3.5" />
-                                    Approve
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="text-xs"
-                                    onClick={() => handleClearRejection(item.id)}
-                                  >
-                                    Clear
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </section>
-
-            {/* Additional Notes */}
-            <section>
-              <h3 className="text-sm font-semibold text-foreground mb-3">Additional Notes (Optional)</h3>
-              <Card className="border-border">
+              </>
+            ) : (
+              <Card className="border-border bg-muted/30">
                 <CardContent className="p-6">
-                  <Textarea 
-                    placeholder="Any additional notes or instructions for the manufacturer..." 
-                    value={workflowData.fitNotes || ''} 
-                    onChange={(e) => updateWorkflowData({ fitNotes: e.target.value })} 
-                    className="min-h-[100px] text-sm resize-none" 
-                  />
+                  <p className="text-sm text-muted-foreground">
+                    Mark the physical sample as received to unlock the approval checklist and actions.
+                  </p>
                 </CardContent>
               </Card>
-            </section>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-4 pt-4 border-t">
-              {hasRejectedItems && allItemsReviewed && (
-                <Button 
-                  onClick={handleSubmitRejection}
-                  disabled={isSubmitting}
-                  variant="destructive"
-                  className="gap-2"
-                >
-                  <AlertTriangle className="w-4 h-4" />
-                  {isSubmitting ? 'Sending...' : 'Send Feedback to Manufacturer'}
-                </Button>
-              )}
-              
-              {canProceed && (
-                <Button 
-                  onClick={() => setShowApproveConfirmDialog(true)}
-                  disabled={isSubmitting}
-                  className="gap-2"
-                >
-                  <CheckCircle className="w-4 h-4" />
-                  {isSubmitting ? 'Approving...' : 'Approve Sample & Continue to Production'}
-                </Button>
-              )}
-
-              {!allItemsReviewed && (
-                <p className="text-sm text-muted-foreground">
-                  Review all {checklist.length} items to continue
-                </p>
-              )}
-            </div>
+            )}
           </div>
           
           <div className="space-y-4">

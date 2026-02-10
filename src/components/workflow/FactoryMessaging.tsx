@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, User, Factory, Paperclip, X, FileText, Image as ImageIcon, Download, Check, CheckCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { orderApi } from '@/lib/api';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -168,16 +169,11 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
         attachmentUrls = await uploadAttachments(pendingAttachments);
       }
 
-      const { error } = await supabase
-        .from('messages')
-        .insert({
-          order_id: orderId,
-          sender_id: currentUserId,
-          content: newMessage.trim() || `Sent ${attachmentUrls.length} attachment(s)`,
-          attachments: attachmentUrls.length > 0 ? attachmentUrls : null
-        });
-
-      if (error) throw error;
+      await orderApi.sendMessage({
+        order_id: orderId,
+        content: newMessage.trim() || `Sent ${attachmentUrls.length} attachment(s)`,
+        attachments: attachmentUrls.length > 0 ? attachmentUrls : null,
+      });
 
       setNewMessage('');
       setPendingAttachments([]);

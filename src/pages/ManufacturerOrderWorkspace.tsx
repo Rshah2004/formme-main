@@ -17,6 +17,7 @@ import { AcceptOrderStage } from '@/components/manufacturer/AcceptOrderStage';
 import { ShippingLogisticsStage } from '@/components/manufacturer/ShippingLogisticsStage';
 import { OrderInfoDrawer } from '@/components/manufacturer/OrderInfoDrawer';
 import { supabase } from '@/integrations/supabase/client';
+import { orderApi } from '@/lib/api';
 import { toast } from 'sonner';
 
 const ManufacturerOrderWorkspace = () => {
@@ -74,6 +75,7 @@ const ManufacturerOrderWorkspace = () => {
   const [colorFastness, setColorFastness] = useState('');
   const [samplePhotos, setSamplePhotos] = useState<FileList | null>(null);
   const [sampleNotes, setSampleNotes] = useState('');
+  const [sampleTrackingUrl, setSampleTrackingUrl] = useState('');
   const [productionPhotos, setProductionPhotos] = useState<FileList | null>(null);
   const [qcPhotosS, setQcPhotosS] = useState<string>('');
   const [qcPhotosM, setQcPhotosM] = useState<string>('');
@@ -347,6 +349,12 @@ const ManufacturerOrderWorkspace = () => {
     }
   };
 
+  useEffect(() => {
+    if (!order?.id) return;
+    setSampleTrackingUrl(order.production_timeline_data?.sample_tracking_url || '');
+    setSampleNotes(order.production_timeline_data?.sample_notes || '');
+  }, [order?.id]);
+
   const handleDeclineMatch = async () => {
     if (!order || !order.manufacturer_id) return;
     
@@ -400,22 +408,12 @@ const ManufacturerOrderWorkspace = () => {
       const existingSampleUrls = order.production_timeline_data?.sample_photos || [];
       const allSampleUrls = [...existingSampleUrls, ...sampleUrls];
 
-      const { error } = await supabase
-        .from('orders')
-        .update({
-          production_timeline_data: {
-            ...order.production_timeline_data,
-            sample_photos: allSampleUrls,
-            sample_notes: sampleNotes || order.production_timeline_data?.sample_notes,
-            sample_last_updated: new Date().toISOString()
-          },
-          sample_submitted_at: new Date().toISOString(),
-          sample_approved: null, // Reset approval status
-          status: 'sample_development'
-        })
-        .eq('id', order.id);
-
-      if (error) throw error;
+      await orderApi.submitSample({
+        order_id: order.id,
+        photos: allSampleUrls,
+        notes: sampleNotes || order.production_timeline_data?.sample_notes || '',
+        tracking_url: sampleTrackingUrl || order.production_timeline_data?.sample_tracking_url || '',
+      });
 
       toast.success('Sample update submitted to designer for approval');
       
@@ -483,20 +481,18 @@ const ManufacturerOrderWorkspace = () => {
 
     setSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({
-          qc_photos_s: qcPhotosS || null,
-          qc_photos_m: qcPhotosM || null,
-          qc_photos_l: qcPhotosL || null,
-          qc_photos_xl: qcPhotosXL || null,
-          qc_notes: qcNotes || null,
-          qc_submitted_at: new Date().toISOString(),
-          qc_approved: null // Reset approval status
-        })
-        .eq('id', order.id);
-
-      if (error) throw error;
+      await orderApi.submitQC({
+        order_id: order.id,
+        photos: {
+          s: qcPhotosS || null,
+          m: qcPhotosM || null,
+          l: qcPhotosL || null,
+          xl: qcPhotosXL || null,
+        },
+        checklist: [],
+        result: '',
+        notes: qcNotes || '',
+      });
 
       toast.success('Quality check submitted to designer');
       
@@ -510,9 +506,12 @@ const ManufacturerOrderWorkspace = () => {
       if (updatedOrder) {
         setOrder({ ...order, ...updatedOrder });
       }
-    } catch (error) {
+    } catch (error: any) {
+      const message =
+        error?.message ||
+        (typeof error === 'string' ? error : JSON.stringify(error));
       console.error('Error submitting QC:', error);
-      toast.error('Failed to submit quality check');
+      toast.error(message || 'Failed to submit quality check');
     } finally {
       setSubmitting(false);
     }
@@ -539,6 +538,16 @@ const ManufacturerOrderWorkspace = () => {
       </div>
     );
   }
+
+  const sampleTypePreference =
+    order.production_timeline_data?.sample_type_preference ||
+    order.designs?.sample_type_preference ||
+    'physical';
+  const isPhysicalSample = sampleTypePreference === 'physical';
+  const canSubmitSampleUpdate =
+    (samplePhotos && samplePhotos.length > 0) ||
+    sampleNotes.trim().length > 0 ||
+    sampleTrackingUrl.trim().length > 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -755,6 +764,20 @@ const ManufacturerOrderWorkspace = () => {
                     </div>
                   </div>
                 ) : null}
+
+                {order.production_timeline_data?.sample_designer_notes && (
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-4">
+                    <div className="flex items-center gap-3">
+                      <Info className="w-5 h-5 text-slate-600" />
+                      <div>
+                        <p className="text-sm font-medium text-slate-900">Designer Notes</p>
+                        <p className="text-xs text-slate-700 mt-1">
+                          {order.production_timeline_data.sample_designer_notes}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 
                 <div className="space-y-3">
                   <Label>Upload Sample Progress Photos</Label>
@@ -786,6 +809,22 @@ const ManufacturerOrderWorkspace = () => {
                     </Label>
                   </div>
                 </div>
+
+                {isPhysicalSample && (
+                  <div className="space-y-3">
+                    <Label>Sample Tracking URL</Label>
+                    <Input
+                      type="url"
+                      placeholder="https://carrier.com/track/..."
+                      value={sampleTrackingUrl}
+                      onChange={(e) => setSampleTrackingUrl(e.target.value)}
+                      disabled={!order.production_params_approved || (order.sample_submitted_at && order.sample_approved !== false)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      This link will be shown to the designer for tracking the physical sample shipment.
+                    </p>
+                  </div>
+                )}
                 
                 <div className="space-y-3">
                   <Label>Notes / Questions</Label>
@@ -799,7 +838,7 @@ const ManufacturerOrderWorkspace = () => {
                   <div className="flex items-center gap-3">
                     <Button 
                       onClick={handleSubmitSampleUpdate}
-                      disabled={submitting || (!samplePhotos && !sampleNotes) || !order.production_params_approved || (order.sample_submitted_at && order.sample_approved !== false)}
+                      disabled={submitting || !canSubmitSampleUpdate || !order.production_params_approved || (order.sample_submitted_at && order.sample_approved !== false)}
                     >
                       {submitting ? 'Submitting...' : order.sample_submitted_at && order.sample_approved !== false ? 'Awaiting Approval' : 'Submit for Approval'}
                     </Button>
@@ -843,26 +882,15 @@ const ManufacturerOrderWorkspace = () => {
                           className={`capitalize ${isCurrent ? 'ring-2 ring-primary ring-offset-2' : ''}`}
                           onClick={async () => {
                             try {
-                              // Update order with current phase
-                              await supabase
-                                .from('orders')
-                                .update({
-                                  production_timeline_data: {
-                                    ...order?.production_timeline_data,
-                                    current_phase: phase,
-                                    last_updated: new Date().toISOString()
-                                  }
-                                })
-                                .eq('id', order.id);
-
-                              // Create production update
-                              await supabase
-                                .from('production_updates')
-                                .insert({
-                                  order_id: order.id,
-                                  status: phase,
-                                  message: `Production moved to ${phase} phase`
-                                });
+                              await orderApi.submitProductionUpdate({
+                                order_id: order.id,
+                                update_status: phase,
+                                update_message: `Production moved to ${phase} phase`,
+                                timeline_patch: {
+                                  current_phase: phase,
+                                  last_updated: new Date().toISOString(),
+                                },
+                              });
 
                               toast.success(`Production phase updated to ${phase}`);
                             } catch (error) {
@@ -908,17 +936,13 @@ const ManufacturerOrderWorkspace = () => {
                         });
 
                         const urls = await Promise.all(uploadPromises);
-                        const existingPhotos = order?.production_timeline_data?.production_photos || [];
 
-                        await supabase
-                          .from('orders')
-                          .update({
-                            production_timeline_data: {
-                              ...order?.production_timeline_data,
-                              production_photos: [...existingPhotos, ...urls]
-                            }
-                          })
-                          .eq('id', order.id);
+                        await orderApi.submitProductionUpdate({
+                          order_id: order.id,
+                          update_status: 'production_photos',
+                          update_message: 'Production photos uploaded',
+                          append_photos: urls,
+                        });
 
                         toast.success('Production photos uploaded');
                       } catch (error) {
@@ -944,25 +968,16 @@ const ManufacturerOrderWorkspace = () => {
                   <Button
                     onClick={async () => {
                       try {
-                        await supabase
-                          .from('orders')
-                          .update({
-                            production_timeline_data: {
-                              ...order?.production_timeline_data,
-                              production_completed: true,
-                              completed_at: new Date().toISOString()
-                            },
-                            status: 'quality_check' as any
-                          })
-                          .eq('id', order.id);
-
-                        await supabase
-                          .from('production_updates')
-                          .insert({
-                            order_id: order.id,
-                            status: 'completed',
-                            message: 'Production completed, ready for QC'
-                          });
+                        await orderApi.submitProductionUpdate({
+                          order_id: order.id,
+                          update_status: 'completed',
+                          update_message: 'Production completed, ready for QC',
+                          timeline_patch: {
+                            production_completed: true,
+                            completed_at: new Date().toISOString(),
+                          },
+                          new_status: 'quality_check',
+                        });
 
                         toast.success('Production marked as complete');
                         handleTabChange('quality');
@@ -1089,19 +1104,13 @@ const ManufacturerOrderWorkspace = () => {
                   
                   setSubmitting(true);
                   try {
-                    const { error } = await supabase
-                      .from('orders')
-                      .update({
-                        shipping_tracking_url: shippingData.shipping_tracking_url,
-                        shipping_carrier: shippingData.shipping_carrier,
-                        shipped_at: shippingData.shipped_at || null,
-                        shipping_notes: shippingData.shipping_notes || null,
-                        shipping_confirmed_at: new Date().toISOString(),
-                        status: 'shipping'
-                      })
-                      .eq('id', order.id);
-
-                    if (error) throw error;
+                    await orderApi.confirmShipping({
+                      order_id: order.id,
+                      shipping_tracking_url: shippingData.shipping_tracking_url,
+                      shipping_carrier: shippingData.shipping_carrier,
+                      shipped_at: shippingData.shipped_at || null,
+                      shipping_notes: shippingData.shipping_notes || null,
+                    });
 
                     toast.success('Shipping confirmed! Designer will be notified.');
                     

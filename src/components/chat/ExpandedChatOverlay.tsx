@@ -19,6 +19,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { orderApi } from '@/lib/api';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -231,20 +232,15 @@ export const ExpandedChatOverlay: React.FC<ExpandedChatOverlayProps> = ({
         ? newMessage.trim() 
         : getActionMessageContent(messageType, metadata);
 
-      const { error } = await supabase
-        .from('messages')
-        .insert({
-          order_id: orderId,
-          sender_id: currentUserId,
-          content: messageContent,
-          message_type: messageType,
-          stage: messageType !== 'text' ? stage : null,
-          parent_message_id: parentMessageId || null,
-          action_metadata: metadata || {},
-          attachments: attachmentUrls.length > 0 ? attachmentUrls : null
-        });
-
-      if (error) throw error;
+      await orderApi.sendMessage({
+        order_id: orderId,
+        content: messageContent,
+        message_type: messageType,
+        stage: messageType !== 'text' ? stage : null,
+        parent_message_id: parentMessageId || null,
+        action_metadata: metadata || {},
+        attachments: attachmentUrls.length > 0 ? attachmentUrls : null,
+      });
 
       setNewMessage('');
       setPendingAttachments([]);

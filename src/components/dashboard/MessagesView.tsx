@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Send, Building2, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { orderApi } from '@/lib/api';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -70,7 +71,23 @@ const MessagesView = ({ orders }: MessagesViewProps) => {
             filter: `order_id=eq.${selectedOrderId}`
           },
           (payload) => {
-            setMessages(prev => [...prev, payload.new as Message]);
+            const newMsg = payload.new as Message;
+            setMessages(prev => {
+              const exists = prev.some(msg => msg.id === newMsg.id);
+              if (exists) return prev;
+              const tempIndex = prev.findIndex(
+                msg =>
+                  msg.id?.toString().startsWith('temp-') &&
+                  msg.content === newMsg.content &&
+                  msg.sender_id === newMsg.sender_id
+              );
+              if (tempIndex >= 0) {
+                const next = [...prev];
+                next[tempIndex] = newMsg;
+                return next;
+              }
+              return [...prev, newMsg];
+            });
           }
         )
         .subscribe();
@@ -175,15 +192,10 @@ const MessagesView = ({ orders }: MessagesViewProps) => {
         },
       ]);
 
-      const { error } = await supabase
-        .from('messages')
-        .insert({
-          order_id: selectedOrderId,
-          sender_id: currentUserId,
-          content,
-        });
-
-      if (error) throw error;
+      await orderApi.sendMessage({
+        order_id: selectedOrderId,
+        content,
+      });
       setNewMessage('');
 
       // Ensure we rehydrate from DB even if realtime isn't enabled

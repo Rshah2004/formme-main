@@ -126,7 +126,7 @@ export const orderApi = {
   },
 
   // Sample Development
-  async submitSample(params: { order_id: string; photos: string[]; notes: string; turnaround_days: number }) {
+  async submitSample(params: { order_id: string; photos: string[]; notes?: string; turnaround_days?: number; tracking_url?: string }) {
     const { data, error } = await supabase.functions.invoke('order-management', {
       body: { action: 'submit_sample', ...params }
     });
@@ -171,7 +171,7 @@ export const orderApi = {
     const { data, error } = await supabase.functions.invoke('order-management', {
       body: { action: 'submit_qc', ...params }
     });
-    if (error) throw error;
+    if (error) throw new Error(error.message || JSON.stringify(error));
     if (!data.success) throw new Error(data.error);
     return data.data;
   },
@@ -192,6 +192,57 @@ export const orderApi = {
     if (error) throw error;
     if (!data.success) throw new Error(data.error);
     return data.data;
+  },
+
+  async sendMessage(params: {
+    order_id: string;
+    content: string;
+    message_type?: 'text' | 'request_changes' | 'fix_applied' | 'approved';
+    stage?: string | null;
+    parent_message_id?: string | null;
+    attachments?: string[] | null;
+    action_metadata?: Record<string, any>;
+  }) {
+    const { data, error } = await supabase.functions.invoke('order-management', {
+      body: { action: 'send_message', ...params }
+    });
+    if (error) throw error;
+    if (!data.success) throw new Error(data.error);
+    return data.data;
+  },
+
+  async submitProductionUpdate(params: {
+    order_id: string;
+    update_status: string;
+    update_message?: string;
+    timeline_patch?: Record<string, any>;
+    append_photos?: string[];
+    new_status?: string;
+  }) {
+    const { data, error } = await supabase.functions.invoke('order-management', {
+      body: { action: 'submit_production_update', ...params }
+    });
+    if (error) throw error;
+    if (!data.success) throw new Error(data.error);
+    return data.data;
+  },
+
+  async confirmShipping(params: {
+    order_id: string;
+    shipping_tracking_url?: string;
+    shipping_carrier?: string;
+    shipped_at?: string | null;
+    shipping_notes?: string | null;
+    shipping_tracking_number?: string | null;
+    shipping_carton_count?: number | null;
+    shipping_terms?: string | null;
+  }) {
+    const { data, error } = await supabase.functions.invoke('order-management', {
+      body: { action: 'confirm_shipping', ...params }
+    });
+    if (error) throw error;
+    if (!data.success) throw new Error(data.error);
+    return data.data;
   }
 };
 
@@ -206,23 +257,15 @@ export const chatApi = {
     attachments?: string[];
     action_metadata?: Record<string, any>;
   }) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
-    const { error } = await supabase
-      .from('messages')
-      .insert({
-        order_id: params.order_id,
-        sender_id: user.id,
-        content: params.content,
-        message_type: params.message_type,
-        stage: params.stage || null,
-        parent_message_id: params.parent_message_id || null,
-        attachments: params.attachments || null,
-        action_metadata: params.action_metadata || {}
-      });
-
-    if (error) throw error;
+    await orderApi.sendMessage({
+      order_id: params.order_id,
+      content: params.content,
+      message_type: params.message_type,
+      stage: params.stage || null,
+      parent_message_id: params.parent_message_id || null,
+      attachments: params.attachments || null,
+      action_metadata: params.action_metadata || {},
+    });
     return { success: true };
   },
 
