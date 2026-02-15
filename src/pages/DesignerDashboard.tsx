@@ -59,9 +59,9 @@ const DesignerDashboard = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="flex">
+        <div className="flex flex-col md:flex-row">
           <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} />
-          <div className="flex-1 p-8">
+          <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
             <div className="animate-pulse space-y-4">
               <div className="h-8 bg-muted rounded w-48" />
               <div className="grid grid-cols-4 gap-4">
@@ -413,10 +413,10 @@ const DesignerDashboard = () => {
   return (
     <div className="min-h-screen bg-background relative">
       <Navbar />
-      <div className="flex">
+      <div className="flex flex-col md:flex-row">
         <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} />
         <main 
-          className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto"
+          className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 overflow-auto"
           onClick={handlePreviewClick}
         >
           {renderContent()}

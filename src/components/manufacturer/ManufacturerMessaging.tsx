@@ -10,6 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { FactoryMessaging } from '@/components/workflow/FactoryMessaging';
+import { BrandDetailsSection, type BrandProfile } from '@/components/brand/BrandDetailsSection';
 
 interface Designer {
   id: string;
@@ -19,6 +20,7 @@ interface Designer {
   unreadCount: number;
   lastMessage?: string | null;
   lastMessageAt?: string | null;
+  profile?: BrandProfile | null;
 }
 
 type ManufacturerOpenMessagesDetail = {
@@ -31,6 +33,7 @@ export const ManufacturerMessaging = () => {
   const [selectedDesigner, setSelectedDesigner] = useState<Designer | null>(null);
   const [totalUnread, setTotalUnread] = useState(0);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+  const [showBrandProfile, setShowBrandProfile] = useState(false);
 
   // Allow other UI (e.g. "Message Designer" button) to open this dialog
   useEffect(() => {
@@ -104,7 +107,7 @@ export const ManufacturerMessaging = () => {
         orders.map(async (order) => {
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select('full_name, company_name')
+            .select('full_name, company_name, brand_description, brand_url, primary_category, categories, annual_volume_range, budget_range, portfolio_urls, shipping_street, shipping_city, shipping_state, shipping_postal, shipping_country')
             .eq('user_id', order.designer_id)
             .maybeSingle();
 
@@ -135,6 +138,24 @@ export const ManufacturerMessaging = () => {
             unreadCount: count || 0,
             lastMessage: last?.content || null,
             lastMessageAt: last?.created_at || null,
+            profile: profile
+              ? {
+                  full_name: profile.full_name || null,
+                  company_name: profile.company_name || null,
+                  brand_description: profile.brand_description || null,
+                  brand_url: profile.brand_url || null,
+                  primary_category: profile.primary_category || null,
+                  categories: profile.categories || [],
+                  annual_volume_range: profile.annual_volume_range || null,
+                  budget_range: profile.budget_range || null,
+                  portfolio_urls: profile.portfolio_urls || [],
+                  shipping_street: profile.shipping_street || null,
+                  shipping_city: profile.shipping_city || null,
+                  shipping_state: profile.shipping_state || null,
+                  shipping_postal: profile.shipping_postal || null,
+                  shipping_country: profile.shipping_country || null,
+                }
+              : null,
           };
         })
       );
@@ -184,6 +205,7 @@ export const ManufacturerMessaging = () => {
 
   const handleOpenChat = async (designer: Designer) => {
     setSelectedDesigner(designer);
+    setShowBrandProfile(false);
 
     // Mark messages as read
     try {
@@ -271,11 +293,26 @@ export const ManufacturerMessaging = () => {
               {selectedDesigner ? (
                 <div className="flex-1 flex flex-col h-full min-h-0">
                   <div className="p-4 border-b border-border bg-background sticky top-0 z-10">
-                    <h3 className="font-semibold">{selectedDesigner.name}</h3>
+                    <button
+                      type="button"
+                      onClick={() => setShowBrandProfile((prev) => !prev)}
+                      className="font-semibold text-left hover:underline"
+                    >
+                      {selectedDesigner.name}
+                    </button>
                     <p className="text-sm text-muted-foreground">
                       {selectedDesigner.designName}
                     </p>
                   </div>
+                  {showBrandProfile && (
+                    <div className="border-b border-border px-4 py-3 bg-muted/20">
+                      {selectedDesigner.profile ? (
+                        <BrandDetailsSection profile={selectedDesigner.profile} title="Brand Profile" />
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No brand profile available for this designer yet.</p>
+                      )}
+                    </div>
+                  )}
                   <div className="flex-1 min-h-0">
                     <FactoryMessaging
                       designId={selectedDesigner.orderId}

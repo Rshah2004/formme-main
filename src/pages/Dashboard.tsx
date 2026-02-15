@@ -54,7 +54,7 @@ const getStepFromStatus = (status: string): number => {
     case "quality_check":
       return 5;
     case "shipping":
-      return 4;
+      return 6;
     case "delivered":
       return 6;
     default:
@@ -74,41 +74,43 @@ const OrderProgressStepper = ({ currentStep }: { currentStep: number }) => {
   ];
 
   return (
-    <div className="flex items-center">
-      {steps.map((step, index) => {
-        const isCompleted = step.id < currentStep;
-        const isCurrent = step.id === currentStep;
-        
-        return (
-          <React.Fragment key={step.id}>
-            <div className="flex flex-col items-center">
-              <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium transition-all ${
-                  isCompleted 
-                    ? "bg-[#96421f] text-white" 
-                    : isCurrent 
-                      ? "border-2 border-[#96421f] text-[#96421f] bg-white" 
-                      : "border border-gray-300 text-gray-400 bg-white"
-                }`}
-              >
-                {isCompleted ? <Check className="w-3 h-3" /> : step.id}
+    <div className="w-full overflow-x-auto sm:overflow-visible">
+      <div className="flex items-center min-w-max">
+        {steps.map((step, index) => {
+          const isCompleted = step.id < currentStep;
+          const isCurrent = step.id === currentStep;
+          
+          return (
+            <React.Fragment key={step.id}>
+              <div className="flex flex-col items-center">
+                <div
+                  className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-medium transition-all ${
+                    isCompleted 
+                      ? "bg-[#96421f] text-white" 
+                      : isCurrent 
+                        ? "border-2 border-[#96421f] text-[#96421f] bg-white" 
+                        : "border border-gray-300 text-gray-400 bg-white"
+                  }`}
+                >
+                  {isCompleted ? <Check className="w-3 h-3" /> : step.id}
+                </div>
+                <span className={`text-[9px] mt-1 whitespace-nowrap font-medium ${
+                  isCompleted || isCurrent ? "text-[#96421f]" : "text-gray-400"
+                }`}>
+                  {step.label}
+                </span>
               </div>
-              <span className={`text-[9px] mt-1 whitespace-nowrap font-medium ${
-                isCompleted || isCurrent ? "text-[#96421f]" : "text-gray-400"
-              }`}>
-                {step.label}
-              </span>
-            </div>
-            {index < steps.length - 1 && (
-              <div 
-                className={`w-8 h-0.5 mx-0.5 mt-[-12px] ${
-                  step.id < currentStep ? "bg-[#96421f]" : "bg-gray-200"
-                }`} 
-              />
-            )}
-          </React.Fragment>
-        );
-      })}
+              {index < steps.length - 1 && (
+                <div 
+                  className={`w-6 sm:w-8 h-0.5 mx-0.5 mt-[-12px] ${
+                    step.id < currentStep ? "bg-[#96421f]" : "bg-gray-200"
+                  }`} 
+                />
+              )}
+            </React.Fragment>
+          );
+        })}
+      </div>
     </div>
   );
 };
@@ -122,7 +124,7 @@ const statusConfig: Record<string, { label: string; color: string }> = {
   production_approval: { label: "Sampling", color: "text-[#96421f]" },
   sample_development: { label: "Sampling", color: "text-[#96421f]" },
   quality_check: { label: "Quality Check", color: "text-[#96421f]" },
-  shipping: { label: "In Production", color: "text-[#96421f]" },
+  shipping: { label: "Shipping", color: "text-[#96421f]" },
   delivered: { label: "Delivered", color: "text-[#344C3D]" },
 };
 
@@ -133,16 +135,16 @@ const OrderCard = ({ order, onClick }: { order: Order; onClick: () => void }) =>
 
   return (
     <Card 
-      className="p-6 hover:shadow-md transition-shadow cursor-pointer border border-gray-100 bg-white" 
+      className="p-4 sm:p-6 hover:shadow-md transition-shadow cursor-pointer border border-gray-100 bg-white" 
       onClick={onClick}
     >
-      <div className="flex items-center justify-between gap-6">
-        <div className="flex-shrink-0 min-w-[200px]">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-6">
+        <div className="flex-1 min-w-0">
           <p className="text-xs text-muted-foreground font-mono mb-1">{orderId}</p>
-          <h3 className="font-serif font-semibold text-xl text-foreground mb-2">
+          <h3 className="font-serif font-semibold text-lg sm:text-xl text-foreground mb-2 truncate">
             {order.designs?.name || "Untitled"}
           </h3>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <div className="w-5 h-5 rounded-full bg-[#344C3D] flex items-center justify-center">
                 <span className="text-white text-[10px] font-medium">M</span>
@@ -155,19 +157,20 @@ const OrderCard = ({ order, onClick }: { order: Order; onClick: () => void }) =>
             </div>
           </div>
         </div>
-        
-        <div className="flex-1 flex justify-center">
-          <OrderProgressStepper currentStep={getStepFromStatus(order.status)} />
-        </div>
-        
-        <div className="flex items-center gap-4 flex-shrink-0">
-          <Badge 
-            variant="outline" 
-            className={`${statusInfo.color} border-current bg-transparent px-3 py-1.5 text-sm font-medium`}
-          >
-            {statusInfo.label}
-          </Badge>
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full lg:w-auto">
+          <div className="w-full sm:w-auto">
+            <OrderProgressStepper currentStep={getStepFromStatus(order.status)} />
+          </div>
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
+            <Badge 
+              variant="outline" 
+              className={`${statusInfo.color} border-current bg-transparent px-3 py-1.5 text-sm font-medium`}
+            >
+              {statusInfo.label}
+            </Badge>
+            <ChevronRight className="w-5 h-5 text-muted-foreground hidden sm:block" />
+          </div>
         </div>
       </div>
     </Card>
@@ -294,9 +297,9 @@ const Dashboard = () => {
     return (
       <div className="min-h-screen bg-[#FAF9F6]">
         <Navbar />
-        <div className="flex mt-16">
+        <div className="flex flex-col md:flex-row mt-16">
           <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} />
-          <div className="flex-1 p-8">
+          <div className="flex-1 p-4 sm:p-6 lg:p-8">
             <div className="animate-pulse space-y-6">
               <div className="h-10 bg-muted rounded w-48" />
               <div className="h-6 bg-muted rounded w-72" />
@@ -348,16 +351,16 @@ const Dashboard = () => {
           <h1 className="text-3xl font-serif font-bold text-[#344C3D] mb-1">Dashboard</h1>
           <p className="text-muted-foreground">Track your designs from concept to delivery</p>
         </div>
-        <div className="relative">
+        <div className="relative w-full sm:w-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Search orders..." className="pl-9 w-48 sm:w-64 bg-white border-gray-200" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+          <Input placeholder="Search orders..." className="pl-9 w-full sm:w-64 bg-white border-gray-200" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
         </div>
       </div>
 
       <div>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <h2 className="text-xl font-serif font-semibold text-[#344C3D]">Manufacturing Orders</h2>
-          <Button onClick={() => navigate("/new-design")} className="bg-[#344C3D] hover:bg-[#344C3D]/90">
+          <Button onClick={() => navigate("/new-design")} className="bg-[#344C3D] hover:bg-[#344C3D]/90 w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />New Order
           </Button>
         </div>
@@ -385,19 +388,19 @@ const Dashboard = () => {
           <h1 className="text-3xl font-serif font-bold text-[#344C3D] mb-1">Orders</h1>
           <p className="text-muted-foreground">Manage and track all your manufacturing orders</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="border-[#344C3D] text-[#344C3D]"><Download className="w-4 h-4 mr-2" />Export</Button>
-          <Button onClick={() => navigate("/new-design")} size="sm" className="bg-[#344C3D] hover:bg-[#344C3D]/90">New Order</Button>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Button variant="outline" size="sm" className="border-[#344C3D] text-[#344C3D] flex-1 sm:flex-initial"><Download className="w-4 h-4 mr-2" />Export</Button>
+          <Button onClick={() => navigate("/new-design")} size="sm" className="bg-[#344C3D] hover:bg-[#344C3D]/90 flex-1 sm:flex-initial">New Order</Button>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="relative flex-1 max-w-xs">
+      <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-4">
+        <div className="relative flex-1 sm:max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Search orders..." className="pl-9 bg-white" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-40 bg-white"><SelectValue placeholder="All Statuses" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-40 bg-white"><SelectValue placeholder="All Statuses" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="draft">Draft</SelectItem>
@@ -408,7 +411,7 @@ const Dashboard = () => {
           </SelectContent>
         </Select>
         <Select value={manufacturerFilter} onValueChange={setManufacturerFilter}>
-          <SelectTrigger className="w-48 bg-white"><SelectValue placeholder="All Manufacturers" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-48 bg-white"><SelectValue placeholder="All Manufacturers" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Manufacturers</SelectItem>
             {manufacturers.map(m => m && <SelectItem key={m} value={m}>{m}</SelectItem>)}
@@ -469,18 +472,18 @@ const Dashboard = () => {
             <h1 className="text-3xl font-serif font-bold text-[#344C3D] mb-1">Production Status</h1>
             <p className="text-muted-foreground">Kanban view of your manufacturing pipeline</p>
           </div>
-          <div className="flex items-center gap-2 bg-white rounded-lg p-1 border">
-            <Button variant="secondary" size="sm" className="bg-[#344C3D] text-white hover:bg-[#344C3D]/90">Board</Button>
-            <Button variant="ghost" size="sm">Timeline</Button>
-          </div>
+        <div className="flex items-center gap-2 bg-white rounded-lg p-1 border w-full sm:w-auto">
+          <Button variant="secondary" size="sm" className="bg-[#344C3D] text-white hover:bg-[#344C3D]/90 flex-1 sm:flex-initial">Board</Button>
+          <Button variant="ghost" size="sm" className="flex-1 sm:flex-initial">Timeline</Button>
         </div>
+      </div>
 
-        <div className="flex gap-6 overflow-x-auto pb-4">
-          <KanbanColumn title="Design Submitted" columnOrders={designSubmitted} dotColor="bg-[#344C3D]" />
-          <KanbanColumn title="Sampling" columnOrders={sampling} dotColor="bg-[#96421f]" />
-          <KanbanColumn title="In Production" columnOrders={inProduction} dotColor="bg-[#B58C6A]" />
-          <KanbanColumn title="Delivered" columnOrders={delivered} dotColor="bg-[#344C3D]" />
-        </div>
+      <div className="flex gap-6 overflow-x-auto pb-4">
+        <KanbanColumn title="Design Submitted" columnOrders={designSubmitted} dotColor="bg-[#344C3D]" />
+        <KanbanColumn title="Sampling" columnOrders={sampling} dotColor="bg-[#96421f]" />
+        <KanbanColumn title="In Production" columnOrders={inProduction} dotColor="bg-[#B58C6A]" />
+        <KanbanColumn title="Delivered" columnOrders={delivered} dotColor="bg-[#344C3D]" />
+      </div>
       </div>
     );
   };
@@ -512,9 +515,21 @@ const Dashboard = () => {
       o.manufacturers?.name && 
       ['production_approval', 'sample_development', 'quality_check', 'shipping', 'delivered'].includes(o.status)
     );
+    const latestByDesign = new Map<string, typeof finalizedOrders[number]>();
+    for (const order of finalizedOrders) {
+      const existing = latestByDesign.get(order.design_id);
+      if (!existing) {
+        latestByDesign.set(order.design_id, order);
+        continue;
+      }
+      const aTime = new Date(order.updated_at || order.created_at).getTime();
+      const bTime = new Date(existing.updated_at || existing.created_at).getTime();
+      if (aTime > bTime) latestByDesign.set(order.design_id, order);
+    }
+    const uniqueOrders = Array.from(latestByDesign.values());
 
     // If no finalized orders, show empty state with option to create new contact
-    if (finalizedOrders.length === 0) {
+    if (uniqueOrders.length === 0) {
       return (
         <div className="space-y-6">
           <div>
@@ -547,7 +562,7 @@ const Dashboard = () => {
           <p className="text-muted-foreground">Communication with manufacturers</p>
         </div>
         
-        <MessagesView orders={finalizedOrders.map(o => ({
+        <MessagesView orders={uniqueOrders.map(o => ({
           id: o.id,
           design_id: o.design_id,
           status: o.status,
@@ -583,9 +598,9 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-[#FAF9F6] relative">
       <Navbar />
-      <div className="flex mt-16">
+      <div className="flex flex-col md:flex-row mt-16">
         <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} />
-        <main className="flex-1 p-8 overflow-auto relative">
+        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 overflow-auto relative">
           {!isAuthenticated && (
             <div className="flex justify-center mb-4 relative z-10">
               <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 px-4 py-1.5 text-sm font-medium">

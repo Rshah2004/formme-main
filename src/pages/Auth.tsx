@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
@@ -66,6 +67,16 @@ useEffect(() => {
     leadTime: "",
     capabilities: [] as string[],
     categories: [] as string[],
+    brandDescription: "",
+    brandUrl: "",
+    annualVolumeRange: "",
+    budgetRange: "",
+    portfolioUrls: "",
+    shippingStreet: "",
+    shippingCity: "",
+    shippingState: "",
+    shippingPostal: "",
+    shippingCountry: "",
   });
 
   const capabilitiesOptions = [
@@ -88,6 +99,20 @@ useEffect(() => {
     "Activewear",
     "Underwear",
     "Accessories"
+  ];
+
+  const annualVolumeOptions = [
+    "Under 500",
+    "500-2,000",
+    "2,000-10,000",
+    "10,000+"
+  ];
+
+  const budgetRangeOptions = [
+    "Under $5k",
+    "$5k-$15k",
+    "$15k-$50k",
+    "$50k+"
   ];
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -187,16 +212,38 @@ const handleResetPassword = async (e: React.FormEvent) => {
     setIsLoading(true);
 
     try {
+      const portfolioUrls = formData.portfolioUrls
+        .split(",")
+        .map((url) => url.trim())
+        .filter(Boolean);
+
+      const metadata: Record<string, any> = {
+        full_name: formData.fullName,
+        company_name: formData.companyName || null,
+        role: userRole,
+      };
+
+      if (userRole === "designer") {
+        metadata.brand_description = formData.brandDescription || null;
+        metadata.brand_url = formData.brandUrl || null;
+        metadata.primary_category = formData.categories[0] || null;
+        metadata.categories = formData.categories;
+        metadata.annual_volume_range = formData.annualVolumeRange || null;
+        metadata.budget_range = formData.budgetRange || null;
+        metadata.portfolio_urls = portfolioUrls;
+        metadata.shipping_street = formData.shippingStreet;
+        metadata.shipping_city = formData.shippingCity;
+        metadata.shipping_state = formData.shippingState;
+        metadata.shipping_postal = formData.shippingPostal;
+        metadata.shipping_country = formData.shippingCountry;
+      }
+
       // Direct signup - create account immediately
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
-          data: {
-            full_name: formData.fullName,
-            company_name: formData.companyName || null,
-            role: userRole,
-          },
+          data: metadata,
         },
       });
 
@@ -471,6 +518,182 @@ const handleResetPassword = async (e: React.FormEvent) => {
                   </div>
                 </div>
               </div>
+
+              {userRole === "designer" && (
+                <>
+                  {/* Brand Details */}
+                  <div className="pt-1">
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-2">Brand Details</h3>
+                    <div className="space-y-2">
+                      <div>
+                        <Label htmlFor="signup-brandDescription" className="text-sm">Brand Description</Label>
+                        <Textarea
+                          id="signup-brandDescription"
+                          value={formData.brandDescription}
+                          onChange={(e) => setFormData({ ...formData, brandDescription: e.target.value })}
+                          className="mt-1"
+                          rows={3}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="signup-brandUrl" className="text-sm">Brand Website</Label>
+                        <Input
+                          id="signup-brandUrl"
+                          type="url"
+                          placeholder="https://yourbrand.com"
+                          value={formData.brandUrl}
+                          onChange={(e) => setFormData({ ...formData, brandUrl: e.target.value })}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-sm mb-2 block">Categories</Label>
+                        <div className="grid grid-cols-2 gap-2 p-3 border border-border rounded-md bg-background">
+                          {categoriesOptions.map((category) => (
+                            <div key={category} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`brand-category-${category}`}
+                                checked={formData.categories.includes(category)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setFormData({
+                                      ...formData,
+                                      categories: [...formData.categories, category]
+                                    });
+                                  } else {
+                                    setFormData({
+                                      ...formData,
+                                      categories: formData.categories.filter((c) => c !== category)
+                                    });
+                                  }
+                                }}
+                              />
+                              <label
+                                htmlFor={`brand-category-${category}`}
+                                className="text-sm cursor-pointer"
+                              >
+                                {category}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-sm mb-2 block">Annual Volume Range</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          {annualVolumeOptions.map((option) => (
+                            <button
+                              key={option}
+                              type="button"
+                              onClick={() => setFormData({ ...formData, annualVolumeRange: option })}
+                              className={`py-2 px-3 rounded-md text-sm border transition-colors ${
+                                formData.annualVolumeRange === option
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : "bg-white text-foreground border-border hover:bg-primary/5"
+                              }`}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-sm mb-2 block">Budget Range</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          {budgetRangeOptions.map((option) => (
+                            <button
+                              key={option}
+                              type="button"
+                              onClick={() => setFormData({ ...formData, budgetRange: option })}
+                              className={`py-2 px-3 rounded-md text-sm border transition-colors ${
+                                formData.budgetRange === option
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : "bg-white text-foreground border-border hover:bg-primary/5"
+                              }`}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="signup-portfolioUrls" className="text-sm">Portfolio URLs</Label>
+                        <Textarea
+                          id="signup-portfolioUrls"
+                          placeholder="https://... , https://..."
+                          value={formData.portfolioUrls}
+                          onChange={(e) => setFormData({ ...formData, portfolioUrls: e.target.value })}
+                          className="mt-1"
+                          rows={2}
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Separate multiple URLs with commas.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Shipping Address */}
+                  <div className="pt-1">
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-2">Shipping Address</h3>
+                    <div className="space-y-2">
+                      <div>
+                        <Label htmlFor="signup-shippingStreet" className="text-sm">Street</Label>
+                        <Input
+                          id="signup-shippingStreet"
+                          type="text"
+                          value={formData.shippingStreet}
+                          onChange={(e) => setFormData({ ...formData, shippingStreet: e.target.value })}
+                          required
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="signup-shippingCity" className="text-sm">City</Label>
+                        <Input
+                          id="signup-shippingCity"
+                          type="text"
+                          value={formData.shippingCity}
+                          onChange={(e) => setFormData({ ...formData, shippingCity: e.target.value })}
+                          required
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="signup-shippingState" className="text-sm">State</Label>
+                        <Input
+                          id="signup-shippingState"
+                          type="text"
+                          value={formData.shippingState}
+                          onChange={(e) => setFormData({ ...formData, shippingState: e.target.value })}
+                          required
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="signup-shippingPostal" className="text-sm">Postal Code</Label>
+                        <Input
+                          id="signup-shippingPostal"
+                          type="text"
+                          value={formData.shippingPostal}
+                          onChange={(e) => setFormData({ ...formData, shippingPostal: e.target.value })}
+                          required
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="signup-shippingCountry" className="text-sm">Country</Label>
+                        <Input
+                          id="signup-shippingCountry"
+                          type="text"
+                          value={formData.shippingCountry}
+                          onChange={(e) => setFormData({ ...formData, shippingCountry: e.target.value })}
+                          required
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
               
               {userRole === "manufacturer" && (
                 <>

@@ -21,7 +21,7 @@ const statusConfig: Record<string, { label: string; color: string; dotColor: str
   production_approval: { label: "Sampling", color: "bg-purple-50 text-purple-700 border-purple-200", dotColor: "bg-purple-500" },
   sample_development: { label: "Sampling", color: "bg-purple-50 text-purple-700 border-purple-200", dotColor: "bg-purple-500" },
   quality_check: { label: "Quality Check", color: "bg-orange-50 text-orange-700 border-orange-200", dotColor: "bg-orange-500" },
-  shipping: { label: "In Production", color: "bg-amber-50 text-amber-700 border-amber-200", dotColor: "bg-amber-500" },
+  shipping: { label: "Shipping", color: "bg-amber-50 text-amber-700 border-amber-200", dotColor: "bg-amber-500" },
   delivered: { label: "Delivered", color: "bg-green-50 text-green-700 border-green-200", dotColor: "bg-green-500" },
 };
 
@@ -43,15 +43,15 @@ const OrderCard = ({
 
   return (
     <Card 
-      className="p-5 hover:shadow-md transition-shadow cursor-pointer border"
+      className="p-4 sm:p-5 hover:shadow-md transition-shadow cursor-pointer border"
       onClick={onClick}
     >
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <p className="text-xs text-muted-foreground font-mono mb-1">
             {formatOrderId(orderId)}
           </p>
-          <h3 className="font-semibold text-lg truncate">{designName}</h3>
+          <h3 className="font-semibold text-base sm:text-lg truncate">{designName}</h3>
           <div className="flex flex-col gap-1 mt-2 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Building2 className="w-4 h-4" />
@@ -66,12 +66,14 @@ const OrderCard = ({
           </div>
         </div>
         
-        <div className="flex items-center gap-6">
-          <OrderProgressStepper currentStep={currentStep} />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full lg:w-auto">
+          <div className="w-full sm:w-auto">
+            <OrderProgressStepper currentStep={currentStep} />
+          </div>
           
           <Badge 
             variant="outline" 
-            className={`${statusInfo.color} flex items-center gap-1.5 px-3 py-1`}
+            className={`${statusInfo.color} flex items-center gap-1.5 px-3 py-1 w-fit`}
           >
             <span className={`w-2 h-2 rounded-full ${statusInfo.dotColor}`} />
             {statusInfo.label}

@@ -137,7 +137,7 @@ const ManufacturerOrderWorkspace = () => {
         // Fetch designer profile
         const { data: profile } = await supabase
           .from('profiles')
-          .select('full_name, company_name')
+          .select('full_name, company_name, brand_description, brand_url, primary_category, categories, annual_volume_range, budget_range, portfolio_urls, shipping_street, shipping_city, shipping_state, shipping_postal, shipping_country')
           .eq('user_id', orderData.designer_id)
           .maybeSingle();
 
@@ -158,7 +158,22 @@ const ManufacturerOrderWorkspace = () => {
           design_specs: specsData,
           techpack: techpackData,
           profiles: profile 
-            ? { full_name: profile.full_name || profile.company_name || 'Unknown' }
+            ? {
+                full_name: profile.full_name || null,
+                company_name: profile.company_name || null,
+                brand_description: profile.brand_description || null,
+                brand_url: profile.brand_url || null,
+                primary_category: profile.primary_category || null,
+                categories: profile.categories || [],
+                annual_volume_range: profile.annual_volume_range || null,
+                budget_range: profile.budget_range || null,
+                portfolio_urls: profile.portfolio_urls || [],
+                shipping_street: profile.shipping_street || null,
+                shipping_city: profile.shipping_city || null,
+                shipping_state: profile.shipping_state || null,
+                shipping_postal: profile.shipping_postal || null,
+                shipping_country: profile.shipping_country || null,
+              }
             : { full_name: 'Unknown' },
           match_status: matchStatusValue,
           image_variants: imageVariants,
@@ -548,6 +563,22 @@ const ManufacturerOrderWorkspace = () => {
     (samplePhotos && samplePhotos.length > 0) ||
     sampleNotes.trim().length > 0 ||
     sampleTrackingUrl.trim().length > 0;
+  const timelineData = order.production_timeline_data
+    ? (typeof order.production_timeline_data === 'string'
+        ? JSON.parse(order.production_timeline_data)
+        : order.production_timeline_data)
+    : null;
+  const deliveryDate =
+    timelineData?.estimated_delivery_date ||
+    order.production_completion_date ||
+    null;
+  const unitCost = timelineData?.unit_cost ?? order.price ?? 0;
+  const shipping = timelineData?.shipping_cost ?? 0;
+  const taxes = timelineData?.taxes_and_fees ?? 0;
+  const quantity = order.quantity ?? 0;
+  const totalCost = unitCost || shipping || taxes
+    ? (unitCost * quantity) + shipping + taxes
+    : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -572,6 +603,10 @@ const ManufacturerOrderWorkspace = () => {
                   </p>
                   <p className="text-sm text-green-700 dark:text-green-300">
                     The designer has accepted your production terms and finalized the contract. Payment is being processed.
+                  </p>
+                  <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                    {deliveryDate ? `Delivery date: ${new Date(deliveryDate).toLocaleDateString()}` : 'Delivery date: Not set'}
+                    {totalCost && totalCost > 0 ? ` • Total cost: $${totalCost.toFixed(2)}` : ' • Total cost: Not set'}
                   </p>
                 </div>
               </div>

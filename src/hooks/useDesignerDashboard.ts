@@ -37,7 +37,7 @@ export const getStepFromStatus = (status: string): number => {
     case "quality_check":
       return 4; // QC stage
     case "shipping":
-      return 3; // Production stage
+      return 5; // Delivery stage
     case "delivered":
       return 5; // Delivery stage
     default:

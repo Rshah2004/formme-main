@@ -9,6 +9,7 @@ import { useWorkflow } from "@/context/WorkflowContext.tsx";
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useContractStatus } from '@/hooks/useContractStatus';
 
 interface TechPackFeasibilityStageProps {
   design: any;
@@ -20,6 +21,7 @@ const TechPackFeasibilityStage = ({ design }: TechPackFeasibilityStageProps) => 
   const [resubmitting, setResubmitting] = useState(false);
   const { currentStage, setCurrentStage, markStageComplete } = useWorkflow();
   const navigate = useNavigate();
+  const { isContractFinalized } = useContractStatus(design?.id ?? null);
 
   console.log('what is design id', design.id);
   useEffect(() => {
@@ -260,13 +262,21 @@ const TechPackFeasibilityStage = ({ design }: TechPackFeasibilityStageProps) => 
                 </div>
               )}
             </div>
-            <p className="text-sm text-muted-foreground">
-              You can now finalize the production agreement and continue to payment.
-            </p>
-            <Button onClick={handleProceed} className="gap-2 bg-green-600 hover:bg-green-700">
-              <CheckCircle className="w-4 h-4" />
-              Finalize Production Agreement
-            </Button>
+            {isContractFinalized ? (
+              <p className="text-sm text-muted-foreground">
+                The production agreement is already finalized.
+              </p>
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  You can now finalize the production agreement and continue to payment.
+                </p>
+                <Button onClick={handleProceed} className="gap-2 bg-green-600 hover:bg-green-700">
+                  <CheckCircle className="w-4 h-4" />
+                  Finalize Production Agreement
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

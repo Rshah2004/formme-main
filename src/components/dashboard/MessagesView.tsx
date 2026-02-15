@@ -127,14 +127,17 @@ const MessagesView = ({ orders }: MessagesViewProps) => {
           .limit(1);
 
         const lastMessage = messagesData?.[0];
-        
+        if (!lastMessage) {
+          continue;
+        }
+
         conversationsData.push({
           order_id: order.id,
           design_name: order.designs?.name || 'Untitled',
           manufacturer_name: order.manufacturers?.name || null,
           manufacturer_id: null,
-          last_message: lastMessage?.content || 'No messages yet',
-          last_message_time: lastMessage?.created_at || new Date().toISOString(),
+          last_message: lastMessage.content,
+          last_message_time: lastMessage.created_at,
           unread_count: 0
         });
       }

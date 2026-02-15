@@ -15,6 +15,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useWorkflow } from '@/context/WorkflowContext';
 import { toast } from 'sonner';
+import { useContractStatus } from '@/hooks/useContractStatus';
 
 interface FeasibilitySummaryProps {
   designId: string;
@@ -28,12 +29,15 @@ interface FeasibilityData {
   fabricType: string | null;
   confirmedAt: string | null;
   orderId: string | null;
+  deliveryDate: string | null;
+  totalCost: number | null;
 }
 
 export const FeasibilitySummary = ({ designId }: FeasibilitySummaryProps) => {
   const [data, setData] = useState<FeasibilityData | null>(null);
   const [loading, setLoading] = useState(true);
   const { markStageComplete, setCurrentStage } = useWorkflow();
+  const { isContractFinalized } = useContractStatus(designId);
 
   useEffect(() => {
     fetchFeasibilityData();
@@ -73,6 +77,9 @@ export const FeasibilitySummary = ({ designId }: FeasibilitySummaryProps) => {
           lead_time_days,
           quantity,
           fabric_type,
+          price,
+          production_completion_date,
+          production_timeline_data,
           manufacturer:manufacturers(name)
         `)
         .eq('design_id', designId)
@@ -86,6 +93,19 @@ export const FeasibilitySummary = ({ designId }: FeasibilitySummaryProps) => {
       }
 
       const isConfirmed = order.tech_pack_feasible === true && order.production_params_approved === true;
+      const timelineData = order.production_timeline_data
+        ? (typeof order.production_timeline_data === 'string'
+            ? JSON.parse(order.production_timeline_data)
+            : order.production_timeline_data)
+        : null;
+      const unitCost = timelineData?.unit_cost ?? order.price ?? 0;
+      const shipping = timelineData?.shipping_cost ?? 0;
+      const taxes = timelineData?.taxes_and_fees ?? 0;
+      const quantity = order.quantity ?? 0;
+      const totalCost = unitCost || shipping || taxes
+        ? (unitCost * quantity) + shipping + taxes
+        : null;
+      const deliveryDate = timelineData?.estimated_delivery_date || order.production_completion_date || null;
 
       setData({
         isConfirmed,
@@ -94,7 +114,9 @@ export const FeasibilitySummary = ({ designId }: FeasibilitySummaryProps) => {
         quantity: order.quantity,
         fabricType: order.fabric_type,
         confirmedAt: order.tech_pack_feasibility_confirmed_at,
-        orderId: order.id
+        orderId: order.id,
+        deliveryDate,
+        totalCost
       });
     } catch (error) {
       console.error('Error fetching feasibility data:', error);
@@ -120,17 +142,6 @@ export const FeasibilitySummary = ({ designId }: FeasibilitySummaryProps) => {
 
   return (
     <div className="mb-6 space-y-4">
-      <Alert className="border-green-200 bg-green-50/50 dark:border-green-900 dark:bg-green-950/20">
-        <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-        <AlertTitle className="text-green-800 dark:text-green-200 text-lg font-semibold">
-          Feasibility Confirmed!
-        </AlertTitle>
-        <AlertDescription className="text-green-700 dark:text-green-300">
-          {data.manufacturerName || 'The manufacturer'} has confirmed they can produce your design. 
-          You can now finalize the production agreement.
-        </AlertDescription>
-      </Alert>
-
       <Card className="border-green-200 bg-green-50/30 dark:border-green-900 dark:bg-green-950/10">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-400 text-base">
@@ -191,23 +202,44 @@ export const FeasibilitySummary = ({ designId }: FeasibilitySummaryProps) => {
                 </p>
               </div>
             )}
+
+            <div className="p-3 rounded-lg bg-white/50 dark:bg-black/20 border border-green-200 dark:border-green-800">
+              <div className="flex items-center gap-2 text-xs font-medium text-green-600 dark:text-green-400 mb-1">
+                <Package className="w-3 h-3" />
+                Delivery Date
+              </div>
+              <p className="text-lg font-semibold text-green-800 dark:text-green-200">
+                {data.deliveryDate ? new Date(data.deliveryDate).toLocaleDateString() : 'Not set'}
+              </p>
+            </div>
+
+            <div className="p-3 rounded-lg bg-white/50 dark:bg-black/20 border border-green-200 dark:border-green-800">
+              <div className="flex items-center gap-2 text-xs font-medium text-green-600 dark:text-green-400 mb-1">
+                <CheckCircle className="w-3 h-3" />
+                Total Cost
+              </div>
+              <p className="text-lg font-semibold text-green-800 dark:text-green-200">
+                {data.totalCost && data.totalCost > 0 ? `$${data.totalCost.toFixed(2)}` : 'Not set'}
+              </p>
+            </div>
           </div>
 
-          {/* Finalize Button */}
-          <div className="pt-4 border-t border-green-200 dark:border-green-800">
-            <Button 
-              size="lg" 
-              onClick={handleFinalizeAgreement}
-              className="w-full sm:w-auto gap-2 bg-green-600 hover:bg-green-700 text-white"
-            >
-              <CheckCircle className="w-4 h-4" />
-              Finalize Production Agreement
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-            <p className="text-xs text-green-600 dark:text-green-400 mt-2">
-              This will lock in the production terms and move you to the next phase.
-            </p>
-          </div>
+          {!isContractFinalized && (
+            <div className="pt-4 border-t border-green-200 dark:border-green-800">
+              <Button 
+                size="lg" 
+                onClick={handleFinalizeAgreement}
+                className="w-full sm:w-auto gap-2 bg-green-600 hover:bg-green-700 text-white"
+              >
+                <CheckCircle className="w-4 h-4" />
+                Finalize Production Agreement
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+              <p className="text-xs text-green-600 dark:text-green-400 mt-2">
+                This will lock in the production terms and move you to the next phase.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -48,48 +48,48 @@ const HeroSection: React.FC = () => {
   };
 
   return (
-    <section className="min-h-screen pt-32 sm:pt-40 md:pt-52 px-5 sm:px-10 md:pl-24 md:pr-10">
-      <h1
-        className="text-[48px] sm:text-[72px] md:text-[96px] lg:text-[128px] font-instrument font-bold leading-none text-transparent 
-        bg-gradient-to-r from-[#09100B] via-[#4A6A5C] to-[#09100B] 
-        bg-[length:300%_100%] bg-clip-text animate-shimmer"
-        style={{ textShadow: '0px 4px 4px rgba(0, 0, 0, 0.4)' }}
-      >
-        formme
-      </h1>
+    <section className="relative min-h-screen overflow-hidden pt-32 sm:pt-40 md:pt-52 px-5 sm:px-10 md:pl-24 md:pr-10">
 
-      <p className="mb-8 sm:mb-10 text-xl sm:text-2xl md:text-3xl text-black">
-        redefining self-expression &amp; sustainability.
-      </p>
-
-      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 max-w-full sm:max-w-none">
-        <button
-          onClick={handleDashboardClick}
-          className="w-full sm:w-[180px] md:w-[219px] h-[56px] sm:h-[64px] md:h-[72px] flex-shrink-0 text-white text-sm sm:text-base font-medium 
-                     rounded-[30px] relative overflow-hidden
-                     bg-[#344C3D] shadow-[3px_7px_5px_0px_rgba(0,0,0,0.25)]
-                     hover:opacity-90 transition-opacity"
+      <div className="relative z-10 max-w-3xl">
+        <p className="uppercase tracking-[0.25em] text-xs sm:text-sm text-[#2E3F36] mb-4">
+          A digital atelier for real production
+        </p>
+        <h1
+          className="text-[48px] sm:text-[72px] md:text-[96px] lg:text-[128px] font-instrument font-bold leading-none text-transparent 
+          bg-gradient-to-r from-[#09100B] via-[#4A6A5C] to-[#09100B] 
+          bg-[length:300%_100%] bg-clip-text animate-shimmer"
+          style={{ textShadow: "0px 4px 4px rgba(0, 0, 0, 0.4)" }}
         >
-          {/* Gold image overlay with blend mode */}
-          <div className="absolute inset-0 bg-[url('/imageButtons.png')] bg-cover bg-center mix-blend-multiply"></div>
+          formme
+        </h1>
 
-          {/* Text content on top */}
-          <span className="relative z-10">Dashboard</span>
-        </button>
+        <p className="mb-8 sm:mb-10 text-xl sm:text-2xl md:text-3xl text-black">
+          Design garments with precision. Move from concept to factory with a workflow that feels tactile.
+        </p>
 
-        <button
-          onClick={handleCreateClick}
-          className="w-full sm:w-[180px] md:w-[219px] h-[56px] sm:h-[64px] md:h-[72px] flex-shrink-0 text-white text-sm sm:text-base font-medium 
-                     rounded-[30px] relative overflow-hidden
-                     bg-[#974320] shadow-[3px_7px_5px_0px_rgba(0,0,0,0.25)]
-                     hover:opacity-90 transition-opacity"
-        >
-          {/* Gold image overlay with blend mode */}
-          <div className="absolute inset-0 bg-[url('/imageButtons.png')] bg-cover bg-center mix-blend-multiply"></div>
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 max-w-full sm:max-w-none">
+          <button
+            onClick={handleDashboardClick}
+            className="w-full sm:w-[180px] md:w-[219px] h-[56px] sm:h-[64px] md:h-[72px] flex-shrink-0 text-white text-sm sm:text-base font-medium 
+                       rounded-[30px] relative overflow-hidden
+                       bg-[#344C3D] shadow-[3px_7px_5px_0px_rgba(0,0,0,0.25)]
+                       hover:opacity-90 transition-opacity"
+          >
+            <div className="absolute inset-0 bg-[url('/imageButtons.png')] bg-cover bg-center mix-blend-multiply"></div>
+            <span className="relative z-10">Dashboard</span>
+          </button>
 
-          {/* Text content on top */}
-          <span className="relative z-10">Create</span>
-        </button>
+          <button
+            onClick={handleCreateClick}
+            className="w-full sm:w-[180px] md:w-[219px] h-[56px] sm:h-[64px] md:h-[72px] flex-shrink-0 text-white text-sm sm:text-base font-medium 
+                       rounded-[30px] relative overflow-hidden
+                       bg-[#974320] shadow-[3px_7px_5px_0px_rgba(0,0,0,0.25)]
+                       hover:opacity-90 transition-opacity"
+          >
+            <div className="absolute inset-0 bg-[url('/imageButtons.png')] bg-cover bg-center mix-blend-multiply"></div>
+            <span className="relative z-10">Create</span>
+          </button>
+        </div>
       </div>
     
       <LockedFeatureDialog
