@@ -52,7 +52,7 @@ const HeroSection: React.FC = () => {
 
       <div className="relative z-10 max-w-3xl">
         <p className="uppercase tracking-[0.25em] text-xs sm:text-sm text-[#2E3F36] mb-4">
-          A digital atelier for real production
+          A digital workspace for apparel production and manufacturing
         </p>
         <h1
           className="text-[48px] sm:text-[72px] md:text-[96px] lg:text-[128px] font-instrument font-bold leading-none text-transparent 
