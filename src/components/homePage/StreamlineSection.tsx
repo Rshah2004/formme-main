@@ -29,7 +29,15 @@ const MockCard: React.FC<{ feature: typeof features[0]; index: number }> = ({ fe
   return (
     <div className="group flex flex-col">
       {/* Glass overlay container */}
-      <div className="rounded-2xl p-3 sm:p-4 bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.15)] transition-transform duration-300 group-hover:-translate-y-1">
+      <div
+        className="rounded-2xl p-3 sm:p-4 border border-white/30 transition-transform duration-300 group-hover:-translate-y-1"
+        style={{
+          background: "linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2)",
+        }}
+      >
         {/* Inner white card (the "screenshot") */}
         <div className="rounded-xl overflow-hidden bg-white shadow-sm">
           <div className="p-4 sm:p-5">
@@ -103,7 +111,12 @@ const MockCard: React.FC<{ feature: typeof features[0]; index: number }> = ({ fe
 
 const StreamlineSection: React.FC = () => {
   return (
-    <section className="py-16 sm:py-24 md:py-32 bg-[#344C3D]">
+    <section className="relative py-16 sm:py-24 md:py-32 bg-[#344C3D] overflow-hidden">
+      {/* Decorative blurred orbs for glass effect visibility */}
+      <div className="absolute top-20 left-10 w-72 h-72 bg-[#4A6A5C]/40 rounded-full blur-3xl" />
+      <div className="absolute top-1/2 right-0 w-96 h-96 bg-[#96421f]/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-[#5A7D6A]/30 rounded-full blur-3xl" />
+      <div className="absolute top-0 right-1/4 w-64 h-64 bg-white/5 rounded-full blur-2xl" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Header */}
         <div className="text-center mb-12 sm:mb-16 md:mb-20">
