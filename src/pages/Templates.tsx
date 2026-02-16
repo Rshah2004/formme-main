@@ -236,7 +236,6 @@ import CraftsmanshipSection from "../components/homePage/CraftsmanshipSection";
 import PipelineSection from "../components/homePage/PipelineSection";
 import WhatYouCanCreate from "../components/homePage/WhatYouCanCreate";
 import EarlyAdoptersSection from "../components/homePage/EarlyAdoptersSection";
-import StreamlineSection from "../components/homePage/StreamlineSection";
 import StatsAndCTA from "../components/homePage/StatsAndCTA";
 import Footer from '@/components/Footer';
 import Features from '@/components/homePage/Features';
@@ -262,7 +261,6 @@ const HomePage = () => {
         <CraftsmanshipSection />
         <PipelineSection />
         <WhatYouCanCreate />
-        <StreamlineSection />
         <section className="-mt-6 sm:-mt-8 pt-6 sm:pt-8 md:pt-10 pb-12 sm:pb-20 md:pb-28 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 lg:gap-12 items-center mb-6 sm:mb-8">
