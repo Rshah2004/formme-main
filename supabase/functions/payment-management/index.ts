@@ -184,7 +184,7 @@ async function calculateOrderCost(supabase: any, userId: string, params: any) {
 }
 
 async function createCheckoutSession(supabase: any, userId: string, params: any, req: Request) {
-  const { order_id, design_id, success_url, cancel_url, payment_phase } = params;
+  const { order_id, design_id, success_url, cancel_url } = params;
   
   const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
   if (!stripeKey) throw new Error("Stripe is not configured");
@@ -218,7 +218,6 @@ async function createCheckoutSession(supabase: any, userId: string, params: any,
   const costs = calculateOrderTotal(order);
   const origin = req.headers.get("origin") || "http://localhost:5173";
 
-  const phase: "deposit" | "final" = payment_phase === "final" ? "final" : "deposit";
   const timelineData = order.production_timeline_data
     ? (typeof order.production_timeline_data === "string"
         ? JSON.parse(order.production_timeline_data)
@@ -226,22 +225,14 @@ async function createCheckoutSession(supabase: any, userId: string, params: any,
     : {};
   const payment = timelineData.payment || {};
 
-  if (phase === "final" && order.status !== "delivered") {
-    throw new Error("Final payment is available only after delivery.");
+  if (payment.paid === true) {
+    throw new Error("Payment already completed.");
   }
-  if (phase === "deposit" && payment.deposit_paid === true) {
-    throw new Error("Deposit already paid.");
-  }
-  if (phase === "final" && payment.final_paid === true) {
-    throw new Error("Final payment already paid.");
-  }
-  const depositAmount = Math.round((costs.total / 2) * 100) / 100;
-  const finalAmount = Math.max(0, Math.round((costs.total - depositAmount) * 100) / 100);
 
-  const chargeAmount = phase === "deposit" ? depositAmount : finalAmount;
+  const chargeAmount = Math.round(costs.total * 100) / 100;
   if (chargeAmount <= 0) throw new Error("Invalid payment amount");
   
-  logStep("Creating checkout session", { orderId: order.id, total: costs.total, phase });
+  logStep("Creating checkout session", { orderId: order.id, total: costs.total });
   
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
@@ -250,9 +241,7 @@ async function createCheckoutSession(supabase: any, userId: string, params: any,
         price_data: {
           currency: 'usd',
           product_data: {
-            name: phase === "deposit"
-              ? `Deposit (50%) - ${order.designs?.name || 'Design'}`
-              : `Final Payment (50%) - ${order.designs?.name || 'Design'}`,
+            name: `Payment - ${order.designs?.name || 'Design'}`,
             description: `${costs.quantity} units @ $${costs.unitCost.toFixed(2)} each`,
           },
           unit_amount: Math.round(chargeAmount * 100), // Convert to cents
@@ -266,8 +255,7 @@ async function createCheckoutSession(supabase: any, userId: string, params: any,
     metadata: {
       order_id: order.id,
       design_id: order.design_id,
-      user_id: userId,
-      payment_phase: phase
+      user_id: userId
     },
   });
 
@@ -277,10 +265,7 @@ async function createCheckoutSession(supabase: any, userId: string, params: any,
     sessionId: session.id, 
     url: session.url,
     costs: {
-      ...costs,
-      deposit_amount: depositAmount,
-      final_amount: finalAmount,
-      phase
+      ...costs
     }
   };
 }
@@ -296,11 +281,9 @@ async function verifyPayment(supabase: any, userId: string, params: any) {
   const session = await stripe.checkout.sessions.retrieve(session_id);
   
   if (session.payment_status === 'paid') {
-    const phase = (session.metadata?.payment_phase || "deposit") as "deposit" | "final";
-
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .select('production_timeline_data')
+      .select('*, designs(name), manufacturers(name)')
       .eq('id', order_id)
       .single();
     if (orderError) throw orderError;
@@ -312,14 +295,8 @@ async function verifyPayment(supabase: any, userId: string, params: any) {
       : {};
 
     const payment = timelineData.payment || {};
-    if (phase === "deposit") {
-      payment.deposit_paid = true;
-      payment.deposit_paid_at = new Date().toISOString();
-    } else {
-      payment.final_paid = true;
-      payment.final_paid_at = new Date().toISOString();
-    }
-
+    payment.paid = true;
+    payment.paid_at = new Date().toISOString();
     timelineData.payment = payment;
 
     const updatePayload: any = {
@@ -327,9 +304,9 @@ async function verifyPayment(supabase: any, userId: string, params: any) {
       updated_at: new Date().toISOString(),
     };
 
-    if (phase === "deposit") {
-      updatePayload.status = 'sample_development';
-    }
+    updatePayload.status = 'sample_development';
+
+    const costs = calculateOrderTotal(order);
 
     const { error } = await supabase
       .from('orders')
@@ -337,68 +314,64 @@ async function verifyPayment(supabase: any, userId: string, params: any) {
       .eq('id', order_id);
     if (error) throw error;
 
-    // Send payment confirmation email on deposit
-    if (phase === "deposit") {
-      try {
-        const { data: userData } = await supabase.auth.admin.getUserById(userId);
-        const email = userData?.user?.email;
-        if (email) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("company_name, full_name")
-            .eq("user_id", userId)
-            .maybeSingle();
+    try {
+      const { data: userData } = await supabase.auth.admin.getUserById(userId);
+      const email = userData?.user?.email;
+      let brandName = "there";
+      if (email) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("company_name, full_name")
+          .eq("user_id", userId)
+          .maybeSingle();
 
-          const brandName = profile?.company_name || profile?.full_name || "there";
+        brandName = profile?.company_name || profile?.full_name || "there";
 
-          await sendResendEmail({
-            from: "Formme <payments@formme.io>",
-            to: [email],
-            subject: "Payment received — your project is in progress",
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; color:#1f2937;">
-                <div style="padding: 16px 0 8px 0;">
-                  <img src="https://www.formme.io/logo.png" alt="Formme" style="height: 32px; width: auto;" />
-                </div>
-                <p>Hi ${brandName},</p>
-                <p>Thanks for completing your payment on Formme. Your project is now officially in progress.</p>
-                <p><strong>Here’s what happens next:</strong></p>
-                <ol>
-                  <li><strong>Sampling</strong><br/>The manufacturer will create and submit samples for your review. Once submitted, you can review them directly on the platform and flag any issues or request changes.</li>
-                  <li><strong>Production</strong><br/>After samples are approved, production begins. You’ll be able to track production progress and timelines in real time.</li>
-                  <li><strong>Quality Check</strong><br/>Once production is completed, a quality check is conducted. If you notice any issues, you can flag them immediately so they’re addressed before shipping.</li>
-                  <li><strong>Shipping & Delivery Tracking</strong><br/>After quality approval, shipping details and delivery tracking will be available on Formme until the order reaches you.</li>
-                </ol>
-                <p>At any point, you can use Formme’s built-in messaging system to communicate directly with your manufacturer—no emails or external tools needed.</p>
-                <p>If you have questions or need help at any stage, feel free to reach out.</p>
-                <p>Thanks for using Formme.<br/>— The Formme Team</p>
-              </div>
-            `,
-          });
-
-        }
-        // Notify Formme team for any paid phase
         await sendResendEmail({
           from: "Formme <payments@formme.io>",
-          to: ["formme.design@gmail.com"],
-          subject: `Payment received (${phase}) — ${brandName}`,
+          to: [email],
+          subject: "Payment received — your project is in progress",
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; color:#1f2937;">
-              <h2 style="color:#344C3D;">Payment Received</h2>
-              <p><strong>Brand:</strong> ${brandName}</p>
-              <p><strong>Payer:</strong> ${email}</p>
-              <p><strong>Order ID:</strong> ${order_id}</p>
-              <p><strong>Phase:</strong> ${phase}</p>
-              <p><strong>Amount:</strong> $${(phase === "deposit" ? depositAmount : finalAmount).toFixed(2)}</p>
+              <div style="padding: 16px 0 8px 0;">
+                <img src="https://www.formme.io/logo.png" alt="Formme" style="height: 32px; width: auto;" />
+              </div>
+              <p>Hi ${brandName},</p>
+              <p>Thanks for completing your payment on Formme. Your project is now officially in progress.</p>
+              <p><strong>Here’s what happens next:</strong></p>
+              <ol>
+                <li><strong>Sampling</strong><br/>The manufacturer will create and submit samples for your review. Once submitted, you can review them directly on the platform and flag any issues or request changes.</li>
+                <li><strong>Production</strong><br/>After samples are approved, production begins. You’ll be able to track production progress and timelines in real time.</li>
+                <li><strong>Quality Check</strong><br/>Once production is completed, a quality check is conducted. If you notice any issues, you can flag them immediately so they’re addressed before shipping.</li>
+                <li><strong>Shipping & Delivery Tracking</strong><br/>After quality approval, shipping details and delivery tracking will be available on Formme until the order reaches you.</li>
+              </ol>
+              <p>At any point, you can use Formme’s built-in messaging system to communicate directly with your manufacturer—no emails or external tools needed.</p>
+              <p>If you have questions or need help at any stage, feel free to reach out.</p>
+              <p>Thanks for using Formme.<br/>— The Formme Team</p>
             </div>
           `,
         });
-      } catch (emailError) {
-        logStep("Payment confirmation email failed", { message: String(emailError) });
       }
+
+      await sendResendEmail({
+        from: "Formme <payments@formme.io>",
+        to: ["formme.design@gmail.com"],
+        subject: `Payment received — ${brandName}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; color:#1f2937;">
+            <h2 style="color:#344C3D;">Payment Received</h2>
+            <p><strong>Brand:</strong> ${brandName}</p>
+            <p><strong>Payer:</strong> ${email || "Unknown"}</p>
+            <p><strong>Order ID:</strong> ${order_id}</p>
+            <p><strong>Amount:</strong> $${costs.total.toFixed(2)}</p>
+          </div>
+        `,
+      });
+    } catch (emailError) {
+      logStep("Payment confirmation email failed", { message: String(emailError) });
     }
 
-    return { paid: true, status: updatePayload.status || 'paid', phase };
+    return { paid: true, status: updatePayload.status || 'paid' };
   }
   
   return { paid: false, status: session.payment_status };
