@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const allowedOrigins = new Set(["https://www.formme.io", "http://localhost:8080"]);
@@ -88,7 +87,6 @@ serve(async (req) => {
     });
   }
 
-
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
@@ -97,6 +95,25 @@ serve(async (req) => {
 
   try {
     logStep("Function started");
+
+    if (req.method === "GET") {
+      const url = new URL(req.url);
+      const orderId = url.searchParams.get("order_id");
+      const token = url.searchParams.get("token");
+      const decision = url.searchParams.get("decision");
+      if (orderId && token && decision) {
+        const result = await reviewPaymentProof(supabaseClient, {
+          order_id: orderId,
+          token,
+          decision,
+        });
+        return new Response(result.message, {
+          headers: { "Content-Type": "text/html; charset=utf-8" },
+          status: result.ok ? 200 : 400,
+        });
+      }
+      return new Response("Invalid review link.", { status: 400 });
+    }
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
@@ -117,11 +134,8 @@ serve(async (req) => {
       case "calculate_order_cost":
         result = await calculateOrderCost(supabaseClient, user.id, params);
         break;
-      case "create_checkout":
-        result = await createCheckoutSession(supabaseClient, user.id, params, req);
-        break;
-      case "verify_payment":
-        result = await verifyPayment(supabaseClient, user.id, params);
+      case "submit_payment_proof":
+        result = await submitPaymentProof(supabaseClient, user.id, params, req);
         break;
       default:
         throw new Error(`Unknown action: ${action}`);
@@ -183,15 +197,11 @@ async function calculateOrderCost(supabase: any, userId: string, params: any) {
   };
 }
 
-async function createCheckoutSession(supabase: any, userId: string, params: any, req: Request) {
-  const { order_id, design_id, success_url, cancel_url } = params;
-  
-  const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-  if (!stripeKey) throw new Error("Stripe is not configured");
-  
-  const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-  
-  // Get order
+async function submitPaymentProof(supabase: any, userId: string, params: any, req: Request) {
+  const { order_id, design_id, proof_url } = params;
+
+  if (!proof_url) throw new Error("Proof URL is required");
+
   let order;
   if (order_id) {
     const { data } = await supabase
@@ -211,12 +221,99 @@ async function createCheckoutSession(supabase: any, userId: string, params: any,
       .maybeSingle();
     order = data;
   }
-  
+
   if (!order) throw new Error("Order not found");
   if (order.designer_id !== userId) throw new Error("Not authorized");
 
+  const timelineData = order.production_timeline_data
+    ? (typeof order.production_timeline_data === "string"
+        ? JSON.parse(order.production_timeline_data)
+        : order.production_timeline_data)
+    : {};
+
+  const payment = timelineData.payment || {};
+  if (payment.status === "approved") {
+    throw new Error("Payment already approved.");
+  }
+
+  const approvalToken = crypto.randomUUID();
+  payment.method = "interac";
+  payment.status = "pending";
+  payment.proof_url = proof_url;
+  payment.submitted_at = new Date().toISOString();
+  payment.approval_token = approvalToken;
+  timelineData.payment = payment;
+
+  const { error } = await supabase
+    .from('orders')
+    .update({ production_timeline_data: timelineData, updated_at: new Date().toISOString() })
+    .eq('id', order.id);
+  if (error) throw error;
+
   const costs = calculateOrderTotal(order);
-  const origin = req.headers.get("origin") || "http://localhost:5173";
+
+  try {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("company_name, full_name")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    const brandName = profile?.company_name || profile?.full_name || "Unknown";
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+    const ref = (() => {
+      try {
+        const host = new URL(supabaseUrl).hostname;
+        return host.split(".")[0];
+      } catch {
+        return "";
+      }
+    })();
+    const functionBase = ref ? `https://${ref}.functions.supabase.co/payment-management` : "";
+    const approveLink = functionBase
+      ? `${functionBase}?order_id=${order.id}&token=${approvalToken}&decision=approve`
+      : "";
+    const rejectLink = functionBase
+      ? `${functionBase}?order_id=${order.id}&token=${approvalToken}&decision=reject`
+      : "";
+
+    await sendResendEmail({
+      from: "Formme <payments@formme.io>",
+      to: ["formestartup22@gmail.com"],
+      subject: `Interac payment proof submitted — ${brandName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; color:#1f2937;">
+          <h2 style="color:#344C3D;">Interac Payment Proof</h2>
+          <p><strong>Brand:</strong> ${brandName}</p>
+          <p><strong>Order ID:</strong> ${order.id}</p>
+          <p><strong>Amount:</strong> $${costs.total.toFixed(2)}</p>
+          <p><strong>Proof:</strong> <a href="${proof_url}" target="_blank" rel="noreferrer">View upload</a></p>
+          ${approveLink ? `<p><a href="${approveLink}">Approve payment</a> | <a href="${rejectLink}">Reject payment</a></p>` : ""}
+        </div>
+      `,
+    });
+  } catch (emailError) {
+    logStep("Payment proof email failed", { message: String(emailError) });
+  }
+
+  return { status: "pending" };
+}
+
+async function reviewPaymentProof(supabase: any, params: any) {
+  const { order_id, token, decision } = params;
+
+  if (!order_id || !token) return { ok: false, message: "Missing review token." };
+  if (decision !== "approve" && decision !== "reject") {
+    return { ok: false, message: "Invalid decision." };
+  }
+
+  const { data: order, error } = await supabase
+    .from("orders")
+    .select("production_timeline_data, designer_id, designs(name)")
+    .eq("id", order_id)
+    .single();
+  if (error || !order) return { ok: false, message: "Order not found." };
 
   const timelineData = order.production_timeline_data
     ? (typeof order.production_timeline_data === "string"
@@ -225,107 +322,41 @@ async function createCheckoutSession(supabase: any, userId: string, params: any,
     : {};
   const payment = timelineData.payment || {};
 
-  if (payment.paid === true) {
-    throw new Error("Payment already completed.");
+  if (!payment.approval_token || payment.approval_token !== token) {
+    return { ok: false, message: "Invalid or expired token." };
   }
 
-  const chargeAmount = Math.round(costs.total * 100) / 100;
-  if (chargeAmount <= 0) throw new Error("Invalid payment amount");
-  
-  logStep("Creating checkout session", { orderId: order.id, total: costs.total });
-  
-  const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
-    line_items: [
-      {
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: `Payment - ${order.designs?.name || 'Design'}`,
-            description: `${costs.quantity} units @ $${costs.unitCost.toFixed(2)} each`,
-          },
-          unit_amount: Math.round(chargeAmount * 100), // Convert to cents
-        },
-        quantity: 1,
-      },
-    ],
-    mode: 'payment',
-    success_url: success_url || `${origin}/workflow?designId=${order.design_id}&stage=sample`,
-    cancel_url: cancel_url || `${origin}/workflow?designId=${order.design_id}&stage=payment`,
-    metadata: {
-      order_id: order.id,
-      design_id: order.design_id,
-      user_id: userId
-    },
-  });
+  payment.status = decision === "approve" ? "approved" : "rejected";
+  payment.reviewed_at = new Date().toISOString();
+  payment.reviewed_by = "email_link";
+  timelineData.payment = payment;
 
-  logStep("Checkout session created", { sessionId: session.id });
-  
-  return { 
-    sessionId: session.id, 
-    url: session.url,
-    costs: {
-      ...costs
-    }
+  const updatePayload: any = {
+    production_timeline_data: timelineData,
+    updated_at: new Date().toISOString(),
   };
-}
+  if (decision === "approve") {
+    updatePayload.status = "sample_development";
+  }
 
-async function verifyPayment(supabase: any, userId: string, params: any) {
-  const { session_id, order_id } = params;
-  
-  const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-  if (!stripeKey) throw new Error("Stripe is not configured");
-  
-  const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-  
-  const session = await stripe.checkout.sessions.retrieve(session_id);
-  
-  if (session.payment_status === 'paid') {
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .select('*, designs(name), manufacturers(name)')
-      .eq('id', order_id)
-      .single();
-    if (orderError) throw orderError;
+  const { error: updateError } = await supabase
+    .from("orders")
+    .update(updatePayload)
+    .eq("id", order_id);
+  if (updateError) return { ok: false, message: "Failed to update order." };
 
-    const timelineData = order?.production_timeline_data
-      ? (typeof order.production_timeline_data === 'string'
-          ? JSON.parse(order.production_timeline_data)
-          : order.production_timeline_data)
-      : {};
-
-    const payment = timelineData.payment || {};
-    payment.paid = true;
-    payment.paid_at = new Date().toISOString();
-    timelineData.payment = payment;
-
-    const updatePayload: any = {
-      production_timeline_data: timelineData,
-      updated_at: new Date().toISOString(),
-    };
-
-    updatePayload.status = 'sample_development';
-
-    const costs = calculateOrderTotal(order);
-
-    const { error } = await supabase
-      .from('orders')
-      .update(updatePayload)
-      .eq('id', order_id);
-    if (error) throw error;
-
+  if (decision === "approve") {
     try {
-      const { data: userData } = await supabase.auth.admin.getUserById(userId);
+      const { data: userData } = await supabase.auth.admin.getUserById(order.designer_id);
       const email = userData?.user?.email;
-      let brandName = "there";
       if (email) {
         const { data: profile } = await supabase
           .from("profiles")
           .select("company_name, full_name")
-          .eq("user_id", userId)
+          .eq("user_id", order.designer_id)
           .maybeSingle();
 
-        brandName = profile?.company_name || profile?.full_name || "there";
+        const brandName = profile?.company_name || profile?.full_name || "there";
 
         await sendResendEmail({
           from: "Formme <payments@formme.io>",
@@ -333,18 +364,14 @@ async function verifyPayment(supabase: any, userId: string, params: any) {
           subject: "Payment received — your project is in progress",
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; color:#1f2937;">
-              <div style="padding: 16px 0 8px 0;">
-                <img src="https://www.formme.io/logo.png" alt="Formme" style="height: 32px; width: auto;" />
-              </div>
+              <p><strong>Formme</strong></p>
               <p>Hi ${brandName},</p>
               <p>Thanks for completing your payment on Formme. Your project is now officially in progress.</p>
               <p><strong>Here’s what happens next:</strong></p>
-              <ol>
-                <li><strong>Sampling</strong><br/>The manufacturer will create and submit samples for your review. Once submitted, you can review them directly on the platform and flag any issues or request changes.</li>
-                <li><strong>Production</strong><br/>After samples are approved, production begins. You’ll be able to track production progress and timelines in real time.</li>
-                <li><strong>Quality Check</strong><br/>Once production is completed, a quality check is conducted. If you notice any issues, you can flag them immediately so they’re addressed before shipping.</li>
-                <li><strong>Shipping & Delivery Tracking</strong><br/>After quality approval, shipping details and delivery tracking will be available on Formme until the order reaches you.</li>
-              </ol>
+              <p><strong>Sampling</strong><br/>The manufacturer will create and submit samples for your review. Once submitted, you can review them directly on the platform and flag any issues or request changes.</p>
+              <p><strong>Production</strong><br/>After samples are approved, production begins. You’ll be able to track production progress and timelines in real time.</p>
+              <p><strong>Quality Check</strong><br/>Once production is completed, a quality check is conducted. If you notice any issues, you can flag them immediately so they’re addressed before shipping.</p>
+              <p><strong>Shipping & Delivery Tracking</strong><br/>After quality approval, shipping details and delivery tracking will be available on Formme until the order reaches you.</p>
               <p>At any point, you can use Formme’s built-in messaging system to communicate directly with your manufacturer—no emails or external tools needed.</p>
               <p>If you have questions or need help at any stage, feel free to reach out.</p>
               <p>Thanks for using Formme.<br/>— The Formme Team</p>
@@ -352,27 +379,16 @@ async function verifyPayment(supabase: any, userId: string, params: any) {
           `,
         });
       }
-
-      await sendResendEmail({
-        from: "Formme <payments@formme.io>",
-        to: ["formme.design@gmail.com"],
-        subject: `Payment received — ${brandName}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; color:#1f2937;">
-            <h2 style="color:#344C3D;">Payment Received</h2>
-            <p><strong>Brand:</strong> ${brandName}</p>
-            <p><strong>Payer:</strong> ${email || "Unknown"}</p>
-            <p><strong>Order ID:</strong> ${order_id}</p>
-            <p><strong>Amount:</strong> $${costs.total.toFixed(2)}</p>
-          </div>
-        `,
-      });
     } catch (emailError) {
-      logStep("Payment confirmation email failed", { message: String(emailError) });
+      logStep("Approval email failed", { message: String(emailError) });
     }
-
-    return { paid: true, status: updatePayload.status || 'paid' };
   }
-  
-  return { paid: false, status: session.payment_status };
+
+  return {
+    ok: true,
+    message:
+      decision === "approve"
+        ? "Payment approved. Sampling is now unlocked."
+        : "Payment rejected.",
+  };
 }

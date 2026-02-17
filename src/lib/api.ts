@@ -326,18 +326,9 @@ export const paymentApi = {
     return data.data;
   },
 
-  async createCheckout(params: { order_id?: string; design_id?: string; success_url?: string; cancel_url?: string }) {
+  async submitPaymentProof(params: { order_id?: string; design_id?: string; proof_url: string }) {
     const { data, error } = await supabase.functions.invoke('payment-management', {
-      body: { action: 'create_checkout', ...params }
-    });
-    if (error) throw error;
-    if (!data.success) throw new Error(data.error);
-    return data.data;
-  },
-
-  async verifyPayment(session_id: string, order_id: string) {
-    const { data, error } = await supabase.functions.invoke('payment-management', {
-      body: { action: 'verify_payment', session_id, order_id }
+      body: { action: 'submit_payment_proof', ...params }
     });
     if (error) throw error;
     if (!data.success) throw new Error(data.error);

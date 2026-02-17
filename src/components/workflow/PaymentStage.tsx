@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {CreditCard, Loader2, ArrowLeft, ArrowRight, AlertCircle} from 'lucide-react';
 import { Design } from '@/data/workflowData';
 import { useWorkflow } from '@/context/WorkflowContext';
-import { useSearchParams } from 'react-router-dom';
 import { StageHeader } from './StageHeader';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -26,17 +25,33 @@ interface PricingData {
 
 const PaymentStage = ({ design }: PaymentStageProps) => {
   const { workflowData } = useWorkflow();
-  const [loading, setLoading] = useState(false);
   const [orderDetails, setOrderDetails] = useState<any>(null);
   const [pricing, setPricing] = useState<PricingData | null>(null);
   const [pricingLoading, setPricingLoading] = useState(true);
-  const { currentStage, setCurrentStage, markStageComplete } = useWorkflow();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const verifyRef = useRef(false);
+  const { setCurrentStage, markStageComplete } = useWorkflow();
+  const [uploading, setUploading] = useState(false);
+  const [proofFile, setProofFile] = useState<File | null>(null);
 
 
   useEffect(() => {
     fetchOrderDetails();
+  }, [design.id]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`payment-status-${design.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'orders', filter: `design_id=eq.${design.id}` },
+        () => {
+          fetchOrderDetails();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [design.id]);
 
   const fetchOrderDetails = async () => {
@@ -85,41 +100,13 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
   };
 
   const orderId = orderDetails?.id;
-  const sessionId = searchParams.get('session_id');
-  const sessionOrderId = searchParams.get('order_id');
-
-  useEffect(() => {
-    if (!sessionId || !sessionOrderId || verifyRef.current) return;
-    verifyRef.current = true;
-
-    (async () => {
-      try {
-        const result = await paymentApi.verifyPayment(sessionId, sessionOrderId);
-        if (result?.paid) {
-          toast.success('Payment confirmed.');
-          await fetchOrderDetails();
-        } else {
-          toast.error('Payment not confirmed yet. Please try again in a moment.');
-        }
-      } catch (err: any) {
-        toast.error(err?.message || 'Failed to verify payment');
-      } finally {
-        // Clean query params after verification attempt
-        const next = new URLSearchParams(searchParams);
-        next.delete('session_id');
-        next.delete('order_id');
-        setSearchParams(next, { replace: true });
-      }
-    })();
-  }, [sessionId, sessionOrderId, searchParams, setSearchParams]);
-
   const handleBack = () => {
     // setCurrentStage('tech-pack');
   };
 
   const handleContinue = () => {
-    if (!paid) {
-      toast.error('Please complete payment before sampling begins.');
+    if (paymentStatus !== 'approved') {
+      toast.error('Payment must be approved before sampling begins.');
       return;
     }
     markStageComplete('payment');
@@ -133,31 +120,56 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
     }
 
     try {
-      setLoading(true);
-      
-      console.log('[PaymentStage] Initiating checkout for design:', design.id);
-      
-      const successUrl = `${window.location.origin}/workflow?designId=${design.id}&stage=payment&session_id={CHECKOUT_SESSION_ID}&order_id=${orderId || ''}`;
-      const result = await paymentApi.createCheckout({
-        design_id: design.id,
-        success_url: successUrl,
-        cancel_url: `${window.location.origin}/workflow?designId=${design.id}&stage=payment`,
+      if (!proofFile) {
+        toast.error('Please upload your Interac payment screenshot.');
+        return;
+      }
+      if (!orderId) {
+        toast.error('Order not found. Please refresh.');
+        return;
+      }
+
+      setUploading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please sign in to upload payment proof.');
+        setUploading(false);
+        return;
+      }
+
+      const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
+      if (!allowed.includes(proofFile.type)) {
+        toast.error('Please upload a PNG, JPG, or PDF file.');
+        setUploading(false);
+        return;
+      }
+
+      const ext = proofFile.name.split('.').pop() || 'png';
+      const filePath = `${user.id}/payment-proofs/${orderId}-${Date.now()}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('design-files')
+        .upload(filePath, proofFile, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('design-files')
+        .getPublicUrl(filePath);
+
+      await paymentApi.submitPaymentProof({
+        order_id: orderId,
+        proof_url: publicUrl,
       });
 
-      console.log('[PaymentStage] Checkout response:', result);
-
-      if (result?.url) {
-        console.log('[PaymentStage] Opening Stripe checkout:', result.url);
-        window.open(result.url, '_blank');
-        toast.success('Redirecting to payment...');
-      } else {
-        throw new Error('No checkout URL received');
-      }
+      toast.success('Payment proof submitted. We will review it shortly.');
+      setProofFile(null);
+      await fetchOrderDetails();
     } catch (error: any) {
-      console.error('[PaymentStage] Payment error:', error);
-      toast.error(error?.message || 'Failed to initiate payment. Please try again.');
+      console.error('[PaymentStage] Payment proof error:', error);
+      toast.error(error?.message || 'Failed to submit payment proof. Please try again.');
     } finally {
-      setLoading(false);
+      setUploading(false);
     }
   };
 
@@ -167,7 +179,9 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
         ? JSON.parse(orderDetails.production_timeline_data)
         : orderDetails.production_timeline_data)
     : null;
-  const paid = paymentInfo?.payment?.paid === true;
+  const paymentStatus = paymentInfo?.payment?.status || (paymentInfo?.payment?.paid ? 'approved' : null);
+  const paid = paymentStatus === 'approved';
+  const paymentProofUrl = paymentInfo?.payment?.proof_url || null;
   const factoryName =
     orderDetails?.manufacturers?.name ||
     workflowData.selectedFactory?.name ||
@@ -178,7 +192,7 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
       <StageHeader
         icon={CreditCard}
         title="Make payment"
-        description="Complete payment to begin sampling and start production."
+        description="Send an Interac transfer and upload proof to begin sampling."
         contextInfo={[
           { label: 'Factory', value: factoryName },
           { label: 'Quantity', value: (pricing?.quantity || orderDetails?.quantity || 100).toString() },
@@ -193,10 +207,17 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
               <AlertCircle className="w-5 h-5 text-primary mt-0.5" />
               <div className="space-y-2 text-sm text-muted-foreground">
                 <p>
-                  Complete payment to start sampling. If you face any issues, contact us at{' '}
+                  Send your Interac transfer to{' '}
+                  <span className="font-medium text-foreground">royd4405aoi@gmail.com</span> and upload the screenshot below.
+                  If you face any issues, contact us at{' '}
                   <span className="font-medium text-foreground">formme.design@gmail.com</span>{' '}
                   or fill the <Link to="/support" className="font-medium text-foreground underline underline-offset-4">support form</Link>.
                 </p>
+                {pricing?.total ? (
+                  <p className="text-sm text-foreground">
+                    Amount due: <span className="font-semibold">${pricing.total.toFixed(2)}</span>
+                  </p>
+                ) : null}
               </div>
             </div>
           </CardContent>
@@ -260,15 +281,47 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
             <CardContent className="p-6">
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Payment processing will be handled securely. You'll be redirected to complete your payment.
+                  Upload your Interac transfer screenshot (PNG/JPG/PDF). Our team will review and approve it.
                 </p>
+                {paymentStatus === 'pending' && (
+                  <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-3">
+                    Payment proof submitted. Awaiting approval.
+                  </div>
+                )}
+                {paymentStatus === 'rejected' && (
+                  <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md p-3">
+                    Payment proof rejected. Please upload a new screenshot.
+                  </div>
+                )}
+                {paid && (
+                  <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-md p-3">
+                    Payment approved. You can continue to sample review.
+                  </div>
+                )}
+                {paymentProofUrl && (
+                  <a
+                    href={paymentProofUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm text-primary underline"
+                  >
+                    View uploaded proof
+                  </a>
+                )}
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,application/pdf"
+                  onChange={(e) => setProofFile(e.target.files?.[0] || null)}
+                  className="text-sm"
+                  disabled={uploading || paid || paymentStatus === 'pending'}
+                />
                 <Button
                     onClick={handlePayment}
                     className="w-full gap-2"
                     size="lg"
-                    disabled={loading || !hasPricing || paid}
+                    disabled={uploading || !hasPricing || paid || paymentStatus === 'pending'}
                 >
-                  {loading ? (
+                  {uploading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin"/>
                         Processing...
@@ -276,15 +329,10 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
                   ) : (
                       <>
                         <CreditCard className="w-4 h-4"/>
-                        {paid ? 'Payment Received' : 'Pay Now'}
+                        {paid ? 'Payment Received' : 'Submit Proof'}
                       </>
                   )}
                 </Button>
-                {paid && (
-                  <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-md p-3">
-                    Payment received. Thank you.
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
