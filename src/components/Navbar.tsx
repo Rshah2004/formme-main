@@ -50,7 +50,7 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const navItems = ["collection", "create", "dashboard"];
+  const navItems = ["collection", "create", "dashboard", "support"];
 
   const handleNavClick = (item: string, e?: React.MouseEvent) => {
     // Dashboard is accessible without login (preview mode)
@@ -87,6 +87,7 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
     if (item === "create") return "/coming-soon";
     if (item === "dashboard") return "/dashboard";
     if (item === "collection") return "/coming-soon";
+    if (item === "support") return "/support";
     return "#";
   };
 

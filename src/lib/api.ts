@@ -326,7 +326,7 @@ export const paymentApi = {
     return data.data;
   },
 
-  async createCheckout(params: { order_id?: string; design_id?: string; success_url?: string; cancel_url?: string }) {
+  async createCheckout(params: { order_id?: string; design_id?: string; success_url?: string; cancel_url?: string; payment_phase?: 'deposit' | 'final' }) {
     const { data, error } = await supabase.functions.invoke('payment-management', {
       body: { action: 'create_checkout', ...params }
     });

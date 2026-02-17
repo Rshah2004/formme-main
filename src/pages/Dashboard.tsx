@@ -257,9 +257,10 @@ const Dashboard = () => {
             }
           }
 
-          setOrders(Array.from(bestByDesign.values()).sort((a, b) => (
+          const sorted = Array.from(bestByDesign.values()).sort((a: any, b: any) => (
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-          )));
+          ));
+          setOrders(sorted);
         } catch (error: any) {
           toast.error("Failed to load orders");
         }

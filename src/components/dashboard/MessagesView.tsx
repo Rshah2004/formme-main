@@ -6,6 +6,20 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Send, Building2, ArrowLeft } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { orderApi } from '@/lib/api';
 import { toast } from 'sonner';
@@ -24,9 +38,18 @@ interface Conversation {
   design_name: string;
   manufacturer_name: string | null;
   manufacturer_id: string | null;
-  last_message: string;
+  match_status?: 'pending' | 'accepted' | 'rejected' | string;
+  last_message: string | null;
   last_message_time: string;
   unread_count: number;
+}
+
+interface ContactOption {
+  order_id: string;
+  design_name: string;
+  manufacturer_name: string | null;
+  manufacturer_id: string | null;
+  match_status?: 'pending' | 'accepted' | 'rejected' | string;
 }
 
 interface MessagesViewProps {
@@ -48,6 +71,9 @@ const MessagesView = ({ orders }: MessagesViewProps) => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [newContactOpen, setNewContactOpen] = useState(false);
+  const [contactOptions, setContactOptions] = useState<ContactOption[]>([]);
+  const [selectedContact, setSelectedContact] = useState<ContactOption | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -109,38 +135,94 @@ const MessagesView = ({ orders }: MessagesViewProps) => {
 
   const fetchConversations = async () => {
     try {
-      const orderIds = orders.map(o => o.id);
-      if (orderIds.length === 0) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
         setLoading(false);
         return;
       }
 
-      // Fetch last message for each order
-      const conversationsData: Conversation[] = [];
-      
-      for (const order of orders) {
-        const { data: messagesData } = await supabase
-          .from('messages')
-          .select('content, created_at')
-          .eq('order_id', order.id)
-          .order('created_at', { ascending: false })
-          .limit(1);
+      const { data: designsData, error: designsError } = await supabase
+        .from('designs')
+        .select('id, name')
+        .eq('user_id', user.id);
 
-        const lastMessage = messagesData?.[0];
-        if (!lastMessage) {
-          continue;
-        }
-
-        conversationsData.push({
-          order_id: order.id,
-          design_name: order.designs?.name || 'Untitled',
-          manufacturer_name: order.manufacturers?.name || null,
-          manufacturer_id: null,
-          last_message: lastMessage.content,
-          last_message_time: lastMessage.created_at,
-          unread_count: 0
-        });
+      if (designsError) throw designsError;
+      const designIds = (designsData || []).map(d => d.id);
+      if (designIds.length === 0) {
+        setLoading(false);
+        return;
       }
+
+      const { data: matchesData, error: matchesError } = await supabase
+        .from('manufacturer_matches')
+        .select('id, status, design_id, manufacturer_id, manufacturers(name)')
+        .in('design_id', designIds)
+        .in('status', ['pending', 'accepted']);
+
+      if (matchesError) throw matchesError;
+
+      const { data: ordersData, error: ordersError } = await supabase
+        .from('orders')
+        .select('id, design_id, manufacturer_id, created_at')
+        .in('design_id', designIds)
+        .not('manufacturer_id', 'is', null);
+
+      if (ordersError) throw ordersError;
+
+      const orderMap = new Map<string, { id: string; created_at: string | null }>();
+      for (const o of ordersData || []) {
+        orderMap.set(`${o.design_id}:${o.manufacturer_id}`, { id: o.id, created_at: o.created_at });
+      }
+
+      const orderIds = (ordersData || []).map(o => o.id);
+      const messageMap = new Map<string, { content: string; created_at: string }>();
+      if (orderIds.length > 0) {
+        const { data: messagesData, error: messagesError } = await supabase
+          .from('messages')
+          .select('order_id, content, created_at')
+          .in('order_id', orderIds)
+          .order('created_at', { ascending: false });
+
+        if (messagesError) throw messagesError;
+        for (const msg of messagesData || []) {
+          if (!messageMap.has(msg.order_id)) {
+            messageMap.set(msg.order_id, { content: msg.content, created_at: msg.created_at });
+          }
+        }
+      }
+
+      const designNameMap = new Map<string, string>();
+      for (const d of designsData || []) {
+        designNameMap.set(d.id, d.name);
+      }
+
+      const allContacts: ContactOption[] = (matchesData || [])
+        .map((match: any) => {
+          const orderKey = `${match.design_id}:${match.manufacturer_id}`;
+          const orderMeta = orderMap.get(orderKey);
+          if (!orderMeta?.id) return null;
+          return {
+            order_id: orderMeta.id,
+            design_name: designNameMap.get(match.design_id) || 'Untitled',
+            manufacturer_name: match.manufacturers?.name || null,
+            manufacturer_id: match.manufacturer_id,
+            match_status: match.status
+          } as ContactOption;
+        })
+        .filter(Boolean) as ContactOption[];
+
+      const conversationsData: Conversation[] = allContacts
+        .map((contact) => {
+          const lastMsg = messageMap.get(contact.order_id);
+          if (!lastMsg) return null;
+          return {
+            ...contact,
+            last_message: lastMsg.content ?? null,
+            last_message_time: lastMsg.created_at ?? new Date().toISOString(),
+            unread_count: 0
+          } as Conversation;
+        })
+        .filter(Boolean) as Conversation[];
 
       // Sort by last message time
       conversationsData.sort((a, b) => 
@@ -148,6 +230,7 @@ const MessagesView = ({ orders }: MessagesViewProps) => {
       );
 
       setConversations(conversationsData);
+      setContactOptions(allContacts);
 
       // Auto-select the most recent conversation so reload doesn't look like "messages disappeared"
       if (!selectedOrderId && conversationsData.length > 0) {
@@ -230,6 +313,8 @@ const MessagesView = ({ orders }: MessagesViewProps) => {
   };
 
   const selectedConversation = conversations.find(c => c.order_id === selectedOrderId);
+  const activeContact = selectedConversation || selectedContact;
+  const orderOptions = contactOptions;
 
   if (loading) {
     return (
@@ -246,14 +331,51 @@ const MessagesView = ({ orders }: MessagesViewProps) => {
         "w-full md:w-80 border-b md:border-b-0 md:border-r flex flex-col",
         selectedOrderId && "hidden md:flex"
       )}>
-        <div className="p-4 border-b">
-          <h2 className="font-semibold">Conversations</h2>
+        <div className="p-4 border-b flex items-center justify-between">
+          <h2 className="font-semibold">Contacts</h2>
+          <Dialog open={newContactOpen} onOpenChange={setNewContactOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">New contact</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Select a manufacturer</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-2">
+                {contactOptions.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No available contacts yet.</p>
+                ) : (
+                  contactOptions.map((conv) => (
+                    <button
+                      key={`contact-${conv.order_id}`}
+                      onClick={() => {
+                        setSelectedOrderId(conv.order_id);
+                        setSelectedContact(conv);
+                        setNewContactOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between rounded-md border px-3 py-2 text-left hover:bg-muted/50"
+                    >
+                      <div>
+                        <p className="text-sm font-medium">{conv.manufacturer_name || 'Manufacturer'}</p>
+                        <p className="text-xs text-muted-foreground">{conv.design_name}</p>
+                      </div>
+                      {conv.match_status && (
+                        <Badge variant="outline" className="text-xs">
+                          {conv.match_status === 'pending' ? 'Request sent' : 'Accepted'}
+                        </Badge>
+                      )}
+                    </button>
+                  ))
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
         <ScrollArea className="flex-1">
           {conversations.length === 0 ? (
             <div className="p-4 text-center text-muted-foreground">
-              <p>No conversations yet</p>
-              <p className="text-sm mt-1">Start by connecting with a manufacturer</p>
+              <p>No contacts yet</p>
+              <p className="text-sm mt-1">Send a request or finalize a manufacturer to start chatting</p>
             </div>
           ) : (
             conversations.map((conv) => (
@@ -281,7 +403,9 @@ const MessagesView = ({ orders }: MessagesViewProps) => {
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground truncate">{conv.design_name}</p>
-                    <p className="text-sm text-muted-foreground truncate mt-1">{conv.last_message}</p>
+                    <p className="text-sm text-muted-foreground truncate mt-1">
+                      {conv.last_message}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -295,7 +419,7 @@ const MessagesView = ({ orders }: MessagesViewProps) => {
         "flex-1 flex flex-col",
         !selectedOrderId && "hidden md:flex"
       )}>
-        {selectedOrderId && selectedConversation ? (
+      {selectedOrderId && activeContact ? (
           <>
             {/* Chat Header */}
             <div className="p-4 border-b flex items-center gap-3">
@@ -314,9 +438,29 @@ const MessagesView = ({ orders }: MessagesViewProps) => {
               </Avatar>
               <div>
                 <h3 className="font-semibold">
-                  {selectedConversation.manufacturer_name || 'Finding Manufacturer'}
+                  {activeContact.manufacturer_name || 'Manufacturer'}
                 </h3>
-                <p className="text-sm text-muted-foreground">{selectedConversation.design_name}</p>
+                <div className="mt-1">
+                  <Select
+                    value={selectedOrderId || undefined}
+                    onValueChange={(value) => {
+                      const contact = orderOptions.find(o => o.order_id === value) || null;
+                      setSelectedOrderId(value);
+                      setSelectedContact(contact);
+                    }}
+                  >
+                    <SelectTrigger className="h-8 w-[220px] text-xs">
+                      <SelectValue placeholder={activeContact.design_name} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {orderOptions.map((o) => (
+                        <SelectItem key={o.order_id} value={o.order_id}>
+                          {o.design_name} • {o.manufacturer_name || 'Manufacturer'}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
@@ -325,8 +469,7 @@ const MessagesView = ({ orders }: MessagesViewProps) => {
               <div className="space-y-4">
                 {messages.length === 0 ? (
                   <div className="text-center text-muted-foreground py-8">
-                    <p>No messages yet</p>
-                    <p className="text-sm">Start the conversation!</p>
+                    <p>Start the conversation</p>
                   </div>
                 ) : (
                   messages.map((msg) => {

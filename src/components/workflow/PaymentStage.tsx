@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {CreditCard, CheckCircle, Loader2, ArrowLeft, ArrowRight, AlertCircle} from 'lucide-react';
 import { Design } from '@/data/workflowData';
 import { useWorkflow } from '@/context/WorkflowContext';
+import { useSearchParams } from 'react-router-dom';
 import { StageHeader } from './StageHeader';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { paymentApi } from '@/lib/api';
 
@@ -20,6 +22,8 @@ interface PricingData {
   quantity: number;
   subtotal: number;
   total: number;
+  depositAmount: number;
+  finalAmount: number;
 }
 
 const PaymentStage = ({ design }: PaymentStageProps) => {
@@ -29,6 +33,8 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
   const [pricing, setPricing] = useState<PricingData | null>(null);
   const [pricingLoading, setPricingLoading] = useState(true);
   const { currentStage, setCurrentStage, markStageComplete } = useWorkflow();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const verifyRef = useRef(false);
 
 
   useEffect(() => {
@@ -64,6 +70,8 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
         const taxes = timelineData?.taxes_and_fees || 0;
         const subtotal = unitCost * quantity;
         const total = subtotal + shipping + taxes;
+        const depositAmount = Math.round((total / 2) * 100) / 100;
+        const finalAmount = Math.max(0, Math.round((total - depositAmount) * 100) / 100);
 
         setPricing({
           unitCost,
@@ -71,7 +79,9 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
           taxes,
           quantity,
           subtotal,
-          total
+          total,
+          depositAmount,
+          finalAmount
         });
       }
     } catch (error) {
@@ -81,16 +91,49 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
     }
   };
 
+  const orderId = orderDetails?.id;
+  const sessionId = searchParams.get('session_id');
+  const sessionOrderId = searchParams.get('order_id');
+
+  useEffect(() => {
+    if (!sessionId || !sessionOrderId || verifyRef.current) return;
+    verifyRef.current = true;
+
+    (async () => {
+      try {
+        const result = await paymentApi.verifyPayment(sessionId, sessionOrderId);
+        if (result?.paid) {
+          toast.success('Payment confirmed.');
+          await fetchOrderDetails();
+        } else {
+          toast.error('Payment not confirmed yet. Please try again in a moment.');
+        }
+      } catch (err: any) {
+        toast.error(err?.message || 'Failed to verify payment');
+      } finally {
+        // Clean query params after verification attempt
+        const next = new URLSearchParams(searchParams);
+        next.delete('session_id');
+        next.delete('order_id');
+        setSearchParams(next, { replace: true });
+      }
+    })();
+  }, [sessionId, sessionOrderId, searchParams, setSearchParams]);
+
   const handleBack = () => {
     // setCurrentStage('tech-pack');
   };
 
   const handleContinue = () => {
+    if (!depositPaid) {
+      toast.error('Please pay the 50% deposit before sampling begins.');
+      return;
+    }
     markStageComplete('payment');
     setCurrentStage('waiting-sample');
   };
 
-  const handlePayment = async () => {
+  const handlePayment = async (phase: 'deposit' | 'final') => {
     if (!pricing || pricing.total === 0) {
       toast.error('Pricing not yet set by manufacturer. Please wait for the manufacturer to confirm pricing.');
       return;
@@ -101,9 +144,11 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
       
       console.log('[PaymentStage] Initiating checkout for design:', design.id);
       
+      const successUrl = `${window.location.origin}/workflow?designId=${design.id}&stage=payment&session_id={CHECKOUT_SESSION_ID}&order_id=${orderId || ''}`;
       const result = await paymentApi.createCheckout({
         design_id: design.id,
-        success_url: `${window.location.origin}/workflow?designId=${design.id}&stage=production`,
+        payment_phase: phase,
+        success_url: successUrl,
         cancel_url: `${window.location.origin}/workflow?designId=${design.id}&stage=payment`,
       });
 
@@ -125,21 +170,54 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
   };
 
   const hasPricing = pricing && pricing.unitCost > 0;
+  const paymentInfo = orderDetails?.production_timeline_data
+    ? (typeof orderDetails.production_timeline_data === 'string'
+        ? JSON.parse(orderDetails.production_timeline_data)
+        : orderDetails.production_timeline_data)
+    : null;
+  const depositPaid = paymentInfo?.payment?.deposit_paid === true;
+  const finalPaid = paymentInfo?.payment?.final_paid === true;
+  const canPayFinal = depositPaid && orderDetails?.status === 'delivered' && !finalPaid;
+  const factoryName =
+    orderDetails?.manufacturers?.name ||
+    workflowData.selectedFactory?.name ||
+    'Not selected';
 
   return (
     <div>
       <StageHeader
         icon={CreditCard}
         title="Make payment"
-        description="Review your order costs and complete payment to begin production."
+        description="Pay 50% now to begin sampling. Pay the remaining 50% after delivery once everything is correct."
         contextInfo={[
-          { label: 'Factory', value: orderDetails?.manufacturers?.name || workflowData.selectedFactory?.name || 'Not selected' },
+          { label: 'Factory', value: factoryName },
           { label: 'Quantity', value: (pricing?.quantity || orderDetails?.quantity || 100).toString() },
           { label: 'Delivery Date', value: workflowData.deliveryDate || 'Not set' }
         ]}
       />
 
       <div className="space-y-6">
+        {/* Split payment notice */}
+        <Card className="border-border">
+          <CardContent className="p-5">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-primary mt-0.5" />
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>
+                  You will pay <span className="font-medium text-foreground">50% upfront</span> before sampling begins.
+                  The remaining <span className="font-medium text-foreground">50%</span> is due after delivery if everything is correct.
+                </p>
+                <p>
+                  If you face any issues, contact us at{' '}
+                  <span className="font-medium text-foreground">formme.design@gmail.com</span>{' '}
+                  or fill the <Link to="/support" className="font-medium text-foreground underline underline-offset-4">support form</Link>.
+                  If you are right, we will return the first half.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Cost Breakdown */}
         <section>
           <h3 className="text-sm font-semibold text-foreground mb-3">Cost Breakdown</h3>
@@ -185,6 +263,16 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
                     <span>Total Amount</span>
                     <span className="text-primary">${pricing.total.toFixed(2)}</span>
                   </div>
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                    <div className="flex justify-between rounded-md bg-muted/40 px-3 py-2">
+                      <span>Pay now (50%)</span>
+                      <span className="font-medium">${pricing.depositAmount.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between rounded-md bg-muted/40 px-3 py-2">
+                      <span>Pay after delivery (50%)</span>
+                      <span className="font-medium">${pricing.finalAmount.toFixed(2)}</span>
+                    </div>
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -201,10 +289,10 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
                   Payment processing will be handled securely. You'll be redirected to complete your payment.
                 </p>
                 <Button
-                    onClick={handlePayment}
+                    onClick={() => handlePayment('deposit')}
                     className="w-full gap-2"
                     size="lg"
-                    disabled={loading || !hasPricing}
+                    disabled={loading || !hasPricing || depositPaid}
                 >
                   {loading ? (
                       <>
@@ -214,10 +302,26 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
                   ) : (
                       <>
                         <CreditCard className="w-4 h-4"/>
-                        Proceed to Payment
+                        {depositPaid ? 'Deposit Paid' : 'Pay 50% Deposit'}
                       </>
                   )}
                 </Button>
+                {finalPaid && (
+                  <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-md p-3">
+                    Final payment received. Thank you.
+                  </div>
+                )}
+                {canPayFinal && (
+                  <Button
+                    onClick={() => handlePayment('final')}
+                    className="w-full gap-2"
+                    size="lg"
+                    variant="outline"
+                  >
+                    <CreditCard className="w-4 h-4"/>
+                    Pay Remaining 50%
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -228,8 +332,8 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
             <ArrowLeft className="w-4 h-4"/>
             Back to Tech Pack
           </Button>
-          <Button onClick={handleContinue} className="gap-2">
-            Skip to sample review page
+          <Button onClick={handleContinue} className="gap-2" disabled={!depositPaid}>
+            Continue to sample review
             <ArrowRight className="w-4 h-4"/>
           </Button>
         </div>
