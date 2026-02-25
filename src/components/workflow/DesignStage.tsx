@@ -39,6 +39,7 @@ const DesignStage = ({ design }: DesignStageProps) => {
   // New fields
   const [quantity, setQuantity] = useState<string>(design?.quantity?.toString() || '');
   const [sampleTypePreference, setSampleTypePreference] = useState<'digital' | 'physical'>(design?.sample_type_preference || 'physical');
+  const [sampleQuantity, setSampleQuantity] = useState<string>(workflowData.sampleQuantity || '');
   const [designFiles, setDesignFiles] = useState<DesignFile[]>([]);
 
   // Track completion status
@@ -95,6 +96,18 @@ useEffect(() => {
     setSampleTypePreference(
       designRow.sample_type_preference ?? 'physical'
     );
+
+    const { data: latestOrder } = await supabase
+      .from('orders')
+      .select('sample_quantity')
+      .eq('design_id', design.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (latestOrder?.sample_quantity !== null && latestOrder?.sample_quantity !== undefined) {
+      setSampleQuantity(String(latestOrder.sample_quantity));
+    }
 
     // ---- files ----
     const urls = Array.isArray(designRow.design_file_url)
@@ -275,6 +288,7 @@ useEffect(() => {
             .from('orders')
             .update({
               quantity: parseInt(quantity) || null,
+              sample_quantity: sampleQuantity ? parseInt(sampleQuantity, 10) : null,
               production_timeline_data: {
                 ...currentTimeline,
                 sample_type_preference: sampleTypePreference,
@@ -299,6 +313,7 @@ useEffect(() => {
       updateWorkflowData({
         quantity: quantity,
         sampleType: sampleTypePreference,
+        sampleQuantity,
       });
 
     if (markComplete) {
@@ -555,6 +570,24 @@ useEffect(() => {
               </div>
             </div>
           </RadioGroup>
+          <div className="mt-4 space-y-2 max-w-xs">
+            <Label htmlFor="sample-quantity">Sample Quantity (optional)</Label>
+            <Input
+              id="sample-quantity"
+              type="number"
+              min="1"
+              value={sampleQuantity}
+              onChange={(e) => {
+                setSampleQuantity(e.target.value);
+                setHasUnsavedChanges(true);
+              }}
+              placeholder="e.g., 2"
+              disabled={isContractFinalized}
+            />
+            <p className="text-xs text-muted-foreground">
+              How many samples you want the manufacturer to produce for review.
+            </p>
+          </div>
         </CardContent>
       </Card>
 

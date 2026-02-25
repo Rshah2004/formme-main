@@ -448,6 +448,7 @@ export type Database = {
           qc_result: string | null
           qc_submitted_at: string | null
           quantity: number | null
+          sample_quantity: number | null
           sample_approved: boolean | null
           sample_submitted_at: string | null
           shipping_address: string | null
@@ -497,6 +498,7 @@ export type Database = {
           qc_result?: string | null
           qc_submitted_at?: string | null
           quantity?: number | null
+          sample_quantity?: number | null
           sample_approved?: boolean | null
           sample_submitted_at?: string | null
           shipping_address?: string | null
@@ -546,6 +548,7 @@ export type Database = {
           qc_result?: string | null
           qc_submitted_at?: string | null
           quantity?: number | null
+          sample_quantity?: number | null
           sample_approved?: boolean | null
           sample_submitted_at?: string | null
           shipping_address?: string | null

@@ -51,6 +51,7 @@ function calculateOrderTotal(order: any): {
   subtotal: number;
   shipping: number;
   taxes: number;
+  commission: number;
   total: number;
 } {
   // Parse production_timeline_data for manufacturer pricing
@@ -71,11 +72,12 @@ function calculateOrderTotal(order: any): {
   const unitCost = timelineData?.unit_cost || order.price || 0;
   const shipping = timelineData?.shipping_cost || 0;
   const taxes = timelineData?.taxes_and_fees || 0;
+  const commission = timelineData?.commission_cost || 0;
   
   const subtotal = unitCost * quantity;
-  const total = subtotal + shipping + taxes;
+  const total = subtotal + shipping + taxes + commission;
   
-  return { unitCost, quantity, subtotal, shipping, taxes, total };
+  return { unitCost, quantity, subtotal, shipping, taxes, commission, total };
 }
 
 serve(async (req) => {

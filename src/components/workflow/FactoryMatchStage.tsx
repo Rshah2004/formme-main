@@ -108,10 +108,7 @@ const FactoryMatchStage = ({ design }: FactoryMatchStageProps) => {
     if (applyFilters && hasFilters && !viewAll) {
       filtered = filtered.filter((m) => {
         // Quantity vs MOQ
-        if (quantityValue > 0) {
-          const moq = m.min_order_quantity ?? 0;
-          if (quantityValue < moq) return false;
-        }
+        // Do not hard-filter on MOQ; scoring handles penalties for below-MOQ requests.
 
         // Location region/country match
         if (workflowData.location && workflowData.location !== 'any') {
@@ -251,6 +248,7 @@ const FactoryMatchStage = ({ design }: FactoryMatchStageProps) => {
         design_id: design.id,
         manufacturer_ids: Array.from(selectedManufacturers),
         quantity: parseInt(workflowData.quantity || '100'),
+        sample_quantity: workflowData.sampleQuantity ? parseInt(workflowData.sampleQuantity, 10) : undefined,
         notes: `Delivery date: ${workflowData.deliveryDate || 'TBD'}`
       });
 

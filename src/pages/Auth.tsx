@@ -249,6 +249,60 @@ const handleResetPassword = async (e: React.FormEvent) => {
 
       if (error) throw error;
 
+      const userId = data.user?.id;
+      const hasSession = !!data.session;
+
+      if (userId && hasSession) {
+        const { error: roleError } = await supabase
+          .from("user_roles")
+          .insert({ user_id: userId, role: userRole });
+
+        if (roleError && roleError.code !== "23505") {
+          console.error("Role insert error:", roleError);
+        }
+
+        const profileUpdate: Record<string, any> = {
+          full_name: formData.fullName || null,
+          company_name: formData.companyName || null,
+          phone: formData.phone || null,
+          location: formData.location || null,
+          moq: formData.moq ? parseInt(formData.moq, 10) : null,
+          lead_time: formData.leadTime ? parseInt(formData.leadTime, 10) : null,
+          capabilities: formData.capabilities.length ? formData.capabilities : null,
+          categories: formData.categories.length ? formData.categories : null,
+        };
+
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .update(profileUpdate)
+          .eq("user_id", userId);
+
+        if (profileError) {
+          console.error("Profile update error:", profileError);
+        }
+
+        if (userRole === "manufacturer") {
+          const manufacturerName = (formData.companyName || formData.fullName || "").trim();
+          const { error: manufacturerError } = await supabase
+            .from("manufacturers")
+            .insert({
+              user_id: userId,
+              name: manufacturerName || "Manufacturer",
+              location: formData.location || null,
+              min_order_quantity: formData.moq ? parseInt(formData.moq, 10) : null,
+              lead_time_days: formData.leadTime ? parseInt(formData.leadTime, 10) : null,
+              specialties: formData.capabilities.length ? formData.capabilities : null,
+              categories: formData.categories.length ? formData.categories : null,
+            });
+
+          if (manufacturerError && manufacturerError.code !== "23505") {
+            console.error("Manufacturer insert error:", manufacturerError);
+          }
+        }
+      } else if (userId && !hasSession) {
+        toast.info("Please verify your email, then sign in to finish profile setup.");
+      }
+
       toast.success("Account created! You can now sign in.");
       setMode("signin");
     } catch (error: any) {

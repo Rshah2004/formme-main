@@ -94,8 +94,8 @@ export const FloatingMessagesWidget: React.FC<FloatingMessagesWidgetProps> = ({ 
             </div>
 
             {/* Right Chat Pane */}
-            <div className="flex-1 flex flex-col h-full min-h-0">
-              <div className="p-4 border-b border-border bg-background sticky top-0 z-10">
+            <div className="flex-1 flex flex-col h-full min-h-0 relative">
+              <div className="p-4 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-10">
                 <h2 className="text-lg font-semibold">
                   {selectedManufacturer ? `Chat with ${selectedManufacturer?.name}` : 'Select a manufacturer'}
                 </h2>
@@ -103,7 +103,7 @@ export const FloatingMessagesWidget: React.FC<FloatingMessagesWidgetProps> = ({ 
                   {selectedManufacturer?.location || 'Choose a contact to start chatting'}
                 </p>
               </div>
-              <div className="flex-1 min-h-0">
+              <div className="flex-1 min-h-0 bg-transparent">
                 {selectedManufacturer ? (
                   orderId ? (
                     <FactoryMessaging designId={designId} orderId={orderId} />

@@ -14,6 +14,7 @@ interface WorkflowData {
   print: string;
   sizeChart?: any;
   constructionNotes: string;
+  sampleQuantity?: string;
   
   // Factory Match
   quantity: string;
@@ -91,6 +92,7 @@ const initialData: WorkflowData = {
   gsm: '',
   print: '',
   constructionNotes: '',
+  sampleQuantity: '',
   quantity: '',
   leadTime: '',
   location: '',

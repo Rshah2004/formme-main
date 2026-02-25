@@ -101,9 +101,10 @@ export const FeasibilitySummary = ({ designId }: FeasibilitySummaryProps) => {
       const unitCost = timelineData?.unit_cost ?? order.price ?? 0;
       const shipping = timelineData?.shipping_cost ?? 0;
       const taxes = timelineData?.taxes_and_fees ?? 0;
+      const commission = timelineData?.commission_cost ?? 0;
       const quantity = order.quantity ?? 0;
-      const totalCost = unitCost || shipping || taxes
-        ? (unitCost * quantity) + shipping + taxes
+      const totalCost = unitCost || shipping || taxes || commission
+        ? (unitCost * quantity) + shipping + taxes + commission
         : null;
       const deliveryDate = timelineData?.estimated_delivery_date || order.production_completion_date || null;
 

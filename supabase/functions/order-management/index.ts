@@ -189,7 +189,7 @@ serve(async (req) => {
 // ============== ORDER OPERATIONS ==============
 
 async function createOrder(supabase: any, userId: string, params: any) {
-  const { design_id, quantity, notes, manufacturer_ids } = params;
+  const { design_id, quantity, sample_quantity, notes, manufacturer_ids } = params;
 
   // Verify user owns the design
   const { data: design, error: designError } = await supabase
@@ -255,6 +255,7 @@ async function createOrder(supabase: any, userId: string, params: any) {
         designer_id: userId,
         manufacturer_id: manufacturerId,
         quantity: quantity || 100,
+        sample_quantity: sample_quantity ?? null,
         status: 'sent_to_manufacturer',
         notes,
         production_timeline_data: {
@@ -286,6 +287,7 @@ async function createOrder(supabase: any, userId: string, params: any) {
       design_id,
       designer_id: userId,
       quantity: quantity || 100,
+      sample_quantity: sample_quantity ?? null,
       status: 'draft',
       notes,
       production_timeline_data: {
@@ -615,7 +617,7 @@ async function confirmShipping(supabase: any, userId: string, params: any) {
 // ============== MANUFACTURER MATCHING ==============
 
 async function sendToManufacturers(supabase: any, userId: string, params: any) {
-  const { design_id, manufacturer_ids, quantity, notes } = params;
+  const { design_id, manufacturer_ids, quantity, sample_quantity, notes } = params;
 
   // Verify user owns the design
   const { data: design } = await supabase
@@ -675,6 +677,7 @@ async function sendToManufacturers(supabase: any, userId: string, params: any) {
         designer_id: userId,
         manufacturer_id: manufacturerId,
         quantity: quantity || 100,
+        sample_quantity: sample_quantity ?? null,
         status: 'sent_to_manufacturer',
         notes,
       })

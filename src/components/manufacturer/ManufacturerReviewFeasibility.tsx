@@ -73,6 +73,7 @@ interface ProductionFeasibilityData {
   unitCost: number;
   shippingCost: number;
   taxesAndFees: number;
+  commissionCost: number;
 }
 
 export const ManufacturerReviewFeasibility = ({
@@ -153,7 +154,8 @@ export const ManufacturerReviewFeasibility = ({
     // Pricing - load from existing data or defaults
     unitCost: existingPricing?.unit_cost || order?.price || 0,
     shippingCost: existingPricing?.shipping_cost || 0,
-    taxesAndFees: existingPricing?.taxes_and_fees || 0
+    taxesAndFees: existingPricing?.taxes_and_fees || 0,
+    commissionCost: existingPricing?.commission_cost || 0
   });
   const [productionNotes, setProductionNotes] = useState({
     moq: '',
@@ -311,6 +313,8 @@ export const ManufacturerReviewFeasibility = ({
         unit_cost: productionData.unitCost,
         shipping_cost: productionData.shippingCost,
         taxes_and_fees: productionData.taxesAndFees
+        ,
+        commission_cost: productionData.commissionCost
       };
 
       await supabase
@@ -848,6 +852,28 @@ export const ManufacturerReviewFeasibility = ({
                         />
                       </div>
                     </div>
+                    {/* Commission Cost */}
+                    <div>
+                      <Label htmlFor="commission-cost" className="text-sm font-medium">
+                        Commission Cost
+                      </Label>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-muted-foreground">$</span>
+                        <Input
+                          id="commission-cost"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={productionData.commissionCost || ''}
+                          onChange={(e) => setProductionData(prev => ({ 
+                            ...prev, 
+                            commissionCost: parseFloat(e.target.value) || 0 
+                          }))}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   {/* Price Summary */}
@@ -865,11 +891,15 @@ export const ManufacturerReviewFeasibility = ({
                         <span className="text-muted-foreground">Taxes & Fees</span>
                         <span>${(productionData.taxesAndFees || 0).toFixed(2)}</span>
                       </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Commission</span>
+                        <span>${(productionData.commissionCost || 0).toFixed(2)}</span>
+                      </div>
                       <div className="h-px bg-border my-2" />
                       <div className="flex justify-between font-semibold text-base">
                         <span>Total Quote</span>
                         <span className="text-primary">
-                          ${(((productionData.unitCost || 0) * (order?.quantity)) + (productionData.shippingCost || 0) + (productionData.taxesAndFees || 0)).toFixed(2)}
+                          ${(((productionData.unitCost || 0) * (order?.quantity)) + (productionData.shippingCost || 0) + (productionData.taxesAndFees || 0) + (productionData.commissionCost || 0)).toFixed(2)}
                         </span>
                       </div>
                     </div>

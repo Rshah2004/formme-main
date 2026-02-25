@@ -33,6 +33,7 @@ export const OrderInfoDrawer = ({ order, trigger }: OrderInfoDrawerProps) => {
       ? [order.designs.design_file_url]
       : order?.production_timeline_data?.design_files || [];
   const quantity = order?.quantity || 'Not specified';
+  const sampleQuantity = order?.sample_quantity;
 
   return (
     <Sheet>
@@ -86,6 +87,12 @@ export const OrderInfoDrawer = ({ order, trigger }: OrderInfoDrawerProps) => {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Sample Type</span>
                 <Badge variant="outline">{sampleType}</Badge>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Sample Quantity</span>
+                <span className="font-medium">
+                  {sampleQuantity ? `${sampleQuantity} unit${sampleQuantity === 1 ? '' : 's'}` : 'Not specified'}
+                </span>
               </div>
             </div>
           </section>

@@ -35,6 +35,10 @@ interface ProductionTimelineData {
   sample_type?: string | null;
   additional_notes?: string | null;
   confirmed_at?: string;
+  unit_cost?: number;
+  shipping_cost?: number;
+  taxes_and_fees?: number;
+  estimated_delivery_date?: string | null;
 }
 
 interface ManufacturerMatch {
@@ -92,6 +96,18 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
   const [manufacturerToViewDetails, setManufacturerToViewDetails] = useState<ManufacturerMatch | null>(null);
   const navigate = useNavigate();
   const { markStageComplete, setCurrentStage } = useWorkflow();
+
+  const formatMoney = (value?: number | null) => {
+    if (value === null || value === undefined || Number.isNaN(value)) return 'Not provided';
+    return `$${value.toFixed(2)}`;
+  };
+
+  const formatDate = (value?: string | null) => {
+    if (!value) return 'Not provided';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Not provided';
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
 
   useEffect(() => {
     fetchMatches();
@@ -370,11 +386,11 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
     return true;
   };
   
-  const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return 'Not set';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
+  // const formatDate = (dateString: string | null | undefined) => {
+  //   if (!dateString) return 'Not set';
+  //   const date = new Date(dateString);
+  //   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  // };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -711,9 +727,42 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
           {manufacturerToFinalize?.orders?.[0] && (() => {
             const order = manufacturerToFinalize.orders[0];
             const timeline = order.production_timeline_data as ProductionTimelineData | null;
+            const quantity = order?.quantity ?? null;
+            const unitCost = timeline?.unit_cost ?? null;
+            const shippingCost = timeline?.shipping_cost ?? null;
+            const taxesAndFees = timeline?.taxes_and_fees ?? null;
+            const hasPricing = unitCost !== null || shippingCost !== null || taxesAndFees !== null;
+            const totalCost =
+              quantity && unitCost !== null
+                ? (unitCost * quantity) + (shippingCost || 0) + (taxesAndFees || 0)
+                : null;
             
             return (
               <div className="space-y-4 my-4">
+                {/* Pricing Summary */}
+                {hasPricing && (
+                  <div className="bg-muted/30 p-4 rounded-lg space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Unit Cost</span>
+                      <span className="font-semibold">{formatMoney(unitCost)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Shipping</span>
+                      <span className="font-semibold">{formatMoney(shippingCost)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Taxes & Fees</span>
+                      <span className="font-semibold">{formatMoney(taxesAndFees)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm border-t pt-2">
+                      <span className="text-muted-foreground">Estimated Total</span>
+                      <span className="font-semibold">
+                        {totalCost !== null ? formatMoney(totalCost) : 'Not provided'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-muted/30 p-3 rounded-lg">
                     <p className="text-xs text-muted-foreground mb-1">Lead Time</p>
@@ -728,6 +777,10 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
                           ? 'Designer provides' 
                           : order.fabric_type || 'N/A'}
                     </p>
+                  </div>
+                  <div className="bg-muted/30 p-3 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Estimated Delivery</p>
+                    <p className="font-semibold">{formatDate(timeline?.estimated_delivery_date || order.production_completion_date || null)}</p>
                   </div>
                   <div className="bg-muted/30 p-3 rounded-lg">
                     <p className="text-xs text-muted-foreground mb-1">Capacity Available</p>
@@ -791,9 +844,46 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
           {manufacturerToViewDetails?.orders?.[0] && (() => {
             const order = manufacturerToViewDetails.orders[0];
             const timeline = order.production_timeline_data as ProductionTimelineData | null;
+            const quantity = order?.quantity ?? null;
+            const unitCost = timeline?.unit_cost ?? null;
+            const shippingCost = timeline?.shipping_cost ?? null;
+            const taxesAndFees = timeline?.taxes_and_fees ?? null;
+            const hasPricing = unitCost !== null || shippingCost !== null || taxesAndFees !== null;
+            const totalCost =
+              quantity && unitCost !== null
+                ? (unitCost * quantity) + (shippingCost || 0) + (taxesAndFees || 0)
+                : null;
             
             return (
               <div className="space-y-6">
+                {/* Pricing Summary */}
+                {hasPricing && (
+                  <div className="bg-muted/30 p-4 rounded-lg space-y-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Info className="w-4 h-4 text-primary" />
+                      <h4 className="text-sm font-semibold">Pricing Summary</h4>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Unit Cost</span>
+                      <span className="font-semibold">{formatMoney(unitCost)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Shipping</span>
+                      <span className="font-semibold">{formatMoney(shippingCost)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Taxes & Fees</span>
+                      <span className="font-semibold">{formatMoney(taxesAndFees)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm border-t pt-2">
+                      <span className="text-muted-foreground">Estimated Total</span>
+                      <span className="font-semibold">
+                        {totalCost !== null ? formatMoney(totalCost) : 'Not provided'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Lead Time Confirmation */}
                 <div className="bg-muted/30 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
@@ -802,6 +892,15 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
                   </div>
                   <p className="text-sm text-muted-foreground mb-1">Days from order confirmation to delivery</p>
                   <p className="text-lg font-semibold">{timeline?.lead_time_days || order.lead_time_days || 'Not provided'} days</p>
+                </div>
+
+                {/* Estimated Delivery */}
+                <div className="bg-muted/30 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Calendar className="w-4 h-4 text-primary" />
+                    <h4 className="text-sm font-semibold">Estimated Delivery Date</h4>
+                  </div>
+                  <p className="text-sm">{formatDate(timeline?.estimated_delivery_date || order.production_completion_date || null)}</p>
                 </div>
 
                 {/* MOQ Confirmation */}

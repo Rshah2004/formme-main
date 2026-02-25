@@ -18,6 +18,7 @@ interface PricingData {
   unitCost: number;
   shipping: number;
   taxes: number;
+  commission: number;
   quantity: number;
   subtotal: number;
   total: number;
@@ -81,12 +82,14 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
         const unitCost = timelineData?.unit_cost || order.price || 0;
         const shipping = timelineData?.shipping_cost || 0;
         const taxes = timelineData?.taxes_and_fees || 0;
+        const commission = timelineData?.commission_cost || 0;
         const subtotal = unitCost * quantity;
-        const total = subtotal + shipping + taxes;
+        const total = subtotal + shipping + taxes + commission;
         setPricing({
           unitCost,
           shipping,
           taxes,
+          commission,
           quantity,
           subtotal,
           total
@@ -262,6 +265,10 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Taxes & Fees</span>
                     <span className="font-medium">${pricing.taxes.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Commission</span>
+                    <span className="font-medium">${pricing.commission.toFixed(2)}</span>
                   </div>
                   <div className="h-px bg-border my-3"/>
                   <div className="flex justify-between text-lg font-semibold">

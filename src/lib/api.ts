@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
  */
 export const orderApi = {
   // Order Operations
-  async createOrder(params: { design_id: string; quantity?: number; notes?: string; manufacturer_ids?: string[] }) {
+  async createOrder(params: { design_id: string; quantity?: number; sample_quantity?: number; notes?: string; manufacturer_ids?: string[] }) {
     const { data, error } = await supabase.functions.invoke('order-management', {
       body: { action: 'create_order', ...params }
     });
@@ -34,7 +34,7 @@ export const orderApi = {
   },
 
   // Manufacturer Matching
-  async sendToManufacturers(params: { design_id: string; manufacturer_ids: string[]; quantity?: number; notes?: string }) {
+  async sendToManufacturers(params: { design_id: string; manufacturer_ids: string[]; quantity?: number; sample_quantity?: number; notes?: string }) {
     const { data, error } = await supabase.functions.invoke('order-management', {
       body: { action: 'send_to_manufacturers', ...params }
     });

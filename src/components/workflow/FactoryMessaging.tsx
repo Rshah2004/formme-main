@@ -178,27 +178,6 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
       setNewMessage('');
       setPendingAttachments([]);
       toast.success('Message sent');
-      
-      const { data: orderData } = await supabase
-        .from('orders')
-        .select('designer_id')
-        .eq('id', orderId)
-        .single();
-
-      const tempMessage = {
-        id: `temp-${Date.now()}`,
-        content: newMessage.trim() || `Sent ${attachmentUrls.length} attachment(s)`,
-        sender_id: currentUserId,
-        created_at: new Date().toISOString(),
-        is_designer: currentUserId === orderData?.designer_id,
-        attachments: attachmentUrls
-      };
-
-      setMessages(prev => [...prev, tempMessage]);
-      
-      setTimeout(() => {
-        scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 50);
     } catch (error: any) {
       toast.error(error.message || 'Failed to send message');
     } finally {
@@ -245,12 +224,13 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
   }
 
   return (
-    <div className="flex flex-col h-full bg-background min-h-0">
+    <div className="flex flex-col h-full bg-transparent min-h-0">
       <div className="flex-1 min-h-0">
-        <ScrollArea className="h-full px-6">
-          {loading ? (
-            <p className="text-sm text-muted-foreground text-center py-8">Loading messages...</p>
-          ) : messages.length === 0 ? (
+        <div className="relative h-full">
+          <ScrollArea className="h-full px-6 relative bg-transparent">
+            {loading ? (
+              <p className="text-sm text-muted-foreground text-center py-8">Loading messages...</p>
+            ) : messages.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <p className="text-sm">No messages yet. Start the conversation.</p>
             </div>
@@ -333,6 +313,7 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
             </div>
           )}
         </ScrollArea>
+        </div>
       </div>
       
       {/* Pending attachments */}
