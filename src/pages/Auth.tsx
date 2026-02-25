@@ -589,7 +589,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                           rows={3}
                         />
                       </div>
-                      <div>
+                      {/* <div>
                         <Label htmlFor="signup-brandUrl" className="text-sm">Brand Website</Label>
                         <Input
                           id="signup-brandUrl"
@@ -599,7 +599,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                           onChange={(e) => setFormData({ ...formData, brandUrl: e.target.value })}
                           className="mt-1"
                         />
-                      </div>
+                      </div> */}
                       <div>
                         <Label className="text-sm mb-2 block">Categories</Label>
                         <div className="grid grid-cols-2 gap-2 p-3 border border-border rounded-md bg-background">
