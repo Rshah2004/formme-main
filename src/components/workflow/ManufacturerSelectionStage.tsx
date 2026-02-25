@@ -386,7 +386,8 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
     return true;
   };
   
-  // const formatDate = (dateString: string | null | undefined) => {
+  // const formatDate = (dateString: string | null | un
+  // defined) => {
   //   if (!dateString) return 'Not set';
   //   const date = new Date(dateString);
   //   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });

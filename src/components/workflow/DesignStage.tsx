@@ -25,7 +25,7 @@ interface DesignFile {
 }
 
 const DesignStage = ({ design }: DesignStageProps) => {
-  const { setCurrentStage, markStageComplete, updateWorkflowData } = useWorkflow();
+  const { setCurrentStage, markStageComplete, updateWorkflowData, workflowData } = useWorkflow();
   const { isAdmin } = useIsAdmin();
   const { isContractFinalized, loading: contractLoading } = useContractStatus(design?.id);
   
