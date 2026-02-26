@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import MessagesView from '@/components/dashboard/MessagesView';
 import DashboardPreviewOverlay from '@/components/dashboard/DashboardPreviewOverlay';
+import { DashboardHelpTour } from '@/components/dashboard/DashboardHelpTour';
 interface Design {
   id: string;
   name: string;
@@ -349,7 +350,12 @@ const Dashboard = () => {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-serif font-bold text-[#344C3D] mb-1">Dashboard</h1>
+          <h1
+            className="text-3xl font-serif font-bold text-[#344C3D] mb-1"
+            data-help-target="dashboard-heading"
+          >
+            Dashboard
+          </h1>
           <p className="text-muted-foreground">Track your designs from concept to delivery</p>
         </div>
         <div className="relative w-full sm:w-auto">
@@ -475,7 +481,6 @@ const Dashboard = () => {
           </div>
         <div className="flex items-center gap-2 bg-white rounded-lg p-1 border w-full sm:w-auto">
           <Button variant="secondary" size="sm" className="bg-[#344C3D] text-white hover:bg-[#344C3D]/90 flex-1 sm:flex-initial">Board</Button>
-          <Button variant="ghost" size="sm" className="flex-1 sm:flex-initial">Timeline</Button>
         </div>
       </div>
 
@@ -615,6 +620,7 @@ const Dashboard = () => {
         </main>
       </div>
       {showSignUpOverlay && <DashboardPreviewOverlay onClose={() => setShowSignUpOverlay(false)} />}
+      <DashboardHelpTour enabled={isAuthenticated === true && !isPreviewMode && activeTab === 'dashboard'} />
     </div>
   );
 };

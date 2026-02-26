@@ -142,7 +142,7 @@ export const FeasibilitySummary = ({ designId }: FeasibilitySummaryProps) => {
   }
 
   return (
-    <div className="mb-6 space-y-4">
+    <div className="mb-6 space-y-4" data-help="feasibility-summary" data-help-target="feasibility-summary">
       <Card className="border-green-200 bg-green-50/30 dark:border-green-900 dark:bg-green-950/10">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-400 text-base">

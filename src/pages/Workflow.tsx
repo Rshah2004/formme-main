@@ -15,6 +15,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { HorizontalProgressTabs } from '@/components/workflow/HorizontalProgressTabs';
 import { ManufacturerFeedbackBanner } from '@/components/workflow/ManufacturerFeedbackBanner';
 import { FeasibilitySummary } from '@/components/workflow/FeasibilitySummary';
+import { WorkflowHelpOverlay } from '@/components/workflow/WorkflowHelpOverlay';
+import { MessagingHelpOverlay } from '@/components/workflow/MessagingHelpOverlay';
 import TechPackStage from '@/components/workflow/TechPackStage';
 import TechPackOverviewStage from '@/components/workflow/TechPackOverviewStage';
 import TechPackFeasibilityStage from '@/components/workflow/TechPackFeasibilityStage';
@@ -41,7 +43,7 @@ const ProgressBar = () => {
   const progress = getProgress();
   
   return (
-    <Card className="border-border">
+    <Card className="border-border" data-help-target="overall-progress">
       <div className="p-4">
         <div className="flex items-center gap-4">
           <div className="flex-1">
@@ -461,6 +463,8 @@ const initializedRef = useRef(false);
           <Navbar />
           
           <main className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 mt-16 sm:mt-20 max-w-7xl">
+            <WorkflowHelpOverlay />
+            <MessagingHelpOverlay />
             {/* Back Button */}
             <Button 
               variant="ghost" 

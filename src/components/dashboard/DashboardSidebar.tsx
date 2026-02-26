@@ -30,6 +30,7 @@ const DashboardSidebar = ({ activeTab, onTabChange }: DashboardSidebarProps) => 
               <button
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
+                data-help-target={`sidebar-${item.id}`}
                 className={cn(
                   "flex flex-col items-center gap-1 px-3 py-2 rounded-lg min-w-[84px] text-xs font-medium transition-colors",
                   isActive
@@ -58,6 +59,7 @@ const DashboardSidebar = ({ activeTab, onTabChange }: DashboardSidebarProps) => 
             <button
               key={item.id}
               onClick={() => onTabChange(item.id)}
+              data-help-target={`sidebar-${item.id}`}
               className={cn(
                 "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors",
                 isActive

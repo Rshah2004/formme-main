@@ -118,6 +118,7 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
             key={item}
             to={getNavLink(item)}
             onClick={(e) => handleNavClick(item, e)}
+            data-help-target={item === "support" ? "nav-support" : undefined}
             className={cn(
               "text-lg relative py-1 group transition-colors",
               initialDark && !scrolled
@@ -167,6 +168,7 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
                   key={item}
                   to={getNavLink(item)}
                   onClick={(e) => handleNavClick(item, e)}
+                  data-help-target={item === "support" ? "nav-support" : undefined}
                   className="text-xl font-medium text-foreground hover:text-primary transition-colors capitalize"
                 >
                   {item}

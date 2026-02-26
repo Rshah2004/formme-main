@@ -36,25 +36,25 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/new-design" element={<NewDesign />} />
           <Route path="/about" element={<About />} />
-          <Route path="/designer-dashboard" element={<DesignerDashboard />} />
+          {/*<Route path="/designer-dashboard" element={<DesignerDashboard />} />*/}
           <Route path="/workflow/:orderId" element={<Workflow />} />
-          <Route path="/studio-selection" element={<StudioSelection />} />
-          <Route path="/designer" element={<DesignStudio />} />
-          <Route path="/old-designer" element={<Index />} />
-          <Route path="/marketplace" element={<Marketplace />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/reviews" element={<Reviews />} />
-          <Route path="/simple" element={<SimpleDesigner />} />
+          {/*<Route path="/studio-selection" element={<StudioSelection />} />*/}
+          {/*<Route path="/designer" element={<DesignStudio />} />*/}
+          {/*<Route path="/old-designer" element={<Index />} />*/}
+          {/*<Route path="/marketplace" element={<Marketplace />} />*/}
+          {/*<Route path="/checkout" element={<Checkout />} />*/}
+          {/*<Route path="/reviews" element={<Reviews />} />*/}
+          {/*<Route path="/simple" element={<SimpleDesigner />} />*/}
           <Route path="/coming-soon" element={<ComingSoon />} />
-          <Route path="/professional-studio" element={<ProfessionalStudio />} />
+          {/*<Route path="/professional-studio" element={<ProfessionalStudio />} />*/}
           {/* Designer dashboard (supports unauthenticated preview via ?preview=true) */}
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/workflow" element={<Workflow />} />
           <Route path="/design/:id" element={<DesignWorkspace />} />
           <Route path="/manufacturer" element={<ManufacturerDashboard />} />
           <Route path="/manufacturer/order/:id" element={<ManufacturerOrderWorkspace />} />
-          <Route path="/manufacturers" element={<Manufacturers />} />
-          <Route path="/manufacturers/:id" element={<Manufacturers />} />
+          {/*<Route path="/manufacturers" element={<Manufacturers />} />*/}
+          {/*<Route path="/manufacturers/:id" element={<Manufacturers />} />*/}
           <Route path="/support" element={<Support />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
