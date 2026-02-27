@@ -58,6 +58,7 @@ interface ChecklistItem {
 
 interface ProductionFeasibilityData {
   estimatedLeadTimeDays: number;
+  estimatedSampleDate: Date | null;
   estimatedDeliveryDate: Date | null;
   moqAchievable: boolean;
   moqNote?: string;
@@ -144,6 +145,9 @@ export const ManufacturerReviewFeasibility = ({
 
   const [productionData, setProductionData] = useState<ProductionFeasibilityData>({
     estimatedLeadTimeDays: order?.lead_time_days || 21,
+    estimatedSampleDate: existingPricing?.estimated_sample_date
+      ? new Date(existingPricing.estimated_sample_date)
+      : null,
     estimatedDeliveryDate: order?.production_completion_date ? new Date(order.production_completion_date) : null,
     moqAchievable: true,
     fabricSourcing: 'manufacturer_sourcing',
@@ -298,6 +302,7 @@ export const ManufacturerReviewFeasibility = ({
       // Save complete production details to production_timeline_data for designer review
       const productionTimelineData = {
         lead_time_days: productionData.estimatedLeadTimeDays,
+        estimated_sample_date: productionData.estimatedSampleDate?.toISOString() || null,
         estimated_delivery_date: productionData.estimatedDeliveryDate?.toISOString() || null,
         moq_achievable: productionData.moqAchievable,
         moq_note: productionNotes.moq || null,
@@ -710,11 +715,50 @@ export const ManufacturerReviewFeasibility = ({
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-2">
                     <Clock className="w-5 h-5 text-primary" />
-                    <CardTitle className="text-lg">Lead Time / Delivery Date</CardTitle>
+                    <CardTitle className="text-lg">Sampling & Delivery Dates</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
+                    <div>
+                      <Label>Expected Sampling Date</Label>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Select the date when the sample should be ready for review
+                      </p>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !productionData.estimatedSampleDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {productionData.estimatedSampleDate ? (
+                              format(productionData.estimatedSampleDate, "PPP")
+                            ) : (
+                              <span>Pick a sampling date</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={productionData.estimatedSampleDate || undefined}
+                            onSelect={(date) => {
+                              setProductionData(prev => ({
+                                ...prev,
+                                estimatedSampleDate: date || null,
+                              }));
+                            }}
+                            disabled={(date) => date < new Date()}
+                            initialFocus
+                            className={cn("p-3 pointer-events-auto")}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                     <div>
                       <Label>Expected Delivery Date</Label>
                       <p className="text-xs text-muted-foreground mb-2">

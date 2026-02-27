@@ -1008,7 +1008,7 @@ async function requestTechPackChanges(supabase: any, userId: string, params: any
 // ============== PRODUCTION FEASIBILITY ==============
 
 async function confirmProductionFeasibility(supabase: any, userId: string, params: any) {
-  const { order_id, lead_time_days, fabric_sourcing, capacity_available, sampling_required, sample_type, additional_notes } = params;
+  const { order_id, lead_time_days, fabric_sourcing, capacity_available, sampling_required, sample_type, additional_notes, estimated_sample_date, estimated_delivery_date } = params;
   
   // Verify manufacturer owns this order
   const { data: manufacturer } = await supabase
@@ -1031,6 +1031,8 @@ async function confirmProductionFeasibility(supabase: any, userId: string, param
 
   const productionTimelineData = {
     lead_time_days,
+    estimated_sample_date: estimated_sample_date || null,
+    estimated_delivery_date: estimated_delivery_date || null,
     fabric_sourcing,
     capacity_available,
     sampling_required,

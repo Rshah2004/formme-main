@@ -24,9 +24,10 @@ interface Message {
 interface FactoryMessagingProps {
   designId: string;
   orderId?: string;
+  onMessagesRead?: () => void;
 }
 
-export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) => {
+export const FactoryMessaging = ({ designId, orderId, onMessagesRead }: FactoryMessagingProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -47,6 +48,16 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
 
   useEffect(() => {
     if (!orderId || !currentUserId) return;
+
+    const markMessagesRead = async () => {
+      const { error } = await supabase
+        .from('messages')
+        .update({ is_read: true })
+        .eq('order_id', orderId)
+        .neq('sender_id', currentUserId)
+        .eq('is_read', false);
+      if (!error) onMessagesRead?.();
+    };
 
     const fetchMessages = async () => {
       setLoading(true);
@@ -73,6 +84,7 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
         }));
 
         setMessages(messagesWithRole);
+        await markMessagesRead();
       } catch (error: any) {
         console.error('Failed to load messages:', error);
       } finally {
@@ -115,6 +127,9 @@ export const FactoryMessaging = ({ designId, orderId }: FactoryMessagingProps) =
               is_designer: newMsg.sender_id === orderData?.designer_id
             }];
           });
+          if (newMsg.sender_id !== currentUserId) {
+            await markMessagesRead();
+          }
           
           setTimeout(() => {
             scrollRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -97,6 +97,8 @@ export const orderApi = {
     capacity_available: boolean;
     sampling_required: boolean;
     sample_type?: string;
+    estimated_sample_date?: string | null;
+    estimated_delivery_date?: string | null;
     additional_notes?: string;
   }) {
     const { data, error } = await supabase.functions.invoke('order-management', {

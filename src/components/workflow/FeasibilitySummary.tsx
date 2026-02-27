@@ -26,9 +26,11 @@ interface FeasibilityData {
   manufacturerName: string | null;
   leadTime: number | null;
   quantity: number | null;
+  sampleQuantity: number | null;
   fabricType: string | null;
   confirmedAt: string | null;
   orderId: string | null;
+  sampleDate: string | null;
   deliveryDate: string | null;
   totalCost: number | null;
 }
@@ -76,6 +78,7 @@ export const FeasibilitySummary = ({ designId }: FeasibilitySummaryProps) => {
           tech_pack_feasibility_confirmed_at,
           lead_time_days,
           quantity,
+          sample_quantity,
           fabric_type,
           price,
           production_completion_date,
@@ -102,10 +105,10 @@ export const FeasibilitySummary = ({ designId }: FeasibilitySummaryProps) => {
       const shipping = timelineData?.shipping_cost ?? 0;
       const taxes = timelineData?.taxes_and_fees ?? 0;
       const commission = timelineData?.commission_cost ?? 0;
-      const quantity = order.quantity ?? 0;
       const totalCost = unitCost || shipping || taxes || commission
-        ? (unitCost * quantity) + shipping + taxes + commission
+        ? unitCost + shipping + taxes + commission
         : null;
+      const sampleDate = timelineData?.estimated_sample_date || null;
       const deliveryDate = timelineData?.estimated_delivery_date || order.production_completion_date || null;
 
       setData({
@@ -113,9 +116,11 @@ export const FeasibilitySummary = ({ designId }: FeasibilitySummaryProps) => {
         manufacturerName: (order.manufacturer as any)?.name || null,
         leadTime: order.lead_time_days,
         quantity: order.quantity,
+        sampleQuantity: order.sample_quantity ?? null,
         fabricType: order.fabric_type,
         confirmedAt: order.tech_pack_feasibility_confirmed_at,
         orderId: order.id,
+        sampleDate,
         deliveryDate,
         totalCost
       });
@@ -156,23 +161,41 @@ export const FeasibilitySummary = ({ designId }: FeasibilitySummaryProps) => {
         <CardContent className="space-y-4">
           {/* Summary Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {data.leadTime && (
-              <div className="p-3 rounded-lg bg-white/50 dark:bg-black/20 border border-green-200 dark:border-green-800">
-                <div className="flex items-center gap-2 text-xs font-medium text-green-600 dark:text-green-400 mb-1">
-                  <Clock className="w-3 h-3" />
-                  Lead Time
-                </div>
-                <p className="text-lg font-semibold text-green-800 dark:text-green-200">
-                  {data.leadTime} days
-                </p>
+            <div className="p-3 rounded-lg bg-white/50 dark:bg-black/20 border border-green-200 dark:border-green-800">
+              <div className="flex items-center gap-2 text-xs font-medium text-green-600 dark:text-green-400 mb-1">
+                <CheckCircle className="w-3 h-3" />
+                Order Confirmation Date
               </div>
-            )}
+              <p className="text-lg font-semibold text-green-800 dark:text-green-200">
+                {data.confirmedAt ? new Date(data.confirmedAt).toLocaleDateString() : 'Not set'}
+              </p>
+            </div>
+
+            <div className="p-3 rounded-lg bg-white/50 dark:bg-black/20 border border-green-200 dark:border-green-800">
+              <div className="flex items-center gap-2 text-xs font-medium text-green-600 dark:text-green-400 mb-1">
+                <Clock className="w-3 h-3" />
+                Estimated Sample Date
+              </div>
+              <p className="text-lg font-semibold text-green-800 dark:text-green-200">
+                {data.sampleDate ? new Date(data.sampleDate).toLocaleDateString() : 'Not set'}
+              </p>
+            </div>
+
+            <div className="p-3 rounded-lg bg-white/50 dark:bg-black/20 border border-green-200 dark:border-green-800">
+              <div className="flex items-center gap-2 text-xs font-medium text-green-600 dark:text-green-400 mb-1">
+                <Package className="w-3 h-3" />
+                Sample Quantity
+              </div>
+              <p className="text-lg font-semibold text-green-800 dark:text-green-200">
+                {data.sampleQuantity ? `${data.sampleQuantity} units` : 'Not set'}
+              </p>
+            </div>
 
             {data.quantity && (
               <div className="p-3 rounded-lg bg-white/50 dark:bg-black/20 border border-green-200 dark:border-green-800">
                 <div className="flex items-center gap-2 text-xs font-medium text-green-600 dark:text-green-400 mb-1">
                   <Package className="w-3 h-3" />
-                  Quantity
+                  Order Quantity
                 </div>
                 <p className="text-lg font-semibold text-green-800 dark:text-green-200">
                   {data.quantity} units
@@ -191,28 +214,6 @@ export const FeasibilitySummary = ({ designId }: FeasibilitySummaryProps) => {
                 </p>
               </div>
             )}
-
-            {data.confirmedAt && (
-              <div className="p-3 rounded-lg bg-white/50 dark:bg-black/20 border border-green-200 dark:border-green-800">
-                <div className="flex items-center gap-2 text-xs font-medium text-green-600 dark:text-green-400 mb-1">
-                  <CheckCircle className="w-3 h-3" />
-                  Confirmed
-                </div>
-                <p className="text-lg font-semibold text-green-800 dark:text-green-200">
-                  {new Date(data.confirmedAt).toLocaleDateString()}
-                </p>
-              </div>
-            )}
-
-            <div className="p-3 rounded-lg bg-white/50 dark:bg-black/20 border border-green-200 dark:border-green-800">
-              <div className="flex items-center gap-2 text-xs font-medium text-green-600 dark:text-green-400 mb-1">
-                <Package className="w-3 h-3" />
-                Delivery Date
-              </div>
-              <p className="text-lg font-semibold text-green-800 dark:text-green-200">
-                {data.deliveryDate ? new Date(data.deliveryDate).toLocaleDateString() : 'Not set'}
-              </p>
-            </div>
 
             <div className="p-3 rounded-lg bg-white/50 dark:bg-black/20 border border-green-200 dark:border-green-800">
               <div className="flex items-center gap-2 text-xs font-medium text-green-600 dark:text-green-400 mb-1">

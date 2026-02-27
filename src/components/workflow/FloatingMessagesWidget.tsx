@@ -26,6 +26,38 @@ export const FloatingMessagesWidget: React.FC<FloatingMessagesWidgetProps> = ({ 
     fetchUnreadCount();
   }, [designId]);
 
+  useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    const subscribe = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: orders } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('design_id', designId);
+      if (!orders || orders.length === 0) return;
+
+      const orderIds = orders.map(o => o.id);
+      channel = supabase
+        .channel(`messages-unread-${designId}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'messages' },
+          (payload) => {
+            const row = (payload.new || payload.old) as any;
+            if (!row?.order_id || !orderIds.includes(row.order_id)) return;
+            if (row.sender_id === user.id) return;
+            fetchUnreadCount();
+          }
+        )
+        .subscribe();
+    };
+    subscribe();
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [designId]);
+
   const fetchUnreadCount = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -53,6 +85,7 @@ export const FloatingMessagesWidget: React.FC<FloatingMessagesWidgetProps> = ({ 
   const handleSelectManufacturer = (manufacturer: any, orderIdParam?: string) => {
     setSelectedManufacturer(manufacturer);
     setOrderId(orderIdParam || null);
+    fetchUnreadCount();
   };
 
   const handleOpenChat = () => {
@@ -179,6 +212,11 @@ export const FloatingMessagesWidget: React.FC<FloatingMessagesWidgetProps> = ({ 
                       {selectedManufacturer?.location || 'Choose a contact to start chatting'}
                     </p>
                   </div>
+                  {selectedManufacturer && orderId && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      This is the manufacturer your order is finalized with.
+                    </p>
+                  )}
                   {orderId && (
                     <Button
                       variant="outline"
@@ -195,7 +233,11 @@ export const FloatingMessagesWidget: React.FC<FloatingMessagesWidgetProps> = ({ 
               <div className="flex-1 min-h-0 bg-transparent">
                 {selectedManufacturer ? (
                   orderId ? (
-                    <FactoryMessaging designId={designId} orderId={orderId} />
+                    <FactoryMessaging
+                      designId={designId}
+                      orderId={orderId}
+                      onMessagesRead={fetchUnreadCount}
+                    />
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
                       <p>No active order with this manufacturer yet.</p>
