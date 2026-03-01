@@ -15,7 +15,7 @@ const Footer = () => {
           <div className="sm:col-span-2 md:col-span-1">
             <h3 className="font-instrument text-xl mb-4 sm:mb-6">Formme</h3>
             <p className="text-gray-300 font-light max-w-xs mb-4 sm:mb-6 text-sm sm:text-base">
-              Connecting manufacturers and designers. 
+              From design intent to factory output.
             </p>
             <div className="flex space-x-4">
               <Link to="#" className="text-gray-400 hover:text-white transition-colors">
