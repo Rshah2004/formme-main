@@ -67,7 +67,7 @@ const PlatformSection = () => {
           id="platform-heading"
           className="text-4xl md:text-[3.5rem] font-serif text-foreground leading-tight mb-6 max-w-2xl mx-auto"
         >
-          The future of garment production, today.
+          Modern apparel production, without the chaos.
         </h2>
 
         <div className="inline-flex flex-wrap justify-center gap-3 mb-6">
