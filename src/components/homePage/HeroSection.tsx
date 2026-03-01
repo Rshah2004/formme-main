@@ -27,6 +27,48 @@ const HeroSection: React.FC = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    const videoId = "landing-fabric-video";
+    const overlayId = "landing-video-overlay";
+    const range = 360;
+    let raf: number | null = null;
+
+    const update = () => {
+      const video = document.getElementById(videoId) as HTMLVideoElement | null;
+      const overlay = document.getElementById(overlayId) as HTMLDivElement | null;
+      if (!video || !overlay) return;
+      if (video.playbackRate !== 0.75) {
+        video.playbackRate = 0.75;
+      }
+
+      const y = window.scrollY || 0;
+      const progress = Math.min(1, Math.max(0, y / range));
+      const opacity = 1 - progress;
+      const blur = 10 * progress;
+
+      video.style.opacity = String(opacity);
+      video.style.filter = `blur(${blur.toFixed(2)}px)`;
+      overlay.style.opacity = String(0.2 * opacity);
+    };
+
+    const onScroll = () => {
+      if (raf !== null) return;
+      raf = requestAnimationFrame(() => {
+        raf = null;
+        update();
+      });
+    };
+
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      if (raf !== null) cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
   const handleDashboardClick = () => {
     if (!user) {
       // Navigate to dashboard preview mode for unauthenticated users
@@ -98,6 +140,16 @@ const HeroSection: React.FC = () => {
         featureName={lockedFeature?.name || ""}
         description={lockedFeature?.description || ""}
       />
+
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[#2E3F36]">
+        <span className="font-instrument text-xs uppercase tracking-[0.45em] text-[#1F2B24] animate-pulse">
+          Scroll
+        </span>
+        <span className="h-12 w-[2px] bg-[#1F2B24]/50 relative overflow-hidden rounded-full">
+          <span className="absolute top-1 left-0 w-full h-3 bg-[#1F2B24] animate-bounce rounded-full" />
+        </span>
+        <span className="w-2 h-2 rounded-full bg-[#1F2B24] animate-ping opacity-70" />
+      </div>
     </section>
   );
 };

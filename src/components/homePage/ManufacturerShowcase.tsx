@@ -178,8 +178,10 @@ export default function ManufacturerShowcase() {
                   animate={{opacity: 1, x: 0}}
                   exit={{opacity: 0, x: -50}}
                   transition={{duration: 0.4}}
-                  className={`rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-12 shadow-sm overflow-hidden ${
-                      isDark ? "bg-[#FAF7F4]  border border-border/30" : "bg-white border border-gray-100"
+                  className={`rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-12 shadow-[0_28px_70px_rgba(0,0,0,0.18)] overflow-hidden ${
+                      isDark
+                        ? "bg-gradient-to-r from-[#2F3E35]/15 via-[#4A6A5C]/10 to-[#2F3E35]/15 border border-border/30"
+                        : "bg-white border border-gray-100"
                   }`}
               >
                 <div className="grid lg:grid-cols-3 gap-6 sm:gap-10 lg:gap-16">

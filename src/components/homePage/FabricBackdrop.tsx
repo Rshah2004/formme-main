@@ -155,10 +155,43 @@ const FabricBackdrop: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const range = 600;
+    let raf: number | null = null;
+
+    const update = () => {
+      const y = window.scrollY || 0;
+      const progress = Math.min(1, Math.max(0, y / range));
+      const opacity = 0.9 * (1 - progress);
+      const blur = 6 * progress;
+      canvas.style.opacity = String(opacity);
+      canvas.style.filter = `blur(${blur.toFixed(2)}px)`;
+    };
+
+    const onScroll = () => {
+      if (raf !== null) return;
+      raf = requestAnimationFrame(() => {
+        raf = null;
+        update();
+      });
+    };
+
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      if (raf !== null) cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 -z-10 h-full w-full opacity-90 pointer-events-none"
+      className="fixed inset-0 -z-10 h-full w-full pointer-events-none"
       aria-hidden="true"
     />
   );

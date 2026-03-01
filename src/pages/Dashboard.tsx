@@ -330,7 +330,7 @@ const Dashboard = () => {
       return (
         <div className="relative">
           <div 
-            className="blur-[2px] opacity-70 pointer-events-none select-none"
+            className="blur-[6px] opacity-55 pointer-events-none select-none"
             aria-hidden="true"
           >
             {children}
@@ -339,6 +339,23 @@ const Dashboard = () => {
             className="absolute inset-0 cursor-pointer"
             onClick={handlePreviewClick}
           />
+        </div>
+      );
+    }
+    return <>{children}</>;
+  };
+
+  const SidebarWrapper = ({ children }: { children: React.ReactNode }) => {
+    if (!isAuthenticated) {
+      return (
+        <div className="relative">
+          <div
+            className="blur-[6px] opacity-55 pointer-events-none select-none"
+            aria-hidden="true"
+          >
+            {children}
+          </div>
+          <div className="absolute inset-0 cursor-pointer" onClick={handlePreviewClick} />
         </div>
       );
     }
@@ -605,7 +622,9 @@ const Dashboard = () => {
     <div className="min-h-screen bg-[#FAF9F6] relative">
       <Navbar />
       <div className="flex flex-col md:flex-row mt-16">
-        <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <SidebarWrapper>
+          <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        </SidebarWrapper>
         <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 overflow-auto relative">
           {!isAuthenticated && (
             <div className="flex justify-center mb-4 relative z-10">

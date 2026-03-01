@@ -162,31 +162,31 @@ export const FloatingMessagesWidget: React.FC<FloatingMessagesWidgetProps> = ({ 
 
   return (
     <>
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
         <button
           onClick={handleOpenChat}
           data-help-target="messages-button"
-          className="flex items-center gap-3 bg-[#262626] hover:bg-[#363636] text-white px-6 py-4 rounded-full shadow-lg transition-all hover:scale-105"
+          className="flex items-center gap-2 sm:gap-3 bg-[#262626] hover:bg-[#363636] text-white px-4 py-3 sm:px-6 sm:py-4 rounded-full shadow-lg transition-all hover:scale-105"
         >
           <div className="relative">
-            <MessageCircle className="w-6 h-6" />
+            <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
             {unreadCount > 0 && (
               <Badge 
-                className="absolute -top-2 -right-2 bg-destructive text-white h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                className="absolute -top-2 -right-2 bg-destructive text-white h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px] sm:text-xs"
               >
                 {unreadCount}
               </Badge>
             )}
           </div>
-          <span className="font-medium">Messages</span>
+          <span className="font-medium text-sm sm:text-base">Messages</span>
         </button>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-6xl h-[75vh] max-h-[720px] p-0 overflow-hidden">
-          <div className="flex h-full min-h-0">
+        <DialogContent className="max-w-6xl max-h-[720px] p-0 overflow-hidden w-[96vw] h-[85vh] rounded-lg sm:w-auto sm:h-[75vh] sm:rounded-xl">
+          <div className="flex h-full min-h-0 flex-col sm:flex-row">
             {/* Left Sidebar */}
-            <div className="w-[320px] border-r border-border flex flex-col h-full min-h-0">
+            <div className="w-full sm:w-[320px] border-b sm:border-b-0 sm:border-r border-border flex flex-col h-[42%] sm:h-full min-h-0">
               <DialogHeader className="p-4 border-b border-border">
                 <DialogTitle>Manufacturer Contacts</DialogTitle>
               </DialogHeader>

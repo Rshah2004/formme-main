@@ -1,219 +1,139 @@
-import { motion } from 'framer-motion';
-import { PenTool, TrendingUp, Eye } from 'lucide-react';
-import {LayoutDashboard} from "lucide-react"
-import {Activity} from "lucide-react"
-import {FileText} from "lucide-react"
-import {MessageSquare} from "lucide-react"
-import {Users} from "lucide-react"
-import {Truck} from "lucide-react"
-import dashboardMain from "@/assets/dashboard.png";
+import { useState } from "react";
 import techpackPreview from "@/assets/techpack-upload.png";
 import kanbanPreview from "@/assets/kanbanPreview.png";
-import messagesPreview from "@/assets/messagesPreview.png";
+import sampleReview from "@/assets/sampleReview.png";
 import manfacturerMatching from "@/assets/ManufacturerMatching.png";
-import pipelineManagement from "@/assets/pipeline.png";
-import { LayoutGrid, Kanban, Sparkles, Factory, GitBranch } from "lucide-react";
-const steps = [
+
+const tabs = [
   {
-    icon: PenTool,
-    title: 'Design',
-    description: 'Upload your creative vision. Our platform accepts sketches, 3D models, or detailed specifications.',
+    id: "reliable",
+    label: "Find Reliable Manufacturers",
+    title: "Find reliable manufacturing partners, fast.",
+    description:
+      "Review verified factories with real production history and craftsmanship you can trust. Choose partners aligned with your category, MOQ, and quality expectations.",
+    video: "/CraftsmanshipVideo.mp4",
+    chip: "Verified Network",
   },
   {
-    icon: TrendingUp,
-    title: 'Match',
-    description: 'We connect you with verified sustainable manufacturers who specialize in your product category.',
-  },
-  {
-    icon: Eye,
-    title: 'Review',
-    description: 'Track samples, iterate on prototypes, and approve production-ready designs in real-time.',
-  },
-  {
-    icon: Truck,
-    title: 'Deliver',
-    description: 'Monitor your production pipeline from factory floor to final delivery, all in one dashboard.',
-  },
-];
-const mainFeatures = [
-    {
-    icon: Factory,
-    title: "Manufacturer Matching",
-    description: "Find our verified, export-ready manufacturers for your production needs.",
-    image: manfacturerMatching,
-    label: "Manufacturer Matching"
-  },
-  {
-    icon: LayoutGrid,
-    title: "Workspace Dashboard",
-    description: "Monitor your entire active portfolio with real-time status updates.",
-    image: dashboardMain,
-    label: "Workspace Dashboard",
-  },
-  {
-    icon: Kanban,
-    title: "Production Kanban",
-    description: "Organize manufacturing stages with a structured Kanban view.",
-    image: kanbanPreview,
-    label: "Production Kanban",
-  },
-  {
-    icon: Sparkles,
-    title: "AI Tech Pack Hub",
-    description: "Generate and edit tech packs with ease using artificial intelligence.",
+    id: "tech-packs",
+    label: "Design & Tech Packs",
+    title: "Structured inputs, not scattered files.",
+    description:
+      "Define measurements, fabric specs, and construction details in a guided workflow. Every order starts with a complete, factory-ready tech pack—generated or uploaded.",
     image: techpackPreview,
-    label: "AI Tech Pack Hub",
+    imageClass: "brightness-110 contrast-95",
+    chip: "Tech Pack Builder",
   },
   {
-    icon: MessageSquare,
-    title: "Collaborative Inbox",
-    description: "Manage customer and partner communications in one shared workspace.",
-    image: messagesPreview,
-    label: "Collaborative Inbox",
+    id: "matching",
+    label: "Manufacturer Matching",
+    title: "Matched to verified factories, not a directory.",
+    description:
+      "Submit your requirements and get connected to pre-vetted manufacturers based on category, MOQ, and capability. No cold outreach, no guesswork.",
+    image: manfacturerMatching,
+    imageClass: "brightness-110 contrast-95",
+    chip: "Smart Matching",
   },
   {
-    icon: GitBranch,
-    title: "Pipeline Management",
-    description: "A detailed, multi-step pipeline for every order from start to finish.",
-    image: pipelineManagement,
-    label: "Pipeline Management"
-
+    id: "sampling",
+    label: "Sampling & Approvals",
+    title: "Track every sample, every revision.",
+    description:
+      "Manage the back-and-forth of sampling in one timeline. Approve or request changes with context—measurements, photos, and notes stay linked to the order.",
+    image: sampleReview,
+    imageClass: "object-contain p-6 scale-90",
+    chip: "Sample Tracker",
+  },
+  {
+    id: "tracking",
+    label: "Production Tracking",
+    title: "Real-time visibility from cut to ship.",
+    description:
+      "Monitor production stages, communicate with manufacturers, and track delivery—all without leaving the platform.",
+    image: kanbanPreview,
+    imageClass: "brightness-110 contrast-95 scale-90",
+    chip: "Order Status",
   },
 ];
 
-const secondaryFeatures = [
+const PlatformSection = () => {
+  const [activeTab, setActiveTab] = useState(0);
+  const active = tabs[activeTab];
 
-];
-export default function PipelineSection() {
   return (
-      <section className="py-24 bg-white">
-        <div className="max-w-6xl mx-auto px-6">
-          {/* Section header */}
-          <motion.div
-              initial={{opacity: 0, y: 20}}
-              whileInView={{opacity: 1, y: 0}}
-              viewport={{once: true}}
-              transition={{duration: 0.5}}
-              className="text-center mb-16"
-          >
-          <span className="text-sm font-medium tracking-widest text-[#C8956C] uppercase">
-            The Pipeline
-          </span>
-            <h2 className="mt-4 text-4xl md:text-5xl font-serif font-normal text-foreground italic">
-              From vision to reality
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-              Our streamlined process connects creative minds with ethical manufacturing partners.
-            </p>
-          </motion.div>
+    <section id="platform" className="py-16 md:py-20 pb-20 md:pb-24 bg-transparent">
+      <div className="container mx-auto px-6 text-center">
+        <h2
+          id="platform-heading"
+          className="text-4xl md:text-[3.5rem] font-serif text-foreground leading-tight mb-6 max-w-2xl mx-auto"
+        >
+          The future of garment production, today.
+        </h2>
 
-          {/* Steps grid */}
-          <motion.div
-              initial={{opacity: 0, y: 30}}
-              whileInView={{opacity: 1, y: 0}}
-              viewport={{once: true}}
-              transition={{duration: 0.6, delay: 0.2}}
-              className="grid grid-cols-1 md:grid-cols-4 gap-8"
-          >
-            {steps.map((step, index) => (
-                <div key={step.title} className="text-center relative">
-                  {/* Icon with circle background */}
-                  <div className="flex justify-center mb-5">
-                    <div className="w-14 h-14 rounded-full bg-[#F9E8DB] flex items-center justify-center">
-                      <step.icon
-                          className="w-6 h-6"
-                          style={{color: index === 1 || index === 3 ? '#C8956C' : '#344C3D'}}
-                          strokeWidth={1.5}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Title */}
-                  <h3 className="text-xl font-serif italic text-foreground mb-3">
-                    {step.title}
-                  </h3>
-
-                  {/* Description */}
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {step.description}
-                  </p>
-                </div>
-            ))}
-          </motion.div>
+        <div className="inline-flex flex-wrap justify-center gap-3 mb-6">
+          {tabs.map((tab, i) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(i)}
+              className={`px-5 md:px-7 py-2.5 rounded-full text-sm font-medium transition-all whitespace-nowrap border ${
+                i === activeTab
+                  ? "bg-white text-foreground border-border shadow-[0_10px_24px_rgba(0,0,0,0.12)]"
+                  : "bg-white/70 text-muted-foreground border-border/50 hover:text-foreground hover:bg-white"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
-        {/* Product Platform Overview - Strategic Space Usage */}
-        <section className="mt-28 py-24 bg-[#F5F4F0] bg-cream">
-          <div className="container">
-            {/* Section Header */}
-            <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-              <span className="label-overline">The Platform</span>
-              <h2 className="heading-section">
-                Streamline Your Production Process
-              </h2>
-              <p className="text-muted-foreground text-lg">
-                Formme provides a powerful, all-in-one workspace to manage your garment
-                production from initial design to final delivery.
+
+        <div className="bg-white rounded-3xl overflow-hidden shadow-[0_30px_70px_rgba(0,0,0,0.18)] mt-8">
+          <div className="grid md:grid-cols-2 min-h-[600px]">
+            <div className="p-10 md:p-16 flex flex-col justify-center text-left">
+              <h3 className="text-2xl md:text-3xl font-serif text-foreground leading-snug mb-5">
+                {active.title}
+              </h3>
+              <p className="text-muted-foreground leading-relaxed mb-6">
+                {active.description}
               </p>
+              {/* Learn more removed */}
             </div>
 
-            {/* Main Features Grid - 2x2 with images */}
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
-              {mainFeatures.map((feature, index) => (
-                  <div
-                      key={feature.title}
-                      className="group bg-card rounded-3xl overflow-hidden border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-hover"
-                  >
-                    {/* Image Preview */}
-                    <div className="relative h-48 md:h-56 bg-secondary/30 overflow-hidden">
-                      <img
-                          src={feature.image}
-                          alt={feature.label}
-                          className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent"/>
-                      <span
-                          className="absolute bottom-3 left-1/2 -translate-x-1/2 text-xs font-medium text-muted-foreground italic font-serif">
-                  {feature.label}
-                </span>
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-6">
-                      <div
-                          className="w-11 h-11 rounded-xl bg-sage-light flex items-center justify-center mb-4 group-hover:bg-primary transition-colors">
-                        <feature.icon
-                            className="w-5 h-5 text-primary group-hover:text-primary-foreground transition-colors"/>
-                      </div>
-                      <h3 className="text-xl font-serif font-semibold mb-2">{feature.title}</h3>
-                      <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
-                    </div>
-                  </div>
-              ))}
-            </div>
-
-            {/* Secondary Features - Simple cards */}
-            <div className="grid md:grid-cols-2 gap-6">
-              {secondaryFeatures.map((feature) => (
-                  <div
-                      key={feature.title}
-                      className="group bg-card rounded-3xl p-6 border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-hover flex items-start gap-5"
-                  >
-                    <div
-                        className="w-11 h-11 rounded-xl bg-sage-light flex items-center justify-center flex-shrink-0 group-hover:bg-primary transition-colors">
-                      <feature.icon
-                          className="w-5 h-5 text-primary group-hover:text-primary-foreground transition-colors"/>
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-serif font-semibold mb-2">{feature.title}</h3>
-                      <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
-                    </div>
-                  </div>
-              ))}
+            <div className="relative p-8 md:p-12 flex items-center justify-center">
+              <div className="relative w-full h-full min-h-[420px] rounded-2xl overflow-hidden bg-white shadow-[0_26px_60px_rgba(0,0,0,0.18)]">
+                {active.video ? (
+                  <video
+                    src={active.video}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                  />
+                ) : (
+                  <img
+                    src={active.image}
+                    alt={active.label}
+                    className={`absolute inset-0 w-full h-full object-cover object-center ${
+                      active.imageClass ?? ""
+                    }`}
+                  />
+                )}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                  <span className="bg-white text-foreground text-sm font-medium px-5 py-2.5 rounded-full shadow-[0_12px_26px_rgba(0,0,0,0.18)]">
+                    {active.chip}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
-        </section>
-      </section>
+        </div>
+      </div>
+    </section>
   );
+};
+
+export default function PipelineSection() {
+  return <PlatformSection />;
 }
 
 // function FeatureCard({title, description, icon: Icon, image, small}: {
