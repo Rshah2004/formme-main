@@ -240,9 +240,9 @@ export const FactoryMessaging = ({ designId, orderId, onMessagesRead }: FactoryM
 
   return (
     <div className="flex flex-col h-full bg-transparent min-h-0">
-      <div className="flex-1 min-h-0">
-        <div className="relative h-full">
-          <ScrollArea className="h-full px-6 relative bg-transparent">
+      <div className="flex-1 min-h-0 flex flex-col">
+        <div className="relative h-full min-h-0">
+          <ScrollArea className="h-full px-4 sm:px-6 pb-24 relative bg-transparent">
             {loading ? (
               <p className="text-sm text-muted-foreground text-center py-8">Loading messages...</p>
             ) : messages.length === 0 ? (
@@ -263,7 +263,7 @@ export const FactoryMessaging = ({ designId, orderId, onMessagesRead }: FactoryM
                         <Factory className="w-4 h-4 text-foreground/70" />
                       </div>
                     )}
-                    <div className={cn("max-w-[72%] space-y-1", isMe && "items-end")}>
+                    <div className={cn("max-w-[85%] sm:max-w-[72%] space-y-1", isMe && "items-end")}>
                       <div
                         className={cn(
                           "rounded-2xl px-4 py-3 shadow-sm",
@@ -348,8 +348,8 @@ export const FactoryMessaging = ({ designId, orderId, onMessagesRead }: FactoryM
         </div>
       )}
       
-      <div className="p-4 border-t bg-background sticky bottom-0 z-10">
-        <div className="flex gap-3 items-end">
+      <div className="p-3 sm:p-4 border-t bg-background mt-auto z-10 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-end">
           <input
             type="file"
             ref={fileInputRef}
@@ -366,12 +366,12 @@ export const FactoryMessaging = ({ designId, orderId, onMessagesRead }: FactoryM
           >
             <Paperclip className="w-5 h-5" />
           </Button>
-          <div className="flex-1 rounded-xl border bg-muted/30 px-3 py-2 focus-within:ring-2 focus-within:ring-primary/30">
+          <div className="flex-1 min-w-0 rounded-xl border bg-muted/30 px-3 py-2 focus-within:ring-2 focus-within:ring-primary/30">
             <Textarea
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Write a message..."
-              className="border-0 bg-transparent resize-none min-h-[54px] focus-visible:ring-0"
+              className="border-0 bg-transparent resize-none min-h-[44px] sm:min-h-[54px] focus-visible:ring-0"
               rows={2}
               autoFocus
               onKeyDown={(e) => {
@@ -386,9 +386,10 @@ export const FactoryMessaging = ({ designId, orderId, onMessagesRead }: FactoryM
             onClick={handleSendMessage}
             disabled={(!newMessage.trim() && pendingAttachments.length === 0) || sending}
             size="lg"
-            className="shrink-0 h-[54px] w-[54px] rounded-full"
+            className="w-full sm:w-auto shrink-0 h-10 sm:h-[54px] rounded-full"
           >
-            <Send className="w-5 h-5" />
+            <Send className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+            <span className="text-sm sm:text-base">Send</span>
           </Button>
         </div>
       </div>
