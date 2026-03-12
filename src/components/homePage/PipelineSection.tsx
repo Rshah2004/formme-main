@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import techpackPreview from "@/assets/techpack-upload.png";
 import kanbanPreview from "@/assets/kanbanPreview.png";
 import sampleReview from "@/assets/sampleReview.png";
@@ -58,6 +58,7 @@ const tabs = [
 
 const PlatformSection = () => {
   const [activeTab, setActiveTab] = useState(0);
+  const tabsRef = useRef<HTMLDivElement | null>(null);
   const active = tabs[activeTab];
 
   return (
@@ -70,25 +71,40 @@ const PlatformSection = () => {
           Modern apparel production, without the chaos.
         </h2>
 
-        <div className="inline-flex flex-wrap justify-center gap-3 mb-6">
-          {tabs.map((tab, i) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(i)}
-              className={`px-5 md:px-7 py-2.5 rounded-full text-sm font-medium transition-all whitespace-nowrap border ${
-                i === activeTab
-                  ? "bg-white text-foreground border-border shadow-[0_10px_24px_rgba(0,0,0,0.12)]"
-                  : "bg-white/70 text-muted-foreground border-border/50 hover:text-foreground hover:bg-white"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="relative w-full">
+          <div
+            ref={tabsRef}
+            className="inline-flex md:flex-wrap flex-nowrap justify-start md:justify-center gap-3 mb-10 sm:mb-6 pb-4 sm:pb-0 overflow-x-auto md:overflow-visible px-2 md:px-0 w-full scroll-smooth"
+          >
+            {tabs.map((tab, i) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(i)}
+                className={`px-5 md:px-7 py-2.5 rounded-full text-sm font-medium transition-all whitespace-nowrap border ${
+                  i === activeTab
+                    ? "bg-white text-foreground border-border shadow-[0_10px_24px_rgba(0,0,0,0.12)]"
+                    : "bg-white/70 text-muted-foreground border-border/50 hover:text-foreground hover:bg-white"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          <div className="pointer-events-none absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-white via-white/70 to-transparent md:hidden" />
+          <div className="pointer-events-none absolute left-0 top-0 h-full w-8 bg-gradient-to-r from-white via-white/50 to-transparent md:hidden" />
+          <button
+            type="button"
+            onClick={() => tabsRef.current?.scrollBy({ left: 240, behavior: "smooth" })}
+            className="md:hidden absolute right-3 top-1/2 translate-y-2 rounded-full border border-border/60 bg-white/80 text-foreground px-3 py-1.5 text-xs"
+            aria-label="Scroll tabs"
+          >
+            Next
+          </button>
         </div>
 
-        <div className="bg-white rounded-3xl overflow-hidden shadow-[0_30px_70px_rgba(0,0,0,0.18)] mt-8">
-          <div className="grid md:grid-cols-2 min-h-[600px]">
-            <div className="p-10 md:p-16 flex flex-col justify-center text-left">
+        <div className="bg-white rounded-3xl overflow-hidden shadow-[0_30px_70px_rgba(0,0,0,0.18)] mt-8 sm:mt-8">
+          <div className="grid md:grid-cols-2 min-h-[520px] md:min-h-[600px]">
+            <div className="p-8 md:p-16 flex flex-col justify-center text-left">
               <h3 className="text-2xl md:text-3xl font-serif text-foreground leading-snug mb-5">
                 {active.title}
               </h3>
@@ -98,8 +114,8 @@ const PlatformSection = () => {
               {/* Learn more removed */}
             </div>
 
-            <div className="relative p-8 md:p-12 flex items-center justify-center">
-              <div className="relative w-full h-full min-h-[420px] rounded-2xl overflow-hidden bg-white shadow-[0_26px_60px_rgba(0,0,0,0.18)]">
+            <div className="relative p-6 md:p-12 flex items-center justify-center">
+              <div className="relative w-full h-full min-h-[320px] md:min-h-[420px] rounded-2xl overflow-hidden bg-white shadow-[0_26px_60px_rgba(0,0,0,0.18)]">
                 {active.video ? (
                   <video
                     src={active.video}

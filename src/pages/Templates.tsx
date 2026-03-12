@@ -321,7 +321,7 @@ const HomePage = () => {
           <PipelineSection />
           <WorkflowStrip />
           <NetworkGlobeSection />
-          <div className="-mt-[160px]">
+          <div className="-mt-24 md:-mt-[160px]">
             <ManufacturingSection />
           </div>
           <EarlyAdoptersSection />

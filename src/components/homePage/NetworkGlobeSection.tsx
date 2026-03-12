@@ -83,7 +83,7 @@ const NetworkGlobeSection = () => {
             }
           >
             <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_0.65fr] items-center gap-10">
-              <div className="w-full h-[420px] md:h-[520px]">
+              <div className="w-full h-[320px] md:h-[520px]">
                 <EarthGlobe onActiveIndexChange={(idx) => idx >= 0 && setActiveIndex(idx)} />
               </div>
               <div className="text-left">
