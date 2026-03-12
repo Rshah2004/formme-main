@@ -16,7 +16,7 @@ const NetworkGlobeSection = () => {
   const active = locations[activeIndex] || locations[0];
   const [typedName, setTypedName] = useState(active.name);
   const fullBrandLine =
-    "Stitched across our network: factories behind Old Navy, US Polo, Fanatics, Jack & Jones, MAX, and Bestseller—quality proven at scale, from the UK onward.";
+    "Factories in our network have produced for brands like Old Navy, US Polo, Fanatics, Jack & Jones, MAX, and Bestseller.";
   const [typedBrandLine, setTypedBrandLine] = useState(fullBrandLine);
 
   useEffect(() => {
@@ -60,7 +60,6 @@ const NetworkGlobeSection = () => {
     };
   }, [fullBrandLine]);
 
-  const spacedName = typedName.split("").join(" ");
 
   return (
     <section id="globe-section" className="bg-transparent py-10 md:py-16">
@@ -90,8 +89,8 @@ const NetworkGlobeSection = () => {
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
                   Active Region
                 </p>
-                <h4 className="text-3xl md:text-4xl font-serif text-foreground mb-3 tracking-[0.2em]">
-                  {spacedName}
+                <h4 className="text-3xl md:text-4xl font-serif text-foreground mb-3">
+                  {typedName}
                 </h4>
                 <p className="text-base text-muted-foreground">
                   {active.count} manufacturer{active.count === 1 ? "" : "s"}
