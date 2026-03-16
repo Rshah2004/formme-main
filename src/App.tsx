@@ -25,6 +25,7 @@ import Profile from "./pages/Profile";
 import NewDesign from "./pages/NewDesign";
 import Manufacturers from "./pages/Manufacturers";
 import Support from "./pages/Support";
+import Test from "./pages/Test";
 
 function App() {
   return (
@@ -56,6 +57,7 @@ function App() {
           {/*<Route path="/manufacturers" element={<Manufacturers />} />*/}
           {/*<Route path="/manufacturers/:id" element={<Manufacturers />} />*/}
           <Route path="/support" element={<Support />} />
+          <Route path="/test" element={<Test />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />
