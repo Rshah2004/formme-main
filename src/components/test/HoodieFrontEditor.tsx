@@ -37,6 +37,8 @@ type UploadedArtwork = {
 };
 
 type PlacementBySide = Partial<Record<HoodieSide, Placement>>;
+type PrintAreaOffset = { x: number; y: number };
+type PrintAreaOffsetBySide = Partial<Record<HoodieSide, PrintAreaOffset>>;
 
 type DragState =
   | {
@@ -45,6 +47,14 @@ type DragState =
       startY: number;
       placement: Placement;
       areaRect: DOMRect;
+    }
+  | {
+      mode: "area-move";
+      startX: number;
+      startY: number;
+      offset: PrintAreaOffset;
+      containerRect: DOMRect;
+      areaSize: { width: number; height: number };
     }
   | {
       mode: "resize";
@@ -107,6 +117,25 @@ const RESIZE_HANDLES = [
   },
 ] as const;
 
+const PRINT_AREA_DRAG_ZONES = [
+  {
+    key: "top",
+    className: "left-0 top-0 h-3 w-full -translate-y-1/2 cursor-move",
+  },
+  {
+    key: "right",
+    className: "right-0 top-0 h-full w-3 translate-x-1/2 cursor-move",
+  },
+  {
+    key: "bottom",
+    className: "bottom-0 left-0 h-3 w-full translate-y-1/2 cursor-move",
+  },
+  {
+    key: "left",
+    className: "left-0 top-0 h-full w-3 -translate-x-1/2 cursor-move",
+  },
+] as const;
+
 const createInitialPlacement = (
   asset: UploadedArtwork,
   size: SupportedPrintSize,
@@ -134,22 +163,49 @@ const HoodieFrontEditor = () => {
   const [side, setSide] = useState<HoodieSide>("front");
   const [artwork, setArtwork] = useState<UploadedArtwork | null>(null);
   const [placementsBySide, setPlacementsBySide] = useState<PlacementBySide>({});
+  const [printAreaOffsetsBySide, setPrintAreaOffsetsBySide] = useState<PrintAreaOffsetBySide>({});
   const [savedPlacementsBySide, setSavedPlacementsBySide] = useState<PlacementBySide>({});
   const [isArtworkSelected, setIsArtworkSelected] = useState(false);
   const [status, setStatus] = useState("Upload one artwork image to begin.");
   const [error, setError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const printAreaRef = useRef<HTMLDivElement | null>(null);
+  const mockupRef = useRef<HTMLDivElement | null>(null);
   const dragStateRef = useRef<DragState>(null);
 
   const template = hoodieTemplateBySizeAndSide[size][side];
   const placement = placementsBySide[side] ?? null;
   const savedPlacement = savedPlacementsBySide[side] ?? null;
+  const printAreaOffset = printAreaOffsetsBySide[side] ?? { x: 0, y: 0 };
   const garmentMeasurements = hoodieMeasurementSpec[size];
-  const garmentAnchor =
+  const garmentAnchorBase =
     side === "back"
       ? defaultBackPrintAreaAnchorBySize[size]
       : defaultFrontPrintAreaAnchorBySize[size];
+  const movedGarmentAnchor = useMemo(() => {
+    const offsetCanvasX = printAreaOffset.x * template.canvasWidth;
+    const offsetCanvasY = printAreaOffset.y * template.canvasHeight;
+    const offsetXIn =
+      (offsetCanvasX / template.printAreaOnCanvas.width) * template.printAreaReal.widthIn;
+    const offsetYIn =
+      (offsetCanvasY / template.printAreaOnCanvas.height) * template.printAreaReal.heightIn;
+
+    return {
+      centerXFromGarmentCenterIn: garmentAnchorBase.centerXFromGarmentCenterIn + offsetXIn,
+      topFromHPSIn: garmentAnchorBase.topFromHPSIn + offsetYIn,
+    };
+  }, [
+    garmentAnchorBase.centerXFromGarmentCenterIn,
+    garmentAnchorBase.topFromHPSIn,
+    printAreaOffset.x,
+    printAreaOffset.y,
+    template.canvasHeight,
+    template.canvasWidth,
+    template.printAreaOnCanvas.height,
+    template.printAreaOnCanvas.width,
+    template.printAreaReal.heightIn,
+    template.printAreaReal.widthIn,
+  ]);
 
   const inches = useMemo(
     () => (placement ? normalizedPlacementToInches(placement, template) : null),
@@ -195,10 +251,10 @@ const HoodieFrontEditor = () => {
             size,
             placementInInches: inches,
             printAreaReal: template.printAreaReal,
-            printAreaGarmentAnchor: garmentAnchor,
+            printAreaGarmentAnchor: movedGarmentAnchor,
           })
         : null,
-    [garmentAnchor, inches, side, size, template.printAreaReal]
+    [inches, movedGarmentAnchor, side, size, template.printAreaReal]
   );
   const bottomIn = inches
     ? template.printAreaReal.heightIn - inches.topIn - inches.heightIn
@@ -272,6 +328,22 @@ const HoodieFrontEditor = () => {
         return;
       }
 
+      if (dragState.mode === "area-move") {
+        const deltaX = (event.clientX - dragState.startX) / dragState.containerRect.width;
+        const deltaY = (event.clientY - dragState.startY) / dragState.containerRect.height;
+        const maxOffsetX = Math.max(0, 1 - dragState.areaSize.width);
+        const maxOffsetY = Math.max(0, 1 - dragState.areaSize.height);
+
+        setPrintAreaOffsetsBySide((current) => ({
+          ...current,
+          [side]: {
+            x: clamp(dragState.offset.x + deltaX, -0.35, maxOffsetX),
+            y: clamp(dragState.offset.y + deltaY, -0.35, maxOffsetY),
+          },
+        }));
+        return;
+      }
+
       const deltaX = (event.clientX - dragState.startX) / dragState.areaRect.width;
       const deltaY = (event.clientY - dragState.startY) / dragState.areaRect.height;
       const horizontalDelta = dragState.direction.includes("left") ? -deltaX : deltaX;
@@ -320,6 +392,7 @@ const HoodieFrontEditor = () => {
 
     const handlePointerUp = () => {
       dragStateRef.current = null;
+      setStatus(`Moved the ${side} print area on the mockup preview.`);
     };
 
     window.addEventListener("pointermove", handlePointerMove);
@@ -507,8 +580,8 @@ const HoodieFrontEditor = () => {
   };
 
   const previewPrintAreaStyle = {
-    left: `${(template.printAreaOnCanvas.x / template.canvasWidth) * 100}%`,
-    top: `${(template.printAreaOnCanvas.y / template.canvasHeight) * 100}%`,
+    left: `${((template.printAreaOnCanvas.x / template.canvasWidth) + printAreaOffset.x) * 100}%`,
+    top: `${((template.printAreaOnCanvas.y / template.canvasHeight) + printAreaOffset.y) * 100}%`,
     width: `${(template.printAreaOnCanvas.width / template.canvasWidth) * 100}%`,
     height: `${(template.printAreaOnCanvas.height / template.canvasHeight) * 100}%`,
   };
@@ -571,6 +644,9 @@ const HoodieFrontEditor = () => {
               <p className="mt-1 text-muted-foreground">{status}</p>
               <p className="mt-1 text-muted-foreground">
                 Visible print intersection: {clippedInches ? `${round(clippedInches.widthIn)} in x ${round(clippedInches.heightIn)} in` : "outside print area"}
+              </p>
+              <p className="mt-1 text-muted-foreground">
+                Print area garment offset: X {round(movedGarmentAnchor.centerXFromGarmentCenterIn)} in, Y {round(movedGarmentAnchor.topFromHPSIn)} in
               </p>
               <p className={`mt-1 font-medium ${isHorizontallyCentered ? "text-[#0f766e]" : "text-muted-foreground"}`}>
                 {isHorizontallyCentered
@@ -717,12 +793,14 @@ const HoodieFrontEditor = () => {
                 <p className="mt-1 font-medium">{template.printAreaReal.widthPx} px x {template.printAreaReal.heightPx} px</p>
                 <p className="mt-1 font-medium">{template.printAreaReal.dpi} DPI</p>
                 <p className="mt-3 text-muted-foreground">Print Area Garment Anchor</p>
-                <p className="mt-1 font-medium">Center X from centerline: {round(garmentAnchor.centerXFromGarmentCenterIn)} in</p>
-                <p className="mt-1 font-medium">Top from HPS: {round(garmentAnchor.topFromHPSIn)} in</p>
+                <p className="mt-1 font-medium">Base center X from centerline: {round(garmentAnchorBase.centerXFromGarmentCenterIn)} in</p>
+                <p className="mt-1 font-medium">Base top from HPS: {round(garmentAnchorBase.topFromHPSIn)} in</p>
+                <p className="mt-1 font-medium">Moved center X from centerline: {round(movedGarmentAnchor.centerXFromGarmentCenterIn)} in</p>
+                <p className="mt-1 font-medium">Moved top from HPS: {round(movedGarmentAnchor.topFromHPSIn)} in</p>
                 <p className="mt-2 text-xs text-muted-foreground">
                   {side === "front"
-                    ? "Front anchor is a temporary chest-print assumption."
-                    : "Back anchor is a temporary assumption because the garment spec only provides back garment measurements, not an official back print template."}
+                    ? "Front anchor is a temporary chest-print assumption. The moved values include your current green-box offset on the mockup."
+                    : "Back anchor is a temporary assumption because the garment spec only provides back garment measurements, not an official back print template. The moved values include your current green-box offset on the mockup."}
                 </p>
               </div>
               <div className="rounded-lg border p-3">
@@ -817,7 +895,7 @@ const HoodieFrontEditor = () => {
               {JSON.stringify(savedPlacement ?? placement, null, 2)}
             </pre>
             <pre className="overflow-x-auto rounded-lg border bg-muted/30 p-4 text-xs leading-6">
-              {JSON.stringify(side === "front" ? garmentRelativeSpec : null, null, 2)}
+              {JSON.stringify(garmentRelativeSpec, null, 2)}
             </pre>
           </CardContent>
         </Card>
@@ -833,7 +911,10 @@ const HoodieFrontEditor = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="mx-auto w-full max-w-[720px]">
-              <div className="relative aspect-square overflow-hidden rounded-2xl border bg-[#f7f3ed] shadow-sm">
+              <div
+                ref={mockupRef}
+                className="relative aspect-square overflow-hidden rounded-2xl border bg-[#f7f3ed] shadow-sm"
+              >
                 <img
                   src={template.mockupUrl}
                   alt={`Hoodie ${side} mockup`}
@@ -848,12 +929,45 @@ const HoodieFrontEditor = () => {
                       : "border-2 border-transparent bg-transparent"
                   }`}
                   style={previewPrintAreaStyle}
+                  onPointerDown={(event) => {
+                    const target = event.target as HTMLElement | null;
+
+                    if (!mockupRef.current || target?.dataset.printAreaDrag !== "true") {
+                      return;
+                    }
+
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    dragStateRef.current = {
+                      mode: "area-move",
+                      startX: event.clientX,
+                      startY: event.clientY,
+                      offset: printAreaOffset,
+                      containerRect: mockupRef.current.getBoundingClientRect(),
+                      areaSize: {
+                        width: template.printAreaOnCanvas.width / template.canvasWidth,
+                        height: template.printAreaOnCanvas.height / template.canvasHeight,
+                      },
+                    };
+                    setIsArtworkSelected(true);
+                  }}
                 >
                   <div
                     className={`pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2 transition-opacity ${
                       isArtworkSelected ? "opacity-100" : "opacity-0"
                     } ${isHorizontallyCentered ? "bg-[#0f766e]" : "bg-white/50"}`}
                   />
+                  {PRINT_AREA_DRAG_ZONES.map((zone) => (
+                    <div
+                      key={zone.key}
+                      data-print-area-drag="true"
+                      className={`absolute z-20 ${zone.className} ${
+                        showPrintAreaChrome ? "pointer-events-auto" : "pointer-events-none"
+                      }`}
+                      title="Drag print area"
+                    />
+                  ))}
                   <div
                     className={`pointer-events-none absolute left-2 top-2 rounded bg-[#0f766e] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white transition-opacity ${
                       showPrintAreaChrome ? "opacity-100" : "opacity-0"
@@ -882,6 +996,7 @@ const HoodieFrontEditor = () => {
                         className={`absolute cursor-grab active:cursor-grabbing ${
                           isArtworkSelected ? "outline outline-2 outline-white/80" : ""
                         }`}
+                        data-artwork-transform="true"
                         style={{
                           left: `${placement.x * 100}%`,
                           top: `${placement.y * 100}%`,
