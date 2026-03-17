@@ -26,7 +26,7 @@ const baseCanvas = {
   canvasHeight: 900,
   printAreaOnCanvas: {
     x: 280,
-    y: 170,
+    y: 250,
     width: 340,
     height: 340,
   },

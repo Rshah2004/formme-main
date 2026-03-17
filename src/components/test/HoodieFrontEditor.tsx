@@ -41,7 +41,6 @@ type UploadedArtwork = {
 type ArtworkBySide = Partial<Record<HoodieSide, UploadedArtwork>>;
 type PlacementBySide = Partial<Record<HoodieSide, Placement>>;
 type PrintAreaOffset = { x: number; y: number };
-type PrintAreaOffsetBySide = Partial<Record<HoodieSide, PrintAreaOffset>>;
 type SavedSideDesign = {
   side: HoodieSide;
   size: SupportedPrintSize;
@@ -68,14 +67,6 @@ type DragState =
       startY: number;
       placement: Placement;
       areaRect: DOMRect;
-    }
-  | {
-      mode: "area-move";
-      startX: number;
-      startY: number;
-      offset: PrintAreaOffset;
-      containerRect: DOMRect;
-      areaSize: { width: number; height: number };
     }
   | {
       mode: "resize";
@@ -180,25 +171,6 @@ const RESIZE_HANDLES = [
   },
 ] as const;
 
-const PRINT_AREA_DRAG_ZONES = [
-  {
-    key: "top",
-    className: "left-0 top-0 h-3 w-full -translate-y-1/2 cursor-move",
-  },
-  {
-    key: "right",
-    className: "right-0 top-0 h-full w-3 translate-x-1/2 cursor-move",
-  },
-  {
-    key: "bottom",
-    className: "bottom-0 left-0 h-3 w-full translate-y-1/2 cursor-move",
-  },
-  {
-    key: "left",
-    className: "left-0 top-0 h-full w-3 -translate-x-1/2 cursor-move",
-  },
-] as const;
-
 const createInitialPlacement = (
   asset: UploadedArtwork,
   size: SupportedPrintSize,
@@ -228,7 +200,6 @@ const HoodieFrontEditor = () => {
   const [designId, setDesignId] = useState(searchParams.get("designId") ?? "");
   const [artworksBySide, setArtworksBySide] = useState<ArtworkBySide>({});
   const [placementsBySide, setPlacementsBySide] = useState<PlacementBySide>({});
-  const [printAreaOffsetsBySide, setPrintAreaOffsetsBySide] = useState<PrintAreaOffsetBySide>({});
   const [savedDesignsBySide, setSavedDesignsBySide] = useState<SavedDesignBySide>({});
   const [isArtworkSelected, setIsArtworkSelected] = useState(false);
   const [status, setStatus] = useState("Upload one artwork image to begin.");
@@ -236,7 +207,6 @@ const HoodieFrontEditor = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const printAreaRef = useRef<HTMLDivElement | null>(null);
-  const mockupRef = useRef<HTMLDivElement | null>(null);
   const dragStateRef = useRef<DragState>(null);
   const artworksBySideRef = useRef<ArtworkBySide>({});
 
@@ -245,36 +215,13 @@ const HoodieFrontEditor = () => {
   const placement = placementsBySide[side] ?? null;
   const savedDesign = savedDesignsBySide[side] ?? null;
   const savedPlacement = savedDesign?.placement ?? null;
-  const printAreaOffset = printAreaOffsetsBySide[side] ?? { x: 0, y: 0 };
+  const printAreaOffset = { x: 0, y: 0 };
   const garmentMeasurements = hoodieMeasurementSpec[size];
   const garmentAnchorBase =
     side === "back"
       ? defaultBackPrintAreaAnchorBySize[size]
       : defaultFrontPrintAreaAnchorBySize[size];
-  const movedGarmentAnchor = useMemo(() => {
-    const offsetCanvasX = printAreaOffset.x * template.canvasWidth;
-    const offsetCanvasY = printAreaOffset.y * template.canvasHeight;
-    const offsetXIn =
-      (offsetCanvasX / template.printAreaOnCanvas.width) * template.printAreaReal.widthIn;
-    const offsetYIn =
-      (offsetCanvasY / template.printAreaOnCanvas.height) * template.printAreaReal.heightIn;
-
-    return {
-      centerXFromGarmentCenterIn: garmentAnchorBase.centerXFromGarmentCenterIn + offsetXIn,
-      topFromHPSIn: garmentAnchorBase.topFromHPSIn + offsetYIn,
-    };
-  }, [
-    garmentAnchorBase.centerXFromGarmentCenterIn,
-    garmentAnchorBase.topFromHPSIn,
-    printAreaOffset.x,
-    printAreaOffset.y,
-    template.canvasHeight,
-    template.canvasWidth,
-    template.printAreaOnCanvas.height,
-    template.printAreaOnCanvas.width,
-    template.printAreaReal.heightIn,
-    template.printAreaReal.widthIn,
-  ]);
+  const movedGarmentAnchor = garmentAnchorBase;
 
   const inches = useMemo(
     () => (placement ? normalizedPlacementToInches(placement, template) : null),
@@ -420,13 +367,13 @@ const HoodieFrontEditor = () => {
       front: {
         artwork: nextArtworksBySide.front ?? null,
         placement: placementsBySide.front ?? null,
-        printAreaOffset: printAreaOffsetsBySide.front ?? { x: 0, y: 0 },
+        printAreaOffset: { x: 0, y: 0 },
         savedDesign: savedDesignsBySide.front ?? null,
       },
       back: {
         artwork: nextArtworksBySide.back ?? null,
         placement: placementsBySide.back ?? null,
-        printAreaOffset: printAreaOffsetsBySide.back ?? { x: 0, y: 0 },
+        printAreaOffset: { x: 0, y: 0 },
         savedDesign: savedDesignsBySide.back ?? null,
       },
     },
@@ -519,10 +466,6 @@ const HoodieFrontEditor = () => {
         front: persistedState.sides.front?.placement ?? undefined,
         back: persistedState.sides.back?.placement ?? undefined,
       });
-      setPrintAreaOffsetsBySide({
-        front: persistedState.sides.front?.printAreaOffset ?? { x: 0, y: 0 },
-        back: persistedState.sides.back?.printAreaOffset ?? { x: 0, y: 0 },
-      });
       setSavedDesignsBySide({
         front: persistedState.sides.front?.savedDesign ?? undefined,
         back: persistedState.sides.back?.savedDesign ?? undefined,
@@ -586,22 +529,6 @@ const HoodieFrontEditor = () => {
         return;
       }
 
-      if (dragState.mode === "area-move") {
-        const deltaX = (event.clientX - dragState.startX) / dragState.containerRect.width;
-        const deltaY = (event.clientY - dragState.startY) / dragState.containerRect.height;
-        const maxOffsetX = Math.max(0, 1 - dragState.areaSize.width);
-        const maxOffsetY = Math.max(0, 1 - dragState.areaSize.height);
-
-        setPrintAreaOffsetsBySide((current) => ({
-          ...current,
-          [side]: {
-            x: clamp(dragState.offset.x + deltaX, -0.35, maxOffsetX),
-            y: clamp(dragState.offset.y + deltaY, -0.35, maxOffsetY),
-          },
-        }));
-        return;
-      }
-
       const deltaX = (event.clientX - dragState.startX) / dragState.areaRect.width;
       const deltaY = (event.clientY - dragState.startY) / dragState.areaRect.height;
       const horizontalDelta = dragState.direction.includes("left") ? -deltaX : deltaX;
@@ -649,11 +576,7 @@ const HoodieFrontEditor = () => {
     };
 
     const handlePointerUp = () => {
-      const previousDragState = dragStateRef.current;
       dragStateRef.current = null;
-      if (previousDragState?.mode === "area-move") {
-        setStatus(`Moved the ${side} print area on the mockup preview.`);
-      }
     };
 
     window.addEventListener("pointermove", handlePointerMove);
@@ -716,10 +639,6 @@ const HoodieFrontEditor = () => {
       setPlacementsBySide((current) => ({
         ...current,
         [side]: createInitialPlacement(nextArtwork, size, side),
-      }));
-      setPrintAreaOffsetsBySide((current) => ({
-        ...current,
-        [side]: current[side] ?? { x: 0, y: 0 },
       }));
       setSavedDesignsBySide((current) => {
         const next = { ...current };
@@ -937,8 +856,8 @@ const HoodieFrontEditor = () => {
   };
 
   const previewPrintAreaStyle = {
-    left: `${((template.printAreaOnCanvas.x / template.canvasWidth) + printAreaOffset.x) * 100}%`,
-    top: `${((template.printAreaOnCanvas.y / template.canvasHeight) + printAreaOffset.y) * 100}%`,
+    left: `${(template.printAreaOnCanvas.x / template.canvasWidth) * 100}%`,
+    top: `${(template.printAreaOnCanvas.y / template.canvasHeight) * 100}%`,
     width: `${(template.printAreaOnCanvas.width / template.canvasWidth) * 100}%`,
     height: `${(template.printAreaOnCanvas.height / template.canvasHeight) * 100}%`,
   };
@@ -986,6 +905,7 @@ const HoodieFrontEditor = () => {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">Front and back keep separate normalized placements. Back garment-relative values use back garment measurements plus temporary back print-area anchors.</p>
+              <p className="text-xs text-muted-foreground">The green print area is locked for measurement accuracy.</p>
             </div>
 
             <div className="space-y-2">
@@ -1004,9 +924,7 @@ const HoodieFrontEditor = () => {
                 onChange={(event) => setDesignId(event.target.value)}
                 placeholder="Supabase design UUID"
               />
-              <p className="text-xs text-muted-foreground">
-                Backend save/load uses `design_specs.hoodie_editor_state` for this design.
-              </p>
+              <p className="text-xs text-muted-foreground">Backend save/load uses `design_specs.hoodie_editor_state` for this design.</p>
             </div>
 
             <div className="rounded-lg border bg-muted/30 p-3 text-sm">
@@ -1016,7 +934,7 @@ const HoodieFrontEditor = () => {
                 Visible print intersection: {clippedInches ? `${round(clippedInches.widthIn)} in x ${round(clippedInches.heightIn)} in` : "outside print area"}
               </p>
               <p className="mt-1 text-muted-foreground">
-                Print area garment offset: X {round(movedGarmentAnchor.centerXFromGarmentCenterIn)} in, Y {round(movedGarmentAnchor.topFromHPSIn)} in
+                Locked print area anchor: X {round(movedGarmentAnchor.centerXFromGarmentCenterIn)} in, Y {round(movedGarmentAnchor.topFromHPSIn)} in
               </p>
               <p className={`mt-1 font-medium ${isHorizontallyCentered ? "text-[#0f766e]" : "text-muted-foreground"}`}>
                 {isHorizontallyCentered
@@ -1175,14 +1093,12 @@ const HoodieFrontEditor = () => {
                 <p className="mt-1 font-medium">{template.printAreaReal.widthPx} px x {template.printAreaReal.heightPx} px</p>
                 <p className="mt-1 font-medium">{template.printAreaReal.dpi} DPI</p>
                 <p className="mt-3 text-muted-foreground">Print Area Garment Anchor</p>
-                <p className="mt-1 font-medium">Base center X from centerline: {round(garmentAnchorBase.centerXFromGarmentCenterIn)} in</p>
-                <p className="mt-1 font-medium">Base top from HPS: {round(garmentAnchorBase.topFromHPSIn)} in</p>
-                <p className="mt-1 font-medium">Moved center X from centerline: {round(movedGarmentAnchor.centerXFromGarmentCenterIn)} in</p>
-                <p className="mt-1 font-medium">Moved top from HPS: {round(movedGarmentAnchor.topFromHPSIn)} in</p>
+                <p className="mt-1 font-medium">Center X from centerline: {round(movedGarmentAnchor.centerXFromGarmentCenterIn)} in</p>
+                <p className="mt-1 font-medium">Top from HPS: {round(movedGarmentAnchor.topFromHPSIn)} in</p>
                 <p className="mt-2 text-xs text-muted-foreground">
                   {side === "front"
-                    ? "Front anchor is a temporary chest-print assumption. The moved values include your current green-box offset on the mockup."
-                    : "Back anchor is a temporary assumption because the garment spec only provides back garment measurements, not an official back print template. The moved values include your current green-box offset on the mockup."}
+                    ? "Front anchor is now locked to a lower calibrated chest-print assumption."
+                    : "Back anchor is locked to a lower calibrated assumption because the garment spec does not provide an official back print template."}
                 </p>
               </div>
               <div className="rounded-lg border p-3">
@@ -1293,10 +1209,7 @@ const HoodieFrontEditor = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="mx-auto w-full max-w-[720px]">
-              <div
-                ref={mockupRef}
-                className="relative aspect-square overflow-hidden rounded-2xl border bg-[#f7f3ed] shadow-sm"
-              >
+              <div className="relative aspect-square overflow-hidden rounded-2xl border bg-[#f7f3ed] shadow-sm">
                 <img
                   src={template.mockupUrl}
                   alt={`Hoodie ${side} mockup`}
@@ -1311,45 +1224,12 @@ const HoodieFrontEditor = () => {
                       : "border-2 border-transparent bg-transparent"
                   }`}
                   style={previewPrintAreaStyle}
-                  onPointerDown={(event) => {
-                    const target = event.target as HTMLElement | null;
-
-                    if (!mockupRef.current || target?.dataset.printAreaDrag !== "true") {
-                      return;
-                    }
-
-                    event.preventDefault();
-                    event.stopPropagation();
-
-                    dragStateRef.current = {
-                      mode: "area-move",
-                      startX: event.clientX,
-                      startY: event.clientY,
-                      offset: printAreaOffset,
-                      containerRect: mockupRef.current.getBoundingClientRect(),
-                      areaSize: {
-                        width: template.printAreaOnCanvas.width / template.canvasWidth,
-                        height: template.printAreaOnCanvas.height / template.canvasHeight,
-                      },
-                    };
-                    setIsArtworkSelected(true);
-                  }}
                 >
                   <div
                     className={`pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2 transition-opacity ${
                       isArtworkSelected ? "opacity-100" : "opacity-0"
                     } ${isHorizontallyCentered ? "bg-[#0f766e]" : "bg-white/50"}`}
                   />
-                  {PRINT_AREA_DRAG_ZONES.map((zone) => (
-                    <div
-                      key={zone.key}
-                      data-print-area-drag="true"
-                      className={`absolute z-20 ${zone.className} ${
-                        showPrintAreaChrome ? "pointer-events-auto" : "pointer-events-none"
-                      }`}
-                      title="Drag print area"
-                    />
-                  ))}
                   <div
                     className={`pointer-events-none absolute left-2 top-2 rounded bg-[#0f766e] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white transition-opacity ${
                       showPrintAreaChrome ? "opacity-100" : "opacity-0"

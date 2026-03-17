@@ -282,25 +282,25 @@ export const hoodieMeasurementSpec: Record<HoodieSize, HoodieGarmentMeasurements
 // HPS means high point shoulder. In this helper it is the garment origin (0, 0):
 // X is distance from garment centerline and Y is distance down from HPS.
 export const defaultFrontPrintAreaAnchorBySize: Record<HoodieSize, PrintAreaGarmentAnchor> = {
-  S: { centerXFromGarmentCenterIn: 0, topFromHPSIn: 3.5 },
-  M: { centerXFromGarmentCenterIn: 0, topFromHPSIn: 3.5 },
-  L: { centerXFromGarmentCenterIn: 0, topFromHPSIn: 3.625 },
-  XL: { centerXFromGarmentCenterIn: 0, topFromHPSIn: 3.75 },
-  "2XL": { centerXFromGarmentCenterIn: 0, topFromHPSIn: 3.875 },
-  "3XL": { centerXFromGarmentCenterIn: 0, topFromHPSIn: 4 },
-  "4XL": { centerXFromGarmentCenterIn: 0, topFromHPSIn: 4.125 },
+  S: { centerXFromGarmentCenterIn: 0, topFromHPSIn: 5 },
+  M: { centerXFromGarmentCenterIn: 0, topFromHPSIn: 5 },
+  L: { centerXFromGarmentCenterIn: 0, topFromHPSIn: 5.125 },
+  XL: { centerXFromGarmentCenterIn: 0, topFromHPSIn: 5.25 },
+  "2XL": { centerXFromGarmentCenterIn: 0, topFromHPSIn: 5.375 },
+  "3XL": { centerXFromGarmentCenterIn: 0, topFromHPSIn: 5.5 },
+  "4XL": { centerXFromGarmentCenterIn: 0, topFromHPSIn: 5.625 },
 };
 
 // HPS is also the origin on the back side. These back anchors are temporary placement defaults,
 // not exact values from the garment spec, because the source spec does not include a back print template.
 export const defaultBackPrintAreaAnchorBySize: Record<HoodieSize, PrintAreaGarmentAnchor> = {
-  S: { centerXFromGarmentCenterIn: 0, topFromHPSIn: 2.5 },
-  M: { centerXFromGarmentCenterIn: 0, topFromHPSIn: 2.5 },
-  L: { centerXFromGarmentCenterIn: 0, topFromHPSIn: 2.625 },
-  XL: { centerXFromGarmentCenterIn: 0, topFromHPSIn: 2.75 },
-  "2XL": { centerXFromGarmentCenterIn: 0, topFromHPSIn: 2.875 },
-  "3XL": { centerXFromGarmentCenterIn: 0, topFromHPSIn: 3 },
-  "4XL": { centerXFromGarmentCenterIn: 0, topFromHPSIn: 3.125 },
+  S: { centerXFromGarmentCenterIn: 0, topFromHPSIn: 4 },
+  M: { centerXFromGarmentCenterIn: 0, topFromHPSIn: 4 },
+  L: { centerXFromGarmentCenterIn: 0, topFromHPSIn: 4.125 },
+  XL: { centerXFromGarmentCenterIn: 0, topFromHPSIn: 4.25 },
+  "2XL": { centerXFromGarmentCenterIn: 0, topFromHPSIn: 4.375 },
+  "3XL": { centerXFromGarmentCenterIn: 0, topFromHPSIn: 4.5 },
+  "4XL": { centerXFromGarmentCenterIn: 0, topFromHPSIn: 4.625 },
 };
 
 const toPercent = (value: number, total: number) => (total === 0 ? 0 : (value / total) * 100);
