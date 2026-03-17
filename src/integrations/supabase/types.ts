@@ -116,6 +116,7 @@ export type Database = {
           drawing_vector_data: Json | null
           fabric_type: string | null
           gsm: number | null
+          hoodie_editor_state: Json | null
           id: string
           measurements: Json | null
           print_type: string | null
@@ -131,6 +132,7 @@ export type Database = {
           drawing_vector_data?: Json | null
           fabric_type?: string | null
           gsm?: number | null
+          hoodie_editor_state?: Json | null
           id?: string
           measurements?: Json | null
           print_type?: string | null
@@ -146,6 +148,7 @@ export type Database = {
           drawing_vector_data?: Json | null
           fabric_type?: string | null
           gsm?: number | null
+          hoodie_editor_state?: Json | null
           id?: string
           measurements?: Json | null
           print_type?: string | null

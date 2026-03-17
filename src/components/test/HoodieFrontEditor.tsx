@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { ArrowUpLeft, ArrowUpRight, Download, Upload } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ import {
   hoodieMeasurementSpec,
   type AnyManufacturerGarmentRelativeSpec,
 } from "./garmentPlacement";
+import { supabase } from "@/integrations/supabase/client";
 
 type UploadedArtwork = {
   assetId: string;
@@ -36,9 +38,28 @@ type UploadedArtwork = {
   height: number;
 };
 
+type ArtworkBySide = Partial<Record<HoodieSide, UploadedArtwork>>;
 type PlacementBySide = Partial<Record<HoodieSide, Placement>>;
 type PrintAreaOffset = { x: number; y: number };
 type PrintAreaOffsetBySide = Partial<Record<HoodieSide, PrintAreaOffset>>;
+type SavedSideDesign = {
+  side: HoodieSide;
+  size: SupportedPrintSize;
+  placement: Placement;
+  printAreaOffset: PrintAreaOffset;
+};
+type SavedDesignBySide = Partial<Record<HoodieSide, SavedSideDesign>>;
+type PersistedSideState = {
+  artwork: UploadedArtwork | null;
+  placement: Placement | null;
+  printAreaOffset: PrintAreaOffset;
+  savedDesign: SavedSideDesign | null;
+};
+type PersistedEditorState = {
+  version: 1;
+  size: SupportedPrintSize;
+  sides: Partial<Record<HoodieSide, PersistedSideState>>;
+};
 
 type DragState =
   | {
@@ -89,6 +110,48 @@ const downloadBlob = (blob: Blob, filename: string) => {
   link.download = filename;
   link.click();
   URL.revokeObjectURL(url);
+};
+
+const sanitizeFileName = (value: string) => value.replace(/[^a-zA-Z0-9._-]/g, "-");
+
+const getFileExtension = (filename: string, fallback = "png") => {
+  const extension = filename.split(".").pop()?.toLowerCase();
+  return extension && extension.length <= 5 ? extension : fallback;
+};
+
+const drawImageCover = (
+  context: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  targetWidth: number,
+  targetHeight: number
+) => {
+  const sourceRatio = image.naturalWidth / image.naturalHeight;
+  const targetRatio = targetWidth / targetHeight;
+
+  let sourceX = 0;
+  let sourceY = 0;
+  let sourceWidth = image.naturalWidth;
+  let sourceHeight = image.naturalHeight;
+
+  if (sourceRatio > targetRatio) {
+    sourceWidth = image.naturalHeight * targetRatio;
+    sourceX = (image.naturalWidth - sourceWidth) / 2;
+  } else {
+    sourceHeight = image.naturalWidth / targetRatio;
+    sourceY = (image.naturalHeight - sourceHeight) / 2;
+  }
+
+  context.drawImage(
+    image,
+    sourceX,
+    sourceY,
+    sourceWidth,
+    sourceHeight,
+    0,
+    0,
+    targetWidth,
+    targetHeight
+  );
 };
 
 const round = (value: number) => Math.round(value * 100) / 100;
@@ -159,23 +222,29 @@ const createInitialPlacement = (
 };
 
 const HoodieFrontEditor = () => {
+  const [searchParams] = useSearchParams();
   const [size, setSize] = useState<SupportedPrintSize>("M");
   const [side, setSide] = useState<HoodieSide>("front");
-  const [artwork, setArtwork] = useState<UploadedArtwork | null>(null);
+  const [designId, setDesignId] = useState(searchParams.get("designId") ?? "");
+  const [artworksBySide, setArtworksBySide] = useState<ArtworkBySide>({});
   const [placementsBySide, setPlacementsBySide] = useState<PlacementBySide>({});
   const [printAreaOffsetsBySide, setPrintAreaOffsetsBySide] = useState<PrintAreaOffsetBySide>({});
-  const [savedPlacementsBySide, setSavedPlacementsBySide] = useState<PlacementBySide>({});
+  const [savedDesignsBySide, setSavedDesignsBySide] = useState<SavedDesignBySide>({});
   const [isArtworkSelected, setIsArtworkSelected] = useState(false);
   const [status, setStatus] = useState("Upload one artwork image to begin.");
   const [error, setError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const printAreaRef = useRef<HTMLDivElement | null>(null);
   const mockupRef = useRef<HTMLDivElement | null>(null);
   const dragStateRef = useRef<DragState>(null);
+  const artworksBySideRef = useRef<ArtworkBySide>({});
 
   const template = hoodieTemplateBySizeAndSide[size][side];
+  const artwork = artworksBySide[side] ?? null;
   const placement = placementsBySide[side] ?? null;
-  const savedPlacement = savedPlacementsBySide[side] ?? null;
+  const savedDesign = savedDesignsBySide[side] ?? null;
+  const savedPlacement = savedDesign?.placement ?? null;
   const printAreaOffset = printAreaOffsetsBySide[side] ?? { x: 0, y: 0 };
   const garmentMeasurements = hoodieMeasurementSpec[size];
   const garmentAnchorBase =
@@ -266,18 +335,205 @@ const HoodieFrontEditor = () => {
   const isHorizontallyCentered = centerOffsetIn !== null && centerOffsetIn <= 0.1;
 
   useEffect(() => {
+    const nextDesignId = searchParams.get("designId") ?? "";
+    setDesignId(nextDesignId);
+  }, [searchParams]);
+
+  useEffect(() => {
+    artworksBySideRef.current = artworksBySide;
+  }, [artworksBySide]);
+
+  useEffect(() => {
     if (!artwork) {
-      setPlacementsBySide({});
-      setSavedPlacementsBySide({});
       setIsArtworkSelected(false);
+      setStatus(`Upload artwork for the ${side} side to begin.`);
       return;
     }
 
-    setPlacementsBySide((current) => ({
-      ...current,
-      [side]: current[side] ?? createInitialPlacement(artwork, size, side),
-    }));
+    setPlacementsBySide((current) => {
+      if (current[side]) {
+        return current;
+      }
+
+      return {
+        ...current,
+        [side]: createInitialPlacement(artwork, size, side),
+      };
+    });
   }, [artwork, side, size]);
+
+  useEffect(() => {
+    if (!artwork) {
+      setIsArtworkSelected(false);
+    }
+  }, [artwork]);
+
+  const ensurePersistedArtwork = async (
+    targetSide: HoodieSide,
+    targetDesignId: string,
+    targetArtwork: UploadedArtwork | null
+  ): Promise<UploadedArtwork | null> => {
+    if (!targetArtwork) {
+      return null;
+    }
+
+    if (!targetArtwork.src.startsWith("blob:")) {
+      return targetArtwork;
+    }
+
+    const { data: authData } = await supabase.auth.getUser();
+    const user = authData.user;
+    if (!user) {
+      throw new Error("You must be signed in to save designs.");
+    }
+
+    const response = await fetch(targetArtwork.src);
+    const blob = await response.blob();
+    const extension = getFileExtension(targetArtwork.name);
+    const filePath = `${user.id}/${targetDesignId}/hoodie-editor/${targetSide}-${Date.now()}-${sanitizeFileName(targetArtwork.name)}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("design-files")
+      .upload(`${filePath}.${extension}`, blob, {
+        contentType: blob.type || `image/${extension}`,
+        upsert: true,
+      });
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from("design-files")
+      .getPublicUrl(`${filePath}.${extension}`);
+
+    return {
+      ...targetArtwork,
+      src: publicUrlData.publicUrl,
+    };
+  };
+
+  const buildPersistedEditorState = (nextArtworksBySide: ArtworkBySide): PersistedEditorState => ({
+    version: 1,
+    size,
+    sides: {
+      front: {
+        artwork: nextArtworksBySide.front ?? null,
+        placement: placementsBySide.front ?? null,
+        printAreaOffset: printAreaOffsetsBySide.front ?? { x: 0, y: 0 },
+        savedDesign: savedDesignsBySide.front ?? null,
+      },
+      back: {
+        artwork: nextArtworksBySide.back ?? null,
+        placement: placementsBySide.back ?? null,
+        printAreaOffset: printAreaOffsetsBySide.back ?? { x: 0, y: 0 },
+        savedDesign: savedDesignsBySide.back ?? null,
+      },
+    },
+  });
+
+  const handleSaveToBackend = async () => {
+    if (!designId) {
+      setError("Provide a design ID before saving to backend.");
+      return;
+    }
+
+    setIsSyncing(true);
+    setError(null);
+
+    try {
+      const nextArtworksBySide: ArtworkBySide = {
+        front: await ensurePersistedArtwork("front", designId, artworksBySide.front ?? null),
+        back: await ensurePersistedArtwork("back", designId, artworksBySide.back ?? null),
+      };
+
+      setArtworksBySide(nextArtworksBySide);
+
+      const hoodieEditorState = buildPersistedEditorState(nextArtworksBySide);
+
+      const { error: upsertError } = await supabase.from("design_specs").upsert(
+        {
+          design_id: designId,
+          hoodie_editor_state: hoodieEditorState,
+        },
+        {
+          onConflict: "design_id",
+        }
+      );
+
+      if (upsertError) {
+        throw upsertError;
+      }
+
+      setStatus(`Saved front/back hoodie editor state to backend for design ${designId}.`);
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "Failed to save editor state.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleLoadFromBackend = async () => {
+    if (!designId) {
+      setError("Provide a design ID before loading from backend.");
+      return;
+    }
+
+    setIsSyncing(true);
+    setError(null);
+
+    try {
+      const { data, error: loadError } = await supabase
+        .from("design_specs")
+        .select("hoodie_editor_state")
+        .eq("design_id", designId)
+        .maybeSingle();
+
+      if (loadError) {
+        throw loadError;
+      }
+
+      const persistedState = data?.hoodie_editor_state as PersistedEditorState | null;
+      if (!persistedState?.sides) {
+        setStatus(`No saved hoodie editor state found for design ${designId}.`);
+        return;
+      }
+
+      const loadedArtworksBySide: ArtworkBySide = {};
+
+      for (const targetSide of ["front", "back"] as const) {
+        const sideState = persistedState.sides[targetSide];
+        if (sideState?.artwork?.src) {
+          const image = await loadImage(sideState.artwork.src);
+          loadedArtworksBySide[targetSide] = {
+            ...sideState.artwork,
+            width: image.naturalWidth,
+            height: image.naturalHeight,
+          };
+        }
+      }
+
+      setSize(persistedState.size ?? "M");
+      setArtworksBySide(loadedArtworksBySide);
+      setPlacementsBySide({
+        front: persistedState.sides.front?.placement ?? undefined,
+        back: persistedState.sides.back?.placement ?? undefined,
+      });
+      setPrintAreaOffsetsBySide({
+        front: persistedState.sides.front?.printAreaOffset ?? { x: 0, y: 0 },
+        back: persistedState.sides.back?.printAreaOffset ?? { x: 0, y: 0 },
+      });
+      setSavedDesignsBySide({
+        front: persistedState.sides.front?.savedDesign ?? undefined,
+        back: persistedState.sides.back?.savedDesign ?? undefined,
+      });
+      setStatus(`Loaded hoodie editor state from backend for design ${designId}.`);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "Failed to load editor state.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
@@ -299,11 +555,13 @@ const HoodieFrontEditor = () => {
 
   useEffect(() => {
     return () => {
-      if (artwork?.src.startsWith("blob:")) {
-        URL.revokeObjectURL(artwork.src);
-      }
+      Object.values(artworksBySideRef.current).forEach((item) => {
+        if (item?.src.startsWith("blob:")) {
+          URL.revokeObjectURL(item.src);
+        }
+      });
     };
-  }, [artwork]);
+  }, []);
 
   useEffect(() => {
     const handlePointerMove = (event: PointerEvent) => {
@@ -391,8 +649,11 @@ const HoodieFrontEditor = () => {
     };
 
     const handlePointerUp = () => {
+      const previousDragState = dragStateRef.current;
       dragStateRef.current = null;
-      setStatus(`Moved the ${side} print area on the mockup preview.`);
+      if (previousDragState?.mode === "area-move") {
+        setStatus(`Moved the ${side} print area on the mockup preview.`);
+      }
     };
 
     window.addEventListener("pointermove", handlePointerMove);
@@ -443,18 +704,30 @@ const HoodieFrontEditor = () => {
         height: image.naturalHeight,
       };
 
-      if (artwork?.src.startsWith("blob:")) {
-        URL.revokeObjectURL(artwork.src);
+      const previousArtwork = artworksBySide[side];
+      if (previousArtwork?.src.startsWith("blob:")) {
+        URL.revokeObjectURL(previousArtwork.src);
       }
 
-      setArtwork(nextArtwork);
-      setPlacementsBySide({
-        front: createInitialPlacement(nextArtwork, size, "front"),
-        back: createInitialPlacement(nextArtwork, size, "back"),
+      setArtworksBySide((current) => ({
+        ...current,
+        [side]: nextArtwork,
+      }));
+      setPlacementsBySide((current) => ({
+        ...current,
+        [side]: createInitialPlacement(nextArtwork, size, side),
+      }));
+      setPrintAreaOffsetsBySide((current) => ({
+        ...current,
+        [side]: current[side] ?? { x: 0, y: 0 },
+      }));
+      setSavedDesignsBySide((current) => {
+        const next = { ...current };
+        delete next[side];
+        return next;
       });
-      setSavedPlacementsBySide({});
       setIsArtworkSelected(true);
-      setStatus("Artwork loaded. Drag and resize it directly inside the print area.");
+      setStatus(`Artwork loaded for the ${side} side. Drag and resize it directly inside the print area.`);
     } catch (uploadError) {
       URL.revokeObjectURL(fileUrl);
       setError(uploadError instanceof Error ? uploadError.message : "Unable to read the uploaded image.");
@@ -467,12 +740,30 @@ const HoodieFrontEditor = () => {
       return;
     }
 
-    setSavedPlacementsBySide((current) => ({
+    setSavedDesignsBySide((current) => ({
       ...current,
-      [side]: placement,
+      [side]: {
+        side,
+        size,
+        placement,
+        printAreaOffset,
+      },
     }));
     setIsArtworkSelected(true);
     setStatus(`Normalized placement saved for the ${side} side.`);
+  };
+
+  const handleDownloadSavedDesign = () => {
+    if (!savedDesign) {
+      setError(`Save the ${side} design before downloading it.`);
+      return;
+    }
+
+    const blob = new Blob([JSON.stringify(savedDesign, null, 2)], {
+      type: "application/json",
+    });
+    downloadBlob(blob, `hoodie-${savedDesign.side}-${savedDesign.size}-design.json`);
+    setStatus(`Downloaded saved ${side} design.`);
   };
 
   const handleExport = async () => {
@@ -527,6 +818,72 @@ const HoodieFrontEditor = () => {
       setStatus(`Exported ${side} print file at ${template.printAreaReal.widthPx}x${template.printAreaReal.heightPx}.`);
     } catch (exportError) {
       setError(exportError instanceof Error ? exportError.message : "PNG export failed.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleDownloadMockupPng = async () => {
+    if (!artwork || !placement) {
+      setError("Upload artwork before downloading the full mockup PNG.");
+      return;
+    }
+
+    setIsExporting(true);
+    setError(null);
+
+    try {
+      const [mockupImage, artworkImage] = await Promise.all([
+        loadImage(template.mockupUrl),
+        loadImage(artwork.src),
+      ]);
+
+      const canvas = document.createElement("canvas");
+      // Match the square preview composition instead of exporting the uncropped wide source image.
+      canvas.width = template.canvasWidth;
+      canvas.height = template.canvasHeight;
+      const context = canvas.getContext("2d");
+
+      if (!context) {
+        throw new Error("Canvas context unavailable.");
+      }
+
+      const printAreaLeft =
+        template.printAreaOnCanvas.x + printAreaOffset.x * template.canvasWidth;
+      const printAreaTop =
+        template.printAreaOnCanvas.y + printAreaOffset.y * template.canvasHeight;
+      const printAreaWidth = template.printAreaOnCanvas.width;
+      const printAreaHeight = template.printAreaOnCanvas.height;
+
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      drawImageCover(context, mockupImage, canvas.width, canvas.height);
+      context.save();
+      context.beginPath();
+      context.rect(printAreaLeft, printAreaTop, printAreaWidth, printAreaHeight);
+      context.clip();
+      context.drawImage(
+        artworkImage,
+        printAreaLeft + placement.x * printAreaWidth,
+        printAreaTop + placement.y * printAreaHeight,
+        placement.width * printAreaWidth,
+        placement.height * printAreaHeight
+      );
+      context.restore();
+
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((value) => {
+          if (value) {
+            resolve(value);
+          } else {
+            reject(new Error("Failed to export mockup PNG."));
+          }
+        }, "image/png");
+      });
+
+      downloadBlob(blob, `hoodie-${side}-${size}-mockup.png`);
+      setStatus(`Downloaded full ${side} mockup PNG.`);
+    } catch (downloadError) {
+      setError(downloadError instanceof Error ? downloadError.message : "Mockup PNG download failed.");
     } finally {
       setIsExporting(false);
     }
@@ -594,8 +951,8 @@ const HoodieFrontEditor = () => {
           <CardHeader>
             <CardTitle>Controls</CardTitle>
             <CardDescription>
-              Front-only hoodie editor. Preview pixels are visual only; manufacturing values come from normalized
-              placement plus the selected size metadata.
+              Hoodie front/back editor. Preview pixels are visual only; manufacturing values come from normalized
+              placement, the moved print area, and the selected size metadata.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -639,6 +996,19 @@ const HoodieFrontEditor = () => {
               </p>
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="design-id">Design ID</Label>
+              <Input
+                id="design-id"
+                value={designId}
+                onChange={(event) => setDesignId(event.target.value)}
+                placeholder="Supabase design UUID"
+              />
+              <p className="text-xs text-muted-foreground">
+                Backend save/load uses `design_specs.hoodie_editor_state` for this design.
+              </p>
+            </div>
+
             <div className="rounded-lg border bg-muted/30 p-3 text-sm">
               <p className="font-medium">{artwork ? artwork.name : "No artwork uploaded"}</p>
               <p className="mt-1 text-muted-foreground">{status}</p>
@@ -662,8 +1032,20 @@ const HoodieFrontEditor = () => {
               <Button onClick={handleSavePlacement} disabled={!placement}>
                 Save Normalized Placement
               </Button>
+              <Button variant="secondary" onClick={handleDownloadSavedDesign} disabled={!savedDesign}>
+                Download Saved Design
+              </Button>
+              <Button variant="secondary" onClick={handleLoadFromBackend} disabled={!designId || isSyncing}>
+                {isSyncing ? "Syncing..." : "Load From Backend"}
+              </Button>
+              <Button onClick={handleSaveToBackend} disabled={!designId || isSyncing}>
+                {isSyncing ? "Syncing..." : "Save To Backend"}
+              </Button>
               <Button variant="secondary" onClick={handleLogManufacturerSpec} disabled={!garmentRelativeSpec}>
                 Log Manufacturer Spec
+              </Button>
+              <Button variant="outline" onClick={handleDownloadMockupPng} disabled={!placement || !artwork || isExporting}>
+                Download Mockup PNG
               </Button>
               <Button variant="outline" onClick={handleExport} disabled={!placement || isExporting}>
                 <Download className="mr-2 h-4 w-4" />
