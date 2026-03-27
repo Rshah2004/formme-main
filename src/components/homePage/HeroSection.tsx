@@ -110,8 +110,9 @@ const HeroSection: React.FC = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 max-w-full sm:max-w-none mt-8 sm:mt-0 mb-6 sm:mb-0 items-center sm:items-start">
-          <button
-            onClick={handleDashboardClick}
+          
+          {/* <button
+             onClick={handleDashboardClick}
             className="w-[85%] sm:w-[180px] md:w-[219px] h-[56px] sm:h-[64px] md:h-[72px] flex-shrink-0 text-white text-sm sm:text-base font-medium 
                        rounded-[30px] relative overflow-hidden
                        bg-[#344C3D] shadow-[3px_7px_5px_0px_rgba(0,0,0,0.25)]
@@ -119,18 +120,22 @@ const HeroSection: React.FC = () => {
           >
             <div className="absolute inset-0 bg-[url('/imageButtons.png')] bg-cover bg-center mix-blend-multiply"></div>
             <span className="relative z-10">Dashboard</span>
-          </button>
+          </button> */}
 
+         
+  <a href="https://forms.gle/YrDYDsDoRQbJHHAf6" target="_blank">
+   
           <button
-            onClick={handleCreateClick}
+            // onClick={handleCreateClick}
             className="w-[85%] sm:w-[180px] md:w-[219px] h-[56px] sm:h-[64px] md:h-[72px] flex-shrink-0 text-white text-sm sm:text-base font-medium 
                        rounded-[30px] relative overflow-hidden
                        bg-[#974320] shadow-[3px_7px_5px_0px_rgba(0,0,0,0.25)]
                        hover:opacity-90 transition-opacity"
           >
             <div className="absolute inset-0 bg-[url('/imageButtons.png')] bg-cover bg-center mix-blend-multiply"></div>
-            <span className="relative z-10">Create</span>
+            <span className="relative z-10">Join Waitlist</span>
           </button>
+          </a>
         </div>
       </div>
     

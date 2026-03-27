@@ -137,8 +137,15 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
         ))}
       </nav>
 
+      
+
       <div className="flex gap-3 sm:gap-6 items-center">
-        {user && (
+        <a href="https://forms.gle/YrDYDsDoRQbJHHAf6" target="_blank" rel="noopener noreferrer" onClick={() => setMobileMenuOpen(false)}>
+  <button className="w-full px-6 py-3 text-sm font-medium text-primary-foreground bg-primary shadow-sm cursor-pointer border-none rounded-full hover:bg-primary/90 transition-all duration-200">
+    Join Waitlist
+  </button>
+</a>
+        {/* {user && (
           <Link to="/profile" aria-label="User profile">
             <button className="p-2 rounded-full hover:bg-muted transition-colors">
               <UserIcon />
@@ -152,7 +159,7 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
               Book a demo
             </button>
           </Link>
-        )}
+        )} */}
 
         {/* Mobile Menu Button */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -175,7 +182,13 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
                 </Link>
               ))}
 
-              <div className="border-t border-border pt-6 mt-2">
+              <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                    <button className="w-full px-6 py-3 text-sm font-medium text-primary-foreground bg-primary shadow-sm cursor-pointer border-none rounded-full hover:bg-primary/90 transition-all duration-200">
+                      Join Waitlist
+                    </button>
+                  </Link>
+
+              {/* <div className="border-t border-border pt-6 mt-2">
                 {!user ? (
                   <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
                     <button className="w-full px-6 py-3 text-sm font-medium text-primary-foreground bg-primary shadow-sm cursor-pointer border-none rounded-full hover:bg-primary/90 transition-all duration-200">
@@ -189,7 +202,7 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
                     </button>
                   </Link>
                 )}
-              </div>
+              </div> */}
             </nav>
           </SheetContent>
         </Sheet>

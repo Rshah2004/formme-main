@@ -58,11 +58,16 @@ export default function StatsAndCTA() {
               Ready to create?
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
-              Join thousands of designers bringing their sustainable visions to life.
+              Join our waitlist now for early access to Formme and we'll help you bring your next vision to life.
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button
+  <a href="https://forms.gle/YrDYDsDoRQbJHHAf6" target="_blank">
+    <button className="w-full px-10 py-4 text-base font-semibold text-primary-foreground bg-primary shadow-sm cursor-pointer border-none rounded-full hover:bg-primary/90 transition-all duration-200">
+      Join Waitlist
+    </button>
+  </a>
+              {/* <Button
                   onClick={async () => {
                     const {data: {session}} = await supabase.auth.getSession();
                     if (session) {
@@ -81,7 +86,7 @@ export default function StatsAndCTA() {
                 className="rounded-full px-8 py-6 text-base border-foreground/20 hover:bg-foreground/5"
               >
                 Book a demo
-              </Button>
+              </Button> */}
             </div>
           </motion.div>
         </div>
