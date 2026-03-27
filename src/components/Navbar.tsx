@@ -149,7 +149,7 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
         {!user && (
           <Link to="/auth" className="hidden sm:block">
             <button className="px-4 sm:px-6 py-2 sm:py-2.5 text-sm font-medium text-primary-foreground bg-primary shadow-sm cursor-pointer border-none rounded-full hover:bg-primary/90 transition-all duration-200">
-              Sign up
+              Book a demo
             </button>
           </Link>
         )}
@@ -179,7 +179,7 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
                 {!user ? (
                   <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
                     <button className="w-full px-6 py-3 text-sm font-medium text-primary-foreground bg-primary shadow-sm cursor-pointer border-none rounded-full hover:bg-primary/90 transition-all duration-200">
-                      Sign up
+                      Book a demo
                     </button>
                   </Link>
                 ) : (

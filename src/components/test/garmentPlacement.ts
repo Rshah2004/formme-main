@@ -20,6 +20,12 @@ export type HoodieGarmentMeasurements = {
   waistbandHeightIn: number;
 };
 
+export type MeasuredGarmentCalibration = {
+  bodyLengthWithoutHoodIn: number;
+  flatWidthIn: number;
+  source: string;
+};
+
 export type PlacementInInches = {
   leftIn: number;
   topIn: number;
@@ -276,6 +282,16 @@ export const hoodieMeasurementSpec: Record<HoodieSize, HoodieGarmentMeasurements
     pocketBottomWidthIn: 15.25,
     pocketOpeningCurveIn: 7.5,
     waistbandHeightIn: 2.5,
+  },
+};
+
+// Real garment measurements taken from the physical hoodie in hand. These are separate from the
+// source garment spec and are only used to help interpret placement on the mockup UI.
+export const measuredGarmentCalibrationBySize: Partial<Record<HoodieSize, MeasuredGarmentCalibration>> = {
+  XL: {
+    bodyLengthWithoutHoodIn: 72 / 2.54,
+    flatWidthIn: 60 / 2.54,
+    source: "Measured on physical hoodie without hood",
   },
 };
 

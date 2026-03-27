@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight, Mail, Phone, MapPin, Instagram, Twitter, Facebook } from "lucide-react";
+import { ChevronRight, Mail, Phone, MapPin, Instagram, Linkedin } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 const Footer = () => {
@@ -18,15 +18,22 @@ const Footer = () => {
               From design intent to factory output.
             </p>
             <div className="flex space-x-4">
-              <Link to="#" className="text-gray-400 hover:text-white transition-colors">
+              <a
+                href="https://www.instagram.com/formme.design/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-white transition-colors"
+              >
                 <Instagram className="h-5 w-5" />
-              </Link>
-              <Link to="#" className="text-gray-400 hover:text-white transition-colors">
-                <Twitter className="h-5 w-5" />
-              </Link>
-              <Link to="#" className="text-gray-400 hover:text-white transition-colors">
-                <Facebook className="h-5 w-5" />
-              </Link>
+              </a>
+              <a
+                href="https://www.linkedin.com/company/formmedesign"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <Linkedin className="h-5 w-5" />
+              </a>
             </div>
           </div>
 

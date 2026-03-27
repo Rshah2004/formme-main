@@ -5,13 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { Mail, CheckCircle2, Clock } from "lucide-react";
+import BookDemoModal from "@/components/homePage/BookDemoModal";
 
 type UserRole = "designer" | "manufacturer";
 type AuthMode = "signin" | "signup" | "verify-email" | "reset-password" | "request-submitted";
@@ -21,6 +20,7 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState<AuthMode>("signin");
   const [userRole, setUserRole] = useState<UserRole>("designer");
+  const [showBookDemo, setShowBookDemo] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -419,7 +419,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
             <div className="text-center mb-6">
               <h1 className="text-4xl font-bold mb-2">formme</h1>
               <p className="text-muted-foreground">
-                {mode === "signin" ? "Welcome back" : "Create your account"}
+                {mode === "signin" ? "Welcome back" : "Book a demo with our team"}
               </p>
             </div>
 
@@ -445,7 +445,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       : "text-muted-foreground hover:text-foreground hover:bg-white/10"
                   }`}
                 >
-                  Sign Up
+                  Book a Demo
                 </button>
               </div>
 
@@ -485,8 +485,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
           </TabsContent>
 
           <TabsContent value="signup">
-            <form onSubmit={handleSignUp} className="space-y-3">
-              {/* Role Selection */}
+            <div className="space-y-6">
               <div>
                 <Label className="text-sm font-medium mb-2 block">I am a...</Label>
                 <div className="flex gap-1 bg-muted/30 p-1 rounded-xl">
@@ -499,7 +498,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                         : "bg-white text-foreground border border-border/50 hover:bg-primary/5"
                     }`}
                   >
-                    Designer
+                    Brand
                   </button>
                   <button
                     type="button"
@@ -514,380 +513,25 @@ const handleResetPassword = async (e: React.FormEvent) => {
                   </button>
                 </div>
               </div>
-
-              {/* Personal Information */}
-              <div className="pt-1">
-                <h3 className="text-sm font-semibold text-muted-foreground mb-2">Personal Information</h3>
-                <div className="space-y-2">
-                  <div>
-                    <Label htmlFor="signup-fullName" className="text-sm">Full Name</Label>
-                    <Input
-                      id="signup-fullName"
-                      type="text"
-                      value={formData.fullName}
-                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                      required
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
+              <div className="rounded-2xl border border-border/50 bg-background/70 p-6">
+                <h2 className="text-xl font-semibold mb-2">
+                  {userRole === "designer" ? "Book a demo for your brand" : "Book a demo for your manufacturing team"}
+                </h2>
+                <p className="text-sm text-muted-foreground mb-5">
+                  We&apos;ll walk you through the platform, answer questions, and show how Formme fits your workflow.
+                </p>
+                <Button type="button" onClick={() => setShowBookDemo(true)} className="w-full mt-3 h-11 rounded-xl">
+                  Book a Demo
+                </Button>
               </div>
-
-              {/* Company Info */}
-              <div className="pt-1">
-                <h3 className="text-sm font-semibold text-muted-foreground mb-2">Company Info</h3>
-                <div className="space-y-2">
-                  <div>
-                    <Label htmlFor="signup-companyName" className="text-sm">Company Name</Label>
-                    <Input
-                      id="signup-companyName"
-                      type="text"
-                      value={formData.companyName}
-                      onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="signup-email" className="text-sm">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      required
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="signup-password" className="text-sm">Password</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      required
-                      minLength={6}
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {userRole === "designer" && (
-                <>
-                  {/* Brand Details */}
-                  <div className="pt-1">
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-2">Brand Details</h3>
-                    <div className="space-y-2">
-                      <div>
-                        <Label htmlFor="signup-brandDescription" className="text-sm">Brand Description</Label>
-                        <Textarea
-                          id="signup-brandDescription"
-                          value={formData.brandDescription}
-                          onChange={(e) => setFormData({ ...formData, brandDescription: e.target.value })}
-                          className="mt-1"
-                          rows={3}
-                        />
-                      </div>
-                      {/* <div>
-                        <Label htmlFor="signup-brandUrl" className="text-sm">Brand Website</Label>
-                        <Input
-                          id="signup-brandUrl"
-                          type="url"
-                          placeholder="https://yourbrand.com"
-                          value={formData.brandUrl}
-                          onChange={(e) => setFormData({ ...formData, brandUrl: e.target.value })}
-                          className="mt-1"
-                        />
-                      </div> */}
-                      <div>
-                        <Label className="text-sm mb-2 block">Categories</Label>
-                        <div className="grid grid-cols-2 gap-2 p-3 border border-border rounded-md bg-background">
-                          {categoriesOptions.map((category) => (
-                            <div key={category} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`brand-category-${category}`}
-                                checked={formData.categories.includes(category)}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    setFormData({
-                                      ...formData,
-                                      categories: [...formData.categories, category]
-                                    });
-                                  } else {
-                                    setFormData({
-                                      ...formData,
-                                      categories: formData.categories.filter((c) => c !== category)
-                                    });
-                                  }
-                                }}
-                              />
-                              <label
-                                htmlFor={`brand-category-${category}`}
-                                className="text-sm cursor-pointer"
-                              >
-                                {category}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <Label className="text-sm mb-2 block">Annual Volume Range</Label>
-                        <div className="grid grid-cols-2 gap-2">
-                          {annualVolumeOptions.map((option) => (
-                            <button
-                              key={option}
-                              type="button"
-                              onClick={() => setFormData({ ...formData, annualVolumeRange: option })}
-                              className={`py-2 px-3 rounded-md text-sm border transition-colors ${
-                                formData.annualVolumeRange === option
-                                  ? "bg-primary text-primary-foreground border-primary"
-                                  : "bg-white text-foreground border-border hover:bg-primary/5"
-                              }`}
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <Label className="text-sm mb-2 block">Budget Range</Label>
-                        <div className="grid grid-cols-2 gap-2">
-                          {budgetRangeOptions.map((option) => (
-                            <button
-                              key={option}
-                              type="button"
-                              onClick={() => setFormData({ ...formData, budgetRange: option })}
-                              className={`py-2 px-3 rounded-md text-sm border transition-colors ${
-                                formData.budgetRange === option
-                                  ? "bg-primary text-primary-foreground border-primary"
-                                  : "bg-white text-foreground border-border hover:bg-primary/5"
-                              }`}
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <Label htmlFor="signup-portfolioUrls" className="text-sm">Portfolio URLs</Label>
-                        <Textarea
-                          id="signup-portfolioUrls"
-                          placeholder="https://... , https://..."
-                          value={formData.portfolioUrls}
-                          onChange={(e) => setFormData({ ...formData, portfolioUrls: e.target.value })}
-                          className="mt-1"
-                          rows={2}
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">Separate multiple URLs with commas.</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Shipping Address */}
-                  <div className="pt-1">
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-2">Shipping Address</h3>
-                    <div className="space-y-2">
-                      <div>
-                        <Label htmlFor="signup-shippingStreet" className="text-sm">Street</Label>
-                        <Input
-                          id="signup-shippingStreet"
-                          type="text"
-                          value={formData.shippingStreet}
-                          onChange={(e) => setFormData({ ...formData, shippingStreet: e.target.value })}
-                          required
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="signup-shippingCity" className="text-sm">City</Label>
-                        <Input
-                          id="signup-shippingCity"
-                          type="text"
-                          value={formData.shippingCity}
-                          onChange={(e) => setFormData({ ...formData, shippingCity: e.target.value })}
-                          required
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="signup-shippingState" className="text-sm">State</Label>
-                        <Input
-                          id="signup-shippingState"
-                          type="text"
-                          value={formData.shippingState}
-                          onChange={(e) => setFormData({ ...formData, shippingState: e.target.value })}
-                          required
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="signup-shippingPostal" className="text-sm">Postal Code</Label>
-                        <Input
-                          id="signup-shippingPostal"
-                          type="text"
-                          value={formData.shippingPostal}
-                          onChange={(e) => setFormData({ ...formData, shippingPostal: e.target.value })}
-                          required
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="signup-shippingCountry" className="text-sm">Country</Label>
-                        <Input
-                          id="signup-shippingCountry"
-                          type="text"
-                          value={formData.shippingCountry}
-                          onChange={(e) => setFormData({ ...formData, shippingCountry: e.target.value })}
-                          required
-                          className="mt-1"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-              
-              {userRole === "manufacturer" && (
-                <>
-                  {/* Additional Info */}
-                  <div className="pt-1">
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-2">Additional Information</h3>
-                    <div className="space-y-2">
-                      <div>
-                        <Label htmlFor="signup-location" className="text-sm">Location</Label>
-                        <Input
-                          id="signup-location"
-                          type="text"
-                          placeholder="City, Country"
-                          value={formData.location}
-                          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="signup-phone" className="text-sm">Phone</Label>
-                        <Input
-                          id="signup-phone"
-                          type="tel"
-                          placeholder="+1 234 567 8900"
-                          value={formData.phone}
-                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                          className="mt-1"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Production Details */}
-                  <div className="pt-1">
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-2">Production Details</h3>
-                    <div className="space-y-2">
-                      <div>
-                        <Label htmlFor="signup-moq" className="text-sm">Min Order Qty</Label>
-                        <Input
-                          id="signup-moq"
-                          type="number"
-                          placeholder="100"
-                          value={formData.moq}
-                          onChange={(e) => setFormData({ ...formData, moq: e.target.value })}
-                          className="mt-1"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="signup-leadTime" className="text-sm">Lead Time (days)</Label>
-                        <Input
-                          id="signup-leadTime"
-                          type="number"
-                          placeholder="30"
-                          value={formData.leadTime}
-                          onChange={(e) => setFormData({ ...formData, leadTime: e.target.value })}
-                          className="mt-1"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label className="text-sm mb-2 block">Capabilities</Label>
-                        <div className="grid grid-cols-2 gap-2 p-3 border border-border rounded-md bg-background">
-                          {capabilitiesOptions.map((capability) => (
-                            <div key={capability} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`capability-${capability}`}
-                                checked={formData.capabilities.includes(capability)}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    setFormData({
-                                      ...formData,
-                                      capabilities: [...formData.capabilities, capability]
-                                    });
-                                  } else {
-                                    setFormData({
-                                      ...formData,
-                                      capabilities: formData.capabilities.filter((c) => c !== capability)
-                                    });
-                                  }
-                                }}
-                              />
-                              <label
-                                htmlFor={`capability-${capability}`}
-                                className="text-sm cursor-pointer"
-                              >
-                                {capability}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Categories */}
-                  <div className="pt-1">
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-2">Categories</h3>
-                    <div className="grid grid-cols-2 gap-2 p-3 border border-border rounded-md bg-background">
-                      {categoriesOptions.map((category) => (
-                        <div key={category} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`category-${category}`}
-                            checked={formData.categories.includes(category)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setFormData({
-                                  ...formData,
-                                  categories: [...formData.categories, category]
-                                });
-                              } else {
-                                setFormData({
-                                  ...formData,
-                                  categories: formData.categories.filter((c) => c !== category)
-                                });
-                              }
-                            }}
-                          />
-                          <label
-                            htmlFor={`category-${category}`}
-                            className="text-sm cursor-pointer"
-                          >
-                            {category}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
-              <Button type="submit" className="w-full mt-3 h-11 rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all" disabled={isLoading}>
-                {isLoading ? "Submitting request..." : "Request Access"}
-              </Button>
-            </form>
+            </div>
           </TabsContent>
         </Tabs>
         </>
         )}
       </Card>
       </div>
+      <BookDemoModal open={showBookDemo} onOpenChange={setShowBookDemo} />
       <Footer />
     </div>
   );

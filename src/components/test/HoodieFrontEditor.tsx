@@ -26,6 +26,7 @@ import {
   defaultFrontPrintAreaAnchorBySize,
   getGarmentRelativePlacementSpecBySide,
   hoodieMeasurementSpec,
+  measuredGarmentCalibrationBySize,
   type AnyManufacturerGarmentRelativeSpec,
 } from "./garmentPlacement";
 import { supabase } from "@/integrations/supabase/client";
@@ -146,6 +147,9 @@ const drawImageCover = (
 };
 
 const round = (value: number) => Math.round(value * 100) / 100;
+const toCm = (valueIn: number) => valueIn * 2.54;
+const toInches = (valueCm: number) => valueCm / 2.54;
+const cm = (valueIn: number) => round(toCm(valueIn));
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
 const RESIZE_HANDLES = [
@@ -275,11 +279,135 @@ const HoodieFrontEditor = () => {
   const bottomIn = inches
     ? template.printAreaReal.heightIn - inches.topIn - inches.heightIn
     : null;
+  const measuredCalibration = measuredGarmentCalibrationBySize[size] ?? null;
+  const measuredPlacement = useMemo(() => {
+    if (!garmentRelativeSpec || !measuredCalibration) {
+      return null;
+    }
+
+    const halfWidthIn = measuredCalibration.flatWidthIn / 2;
+    const bottomFromMeasuredBottomIn =
+      measuredCalibration.bodyLengthWithoutHoodIn - garmentRelativeSpec.artwork.bottomFromHPSIn;
+    const leftFromLeftEdgeIn =
+      halfWidthIn + garmentRelativeSpec.artwork.leftFromGarmentCenterIn;
+    const rightFromRightEdgeIn =
+      halfWidthIn - garmentRelativeSpec.artwork.rightFromGarmentCenterIn;
+
+    return {
+      bodyLengthCm: measuredCalibration.bodyLengthWithoutHoodIn * 2.54,
+      flatWidthCm: measuredCalibration.flatWidthIn * 2.54,
+      topFromHpsCm: garmentRelativeSpec.artwork.topFromHPSIn * 2.54,
+      bottomFromHpsCm: garmentRelativeSpec.artwork.bottomFromHPSIn * 2.54,
+      bottomFromMeasuredBottomCm: bottomFromMeasuredBottomIn * 2.54,
+      leftFromLeftEdgeCm: leftFromLeftEdgeIn * 2.54,
+      rightFromRightEdgeCm: rightFromRightEdgeIn * 2.54,
+      widthCm: garmentRelativeSpec.artwork.widthIn * 2.54,
+      heightCm: garmentRelativeSpec.artwork.heightIn * 2.54,
+    };
+  }, [garmentRelativeSpec, measuredCalibration]);
+  const garmentRelativeSpecCm = useMemo(() => {
+    if (!garmentRelativeSpec) {
+      return null;
+    }
+
+    if (side === "front") {
+      return {
+        size: garmentRelativeSpec.size,
+        side: garmentRelativeSpec.side,
+        garment: {
+          backLengthCm: cm(garmentRelativeSpec.garment.backLengthIn),
+          chestHalfCm: cm(garmentRelativeSpec.garment.chestHalfIn),
+          acrossShoulderCm: cm(garmentRelativeSpec.garment.acrossShoulderIn),
+          acrossFront6_5DownCm: cm(garmentRelativeSpec.garment.acrossFront6_5DownIn),
+          neckWidthCm: cm(garmentRelativeSpec.garment.neckWidthIn),
+          frontNeckDropCm: cm(garmentRelativeSpec.garment.frontNeckDropIn),
+          waistbandHeightCm: cm(garmentRelativeSpec.garment.waistbandHeightIn),
+        },
+        printArea: {
+          widthCm: cm(garmentRelativeSpec.printArea.widthIn),
+          heightCm: cm(garmentRelativeSpec.printArea.heightIn),
+          widthPx: garmentRelativeSpec.printArea.widthPx,
+          heightPx: garmentRelativeSpec.printArea.heightPx,
+          dpi: garmentRelativeSpec.printArea.dpi,
+          centerXFromGarmentCenterCm: cm(garmentRelativeSpec.printArea.centerXFromGarmentCenterIn),
+          topFromHpsCm: cm(garmentRelativeSpec.printArea.topFromHPSIn),
+          anchorIsAssumed: garmentRelativeSpec.printArea.anchorIsAssumed,
+        },
+        artwork: {
+          leftFromGarmentCenterCm: cm(garmentRelativeSpec.artwork.leftFromGarmentCenterIn),
+          rightFromGarmentCenterCm: cm(garmentRelativeSpec.artwork.rightFromGarmentCenterIn),
+          topFromHpsCm: cm(garmentRelativeSpec.artwork.topFromHPSIn),
+          bottomFromHpsCm: cm(garmentRelativeSpec.artwork.bottomFromHPSIn),
+          widthCm: cm(garmentRelativeSpec.artwork.widthIn),
+          heightCm: cm(garmentRelativeSpec.artwork.heightIn),
+          centerXFromGarmentCenterCm: cm(garmentRelativeSpec.artwork.centerXFromGarmentCenterIn),
+          centerYFromHpsCm: cm(garmentRelativeSpec.artwork.centerYFromHPSIn),
+          leftPctOfChestHalf: round(garmentRelativeSpec.artwork.leftPctOfChestHalf),
+          widthPctOfChestHalf: round(garmentRelativeSpec.artwork.widthPctOfChestHalf),
+          topPctOfBackLength: round(garmentRelativeSpec.artwork.topPctOfBackLength),
+          heightPctOfBackLength: round(garmentRelativeSpec.artwork.heightPctOfBackLength),
+        },
+        referenceLines: {
+          neckWidthCm: cm(garmentRelativeSpec.referenceLines.neckWidthIn),
+          frontNeckDropCm: cm(garmentRelativeSpec.referenceLines.frontNeckDropIn),
+          acrossFront6_5DownCm: cm(garmentRelativeSpec.referenceLines.acrossFront6_5DownIn),
+        },
+        pocket: {
+          lengthCm: cm(garmentRelativeSpec.pocket.lengthIn),
+          topWidthCm: cm(garmentRelativeSpec.pocket.topWidthIn),
+          openingWidthCm: cm(garmentRelativeSpec.pocket.openingWidthIn),
+          bottomWidthCm: cm(garmentRelativeSpec.pocket.bottomWidthIn),
+          openingCurveCm: cm(garmentRelativeSpec.pocket.openingCurveIn),
+          verticalPlacementKnown: garmentRelativeSpec.pocket.verticalPlacementKnown,
+        },
+      };
+    }
+
+    return {
+      size: garmentRelativeSpec.size,
+      side: garmentRelativeSpec.side,
+      garment: {
+        backLengthCm: cm(garmentRelativeSpec.garment.backLengthIn),
+        acrossShoulderCm: cm(garmentRelativeSpec.garment.acrossShoulderIn),
+        acrossBack6_5DownCm: cm(garmentRelativeSpec.garment.acrossBack6_5DownIn),
+        backNeckDropCm: cm(garmentRelativeSpec.garment.backNeckDropIn),
+      },
+      printArea: {
+        widthCm: cm(garmentRelativeSpec.printArea.widthIn),
+        heightCm: cm(garmentRelativeSpec.printArea.heightIn),
+        widthPx: garmentRelativeSpec.printArea.widthPx,
+        heightPx: garmentRelativeSpec.printArea.heightPx,
+        dpi: garmentRelativeSpec.printArea.dpi,
+        centerXFromGarmentCenterCm: cm(garmentRelativeSpec.printArea.centerXFromGarmentCenterIn),
+        topFromHpsCm: cm(garmentRelativeSpec.printArea.topFromHPSIn),
+        anchorIsAssumed: garmentRelativeSpec.printArea.anchorIsAssumed,
+      },
+      artwork: {
+        leftFromGarmentCenterCm: cm(garmentRelativeSpec.artwork.leftFromGarmentCenterIn),
+        rightFromGarmentCenterCm: cm(garmentRelativeSpec.artwork.rightFromGarmentCenterIn),
+        topFromHpsCm: cm(garmentRelativeSpec.artwork.topFromHPSIn),
+        bottomFromHpsCm: cm(garmentRelativeSpec.artwork.bottomFromHPSIn),
+        widthCm: cm(garmentRelativeSpec.artwork.widthIn),
+        heightCm: cm(garmentRelativeSpec.artwork.heightIn),
+        centerXFromGarmentCenterCm: cm(garmentRelativeSpec.artwork.centerXFromGarmentCenterIn),
+        centerYFromHpsCm: cm(garmentRelativeSpec.artwork.centerYFromHPSIn),
+        leftPctOfAcrossBack6_5Down: round(garmentRelativeSpec.artwork.leftPctOfAcrossBack6_5Down),
+        widthPctOfAcrossBack6_5Down: round(garmentRelativeSpec.artwork.widthPctOfAcrossBack6_5Down),
+        topPctOfBackLength: round(garmentRelativeSpec.artwork.topPctOfBackLength),
+        heightPctOfBackLength: round(garmentRelativeSpec.artwork.heightPctOfBackLength),
+      },
+      referenceLines: {
+        acrossBack6_5DownCm: cm(garmentRelativeSpec.referenceLines.acrossBack6_5DownIn),
+        backNeckDropCm: cm(garmentRelativeSpec.referenceLines.backNeckDropIn),
+        acrossShoulderCm: cm(garmentRelativeSpec.referenceLines.acrossShoulderIn),
+      },
+    };
+  }, [garmentRelativeSpec, side]);
   const artworkCenterX = placement ? placement.x + placement.width / 2 : null;
-  const centerOffsetIn = inches
-    ? Math.abs(inches.leftIn + inches.widthIn / 2 - template.printAreaReal.widthIn / 2)
+  const centerOffsetCm = inches
+    ? Math.abs(toCm(inches.leftIn + inches.widthIn / 2 - template.printAreaReal.widthIn / 2))
     : null;
-  const isHorizontallyCentered = centerOffsetIn !== null && centerOffsetIn <= 0.1;
+  const isHorizontallyCentered = centerOffsetCm !== null && centerOffsetCm <= 0.25;
 
   useEffect(() => {
     const nextDesignId = searchParams.get("designId") ?? "";
@@ -855,6 +983,24 @@ const HoodieFrontEditor = () => {
     setIsArtworkSelected(true);
   };
 
+  const updatePlacementFromCentimeters = (
+    updates: Partial<{
+      leftCm: number;
+      topCm: number;
+      widthCm: number;
+      heightCm: number;
+      bottomCm: number;
+    }>
+  ) => {
+    updatePlacementFromInches({
+      leftIn: typeof updates.leftCm === "number" ? toInches(updates.leftCm) : undefined,
+      topIn: typeof updates.topCm === "number" ? toInches(updates.topCm) : undefined,
+      widthIn: typeof updates.widthCm === "number" ? toInches(updates.widthCm) : undefined,
+      heightIn: typeof updates.heightCm === "number" ? toInches(updates.heightCm) : undefined,
+      bottomIn: typeof updates.bottomCm === "number" ? toInches(updates.bottomCm) : undefined,
+    });
+  };
+
   const previewPrintAreaStyle = {
     left: `${(template.printAreaOnCanvas.x / template.canvasWidth) * 100}%`,
     top: `${(template.printAreaOnCanvas.y / template.canvasHeight) * 100}%`,
@@ -931,16 +1077,21 @@ const HoodieFrontEditor = () => {
               <p className="font-medium">{artwork ? artwork.name : "No artwork uploaded"}</p>
               <p className="mt-1 text-muted-foreground">{status}</p>
               <p className="mt-1 text-muted-foreground">
-                Visible print intersection: {clippedInches ? `${round(clippedInches.widthIn)} in x ${round(clippedInches.heightIn)} in` : "outside print area"}
+                Visible print intersection: {clippedInches ? `${round(toCm(clippedInches.widthIn))} cm x ${round(toCm(clippedInches.heightIn))} cm` : "outside print area"}
               </p>
               <p className="mt-1 text-muted-foreground">
-                Locked print area anchor: X {round(movedGarmentAnchor.centerXFromGarmentCenterIn)} in, Y {round(movedGarmentAnchor.topFromHPSIn)} in
+                Locked print area anchor: X {round(toCm(movedGarmentAnchor.centerXFromGarmentCenterIn))} cm, Y {round(toCm(movedGarmentAnchor.topFromHPSIn))} cm
               </p>
+              {measuredPlacement ? (
+                <p className="mt-1 text-muted-foreground">
+                  XL measured hoodie: top from HPS {round(measuredPlacement.topFromHpsCm)} cm, left/right {round(measuredPlacement.leftFromLeftEdgeCm)} cm / {round(measuredPlacement.rightFromRightEdgeCm)} cm
+                </p>
+              ) : null}
               <p className={`mt-1 font-medium ${isHorizontallyCentered ? "text-[#0f766e]" : "text-muted-foreground"}`}>
                 {isHorizontallyCentered
                   ? "Horizontally centered on print area"
-                  : centerOffsetIn !== null
-                    ? `Center offset: ${round(centerOffsetIn)} in`
+                  : centerOffsetCm !== null
+                    ? `Center offset: ${round(centerOffsetCm)} cm`
                     : "Center offset: -"}
               </p>
               {error ? <p className="mt-2 text-red-600">{error}</p> : null}
@@ -981,31 +1132,31 @@ const HoodieFrontEditor = () => {
           <CardContent className="grid gap-3 text-sm sm:grid-cols-2">
             <div className="rounded-lg border p-3">
               <p className="text-muted-foreground">Artwork Width</p>
-              <p className="mt-1 font-medium">{inches ? `${round(inches.widthIn)} in` : "-"}</p>
+              <p className="mt-1 font-medium">{inches ? `${round(toCm(inches.widthIn))} cm` : "-"}</p>
             </div>
             <div className="rounded-lg border p-3">
               <p className="text-muted-foreground">Artwork Height</p>
-              <p className="mt-1 font-medium">{inches ? `${round(inches.heightIn)} in` : "-"}</p>
+              <p className="mt-1 font-medium">{inches ? `${round(toCm(inches.heightIn))} cm` : "-"}</p>
             </div>
             <div className="rounded-lg border p-3">
               <p className="text-muted-foreground">Left From Print Area</p>
-              <p className="mt-1 font-medium">{inches ? `${round(inches.leftIn)} in` : "-"}</p>
+              <p className="mt-1 font-medium">{inches ? `${round(toCm(inches.leftIn))} cm` : "-"}</p>
             </div>
             <div className="rounded-lg border p-3">
               <p className="text-muted-foreground">Top From Print Area</p>
-              <p className="mt-1 font-medium">{inches ? `${round(inches.topIn)} in` : "-"}</p>
+              <p className="mt-1 font-medium">{inches ? `${round(toCm(inches.topIn))} cm` : "-"}</p>
             </div>
             <div className="rounded-lg border p-3">
               <p className="text-muted-foreground">Bottom From Print Area</p>
-              <p className="mt-1 font-medium">{bottomIn !== null ? `${round(bottomIn)} in` : "-"}</p>
+              <p className="mt-1 font-medium">{bottomIn !== null ? `${round(toCm(bottomIn))} cm` : "-"}</p>
             </div>
             <div className="rounded-lg border p-3">
               <p className="text-muted-foreground">Visible Width In Print Area</p>
-              <p className="mt-1 font-medium">{clippedInches ? `${round(clippedInches.widthIn)} in` : "0 in"}</p>
+              <p className="mt-1 font-medium">{clippedInches ? `${round(toCm(clippedInches.widthIn))} cm` : "0 cm"}</p>
             </div>
             <div className="rounded-lg border p-3">
               <p className="text-muted-foreground">Visible Height In Print Area</p>
-              <p className="mt-1 font-medium">{clippedInches ? `${round(clippedInches.heightIn)} in` : "0 in"}</p>
+              <p className="mt-1 font-medium">{clippedInches ? `${round(toCm(clippedInches.heightIn))} cm` : "0 cm"}</p>
             </div>
           </CardContent>
         </Card>
@@ -1013,61 +1164,61 @@ const HoodieFrontEditor = () => {
         <Card>
           <CardHeader>
             <CardTitle>Manual Placement Controls</CardTitle>
-            <CardDescription>Adjust left, top, width, height, or bottom offset in inches. Values may extend outside the print area.</CardDescription>
+            <CardDescription>Adjust left, top, width, height, or bottom offset in centimeters. Values may extend outside the print area.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="placement-left">Left</Label>
+              <Label htmlFor="placement-left">Left (cm)</Label>
               <Input
                 id="placement-left"
                 type="number"
                 step="0.01"
-                value={inches ? round(inches.leftIn) : ""}
-                onChange={(event) => updatePlacementFromInches({ leftIn: Number(event.target.value) })}
+                value={inches ? round(toCm(inches.leftIn)) : ""}
+                onChange={(event) => updatePlacementFromCentimeters({ leftCm: Number(event.target.value) })}
                 disabled={!inches}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="placement-top">Top</Label>
+              <Label htmlFor="placement-top">Top (cm)</Label>
               <Input
                 id="placement-top"
                 type="number"
                 step="0.01"
-                value={inches ? round(inches.topIn) : ""}
-                onChange={(event) => updatePlacementFromInches({ topIn: Number(event.target.value) })}
+                value={inches ? round(toCm(inches.topIn)) : ""}
+                onChange={(event) => updatePlacementFromCentimeters({ topCm: Number(event.target.value) })}
                 disabled={!inches}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="placement-width">Width</Label>
+              <Label htmlFor="placement-width">Width (cm)</Label>
               <Input
                 id="placement-width"
                 type="number"
                 step="0.01"
-                value={inches ? round(inches.widthIn) : ""}
-                onChange={(event) => updatePlacementFromInches({ widthIn: Number(event.target.value) })}
+                value={inches ? round(toCm(inches.widthIn)) : ""}
+                onChange={(event) => updatePlacementFromCentimeters({ widthCm: Number(event.target.value) })}
                 disabled={!inches}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="placement-height">Height</Label>
+              <Label htmlFor="placement-height">Height (cm)</Label>
               <Input
                 id="placement-height"
                 type="number"
                 step="0.01"
-                value={inches ? round(inches.heightIn) : ""}
-                onChange={(event) => updatePlacementFromInches({ heightIn: Number(event.target.value) })}
+                value={inches ? round(toCm(inches.heightIn)) : ""}
+                onChange={(event) => updatePlacementFromCentimeters({ heightCm: Number(event.target.value) })}
                 disabled={!inches}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="placement-bottom">Bottom</Label>
+              <Label htmlFor="placement-bottom">Bottom (cm)</Label>
               <Input
                 id="placement-bottom"
                 type="number"
                 step="0.01"
-                value={bottomIn !== null ? round(bottomIn) : ""}
-                onChange={(event) => updatePlacementFromInches({ bottomIn: Number(event.target.value) })}
+                value={bottomIn !== null ? round(toCm(bottomIn)) : ""}
+                onChange={(event) => updatePlacementFromCentimeters({ bottomCm: Number(event.target.value) })}
                 disabled={bottomIn === null}
               />
             </div>
@@ -1089,12 +1240,12 @@ const HoodieFrontEditor = () => {
                 <p className="mt-1 font-medium">{size}</p>
                 <p className="mt-1 font-medium">Selected side: {side}</p>
                 <p className="mt-3 text-muted-foreground">Print Area</p>
-                <p className="mt-1 font-medium">{template.printAreaReal.widthIn} in x {template.printAreaReal.heightIn} in</p>
+                <p className="mt-1 font-medium">{round(toCm(template.printAreaReal.widthIn))} cm x {round(toCm(template.printAreaReal.heightIn))} cm</p>
                 <p className="mt-1 font-medium">{template.printAreaReal.widthPx} px x {template.printAreaReal.heightPx} px</p>
                 <p className="mt-1 font-medium">{template.printAreaReal.dpi} DPI</p>
                 <p className="mt-3 text-muted-foreground">Print Area Garment Anchor</p>
-                <p className="mt-1 font-medium">Center X from centerline: {round(movedGarmentAnchor.centerXFromGarmentCenterIn)} in</p>
-                <p className="mt-1 font-medium">Top from HPS: {round(movedGarmentAnchor.topFromHPSIn)} in</p>
+                <p className="mt-1 font-medium">Center X from centerline: {round(toCm(movedGarmentAnchor.centerXFromGarmentCenterIn))} cm</p>
+                <p className="mt-1 font-medium">Top from HPS: {round(toCm(movedGarmentAnchor.topFromHPSIn))} cm</p>
                 <p className="mt-2 text-xs text-muted-foreground">
                   {side === "front"
                     ? "Front anchor is now locked to a lower calibrated chest-print assumption."
@@ -1103,20 +1254,20 @@ const HoodieFrontEditor = () => {
               </div>
               <div className="rounded-lg border p-3">
                 <p className="text-muted-foreground">Exact Garment Measurements</p>
-                <p className="mt-1 font-medium">Back length: {round(garmentMeasurements.backLengthIn)} in</p>
-                <p className="mt-1 font-medium">Across shoulder: {round(garmentMeasurements.acrossShoulderIn)} in</p>
+                <p className="mt-1 font-medium">Back length: {round(toCm(garmentMeasurements.backLengthIn))} cm</p>
+                <p className="mt-1 font-medium">Across shoulder: {round(toCm(garmentMeasurements.acrossShoulderIn))} cm</p>
                 {side === "front" ? (
                   <>
-                    <p className="mt-1 font-medium">Chest half: {round(garmentMeasurements.chestHalfIn)} in</p>
-                    <p className="mt-1 font-medium">Across front 6.5 down: {round(garmentMeasurements.acrossFront6_5DownIn)} in</p>
-                    <p className="mt-1 font-medium">Neck width: {round(garmentMeasurements.neckWidthIn)} in</p>
-                    <p className="mt-1 font-medium">Front neck drop: {round(garmentMeasurements.frontNeckDropIn)} in</p>
-                    <p className="mt-1 font-medium">Waistband height: {round(garmentMeasurements.waistbandHeightIn)} in</p>
+                    <p className="mt-1 font-medium">Chest half: {round(toCm(garmentMeasurements.chestHalfIn))} cm</p>
+                    <p className="mt-1 font-medium">Across front 6.5 down: {round(toCm(garmentMeasurements.acrossFront6_5DownIn))} cm</p>
+                    <p className="mt-1 font-medium">Neck width: {round(toCm(garmentMeasurements.neckWidthIn))} cm</p>
+                    <p className="mt-1 font-medium">Front neck drop: {round(toCm(garmentMeasurements.frontNeckDropIn))} cm</p>
+                    <p className="mt-1 font-medium">Waistband height: {round(toCm(garmentMeasurements.waistbandHeightIn))} cm</p>
                   </>
                 ) : (
                   <>
-                    <p className="mt-1 font-medium">Across back 6.5 down: {round(garmentMeasurements.acrossBack6_5DownIn)} in</p>
-                    <p className="mt-1 font-medium">Back neck drop: {round(garmentMeasurements.backNeckDropIn)} in</p>
+                    <p className="mt-1 font-medium">Across back 6.5 down: {round(toCm(garmentMeasurements.acrossBack6_5DownIn))} cm</p>
+                    <p className="mt-1 font-medium">Back neck drop: {round(toCm(garmentMeasurements.backNeckDropIn))} cm</p>
                   </>
                 )}
               </div>
@@ -1125,17 +1276,17 @@ const HoodieFrontEditor = () => {
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-lg border p-3">
                 <p className="text-muted-foreground">Artwork Relative To Garment</p>
-                <p className="mt-1 font-medium">Left from centerline: {garmentRelativeSpec ? `${round(garmentRelativeSpec.artwork.leftFromGarmentCenterIn)} in` : "-"}</p>
-                <p className="mt-1 font-medium">Right from centerline: {garmentRelativeSpec ? `${round(garmentRelativeSpec.artwork.rightFromGarmentCenterIn)} in` : "-"}</p>
-                <p className="mt-1 font-medium">Center X from centerline: {garmentRelativeSpec ? `${round(garmentRelativeSpec.artwork.centerXFromGarmentCenterIn)} in` : "-"}</p>
-                <p className="mt-1 font-medium">Top from HPS: {garmentRelativeSpec ? `${round(garmentRelativeSpec.artwork.topFromHPSIn)} in` : "-"}</p>
-                <p className="mt-1 font-medium">Bottom from HPS: {garmentRelativeSpec ? `${round(garmentRelativeSpec.artwork.bottomFromHPSIn)} in` : "-"}</p>
-                <p className="mt-1 font-medium">Center Y from HPS: {garmentRelativeSpec ? `${round(garmentRelativeSpec.artwork.centerYFromHPSIn)} in` : "-"}</p>
+                <p className="mt-1 font-medium">Left from centerline: {garmentRelativeSpec ? `${round(toCm(garmentRelativeSpec.artwork.leftFromGarmentCenterIn))} cm` : "-"}</p>
+                <p className="mt-1 font-medium">Right from centerline: {garmentRelativeSpec ? `${round(toCm(garmentRelativeSpec.artwork.rightFromGarmentCenterIn))} cm` : "-"}</p>
+                <p className="mt-1 font-medium">Center X from centerline: {garmentRelativeSpec ? `${round(toCm(garmentRelativeSpec.artwork.centerXFromGarmentCenterIn))} cm` : "-"}</p>
+                <p className="mt-1 font-medium">Top from HPS: {garmentRelativeSpec ? `${round(toCm(garmentRelativeSpec.artwork.topFromHPSIn))} cm` : "-"}</p>
+                <p className="mt-1 font-medium">Bottom from HPS: {garmentRelativeSpec ? `${round(toCm(garmentRelativeSpec.artwork.bottomFromHPSIn))} cm` : "-"}</p>
+                <p className="mt-1 font-medium">Center Y from HPS: {garmentRelativeSpec ? `${round(toCm(garmentRelativeSpec.artwork.centerYFromHPSIn))} cm` : "-"}</p>
               </div>
               <div className="rounded-lg border p-3">
                 <p className="text-muted-foreground">Artwork Percentages</p>
-                <p className="mt-1 font-medium">Width: {garmentRelativeSpec ? `${round(garmentRelativeSpec.artwork.widthIn)} in` : "-"}</p>
-                <p className="mt-1 font-medium">Height: {garmentRelativeSpec ? `${round(garmentRelativeSpec.artwork.heightIn)} in` : "-"}</p>
+                <p className="mt-1 font-medium">Width: {garmentRelativeSpec ? `${round(toCm(garmentRelativeSpec.artwork.widthIn))} cm` : "-"}</p>
+                <p className="mt-1 font-medium">Height: {garmentRelativeSpec ? `${round(toCm(garmentRelativeSpec.artwork.heightIn))} cm` : "-"}</p>
                 <p className="mt-1 font-medium">
                   {side === "front" ? "Left % of chest half" : "Left % of across back 6.5 down"}:{" "}
                   {garmentRelativeSpec
@@ -1164,36 +1315,53 @@ const HoodieFrontEditor = () => {
             {side === "front" ? (
               <div className="rounded-lg border p-3">
                 <p className="text-muted-foreground">Pocket Dimensions</p>
-                <p className="mt-1 font-medium">Length: {round(garmentMeasurements.pocketLengthIn)} in</p>
-                <p className="mt-1 font-medium">Top width: {round(garmentMeasurements.pocketTopWidthIn)} in</p>
-                <p className="mt-1 font-medium">Opening width: {round(garmentMeasurements.pocketOpeningWidthIn)} in</p>
-                <p className="mt-1 font-medium">Bottom width: {round(garmentMeasurements.pocketBottomWidthIn)} in</p>
-                <p className="mt-1 font-medium">Opening curve: {round(garmentMeasurements.pocketOpeningCurveIn)} in</p>
+                <p className="mt-1 font-medium">Length: {round(toCm(garmentMeasurements.pocketLengthIn))} cm</p>
+                <p className="mt-1 font-medium">Top width: {round(toCm(garmentMeasurements.pocketTopWidthIn))} cm</p>
+                <p className="mt-1 font-medium">Opening width: {round(toCm(garmentMeasurements.pocketOpeningWidthIn))} cm</p>
+                <p className="mt-1 font-medium">Bottom width: {round(toCm(garmentMeasurements.pocketBottomWidthIn))} cm</p>
+                <p className="mt-1 font-medium">Opening curve: {round(toCm(garmentMeasurements.pocketOpeningCurveIn))} cm</p>
                 <p className="mt-2 text-xs text-muted-foreground">Exact from the garment spec. Vertical pocket placement remains unknown and is not assumed.</p>
               </div>
             ) : (
               <div className="rounded-lg border p-3">
                 <p className="text-muted-foreground">Back Reference Lines</p>
-                <p className="mt-1 font-medium">Across back 6.5 down: {round(garmentMeasurements.acrossBack6_5DownIn)} in</p>
-                <p className="mt-1 font-medium">Back neck drop: {round(garmentMeasurements.backNeckDropIn)} in</p>
-                <p className="mt-1 font-medium">Across shoulder: {round(garmentMeasurements.acrossShoulderIn)} in</p>
+                <p className="mt-1 font-medium">Across back 6.5 down: {round(toCm(garmentMeasurements.acrossBack6_5DownIn))} cm</p>
+                <p className="mt-1 font-medium">Back neck drop: {round(toCm(garmentMeasurements.backNeckDropIn))} cm</p>
+                <p className="mt-1 font-medium">Across shoulder: {round(toCm(garmentMeasurements.acrossShoulderIn))} cm</p>
                 <p className="mt-2 text-xs text-muted-foreground">These values are exact from the garment spec. The back print-area anchor above is assumed.</p>
               </div>
             )}
+
+            {measuredPlacement ? (
+              <div className="rounded-lg border p-3">
+                <p className="text-muted-foreground">Measured Hoodie Calibration</p>
+                <p className="mt-1 font-medium">Body length without hood: {round(measuredPlacement.bodyLengthCm)} cm</p>
+                <p className="mt-1 font-medium">Flat width: {round(measuredPlacement.flatWidthCm)} cm</p>
+                <p className="mt-1 font-medium">Artwork top from HPS: {round(measuredPlacement.topFromHpsCm)} cm</p>
+                <p className="mt-1 font-medium">Artwork bottom from HPS: {round(measuredPlacement.bottomFromHpsCm)} cm</p>
+                <p className="mt-1 font-medium">Artwork bottom from measured bottom: {round(measuredPlacement.bottomFromMeasuredBottomCm)} cm</p>
+                <p className="mt-1 font-medium">Artwork left from left edge: {round(measuredPlacement.leftFromLeftEdgeCm)} cm</p>
+                <p className="mt-1 font-medium">Artwork right from right edge: {round(measuredPlacement.rightFromRightEdgeCm)} cm</p>
+                <p className="mt-1 font-medium">Artwork width x height: {round(measuredPlacement.widthCm)} cm x {round(measuredPlacement.heightCm)} cm</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Based on your measured XL hoodie: 72 cm body length without hood and 60 cm flat width.
+                </p>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
             <CardTitle>Debug JSON</CardTitle>
-            <CardDescription>Normalized placement stays relative to the print area. Garment-relative output is derived from normalized placement plus size data.</CardDescription>
+            <CardDescription>Normalized placement stays relative to the print area. The first JSON is raw placement data, and the second is a centimeter-based manufacturer view derived from size data.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <pre className="overflow-x-auto rounded-lg border bg-muted/30 p-4 text-xs leading-6">
               {JSON.stringify(savedPlacement ?? placement, null, 2)}
             </pre>
             <pre className="overflow-x-auto rounded-lg border bg-muted/30 p-4 text-xs leading-6">
-              {JSON.stringify(garmentRelativeSpec, null, 2)}
+              {JSON.stringify(garmentRelativeSpecCm, null, 2)}
             </pre>
           </CardContent>
         </Card>
