@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar } from '@/components/ui/calendar';
+import { Calendar as DatePickerCalendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   AlertDialog,
@@ -20,7 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { format, addDays } from 'date-fns';
+import { format } from 'date-fns';
 import { 
   FileDown, 
   CheckCircle, 
@@ -31,6 +31,7 @@ import {
   Clock,
   Package,
   Layers,
+  Calendar,
   CalendarIcon,
   Lock,
   AlertCircle
@@ -721,7 +722,7 @@ export const ManufacturerReviewFeasibility = ({
                 <CardContent>
                   <div className="space-y-4">
                     <div>
-                      <Label>Expected Sampling Date</Label>
+                      <Label>Expected Sample Date</Label>
                       <p className="text-xs text-muted-foreground mb-2">
                         Select the date when the sample should be ready for review
                       </p>
@@ -738,12 +739,12 @@ export const ManufacturerReviewFeasibility = ({
                             {productionData.estimatedSampleDate ? (
                               format(productionData.estimatedSampleDate, "PPP")
                             ) : (
-                              <span>Pick a sampling date</span>
+                              <span>Pick a sample date</span>
                             )}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
+                          <DatePickerCalendar
                             mode="single"
                             selected={productionData.estimatedSampleDate || undefined}
                             onSelect={(date) => {
@@ -754,7 +755,7 @@ export const ManufacturerReviewFeasibility = ({
                             }}
                             disabled={(date) => date < new Date()}
                             initialFocus
-                            className={cn("p-3 pointer-events-auto")}
+                            className="p-3 pointer-events-auto"
                           />
                         </PopoverContent>
                       </Popover>
@@ -782,19 +783,21 @@ export const ManufacturerReviewFeasibility = ({
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
+                          <DatePickerCalendar
                             mode="single"
                             selected={productionData.estimatedDeliveryDate || undefined}
                             onSelect={(date) => {
                               setProductionData(prev => ({
                                 ...prev,
                                 estimatedDeliveryDate: date || null,
-                                estimatedLeadTimeDays: date ? Math.ceil((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : prev.estimatedLeadTimeDays
+                                estimatedLeadTimeDays: date
+                                  ? Math.ceil((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+                                  : prev.estimatedLeadTimeDays
                               }));
                             }}
                             disabled={(date) => date < new Date()}
                             initialFocus
-                            className={cn("p-3 pointer-events-auto")}
+                            className="p-3 pointer-events-auto"
                           />
                         </PopoverContent>
                       </Popover>
@@ -805,6 +808,11 @@ export const ManufacturerReviewFeasibility = ({
                         <span className="font-medium">
                           {Math.ceil((productionData.estimatedDeliveryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days
                         </span>
+                      </div>
+                    )}
+                    {order?.lead_time_days && (
+                      <div className="text-sm text-muted-foreground">
+                        Designer requested: {order.lead_time_days} days
                       </div>
                     )}
                   </div>
@@ -1047,7 +1055,7 @@ export const ManufacturerReviewFeasibility = ({
               <Card>
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-primary" />
+                    <Package className="w-5 h-5 text-primary" />
                     <CardTitle className="text-lg">Production Capacity Confirmation</CardTitle>
                   </div>
                 </CardHeader>

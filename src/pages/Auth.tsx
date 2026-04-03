@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,12 +17,25 @@ type AuthMode = "signin" | "signup" | "verify-email" | "reset-password" | "reque
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState<AuthMode>("signin");
   const [userRole, setUserRole] = useState<UserRole>("designer");
   const [showBookDemo, setShowBookDemo] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  useEffect(() => {
+    const requestedMode = searchParams.get("mode");
+    if (requestedMode === "signup") {
+      setMode("signup");
+      return;
+    }
+
+    if (requestedMode === "signin") {
+      setMode("signin");
+    }
+  }, [searchParams]);
 
 useEffect(() => {
   if (!window.location.hash) return;
@@ -413,13 +426,13 @@ const handleResetPassword = async (e: React.FormEvent) => {
           </div>
         )}
 
-        {/* Sign In / Sign Up Tabs */}
+        {/* Sign In / Waitlist Tabs */}
         {(mode === "signin" || mode === "signup") && (
           <>
             <div className="text-center mb-6">
               <h1 className="text-4xl font-bold mb-2">formme</h1>
               <p className="text-muted-foreground">
-                {mode === "signin" ? "Welcome back" : "Book a demo with our team"}
+                {mode === "signin" ? "Welcome back" : "Join the Formme waitlist"}
               </p>
             </div>
 
@@ -445,7 +458,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       : "text-muted-foreground hover:text-foreground hover:bg-white/10"
                   }`}
                 >
-                  Book a Demo
+                  Waitlist
                 </button>
               </div>
 
@@ -515,13 +528,13 @@ const handleResetPassword = async (e: React.FormEvent) => {
               </div>
               <div className="rounded-2xl border border-border/50 bg-background/70 p-6">
                 <h2 className="text-xl font-semibold mb-2">
-                  {userRole === "designer" ? "Book a demo for your brand" : "Book a demo for your manufacturing team"}
+                  {userRole === "designer" ? "Join the waitlist for your brand" : "Join the waitlist for your manufacturing team"}
                 </h2>
                 <p className="text-sm text-muted-foreground mb-5">
-                  We&apos;ll walk you through the platform, answer questions, and show how Formme fits your workflow.
+                  Share your details and we&apos;ll reach out when we&apos;re ready to onboard you.
                 </p>
                 <Button type="button" onClick={() => setShowBookDemo(true)} className="w-full mt-3 h-11 rounded-xl">
-                  Book a Demo
+                  Join Waitlist
                 </Button>
               </div>
             </div>

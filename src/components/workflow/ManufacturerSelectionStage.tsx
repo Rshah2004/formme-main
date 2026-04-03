@@ -38,6 +38,8 @@ interface ProductionTimelineData {
   unit_cost?: number;
   shipping_cost?: number;
   taxes_and_fees?: number;
+  commission_cost?: number;
+  estimated_sample_date?: string | null;
   estimated_delivery_date?: string | null;
 }
 
@@ -54,6 +56,7 @@ interface ManufacturerMatch {
   };
   orders: Array<{
     id: string;
+    quantity?: number | null;
     status?: string;
     tech_pack_feasible?: boolean | null;
     tech_pack_feasibility_notes?: string | null;
@@ -107,6 +110,46 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return 'Not provided';
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const getPricingSummary = (order: ManufacturerMatch['orders'][0], timeline: ProductionTimelineData | null) => {
+    const quantity = order?.quantity ?? null;
+    const unitCost = timeline?.unit_cost ?? null;
+    const shippingCost = timeline?.shipping_cost ?? null;
+    const taxesAndFees = timeline?.taxes_and_fees ?? null;
+    const commissionCost = timeline?.commission_cost ?? null;
+    const subtotal = quantity !== null && unitCost !== null ? unitCost * quantity : null;
+    const totalCost =
+      subtotal !== null
+        ? subtotal + (shippingCost || 0) + (taxesAndFees || 0) + (commissionCost || 0)
+        : null;
+
+    return {
+      quantity,
+      unitCost,
+      shippingCost,
+      taxesAndFees,
+      commissionCost,
+      subtotal,
+      totalCost,
+      hasPricing:
+        unitCost !== null ||
+        shippingCost !== null ||
+        taxesAndFees !== null ||
+        commissionCost !== null
+    };
+  };
+
+  const getFabricSourcingLabel = (fabricSourcing?: string | null, fallback?: string | null) => {
+    if (fabricSourcing === 'manufacturer_sourcing' || fabricSourcing === 'manufacturer') {
+      return 'Manufacturer will source fabric';
+    }
+
+    if (fabricSourcing === 'designer_provided' || fabricSourcing === 'designer') {
+      return 'Designer will provide fabric';
+    }
+
+    return fallback || 'Not provided';
   };
 
   useEffect(() => {
@@ -183,7 +226,7 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
           const { data: order, error: orderError } = await supabase
             .from('orders')
             .select(
-              'id, status, manufacturer_id, tech_pack_feasible, tech_pack_feasibility_notes, tech_pack_checklist, production_params_approved, production_params_submitted_at, fabric_type, gsm, shrinkage, color_fastness, lead_time_days, production_start_date, production_completion_date, production_timeline_data'
+              'id, quantity, status, manufacturer_id, tech_pack_feasible, tech_pack_feasibility_notes, tech_pack_checklist, production_params_approved, production_params_submitted_at, fabric_type, gsm, shrinkage, color_fastness, lead_time_days, production_start_date, production_completion_date, production_timeline_data'
             )
             .eq('design_id', design.id)
             .eq('manufacturer_id', match.manufacturer_id)
@@ -728,15 +771,16 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
           {manufacturerToFinalize?.orders?.[0] && (() => {
             const order = manufacturerToFinalize.orders[0];
             const timeline = order.production_timeline_data as ProductionTimelineData | null;
-            const quantity = order?.quantity ?? null;
-            const unitCost = timeline?.unit_cost ?? null;
-            const shippingCost = timeline?.shipping_cost ?? null;
-            const taxesAndFees = timeline?.taxes_and_fees ?? null;
-            const hasPricing = unitCost !== null || shippingCost !== null || taxesAndFees !== null;
-            const totalCost =
-              quantity && unitCost !== null
-                ? (unitCost * quantity) + (shippingCost || 0) + (taxesAndFees || 0)
-                : null;
+            const {
+              quantity,
+              unitCost,
+              shippingCost,
+              taxesAndFees,
+              commissionCost,
+              subtotal,
+              totalCost,
+              hasPricing
+            } = getPricingSummary(order, timeline);
             
             return (
               <div className="space-y-4 my-4">
@@ -748,12 +792,20 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
                       <span className="font-semibold">{formatMoney(unitCost)}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Quantity{quantity !== null ? ` × ${quantity}` : ''}</span>
+                      <span className="font-semibold">{subtotal !== null ? formatMoney(subtotal) : 'Not provided'}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Shipping</span>
                       <span className="font-semibold">{formatMoney(shippingCost)}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Taxes & Fees</span>
                       <span className="font-semibold">{formatMoney(taxesAndFees)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Commission</span>
+                      <span className="font-semibold">{formatMoney(commissionCost)}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm border-t pt-2">
                       <span className="text-muted-foreground">Estimated Total</span>
@@ -772,12 +824,14 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
                   <div className="bg-muted/30 p-3 rounded-lg">
                     <p className="text-xs text-muted-foreground mb-1">Fabric Sourcing</p>
                     <p className="font-semibold">
-                      {timeline?.fabric_sourcing === 'manufacturer_sourcing' || timeline?.fabric_sourcing === 'manufacturer' 
-                        ? 'Manufacturer sources' 
-                        : timeline?.fabric_sourcing === 'designer_provided' 
-                          ? 'Designer provides' 
-                          : order.fabric_type || 'N/A'}
+                      {getFabricSourcingLabel(timeline?.fabric_sourcing, order.fabric_type || 'N/A')
+                        .replace(' will source fabric', ' sources')
+                        .replace(' will provide fabric', ' provides')}
                     </p>
+                  </div>
+                  <div className="bg-muted/30 p-3 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Estimated Sample</p>
+                    <p className="font-semibold">{formatDate(timeline?.estimated_sample_date || null)}</p>
                   </div>
                   <div className="bg-muted/30 p-3 rounded-lg">
                     <p className="text-xs text-muted-foreground mb-1">Estimated Delivery</p>
@@ -845,15 +899,16 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
           {manufacturerToViewDetails?.orders?.[0] && (() => {
             const order = manufacturerToViewDetails.orders[0];
             const timeline = order.production_timeline_data as ProductionTimelineData | null;
-            const quantity = order?.quantity ?? null;
-            const unitCost = timeline?.unit_cost ?? null;
-            const shippingCost = timeline?.shipping_cost ?? null;
-            const taxesAndFees = timeline?.taxes_and_fees ?? null;
-            const hasPricing = unitCost !== null || shippingCost !== null || taxesAndFees !== null;
-            const totalCost =
-              quantity && unitCost !== null
-                ? (unitCost * quantity) + (shippingCost || 0) + (taxesAndFees || 0)
-                : null;
+            const {
+              quantity,
+              unitCost,
+              shippingCost,
+              taxesAndFees,
+              commissionCost,
+              subtotal,
+              totalCost,
+              hasPricing
+            } = getPricingSummary(order, timeline);
             
             return (
               <div className="space-y-6">
@@ -869,12 +924,20 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
                       <span className="font-semibold">{formatMoney(unitCost)}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Quantity{quantity !== null ? ` × ${quantity}` : ''}</span>
+                      <span className="font-semibold">{subtotal !== null ? formatMoney(subtotal) : 'Not provided'}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Shipping</span>
                       <span className="font-semibold">{formatMoney(shippingCost)}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Taxes & Fees</span>
                       <span className="font-semibold">{formatMoney(taxesAndFees)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Commission</span>
+                      <span className="font-semibold">{formatMoney(commissionCost)}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm border-t pt-2">
                       <span className="text-muted-foreground">Estimated Total</span>
@@ -893,6 +956,15 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
                   </div>
                   <p className="text-sm text-muted-foreground mb-1">Days from order confirmation to delivery</p>
                   <p className="text-lg font-semibold">{timeline?.lead_time_days || order.lead_time_days || 'Not provided'} days</p>
+                </div>
+
+                {/* Estimated Delivery */}
+                <div className="bg-muted/30 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Calendar className="w-4 h-4 text-primary" />
+                    <h4 className="text-sm font-semibold">Estimated Sample Date</h4>
+                  </div>
+                  <p className="text-sm">{formatDate(timeline?.estimated_sample_date || null)}</p>
                 </div>
 
                 {/* Estimated Delivery */}
@@ -924,8 +996,8 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
                     <h4 className="text-sm font-semibold">Fabric Sourcing Responsibility</h4>
                   </div>
                   <p className="text-sm">
-                    {timeline?.fabric_sourcing 
-                      ? (timeline.fabric_sourcing === 'manufacturer' ? '🏭 Manufacturer will source fabric' : '👤 Designer will provide fabric')
+                    {timeline?.fabric_sourcing || order.fabric_type
+                      ? `${timeline?.fabric_sourcing === 'manufacturer_sourcing' || timeline?.fabric_sourcing === 'manufacturer' ? '🏭' : timeline?.fabric_sourcing === 'designer_provided' || timeline?.fabric_sourcing === 'designer' ? '👤' : ''} ${getFabricSourcingLabel(timeline?.fabric_sourcing, order.fabric_type)}`.trim()
                       : 'Not provided'}
                   </p>
                 </div>

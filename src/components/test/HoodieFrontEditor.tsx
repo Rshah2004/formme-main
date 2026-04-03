@@ -31,12 +31,25 @@ import {
 } from "./garmentPlacement";
 import { supabase } from "@/integrations/supabase/client";
 
+type ContentBounds = {
+  leftPx: number;
+  topPx: number;
+  rightPx: number;
+  bottomPx: number;
+  widthPx: number;
+  heightPx: number;
+};
+
 type UploadedArtwork = {
   assetId: string;
   name: string;
   src: string;
   width: number;
   height: number;
+  contentBounds?: ContentBounds;
+  originalWidth: number;
+  originalHeight: number;
+  trimApplied?: boolean;
 };
 
 type ArtworkBySide = Partial<Record<HoodieSide, UploadedArtwork>>;
@@ -86,6 +99,8 @@ type DragState =
 const MIN_PREVIEW_SIZE_PX = 28;
 const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024;
 const MAX_IMAGE_DIMENSION = 12000;
+const ALPHA_THRESHOLD = 8;
+const MIN_PADDING_RATIO_TO_TRIM = 0.04;
 
 const loadImage = (src: string) =>
   new Promise<HTMLImageElement>((resolve, reject) => {
@@ -102,6 +117,162 @@ const downloadBlob = (blob: Blob, filename: string) => {
   link.download = filename;
   link.click();
   URL.revokeObjectURL(url);
+};
+
+const getNonTransparentBounds = (
+  imageData: ImageData,
+  alphaThreshold = ALPHA_THRESHOLD
+): ContentBounds | null => {
+  const { width, height, data } = imageData;
+
+  let minX = width;
+  let minY = height;
+  let maxX = -1;
+  let maxY = -1;
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const index = (y * width + x) * 4;
+      const alpha = data[index + 3];
+
+      if (alpha > alphaThreshold) {
+        if (x < minX) minX = x;
+        if (y < minY) minY = y;
+        if (x > maxX) maxX = x;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+
+  if (maxX === -1 || maxY === -1) {
+    return null;
+  }
+
+  return {
+    leftPx: minX,
+    topPx: minY,
+    rightPx: maxX,
+    bottomPx: maxY,
+    widthPx: maxX - minX + 1,
+    heightPx: maxY - minY + 1,
+  };
+};
+
+const shouldTrimBounds = (bounds: ContentBounds, width: number, height: number) => {
+  const paddingX = width - bounds.widthPx;
+  const paddingY = height - bounds.heightPx;
+  return (
+    paddingX / width >= MIN_PADDING_RATIO_TO_TRIM ||
+    paddingY / height >= MIN_PADDING_RATIO_TO_TRIM
+  );
+};
+
+const canvasToBlob = (canvas: HTMLCanvasElement, type: string) =>
+  new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+      } else {
+        reject(new Error("Failed to create trimmed artwork image."));
+      }
+    }, type);
+  });
+
+const processArtworkSource = async ({
+  src,
+  name,
+  assetId,
+}: Pick<UploadedArtwork, "src" | "name" | "assetId">): Promise<UploadedArtwork> => {
+  const image = await loadImage(src);
+
+  if (image.naturalWidth > MAX_IMAGE_DIMENSION || image.naturalHeight > MAX_IMAGE_DIMENSION) {
+    throw new Error("Uploaded image is too large in dimensions. Keep it under 12000px on each side.");
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = image.naturalWidth;
+  canvas.height = image.naturalHeight;
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+
+  if (!context) {
+    throw new Error("Canvas context unavailable.");
+  }
+
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(image, 0, 0);
+
+  const bounds = getNonTransparentBounds(
+    context.getImageData(0, 0, canvas.width, canvas.height)
+  );
+  const shouldTrim = bounds && shouldTrimBounds(bounds, image.naturalWidth, image.naturalHeight);
+
+  if (!bounds || !shouldTrim) {
+    return {
+      assetId,
+      name,
+      src,
+      width: image.naturalWidth,
+      height: image.naturalHeight,
+      contentBounds: bounds ?? {
+        leftPx: 0,
+        topPx: 0,
+        rightPx: image.naturalWidth - 1,
+        bottomPx: image.naturalHeight - 1,
+        widthPx: image.naturalWidth,
+        heightPx: image.naturalHeight,
+      },
+      originalWidth: image.naturalWidth,
+      originalHeight: image.naturalHeight,
+      trimApplied: false,
+    };
+  }
+
+  const trimmedCanvas = document.createElement("canvas");
+  trimmedCanvas.width = bounds.widthPx;
+  trimmedCanvas.height = bounds.heightPx;
+  const trimmedContext = trimmedCanvas.getContext("2d");
+
+  if (!trimmedContext) {
+    throw new Error("Trim canvas context unavailable.");
+  }
+
+  trimmedContext.drawImage(
+    canvas,
+    bounds.leftPx,
+    bounds.topPx,
+    bounds.widthPx,
+    bounds.heightPx,
+    0,
+    0,
+    bounds.widthPx,
+    bounds.heightPx
+  );
+
+  const blob = await canvasToBlob(trimmedCanvas, "image/png");
+  const trimmedUrl = URL.createObjectURL(blob);
+
+  if (src.startsWith("blob:")) {
+    URL.revokeObjectURL(src);
+  }
+
+  return {
+    assetId,
+    name,
+    src: trimmedUrl,
+    width: bounds.widthPx,
+    height: bounds.heightPx,
+    contentBounds: {
+      leftPx: 0,
+      topPx: 0,
+      rightPx: bounds.widthPx - 1,
+      bottomPx: bounds.heightPx - 1,
+      widthPx: bounds.widthPx,
+      heightPx: bounds.heightPx,
+    },
+    originalWidth: image.naturalWidth,
+    originalHeight: image.naturalHeight,
+    trimApplied: true,
+  };
 };
 
 const sanitizeFileName = (value: string) => value.replace(/[^a-zA-Z0-9._-]/g, "-");
@@ -239,17 +410,18 @@ const HoodieFrontEditor = () => {
     () => (placement ? getPlacementIntersectionWithPrintArea(placement) : null),
     [placement]
   );
+  const visiblePlacement = clippedPlacement;
   const clippedInches = useMemo(
     () =>
-      clippedPlacement
+      visiblePlacement
         ? {
-            leftIn: clippedPlacement.x * template.printAreaReal.widthIn,
-            topIn: clippedPlacement.y * template.printAreaReal.heightIn,
-            widthIn: clippedPlacement.width * template.printAreaReal.widthIn,
-            heightIn: clippedPlacement.height * template.printAreaReal.heightIn,
+            leftIn: visiblePlacement.x * template.printAreaReal.widthIn,
+            topIn: visiblePlacement.y * template.printAreaReal.heightIn,
+            widthIn: visiblePlacement.width * template.printAreaReal.widthIn,
+            heightIn: visiblePlacement.height * template.printAreaReal.heightIn,
           }
         : null,
-    [clippedPlacement, template.printAreaReal.heightIn, template.printAreaReal.widthIn]
+    [visiblePlacement, template.printAreaReal.heightIn, template.printAreaReal.widthIn]
   );
   const clippedExportPixels = useMemo(
     () =>
@@ -265,16 +437,16 @@ const HoodieFrontEditor = () => {
   );
   const garmentRelativeSpec = useMemo<AnyManufacturerGarmentRelativeSpec | null>(
     () =>
-      inches
+      clippedInches
         ? getGarmentRelativePlacementSpecBySide({
             side,
             size,
-            placementInInches: inches,
+            placementInInches: clippedInches,
             printAreaReal: template.printAreaReal,
             printAreaGarmentAnchor: movedGarmentAnchor,
           })
         : null,
-    [inches, movedGarmentAnchor, side, size, template.printAreaReal]
+    [clippedInches, movedGarmentAnchor, side, size, template.printAreaReal]
   );
   const bottomIn = inches
     ? template.printAreaReal.heightIn - inches.topIn - inches.heightIn
@@ -579,12 +751,11 @@ const HoodieFrontEditor = () => {
       for (const targetSide of ["front", "back"] as const) {
         const sideState = persistedState.sides[targetSide];
         if (sideState?.artwork?.src) {
-          const image = await loadImage(sideState.artwork.src);
-          loadedArtworksBySide[targetSide] = {
-            ...sideState.artwork,
-            width: image.naturalWidth,
-            height: image.naturalHeight,
-          };
+          loadedArtworksBySide[targetSide] = await processArtworkSource({
+            assetId: sideState.artwork.assetId,
+            name: sideState.artwork.name,
+            src: sideState.artwork.src,
+          });
         }
       }
 
@@ -739,21 +910,11 @@ const HoodieFrontEditor = () => {
     const fileUrl = URL.createObjectURL(file);
 
     try {
-      const image = await loadImage(fileUrl);
-
-      if (image.naturalWidth > MAX_IMAGE_DIMENSION || image.naturalHeight > MAX_IMAGE_DIMENSION) {
-        URL.revokeObjectURL(fileUrl);
-        setError("Uploaded image is too large in dimensions. Keep it under 12000px on each side.");
-        return;
-      }
-
-      const nextArtwork = {
+      const nextArtwork = await processArtworkSource({
         assetId: crypto.randomUUID(),
         name: file.name,
         src: fileUrl,
-        width: image.naturalWidth,
-        height: image.naturalHeight,
-      };
+      });
 
       const previousArtwork = artworksBySide[side];
       if (previousArtwork?.src.startsWith("blob:")) {
@@ -774,7 +935,11 @@ const HoodieFrontEditor = () => {
         return next;
       });
       setIsArtworkSelected(true);
-      setStatus(`Artwork loaded for the ${side} side. Drag and resize it directly inside the print area.`);
+      setStatus(
+        nextArtwork.trimApplied
+          ? `Artwork loaded for the ${side} side. Transparent padding was trimmed for measurement accuracy.`
+          : `Artwork loaded for the ${side} side. Drag and resize it directly inside the print area.`
+      );
     } catch (uploadError) {
       URL.revokeObjectURL(fileUrl);
       setError(uploadError instanceof Error ? uploadError.message : "Unable to read the uploaded image.");
@@ -806,11 +971,22 @@ const HoodieFrontEditor = () => {
       return;
     }
 
-    const blob = new Blob([JSON.stringify(savedDesign, null, 2)], {
+    const visibleSavedPlacement = getPlacementIntersectionWithPrintArea(savedDesign.placement);
+    if (!visibleSavedPlacement) {
+      setError(`The saved ${side} design is completely outside the visible print area.`);
+      return;
+    }
+
+    const visibleSavedDesign = {
+      ...savedDesign,
+      placement: visibleSavedPlacement,
+    };
+
+    const blob = new Blob([JSON.stringify(visibleSavedDesign, null, 2)], {
       type: "application/json",
     });
     downloadBlob(blob, `hoodie-${savedDesign.side}-${savedDesign.size}-design.json`);
-    setStatus(`Downloaded saved ${side} design.`);
+    setStatus(`Downloaded visible ${side} placement inside the print area.`);
   };
 
   const handleExport = async () => {
@@ -1354,11 +1530,11 @@ const HoodieFrontEditor = () => {
         <Card>
           <CardHeader>
             <CardTitle>Debug JSON</CardTitle>
-            <CardDescription>Normalized placement stays relative to the print area. The first JSON is raw placement data, and the second is a centimeter-based manufacturer view derived from size data.</CardDescription>
+            <CardDescription>The first JSON is the visible placement inside the print area only. The second is the centimeter-based manufacturer view derived from that visible area.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <pre className="overflow-x-auto rounded-lg border bg-muted/30 p-4 text-xs leading-6">
-              {JSON.stringify(savedPlacement ?? placement, null, 2)}
+              {JSON.stringify(savedPlacement ? getPlacementIntersectionWithPrintArea(savedPlacement) : visiblePlacement, null, 2)}
             </pre>
             <pre className="overflow-x-auto rounded-lg border bg-muted/30 p-4 text-xs leading-6">
               {JSON.stringify(garmentRelativeSpecCm, null, 2)}

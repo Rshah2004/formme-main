@@ -208,7 +208,7 @@ export const hoodieMeasurementSpec: Record<HoodieSize, HoodieGarmentMeasurements
     waistbandHeightIn: 2.5,
   },
   XL: {
-    backLengthIn: 29.875,
+    backLengthIn: 27.875,
     chestHalfIn: 25.25,
     sweepHalfIn: 22.25,
     acrossShoulderIn: 21.5,

@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { UserIcon, CartIcon } from "./ui/Icons";
+import { UserIcon } from "./ui/Icons";
 import { Link, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { LockedFeatureDialog } from "@/components/LockedFeatureDialog";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 
 interface NavBarProps {
   initialDark?: boolean;
@@ -136,16 +136,8 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
           </Link>
         ))}
       </nav>
-
-      
-
       <div className="flex gap-3 sm:gap-6 items-center">
-        <a href="https://forms.gle/YrDYDsDoRQbJHHAf6" target="_blank" rel="noopener noreferrer" onClick={() => setMobileMenuOpen(false)}>
-  <button className="w-full px-6 py-3 text-sm font-medium text-primary-foreground bg-primary shadow-sm cursor-pointer border-none rounded-full hover:bg-primary/90 transition-all duration-200">
-    Join Waitlist
-  </button>
-</a>
-        {/* {user && (
+        {user && (
           <Link to="/profile" aria-label="User profile">
             <button className="p-2 rounded-full hover:bg-muted transition-colors">
               <UserIcon />
@@ -154,12 +146,25 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
         )}
 
         {!user && (
-          <Link to="/auth" className="hidden sm:block">
-            <button className="px-4 sm:px-6 py-2 sm:py-2.5 text-sm font-medium text-primary-foreground bg-primary shadow-sm cursor-pointer border-none rounded-full hover:bg-primary/90 transition-all duration-200">
-              Book a demo
-            </button>
-          </Link>
-        )} */}
+          <div className="hidden md:flex items-center gap-3">
+            <Link
+              to="/auth?mode=signin"
+              className={cn(
+                "text-sm font-medium transition-colors",
+                initialDark && !scrolled
+                  ? "text-[#111827] hover:text-[#111827]/80"
+                  : "text-foreground hover:text-foreground/80",
+              )}
+            >
+              Sign in
+            </Link>
+            <Link to="/auth?mode=signup">
+              <button className="px-4 sm:px-6 py-2 sm:py-2.5 text-sm font-medium text-primary-foreground bg-primary shadow-sm cursor-pointer border-none rounded-full hover:bg-primary/90 transition-all duration-200">
+                Waitlist
+              </button>
+            </Link>
+          </div>
+        )}
 
         {/* Mobile Menu Button */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -182,19 +187,20 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
                 </Link>
               ))}
 
-              <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-                    <button className="w-full px-6 py-3 text-sm font-medium text-primary-foreground bg-primary shadow-sm cursor-pointer border-none rounded-full hover:bg-primary/90 transition-all duration-200">
-                      Join Waitlist
-                    </button>
-                  </Link>
-
-              {/* <div className="border-t border-border pt-6 mt-2">
+              <div className="border-t border-border pt-6 mt-2">
                 {!user ? (
-                  <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-                    <button className="w-full px-6 py-3 text-sm font-medium text-primary-foreground bg-primary shadow-sm cursor-pointer border-none rounded-full hover:bg-primary/90 transition-all duration-200">
-                      Book a demo
-                    </button>
-                  </Link>
+                  <div className="flex flex-col gap-3">
+                    <Link to="/auth?mode=signin" onClick={() => setMobileMenuOpen(false)}>
+                      <button className="w-full px-6 py-3 text-sm font-medium border border-border rounded-full hover:bg-muted transition-all duration-200">
+                        Sign in
+                      </button>
+                    </Link>
+                    <Link to="/auth?mode=signup" onClick={() => setMobileMenuOpen(false)}>
+                      <button className="w-full px-6 py-3 text-sm font-medium text-primary-foreground bg-primary shadow-sm cursor-pointer border-none rounded-full hover:bg-primary/90 transition-all duration-200">
+                        Waitlist
+                      </button>
+                    </Link>
+                  </div>
                 ) : (
                   <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>
                     <button className="w-full px-6 py-3 text-sm font-medium text-primary-foreground bg-primary shadow-sm cursor-pointer border-none rounded-full hover:bg-primary/90 transition-all duration-200">
@@ -202,7 +208,7 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
                     </button>
                   </Link>
                 )}
-              </div> */}
+              </div>
             </nav>
           </SheetContent>
         </Sheet>
