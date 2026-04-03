@@ -14,6 +14,7 @@ import BookDemoModal from "@/components/homePage/BookDemoModal";
 
 type UserRole = "designer" | "manufacturer";
 type AuthMode = "signin" | "signup" | "verify-email" | "reset-password" | "request-submitted";
+const WAITLIST_URL = "https://docs.google.com/forms/d/e/1FAIpQLScV3VYQ9HgNmI4IYHwFgt2ALaeXy9iSLmB6PYtd2Z-1YWhUpg/viewform?usp=header";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -533,7 +534,11 @@ const handleResetPassword = async (e: React.FormEvent) => {
                 <p className="text-sm text-muted-foreground mb-5">
                   Share your details and we&apos;ll reach out when we&apos;re ready to onboard you.
                 </p>
-                <Button type="button" onClick={() => setShowBookDemo(true)} className="w-full mt-3 h-11 rounded-xl">
+                <Button
+                  type="button"
+                  onClick={() => window.open(WAITLIST_URL, "_blank", "noopener,noreferrer")}
+                  className="w-full mt-3 h-11 rounded-xl"
+                >
                   Join Waitlist
                 </Button>
               </div>

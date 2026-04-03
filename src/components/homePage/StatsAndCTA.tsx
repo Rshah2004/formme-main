@@ -62,7 +62,11 @@ export default function StatsAndCTA() {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-  <a href="https://forms.gle/YrDYDsDoRQbJHHAf6" target="_blank">
+  <a
+    href="https://docs.google.com/forms/d/e/1FAIpQLScV3VYQ9HgNmI4IYHwFgt2ALaeXy9iSLmB6PYtd2Z-1YWhUpg/viewform?usp=header"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
     <button className="w-full px-10 py-4 text-base font-semibold text-primary-foreground bg-primary shadow-sm cursor-pointer border-none rounded-full hover:bg-primary/90 transition-all duration-200">
       Join Waitlist
     </button>

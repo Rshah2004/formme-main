@@ -123,7 +123,11 @@ const HeroSection: React.FC = () => {
           </button> */}
 
          
-  <a href="https://forms.gle/YrDYDsDoRQbJHHAf6" target="_blank">
+  <a
+    href="https://docs.google.com/forms/d/e/1FAIpQLScV3VYQ9HgNmI4IYHwFgt2ALaeXy9iSLmB6PYtd2Z-1YWhUpg/viewform?usp=header"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
    
           <button
             // onClick={handleCreateClick}
