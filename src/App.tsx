@@ -34,6 +34,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Templates />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/deme/signup" element={<Auth />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/new-design" element={<NewDesign />} />
           <Route path="/about" element={<About />} />

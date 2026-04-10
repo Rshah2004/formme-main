@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,9 @@ const WAITLIST_URL = "https://docs.google.com/forms/d/e/1FAIpQLScV3VYQ9HgNmI4IYH
 
 const Auth = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
+  const isDirectSignupRoute = location.pathname === "/deme/signup";
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState<AuthMode>("signin");
   const [userRole, setUserRole] = useState<UserRole>("designer");
@@ -27,6 +29,11 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
+    if (isDirectSignupRoute) {
+      setMode("signup");
+      return;
+    }
+
     const requestedMode = searchParams.get("mode");
     if (requestedMode === "signup") {
       setMode("signup");
@@ -36,7 +43,7 @@ const Auth = () => {
     if (requestedMode === "signin") {
       setMode("signin");
     }
-  }, [searchParams]);
+  }, [isDirectSignupRoute, searchParams]);
 
 useEffect(() => {
   if (!window.location.hash) return;
@@ -319,6 +326,9 @@ const handleResetPassword = async (e: React.FormEvent) => {
 
       toast.success("Account created! You can now sign in.");
       setMode("signin");
+      if (isDirectSignupRoute) {
+        navigate("/auth?mode=signin");
+      }
     } catch (error: any) {
       console.error("Signup error:", error);
       toast.error(error.message || "Failed to create account");
@@ -433,7 +443,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
             <div className="text-center mb-6">
               <h1 className="text-4xl font-bold mb-2">formme</h1>
               <p className="text-muted-foreground">
-                {mode === "signin" ? "Welcome back" : "Join the Formme waitlist"}
+                {mode === "signin" ? "Welcome back" : isDirectSignupRoute ? "Create your Formme account" : "Join the Formme waitlist"}
               </p>
             </div>
 
@@ -459,7 +469,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       : "text-muted-foreground hover:text-foreground hover:bg-white/10"
                   }`}
                 >
-                  Waitlist
+                  {isDirectSignupRoute ? "Sign Up" : "Waitlist"}
                 </button>
               </div>
 
@@ -499,6 +509,267 @@ const handleResetPassword = async (e: React.FormEvent) => {
           </TabsContent>
 
           <TabsContent value="signup">
+            {isDirectSignupRoute ? (
+              <form onSubmit={handleSignUp} className="space-y-5">
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">I am a...</Label>
+                  <div className="flex gap-1 bg-muted/30 p-1 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={() => setUserRole("designer")}
+                      className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all shadow-[0_2px_8px_rgba(0,0,0,0.06)] ${
+                        userRole === "designer"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-white text-foreground border border-border/50 hover:bg-primary/5"
+                      }`}
+                    >
+                      Brand
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setUserRole("manufacturer")}
+                      className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all shadow-[0_2px_8px_rgba(0,0,0,0.06)] ${
+                        userRole === "manufacturer"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-white text-foreground border border-border/50 hover:bg-primary/5"
+                      }`}
+                    >
+                      Manufacturer
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="signup-full-name">Full Name</Label>
+                    <Input
+                      id="signup-full-name"
+                      value={formData.fullName}
+                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="signup-company">Company / Brand Name</Label>
+                    <Input
+                      id="signup-company"
+                      value={formData.companyName}
+                      onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="signup-email">Email</Label>
+                    <Input
+                      id="signup-email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="signup-password">Password</Label>
+                    <Input
+                      id="signup-password"
+                      type="password"
+                      minLength={6}
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="signup-phone">Phone</Label>
+                    <Input
+                      id="signup-phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="signup-location">Location</Label>
+                    <Input
+                      id="signup-location"
+                      value={formData.location}
+                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Categories</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {categoriesOptions.map((category) => (
+                      <label key={category} className="flex items-center gap-2 rounded-lg border border-border/60 bg-white px-3 py-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={formData.categories.includes(category)}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            categories: e.target.checked
+                              ? [...formData.categories, category]
+                              : formData.categories.filter((item) => item !== category)
+                          })}
+                        />
+                        {category}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {userRole === "designer" ? (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="brand-description">Brand Description</Label>
+                      <Input
+                        id="brand-description"
+                        value={formData.brandDescription}
+                        onChange={(e) => setFormData({ ...formData, brandDescription: e.target.value })}
+                        placeholder="Briefly describe your brand"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="brand-url">Brand Website / Social</Label>
+                        <Input
+                          id="brand-url"
+                          value={formData.brandUrl}
+                          onChange={(e) => setFormData({ ...formData, brandUrl: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="portfolio-urls">Portfolio URLs</Label>
+                        <Input
+                          id="portfolio-urls"
+                          value={formData.portfolioUrls}
+                          onChange={(e) => setFormData({ ...formData, portfolioUrls: e.target.value })}
+                          placeholder="Comma-separated links"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="annual-volume">Annual Volume</Label>
+                        <select
+                          id="annual-volume"
+                          value={formData.annualVolumeRange}
+                          onChange={(e) => setFormData({ ...formData, annualVolumeRange: e.target.value })}
+                          className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        >
+                          <option value="">Select volume</option>
+                          {annualVolumeOptions.map((option) => (
+                            <option key={option} value={option}>{option}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <Label htmlFor="budget-range">Budget Range</Label>
+                        <select
+                          id="budget-range"
+                          value={formData.budgetRange}
+                          onChange={(e) => setFormData({ ...formData, budgetRange: e.target.value })}
+                          className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        >
+                          <option value="">Select budget</option>
+                          {budgetRangeOptions.map((option) => (
+                            <option key={option} value={option}>{option}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="shipping-street">Shipping Street</Label>
+                        <Input
+                          id="shipping-street"
+                          value={formData.shippingStreet}
+                          onChange={(e) => setFormData({ ...formData, shippingStreet: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="shipping-city">Shipping City</Label>
+                        <Input
+                          id="shipping-city"
+                          value={formData.shippingCity}
+                          onChange={(e) => setFormData({ ...formData, shippingCity: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="shipping-state">Shipping State / Province</Label>
+                        <Input
+                          id="shipping-state"
+                          value={formData.shippingState}
+                          onChange={(e) => setFormData({ ...formData, shippingState: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="shipping-postal">Shipping Postal Code</Label>
+                        <Input
+                          id="shipping-postal"
+                          value={formData.shippingPostal}
+                          onChange={(e) => setFormData({ ...formData, shippingPostal: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="shipping-country">Shipping Country</Label>
+                        <Input
+                          id="shipping-country"
+                          value={formData.shippingCountry}
+                          onChange={(e) => setFormData({ ...formData, shippingCountry: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="manufacturer-moq">Minimum Order Quantity</Label>
+                        <Input
+                          id="manufacturer-moq"
+                          type="number"
+                          min="0"
+                          value={formData.moq}
+                          onChange={(e) => setFormData({ ...formData, moq: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="manufacturer-lead-time">Lead Time (days)</Label>
+                        <Input
+                          id="manufacturer-lead-time"
+                          type="number"
+                          min="0"
+                          value={formData.leadTime}
+                          onChange={(e) => setFormData({ ...formData, leadTime: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium mb-2 block">Capabilities</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        {capabilitiesOptions.map((capability) => (
+                          <label key={capability} className="flex items-center gap-2 rounded-lg border border-border/60 bg-white px-3 py-2 text-sm">
+                            <input
+                              type="checkbox"
+                              checked={formData.capabilities.includes(capability)}
+                              onChange={(e) => setFormData({
+                                ...formData,
+                                capabilities: e.target.checked
+                                  ? [...formData.capabilities, capability]
+                                  : formData.capabilities.filter((item) => item !== capability)
+                              })}
+                            />
+                            {capability}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <Button type="submit" className="w-full h-11 rounded-xl" disabled={isLoading}>
+                  {isLoading ? "Creating account..." : "Create Account"}
+                </Button>
+              </form>
+            ) : (
             <div className="space-y-6">
               <div>
                 <Label className="text-sm font-medium mb-2 block">I am a...</Label>
@@ -543,6 +814,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                 </Button>
               </div>
             </div>
+            )}
           </TabsContent>
         </Tabs>
         </>
