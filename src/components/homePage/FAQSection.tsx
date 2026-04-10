@@ -1,5 +1,9 @@
-import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const faqs = [
   {
@@ -33,10 +37,8 @@ const faqs = [
 ];
 
 const FAQSection = () => {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
-
   return (
-    <section className="relative py-16 md:py-24">
+    <section className="relative py-16 md:py-24 [overflow-anchor:none]">
       <div className="container mx-auto px-6">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10 md:mb-12">
@@ -48,40 +50,26 @@ const FAQSection = () => {
               Quick clarity on how Formme works from first sample to final delivery.
             </p>
           </div>
-          <div className="space-y-3">
-            {faqs.map((item, idx) => {
-              const isOpen = openIndex === idx;
-              return (
-                <div
-                  key={item.q}
-                  className="rounded-2xl border border-border/60 bg-white/90 shadow-[0_12px_30px_rgba(0,0,0,0.08)]"
-                >
-                  <button
-                    type="button"
-                    className="w-full flex items-center justify-between gap-4 text-left px-5 md:px-6 py-2 md:py-2.5"
-                    onClick={() => setOpenIndex(isOpen ? null : idx)}
-                    aria-expanded={isOpen}
-                  >
-                    <span className="text-base md:text-lg font-semibold text-foreground leading-tight flex-1">
-                      {item.q}
-                    </span>
-                    <ChevronDown
-                      className={`h-5 w-5 text-muted-foreground transition-transform ${
-                        isOpen ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-                  <div
-                    className={`px-5 md:px-6 pb-5 md:pb-6 text-sm md:text-base text-muted-foreground transition-all duration-300 ${
-                      isOpen ? "max-h-48 opacity-100" : "max-h-0 opacity-0 overflow-hidden"
-                    }`}
-                  >
-                    {item.a}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <Accordion
+            type="multiple"
+            defaultValue={["faq-0"]}
+            className="space-y-3"
+          >
+            {faqs.map((item, idx) => (
+              <AccordionItem
+                key={item.q}
+                value={`faq-${idx}`}
+                className="rounded-2xl border border-border/60 bg-white/90 px-5 md:px-6 shadow-[0_12px_30px_rgba(0,0,0,0.08)]"
+              >
+                <AccordionTrigger className="py-4 md:py-5 text-left text-base md:text-lg font-semibold text-foreground leading-tight hover:no-underline">
+                  {item.q}
+                </AccordionTrigger>
+                <AccordionContent className="pb-5 md:pb-6 text-sm md:text-base text-muted-foreground leading-relaxed">
+                  {item.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
       </div>
     </section>

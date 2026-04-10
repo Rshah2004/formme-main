@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,12 @@ import { useElementContext } from '@/context/ElementContext';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { CanvasElementType } from '@/types/elements';
+
+const getTemplateThumbnailSrc = (preview: string) => {
+  if (!preview.startsWith('/lovable-uploads/')) return preview;
+  return preview.replace('/lovable-uploads/', '/lovable-uploads/thumbs/');
+};
+
 interface ImprovedTemplateSelectorProps {
   selectedTemplate: string;
   selectedGender: 'male' | 'female';
@@ -34,6 +40,16 @@ const ImprovedTemplateSelector = ({
 
   // Refined template list based on gender/type
   const filteredTemplates = getTemplatesByTypeAndGender(selectedGarmentType, selectedGender).filter(template => template.name.toLowerCase().includes(searchQuery.toLowerCase()) || (template.description?.toLowerCase() || '').includes(searchQuery.toLowerCase()));
+
+  useEffect(() => {
+    garmentTemplates.forEach((template) => {
+      if (!template.preview.startsWith('/') && !template.preview.startsWith('http')) return;
+      const image = new Image();
+      image.src = getTemplateThumbnailSrc(template.preview);
+      image.decoding = 'async';
+    });
+  }, []);
+
   const handleTemplateClick = (template: GarmentTemplate) => {
     if (multiSelect) {
       let previewElement: React.ReactElement;
@@ -169,7 +185,15 @@ const ImprovedTemplateSelector = ({
                 `} onClick={() => handleTemplateClick(template)}>
                 <CardContent className="p-3">
                   <div className="w-full h-14 rounded-md bg-muted flex items-center justify-center mb-2 overflow-hidden">
-                    {template.preview.startsWith('/') || template.preview.startsWith('http') ? <img src={template.preview} alt={template.name} className="w-full h-full object-contain" /> : <span className="text-lg">{template.preview}</span>}
+                    {template.preview.startsWith('/') || template.preview.startsWith('http') ? (
+                      <img
+                        src={getTemplateThumbnailSrc(template.preview)}
+                        alt={template.name}
+                        className="w-full h-full object-contain"
+                        loading="eager"
+                        decoding="async"
+                      />
+                    ) : <span className="text-lg">{template.preview}</span>}
                   </div>
                   
                   <div className="text-center">

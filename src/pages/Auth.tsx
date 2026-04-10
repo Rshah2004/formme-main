@@ -441,8 +441,13 @@ const handleResetPassword = async (e: React.FormEvent) => {
         {(mode === "signin" || mode === "signup") && (
           <>
             <div className="text-center mb-6">
-              <h1 className="text-4xl font-bold mb-2">formme</h1>
-              <p className="text-muted-foreground">
+              <p className="text-[11px] font-semibold tracking-[0.32em] uppercase text-primary/70 mb-3">
+                {isDirectSignupRoute ? "Private access" : mode === "signin" ? "Member portal" : "Early access"}
+              </p>
+              <h1 className="font-inter text-5xl font-semibold tracking-[-0.08em] text-foreground mb-3">
+                formme
+              </h1>
+              <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
                 {mode === "signin" ? "Welcome back" : isDirectSignupRoute ? "Create your Formme account" : "Join the Formme waitlist"}
               </p>
             </div>
