@@ -230,7 +230,7 @@
 "use client";
 
 import * as React from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import NavBar from "../components/Navbar";
 import HeroSection from "../components/homePage/HeroSection";
 import PipelineSection from "../components/homePage/PipelineSection";
@@ -244,12 +244,49 @@ import Footer from '@/components/Footer';
 import Features from '@/components/homePage/Features';
 
 const HomePage = () => {
+  const [useStaticBackdrop, setUseStaticBackdrop] = useState(false);
+  const [useLightweightVideo, setUseLightweightVideo] = useState(false);
+
+  useEffect(() => {
+    const updateBackdropMode = () => {
+      const prefersReduced =
+        typeof window !== "undefined" &&
+        window.matchMedia &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const isSmallPhoneViewport = window.innerWidth < 640;
+      const isCoarsePointer =
+        typeof window !== "undefined" &&
+        window.matchMedia &&
+        window.matchMedia("(pointer: coarse)").matches;
+
+      setUseStaticBackdrop(prefersReduced);
+      setUseLightweightVideo(isSmallPhoneViewport && isCoarsePointer);
+    };
+
+    updateBackdropMode();
+    window.addEventListener("resize", updateBackdropMode);
+    return () => window.removeEventListener("resize", updateBackdropMode);
+  }, []);
+
   useEffect(() => {
     const globe =
       document.getElementById("globe-transition-anchor") ||
       document.getElementById("globe-section");
     const green = document.getElementById("manufacturing-section");
     if (!globe || !green) return;
+
+    if (useStaticBackdrop) {
+      globe.style.opacity = "1";
+      globe.style.transform = "translateY(0)";
+      globe.style.willChange = "auto";
+      globe.style.transition = "none";
+
+      green.style.opacity = "1";
+      green.style.transform = "translateY(0)";
+      green.style.willChange = "auto";
+      green.style.transition = "none";
+      return;
+    }
 
     let raf: number | null = null;
     const update = () => {
@@ -294,26 +331,42 @@ const HomePage = () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, []);
+  }, [useLightweightVideo, useStaticBackdrop]);
 
   return (
     <div className="relative w-full min-h-screen overflow-hidden">
-      {/* Background Video with Blur */}
-      <video
-        id="landing-fabric-video"
-        className="fixed inset-0 w-full h-full object-cover z-[-1] blur-[30px] bg-[rgba(217,217,217,0)]"
-        autoPlay
-        muted
-        loop
-        playsInline
-      >
-        <source src="/backgroundVideo.mp4" type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
-      <div
-        id="landing-video-overlay"
-        className="absolute inset-0 bg-[rgba(217,217,217,0.2)] backdrop-blur-[30px] z-[-1]"
-      />
+      {useStaticBackdrop ? (
+        <div
+          id="landing-video-overlay"
+          className="fixed inset-0 z-[-1] bg-[radial-gradient(circle_at_top,_rgba(74,106,92,0.16),_transparent_45%),linear-gradient(180deg,_rgba(246,239,228,0.98),_rgba(250,250,250,1))]"
+        />
+      ) : (
+        <>
+          {/* Background Video with Blur */}
+          <video
+            id="landing-fabric-video"
+            className={`fixed inset-0 w-full h-full object-cover z-[-1] bg-[rgba(217,217,217,0)] ${
+              useLightweightVideo ? "blur-0" : "blur-[30px]"
+            }`}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+          >
+            <source src="/backgroundVideo.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          <div
+            id="landing-video-overlay"
+            className={`absolute inset-0 z-[-1] ${
+              useLightweightVideo
+                ? "bg-[rgba(246,239,228,0.20)]"
+                : "bg-[rgba(217,217,217,0.2)] backdrop-blur-[30px]"
+            }`}
+          />
+        </>
+      )}
       <NavBar />
       <main className="flex-grow"> 
         <HeroSection />

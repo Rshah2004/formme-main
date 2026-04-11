@@ -1,8 +1,8 @@
-import { useRef, useState } from "react";
-import techpackPreview from "@/assets/techpack-upload.png";
-import kanbanPreview from "@/assets/kanbanPreview.png";
-import sampleReview from "@/assets/sampleReview.png";
-import manfacturerMatching from "@/assets/ManufacturerMatching.png";
+import { useEffect, useRef, useState } from "react";
+import techpackPreview from "@/assets/thumbs/techpack-upload.png";
+import kanbanPreview from "@/assets/thumbs/kanbanPreview.png";
+import sampleReview from "@/assets/thumbs/sampleReview.png";
+import manfacturerMatching from "@/assets/thumbs/ManufacturerMatching.png";
 
 const tabs = [
   {
@@ -60,6 +60,15 @@ const PlatformSection = () => {
   const [activeTab, setActiveTab] = useState(0);
   const tabsRef = useRef<HTMLDivElement | null>(null);
   const active = tabs[activeTab];
+
+  useEffect(() => {
+    tabs.forEach((tab) => {
+      if (!tab.image) return;
+      const image = new Image();
+      image.src = tab.image;
+      image.decoding = "async";
+    });
+  }, []);
 
   return (
     <section id="platform" className="py-16 md:py-20 pb-20 md:pb-24 bg-transparent">
@@ -129,6 +138,8 @@ const PlatformSection = () => {
                   <img
                     src={active.image}
                     alt={active.label}
+                    loading="eager"
+                    decoding="async"
                     className={`absolute inset-0 w-full h-full object-cover object-center ${
                       active.imageClass ?? ""
                     }`}

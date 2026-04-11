@@ -28,6 +28,29 @@ const HeroSection: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    const prefersReduced =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isSmallPhoneViewport = typeof window !== "undefined" && window.innerWidth < 640;
+    const isCoarsePointer =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(pointer: coarse)").matches;
+
+    if (prefersReduced || (isSmallPhoneViewport && isCoarsePointer)) {
+      const video = document.getElementById("landing-fabric-video") as HTMLVideoElement | null;
+      const overlay = document.getElementById("landing-video-overlay") as HTMLDivElement | null;
+      if (video) {
+        video.style.opacity = "1";
+        video.style.filter = "none";
+      }
+      if (overlay) {
+        overlay.style.opacity = "0.12";
+      }
+      return;
+    }
+
     const videoId = "landing-fabric-video";
     const overlayId = "landing-video-overlay";
     const range = 360;
@@ -90,7 +113,7 @@ const HeroSection: React.FC = () => {
   };
 
   return (
-    <section className="relative min-h-screen overflow-hidden pt-16 sm:pt-40 md:pt-52 px-5 sm:px-10 md:pl-24 md:pr-10 flex items-center sm:block">
+    <section className="relative min-h-[100svh] overflow-hidden pt-16 sm:pt-40 md:pt-52 px-5 sm:px-10 md:pl-24 md:pr-10 flex items-center sm:block">
 
       <div className="relative z-10 max-w-3xl text-center sm:text-left mx-auto sm:mx-0">
         <p className="uppercase tracking-[0.25em] text-xs sm:text-sm text-[#2E3F36] mb-4 relative -top-10 sm:top-0">
