@@ -111,7 +111,7 @@ export const HorizontalProgressTabs = () => {
           const Icon = stage.icon;
 
           return (
-            <React.Fragment key={stage.id}>
+            <div key={stage.id} className="flex flex-1 items-center">
               <button
                 onClick={() => handleStageClick(stage.id, status)}
                 disabled={isLocked}
@@ -147,7 +147,7 @@ export const HorizontalProgressTabs = () => {
                     : "bg-border"
                 )} />
               )}
-            </React.Fragment>
+            </div>
           );
         })}
       </div>

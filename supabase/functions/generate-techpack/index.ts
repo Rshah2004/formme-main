@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import jsPDF from "https://esm.sh/jspdf@2.5.1";
+import JSZip from "npm:jszip@3.10.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,6 +12,31 @@ const corsHeaders = {
 const SVG_AGENT_URL = Deno.env.get('SVG_AGENT_URL') || "http://localhost:8003/submit";
 const DESIGN_AGENT_URL = Deno.env.get('DESIGN_AGENT_URL') || "http://localhost:8001/submit";
 const MATERIALS_AGENT_URL = Deno.env.get('MATERIALS_AGENT_URL') || "http://localhost:8002/submit";
+const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+
+type ExtractedMeasurement = {
+  name: string;
+  value: string;
+  unit?: string;
+  size?: string;
+  normalizedKey?: string;
+  confidence?: number;
+  sourceText?: string;
+};
+
+type ExtractedTechPack = {
+  garmentType?: string | null;
+  brand?: string | null;
+  baseSize?: string | null;
+  sizeRange?: string[];
+  grading?: string | null;
+  fabricType?: string | null;
+  gsm?: number | null;
+  printType?: string | null;
+  constructionNotes?: string | null;
+  measurements?: ExtractedMeasurement[];
+  additionalDetails?: Record<string, unknown>;
+};
 
 // Helper: Call a uAgent endpoint
 async function callAgent(url: string, payload: any): Promise<any> {
@@ -36,6 +62,48 @@ async function callAgent(url: string, payload: any): Promise<any> {
   }
 }
 
+async function callLovableJson(systemPrompt: string, userPrompt: string, imageUrl?: string): Promise<any> {
+  if (!LOVABLE_API_KEY) {
+    throw new Error("LOVABLE_API_KEY is not configured");
+  }
+
+  const content = imageUrl
+    ? [
+        { type: 'text', text: userPrompt },
+        { type: 'image_url', image_url: { url: imageUrl } }
+      ]
+    : userPrompt;
+
+  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'google/gemini-2.5-flash',
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content }
+      ]
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`AI API error ${response.status}: ${errorText}`);
+  }
+
+  const data = await response.json();
+  const rawContent = data.choices?.[0]?.message?.content;
+  if (!rawContent) {
+    throw new Error('Extractor returned no content');
+  }
+
+  return typeof rawContent === 'string' ? JSON.parse(rawContent) : rawContent;
+}
+
 // Helper: Convert SVG URL/data to base64
 async function svgToBase64(designImageUrl: string): Promise<string> {
   try {
@@ -53,6 +121,160 @@ async function svgToBase64(designImageUrl: string): Promise<string> {
     console.error('SVG conversion error:', error);
     return '';
   }
+}
+
+function stripXmlTags(input: string): string {
+  return input
+    .replace(/<w:tab\/>/g, ' ')
+    .replace(/<w:br\/>/g, '\n')
+    .replace(/<\/w:p>/g, '\n')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\s+\n/g, '\n')
+    .replace(/\n\s+/g, '\n')
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
+}
+
+async function extractDocxText(fileBytes: Uint8Array): Promise<string> {
+  const zip = await JSZip.loadAsync(fileBytes);
+  const xmlPaths = Object.keys(zip.files)
+    .filter((path) =>
+      path === 'word/document.xml' ||
+      path.startsWith('word/header') ||
+      path.startsWith('word/footer') ||
+      path.startsWith('word/footnotes')
+    )
+    .sort();
+
+  const chunks = await Promise.all(
+    xmlPaths.map(async (path) => stripXmlTags(await zip.file(path)!.async('text')))
+  );
+
+  return chunks.filter(Boolean).join('\n\n').trim();
+}
+
+function extractPdfText(fileBytes: Uint8Array): string {
+  const binaryText = new TextDecoder('latin1').decode(fileBytes);
+  const literalStrings = Array.from(binaryText.matchAll(/\((?:\\.|[^()\\]){2,}\)/g))
+    .map((match) =>
+      match[0]
+        .slice(1, -1)
+        .replace(/\\[nrt]/g, ' ')
+        .replace(/\\([()\\])/g, '$1')
+        .replace(/\s{2,}/g, ' ')
+        .trim()
+    )
+    .filter((value) => /[A-Za-z]/.test(value));
+
+  return literalStrings.join('\n').trim();
+}
+
+async function extractFileText(fileUrl: string, fileName?: string, mimeType?: string): Promise<string> {
+  const response = await fetch(fileUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch uploaded tech pack: ${response.status}`);
+  }
+
+  const fileBytes = new Uint8Array(await response.arrayBuffer());
+  const extension = (fileName?.split('.').pop() || '').toLowerCase();
+  const type = mimeType?.toLowerCase() || response.headers.get('content-type')?.toLowerCase() || '';
+
+  if (type.includes('wordprocessingml') || extension === 'docx') {
+    return extractDocxText(fileBytes);
+  }
+
+  if (
+    type.startsWith('text/') ||
+    extension === 'txt' ||
+    extension === 'csv' ||
+    extension === 'json' ||
+    extension === 'md'
+  ) {
+    return new TextDecoder().decode(fileBytes).trim();
+  }
+
+  if (type.includes('pdf') || extension === 'pdf') {
+    return extractPdfText(fileBytes);
+  }
+
+  return '';
+}
+
+function sanitizeString(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
+}
+
+function parseNumericValue(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value !== 'string') return null;
+  const match = value.match(/-?\d+(\.\d+)?/);
+  return match ? Number(match[0]) : null;
+}
+
+function normalizeMeasurementKey(name: string): string | null {
+  const normalized = name.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  if (!normalized) return null;
+
+  const mapping: Array<[RegExp, string]> = [
+    [/\b(chest|pit to pit|ptp|body width|1\/2 chest|half chest)\b/, 'chestWidth'],
+    [/\b(body length|length|hps length|center back length)\b/, 'length'],
+    [/\b(sleeve length|short sleeve|long sleeve)\b/, 'sleeveLength'],
+    [/\b(shoulder|across shoulder|shoulder width)\b/, 'shoulderWidth'],
+    [/\b(hem|sweep|bottom opening|hem width)\b/, 'hemWidth'],
+  ];
+
+  for (const [pattern, key] of mapping) {
+    if (pattern.test(normalized)) return key;
+  }
+
+  return null;
+}
+
+function normalizeExtractorResponse(payload: any): ExtractedTechPack {
+  const rawMeasurements = Array.isArray(payload?.measurements) ? payload.measurements : [];
+
+  const measurements = rawMeasurements
+    .map((entry: any) => {
+      const name = sanitizeString(entry?.name);
+      const value = sanitizeString(entry?.value);
+      if (!name || !value) return null;
+
+      return {
+        name,
+        value,
+        unit: sanitizeString(entry?.unit) || undefined,
+        size: sanitizeString(entry?.size) || undefined,
+        normalizedKey: sanitizeString(entry?.normalizedKey) || normalizeMeasurementKey(name) || undefined,
+        confidence: typeof entry?.confidence === 'number' ? entry.confidence : undefined,
+        sourceText: sanitizeString(entry?.sourceText) || undefined,
+      };
+    })
+    .filter(Boolean) as ExtractedMeasurement[];
+
+  const sizeRange = Array.isArray(payload?.sizeRange)
+    ? payload.sizeRange.map((value: any) => sanitizeString(value)).filter(Boolean)
+    : [];
+
+  return {
+    garmentType: sanitizeString(payload?.garmentType),
+    brand: sanitizeString(payload?.brand),
+    baseSize: sanitizeString(payload?.baseSize),
+    sizeRange,
+    grading: sanitizeString(payload?.grading),
+    fabricType: sanitizeString(payload?.fabricType),
+    gsm: parseNumericValue(payload?.gsm),
+    printType: sanitizeString(payload?.printType),
+    constructionNotes: sanitizeString(payload?.constructionNotes),
+    measurements,
+    additionalDetails: typeof payload?.additionalDetails === 'object' && payload.additionalDetails
+      ? payload.additionalDetails
+      : {},
+  };
 }
 
 // Orchestrator: Coordinates all agents
@@ -456,12 +678,83 @@ ${designData.constructionNotes || 'None provided'}`;
       );
     }
 
+    // ROUTE 4: Extract structured data from an uploaded tech pack
+    if (action === 'extract') {
+      const techPack = body.techPack || {};
+      const fileUrl = techPack.fileUrl;
+      const fileName = techPack.fileName || '';
+      const mimeType = techPack.mimeType || '';
+
+      if (!fileUrl) {
+        return new Response(
+          JSON.stringify({ error: 'Missing techPack.fileUrl in request body' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log('🧠 Extracting structured specs from tech pack:', fileName || fileUrl);
+
+      const extractedText = await extractFileText(fileUrl, fileName, mimeType);
+      const isImage = mimeType.startsWith('image/') || /\.(png|jpe?g|webp)$/i.test(fileName || fileUrl);
+      const prompt = `Extract the key production specifications from this garment tech pack and return strict JSON.
+
+Rules:
+- Tech packs differ by brand, so infer structure from section names, tables, callouts, and measurement specs.
+- Prefer exact values from the document. Do not invent missing values.
+- Normalize only when confident. Otherwise leave the field null and keep the original detail in additionalDetails.
+- Measurements should be an array of objects with: name, value, unit, size, normalizedKey, confidence, sourceText.
+- normalizedKey should only be one of: chestWidth, length, sleeveLength, shoulderWidth, hemWidth when the match is clear.
+- Keep constructionNotes concise but useful for manufacturing.
+- sizeRange must be an array when available.
+- additionalDetails can contain trims, labels, packaging, wash care, artwork notes, tolerances, colorways, stitching, or any other extracted fields.
+
+Return JSON with exactly these top-level keys:
+{
+  "garmentType": string|null,
+  "brand": string|null,
+  "baseSize": string|null,
+  "sizeRange": string[],
+  "grading": string|null,
+  "fabricType": string|null,
+  "gsm": number|null,
+  "printType": string|null,
+  "constructionNotes": string|null,
+  "measurements": Array<{ "name": string, "value": string, "unit": string|null, "size": string|null, "normalizedKey": string|null, "confidence": number|null, "sourceText": string|null }>,
+  "additionalDetails": object
+}
+
+Context:
+- Design name: ${techPack.designName || 'Unknown'}
+- File name: ${fileName || 'Unknown'}
+- Mime type: ${mimeType || 'Unknown'}
+
+Extracted text:
+${extractedText || 'No direct text extraction available. Use the provided file if possible.'}`;
+
+      const rawResponse = await callLovableJson(
+        'You extract structured apparel manufacturing specs from heterogeneous brand tech packs and return strict JSON only.',
+        prompt,
+        isImage ? fileUrl : undefined
+      );
+      const normalized = normalizeExtractorResponse(rawResponse);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          extractedText,
+          extraction: normalized,
+          rawExtraction: rawResponse,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Unknown action
     console.error(`❌ Unknown action: ${action}`);
     return new Response(
       JSON.stringify({ 
         error: 'Invalid action parameter',
-        message: `Action '${action}' is not supported. Use 'draft', 'finalize', or 'regenerate'`,
+        message: `Action '${action}' is not supported. Use 'draft', 'finalize', 'regenerate', or 'extract'`,
         received: action
       }), 
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

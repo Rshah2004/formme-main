@@ -15,6 +15,7 @@ import {
 import { useDropzone } from 'react-dropzone';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { buildDesignSpecsExtractionUpdate } from '@/lib/techPackExtraction';
 
 interface TechPackUploadStageProps {
   design: any;
@@ -25,6 +26,7 @@ const TechPackUploadStage = ({ design }: TechPackUploadStageProps) => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(design?.tech_pack_url || null);
+  const [isExtracting, setIsExtracting] = useState(false);
 
   useEffect(() => {
     const hydrateTechPack = async () => {
@@ -80,12 +82,62 @@ const TechPackUploadStage = ({ design }: TechPackUploadStageProps) => {
         .eq('id', design.id);
 
       setUploadedUrl(urlData.publicUrl);
-      toast.success('Tech pack uploaded successfully!');
+      setIsExtracting(true);
+
+      const { data: specs } = await supabase
+        .from('design_specs')
+        .select('attachments, measurements, fabric_type, gsm, print_type, construction_notes')
+        .eq('design_id', design.id)
+        .maybeSingle();
+
+      try {
+        const { data: extractionData, error: extractionError } = await supabase.functions.invoke('extract-techpack', {
+          body: {
+            techPack: {
+              designId: design.id,
+              designName: design?.name || 'Untitled Design',
+              fileUrl: urlData.publicUrl,
+              fileName: file.name,
+              mimeType: file.type,
+            }
+          }
+        });
+
+        if (extractionError) {
+          console.error('Tech pack extraction failed:', extractionError);
+          toast.success('Tech pack uploaded successfully');
+          toast.warning('Upload worked, but auto-extraction is unavailable until the new extract-techpack function is deployed');
+        } else if (extractionData?.extraction) {
+          const updates = buildDesignSpecsExtractionUpdate(
+            extractionData.extraction,
+            specs,
+            {
+              extractedText: extractionData.extractedText,
+              fileUrl: urlData.publicUrl,
+              fileName: file.name,
+            }
+          );
+
+          await supabase
+            .from('design_specs')
+            .update(updates)
+            .eq('design_id', design.id);
+
+          toast.success('Tech pack uploaded and specs extracted');
+        } else {
+          toast.success('Tech pack uploaded successfully');
+        }
+      } catch (extractionInvokeError) {
+        console.error('Tech pack extraction invoke failed:', extractionInvokeError);
+        toast.success('Tech pack uploaded successfully');
+        toast.warning('Upload worked, but auto-extraction is unavailable until the new extract-techpack function is deployed');
+      }
     } catch (error) {
       console.error('Upload error:', error);
       toast.error('Failed to upload tech pack');
       setUploadedFile(null);
     } finally {
+      setIsExtracting(false);
       setIsUploading(false);
     }
   }, [design.id]);
@@ -113,12 +165,43 @@ const TechPackUploadStage = ({ design }: TechPackUploadStageProps) => {
     setCurrentStage('design');
   };
 
-  const removeFile = () => {
-    setUploadedFile(null);
-    setUploadedUrl(null);
+  const removeFile = async () => {
+    try {
+      const { data: specs } = await supabase
+        .from('design_specs')
+        .select('attachments')
+        .eq('design_id', design.id)
+        .maybeSingle();
+
+      const attachments =
+        specs?.attachments && typeof specs.attachments === 'object' && !Array.isArray(specs.attachments)
+          ? { ...(specs.attachments as Record<string, unknown>) }
+          : {};
+
+      if ('techPackExtraction' in attachments) {
+        delete attachments.techPackExtraction;
+      }
+
+      await supabase
+        .from('designs')
+        .update({ tech_pack_url: null })
+        .eq('id', design.id);
+
+      await supabase
+        .from('design_specs')
+        .update({ attachments })
+        .eq('design_id', design.id);
+
+      setUploadedFile(null);
+      setUploadedUrl(null);
+      toast.success('Tech pack removed');
+    } catch (error) {
+      console.error('Failed to remove tech pack:', error);
+      toast.error('Failed to remove tech pack');
+    }
   };
 
-  const hasExistingTechPack = uploadedUrl || design?.tech_pack_url;
+  const hasExistingTechPack = Boolean(uploadedUrl);
 
   return (
     <div className="space-y-6">
@@ -187,13 +270,13 @@ const TechPackUploadStage = ({ design }: TechPackUploadStageProps) => {
               className={`
                 border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-all
                 ${isDragActive ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/30'}
-                ${isUploading ? 'opacity-50 pointer-events-none' : ''}
+                ${(isUploading || isExtracting) ? 'opacity-50 pointer-events-none' : ''}
               `}
             >
               <input {...getInputProps()} />
               <div className="flex flex-col items-center gap-4">
                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                  {isUploading ? (
+                  {(isUploading || isExtracting) ? (
                     <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <Upload className="w-8 h-8 text-muted-foreground" />
@@ -201,10 +284,16 @@ const TechPackUploadStage = ({ design }: TechPackUploadStageProps) => {
                 </div>
                 <div>
                   <p className="text-lg font-medium text-foreground mb-1">
-                    {isDragActive ? 'Drop your tech pack here' : 'Drag & drop your tech pack'}
+                    {isExtracting
+                      ? 'Extracting measurements and specs'
+                      : isDragActive
+                        ? 'Drop your tech pack here'
+                        : 'Drag & drop your tech pack'}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    or click to browse (PDF, DOC, DOCX, PNG, JPG)
+                    {isExtracting
+                      ? 'We are parsing the uploaded tech pack and prefilling the next steps.'
+                      : 'or click to browse (PDF, DOC, DOCX, PNG, JPG)'}
                   </p>
                 </div>
               </div>

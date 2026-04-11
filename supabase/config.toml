@@ -3,6 +3,9 @@ project_id = "vesanimmcimrbbrgjuun"
 [functions.generate-techpack]
 verify_jwt = false
 
+[functions.extract-techpack]
+verify_jwt = false
+
 [functions.start-techpack-agents]
 verify_jwt = false
 

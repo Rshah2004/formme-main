@@ -11,6 +11,16 @@ const earlyAdopters = [
     fullDescription: ", currently placing real production orders through Formme.",
     status: "Shipped",
     website: "https://9426.ca",
+    featured: true,
+  },
+  {
+    name: "All Dubs",
+    tagline: "streetwear with bold graphic direction",
+    description: "An emerging independent label building its first production pipeline with",
+    fullDescription: ", currently getting set up through Formme.",
+    status: "Onboarding",
+    website: null,
+    featured: true,
   },
   {
     name: "Independent Brand →",
@@ -19,6 +29,7 @@ const earlyAdopters = [
     fullDescription: ", currently in production through Formme.",
     status: "In Production",
     website: null,
+    featured: false,
   },
 ];
 
@@ -98,6 +109,10 @@ Early Adopters</span>
                   <span className="text-4xl md:text-5xl font-bold text-muted-foreground/40 tracking-tight">
                     {currentAdopter.name}
                   </span>
+                ) : currentAdopter.featured ? (
+                  <span className="text-3xl md:text-4xl font-bold text-muted-foreground/50 tracking-tight text-center">
+                    {currentAdopter.name}
+                  </span>
                 ) : (
                   <span className="text-sm uppercase tracking-[0.3em] text-muted-foreground/60">
                     Anonymous
@@ -109,7 +124,7 @@ Early Adopters</span>
             {/* Right - Content */}
             <div className="space-y-4">
               <h3 className="text-3xl md:text-5xl font-serif font-semibold text-[#2F4A3C] italic tracking-tight">
-                {currentAdopter.name === "9426" ? "9426" : "Independent Brand"}
+                {currentAdopter.featured ? currentAdopter.name : "Independent Brand"}
               </h3>
               <p className="text-base text-muted-foreground leading-relaxed">
                 {currentAdopter.description}{" "}

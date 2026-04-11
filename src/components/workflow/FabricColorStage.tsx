@@ -27,7 +27,7 @@ interface FabricEntry {
 
 interface SizeColorEntry {
   id: string;
-  size: 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL';
+  size: string;
   color: string;
   design_variant_quantity: string;
   imageUrl?: string;
@@ -70,7 +70,14 @@ const printTypes = [
 ];
 
 
-const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'] as const;
+const sizes = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '2XL', '3XL', '4XL'] as const;
+
+const getTechPackExtraction = (attachments: unknown) => {
+  if (!attachments || typeof attachments !== 'object' || Array.isArray(attachments)) return null;
+  const extraction = (attachments as Record<string, any>)?.techPackExtraction?.extraction;
+  if (!extraction || typeof extraction !== 'object') return null;
+  return extraction as Record<string, any>;
+};
 
 const FabricColorStage = ({ design }: FabricColorStageProps) => {
   const { setCurrentStage, markStageComplete, workflowData, updateWorkflowData } = useWorkflow();
@@ -112,11 +119,13 @@ const FabricColorStage = ({ design }: FabricColorStageProps) => {
     const loadSpecs = async () => {
       const { data: specs } = await supabase
         .from('design_specs')
-        .select('fabric_type, gsm, print_type, construction_notes, artwork_url')
+        .select('fabric_type, gsm, print_type, construction_notes, artwork_url, attachments')
         .eq('design_id', design.id)
         .maybeSingle();
 
       if (specs) {
+        const extraction = getTechPackExtraction(specs.attachments);
+
         if (specs.fabric_type) {
           // Try to parse fabric_type as JSON for multiple fabrics
           try {
@@ -138,6 +147,16 @@ const FabricColorStage = ({ design }: FabricColorStageProps) => {
         if (specs.print_type) setPrintType(specs.print_type);
         if (specs.construction_notes) setConstructionNotes(specs.construction_notes);
         if (specs.artwork_url) setPatternUrl(specs.artwork_url);
+        const extractedColorNotes = [
+          extraction?.additionalDetails?.colorNotes,
+          Array.isArray(extraction?.additionalDetails?.colors)
+            ? extraction.additionalDetails.colors.join(', ')
+            : null,
+          extraction?.additionalDetails?.colorway,
+        ]
+          .filter((value, index, values) => typeof value === 'string' && value.trim() !== '' && values.indexOf(value) === index)
+          .join(' • ');
+        if (extractedColorNotes) setColorNotes(extractedColorNotes);
         setOriginalData(specs);
       }
       const { data: variants } = await supabase
@@ -155,6 +174,26 @@ const FabricColorStage = ({ design }: FabricColorStageProps) => {
             imageUrl: v.image_url ?? undefined
           }))
         );
+      } else if (specs) {
+        const extraction = getTechPackExtraction(specs.attachments);
+        const extractedSizes = Array.isArray(extraction?.sizeRange)
+          ? extraction.sizeRange.filter((size: unknown): size is string => typeof size === 'string' && size.trim() !== '')
+          : [];
+        const extractedColors = Array.isArray(extraction?.additionalDetails?.colors)
+          ? extraction.additionalDetails.colors.filter((color: unknown): color is string => typeof color === 'string' && color.trim() !== '')
+          : extraction?.additionalDetails?.colorway
+            ? [String(extraction.additionalDetails.colorway)]
+            : [];
+
+        if (extractedSizes.length > 0 || extractedColors.length > 0) {
+          const prefills = (extractedSizes.length > 0 ? extractedSizes : ['M']).map((size, index) => ({
+            id: `extracted-${size}-${index}`,
+            size,
+            color: extractedColors[0] || '',
+            design_variant_quantity: '',
+          }));
+          setSizeColorEntries(prefills);
+        }
       }
       const { data: prints } = await supabase
         .from('design_print_colors')
@@ -170,6 +209,39 @@ const FabricColorStage = ({ design }: FabricColorStageProps) => {
             fileUrl: p.file_url ?? undefined,
           }))
         );
+      } else if (specs) {
+        const extraction = getTechPackExtraction(specs.attachments);
+        const extractedPrintType = typeof extraction?.printType === 'string' && extraction.printType.trim() !== ''
+          ? extraction.printType
+          : 'None';
+        const extractedPrintEntries = Array.isArray(extraction?.additionalDetails?.printColors)
+          ? extraction.additionalDetails.printColors
+              .filter((entry: unknown): entry is { printType?: string; notes?: string } => typeof entry === 'object' && entry !== null)
+              .map((entry, index) => ({
+                id: `extracted-print-${index + 1}`,
+                printType: typeof entry.printType === 'string' && entry.printType.trim() !== '' ? entry.printType : extractedPrintType,
+                notes: typeof entry.notes === 'string' ? entry.notes : '',
+                fileUrl: undefined,
+              }))
+          : [];
+
+        const fallbackNotes = [
+          typeof extraction?.additionalDetails?.colorNotes === 'string' ? extraction.additionalDetails.colorNotes : '',
+          typeof extraction?.additionalDetails?.fit === 'string' ? extraction.additionalDetails.fit : '',
+        ].filter(Boolean).join(' • ');
+
+        if (extractedPrintEntries.length > 0) {
+          setPrintColorEntries(extractedPrintEntries);
+        } else if (extractedPrintType !== 'None' || fallbackNotes) {
+          setPrintColorEntries([
+            {
+              id: 'extracted-print-1',
+              printType: extractedPrintType,
+              notes: fallbackNotes,
+              fileUrl: undefined,
+            }
+          ]);
+        }
       }
     };
     loadSpecs();
@@ -436,9 +508,21 @@ const onPrintImageRemove = (printId: string) => {
 
       const { data: existing } = await supabase
         .from('design_specs')
-        .select('id')
+        .select('id, attachments')
         .eq('design_id', design.id)
         .maybeSingle();
+
+      const existingAttachments =
+        existing?.attachments && typeof existing.attachments === 'object' && !Array.isArray(existing.attachments)
+          ? { ...(existing.attachments as Record<string, any>) }
+          : {};
+
+      const extractionSource =
+        existingAttachments.techPackExtraction &&
+        typeof existingAttachments.techPackExtraction === 'object' &&
+        !Array.isArray(existingAttachments.techPackExtraction)
+          ? existingAttachments.techPackExtraction
+          : null;
 
       const specsData = {
         fabric_type: JSON.stringify(fabricData),
@@ -446,6 +530,21 @@ const onPrintImageRemove = (printId: string) => {
         print_type: printType !== 'None' ? printType : null,
         construction_notes: constructionNotes || null,
         artwork_url: patternUrl || null,
+        attachments: {
+          ...existingAttachments,
+          techPackExtraction: extractionSource
+            ? {
+                ...extractionSource,
+                extraction: {
+                  ...(extractionSource.extraction || {}),
+                  additionalDetails: {
+                    ...((extractionSource.extraction && extractionSource.extraction.additionalDetails) || {}),
+                    colorNotes: colorNotes || null,
+                  },
+                },
+              }
+            : existingAttachments.techPackExtraction,
+        },
       };
 
       // Save variants to a separate table if needed
@@ -802,6 +901,32 @@ const onPrintImageRemove = (printId: string) => {
               </div>
             </div>
           ))}
+        </CardContent>
+      </Card>
+
+      <Card className="border-border">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Palette className="w-5 h-5 text-primary" />
+            <CardTitle className="text-lg">Color Details</CardTitle>
+          </div>
+          <CardDescription>
+            Colorways, Pantones, finish notes, or other extracted color information
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Textarea
+            value={colorNotes}
+            onChange={(e) => {
+              if (!isContractFinalized) {
+                setColorNotes(e.target.value);
+                setHasUnsavedChanges(true);
+              }
+            }}
+            placeholder="e.g., Body: Washed Black, Rib: Matching black, PMS 419C print"
+            disabled={isContractFinalized}
+            rows={4}
+          />
         </CardContent>
       </Card>
 
