@@ -124,7 +124,7 @@ const isViewingPreviousStep = () => {
       case 'payment':
         return <PaymentStage design={design} />;
       case 'production':
-        return <PaymentStage design={design} />;
+        return <ProductionTrackingStage design={design} />;
       case 'waiting-sample':
         return <WaitingForSampleStage design={design} />;
       case 'sample':

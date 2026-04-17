@@ -166,6 +166,17 @@ const ProductionTrackingStage = ({ design }: ProductionTrackingStageProps) => {
     );
   }
 
+  const labDipsApproved = order?.production_timeline_data?.lab_dips_approved === true;
+  const trimsApproved   = order?.production_timeline_data?.trims_approved === true;
+  const ppSampleApproved = order?.production_timeline_data?.pp_sample_approved === true;
+
+  const preProductionItems = [
+    { label: 'Lab Dip Approval', desc: 'Fabric colour swatches matched to spec', done: labDipsApproved },
+    { label: 'Trims & Labels',   desc: 'Buttons, zippers, labels, hangtags confirmed', done: trimsApproved   },
+    { label: 'PP Sample Sign-off', desc: 'Pre-production sample approved before bulk', done: ppSampleApproved },
+  ];
+  const preProductionComplete = preProductionItems.every(i => i.done);
+
   return (
     <div>
       <StageHeader
@@ -173,6 +184,37 @@ const ProductionTrackingStage = ({ design }: ProductionTrackingStageProps) => {
         title="Production Tracking"
         description="Track your order's production progress in real-time. The manufacturer updates this as production moves through each phase."
       />
+
+      {/* Pre-production approvals */}
+      <Card className="mb-6 border-border">
+        <div className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-semibold text-foreground">Pre-Production Sign-offs</p>
+            {preProductionComplete && (
+              <span className="text-xs text-accent font-medium flex items-center gap-1">
+                <CheckCircle className="w-3.5 h-3.5" /> All approved
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {preProductionItems.map(item => (
+              <div key={item.label} className={`flex items-start gap-3 p-3 rounded-lg border ${item.done ? 'border-green-200 bg-green-50/50' : 'border-border bg-muted/30'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${item.done ? 'bg-green-100' : 'bg-muted'}`}>
+                  {item.done
+                    ? <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                    : <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                  }
+                </div>
+                <div>
+                  <p className={`text-xs font-medium ${item.done ? 'text-green-900' : 'text-foreground'}`}>{item.label}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{item.desc}</p>
+                  {!item.done && <p className="text-xs text-muted-foreground/70 mt-1 italic">Pending manufacturer approval</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
 
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 space-y-6">

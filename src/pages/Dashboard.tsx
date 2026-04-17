@@ -50,12 +50,12 @@ const getStepFromStatus = (status: string): number => {
     case "manufacturer_review":
       return 2;
     case "production_approval":
-    case "sample_development":
       return 3;
+    case "sample_development":
+      return 4;
     case "quality_check":
       return 5;
     case "shipping":
-      return 6;
     case "delivered":
       return 6;
     default:
@@ -63,50 +63,41 @@ const getStepFromStatus = (status: string): number => {
   }
 };
 
-// Order Progress Stepper - Horizontal with connecting lines
+// Order Progress Stepper
 const OrderProgressStepper = ({ currentStep }: { currentStep: number }) => {
   const steps = [
-    { id: 1, label: "DESIGN" },
-    { id: 2, label: "FINALIZE" },
-    { id: 3, label: "SAMPLING" },
-    { id: 4, label: "PRODUCTION" },
-    { id: 5, label: "QC" },
-    { id: 6, label: "DELIVERY" },
+    { id: 1, label: "Design"      },
+    { id: 2, label: "Finalize"    },
+    { id: 3, label: "Contract"    },
+    { id: 4, label: "Sampling"    },
+    { id: 5, label: "QC"          },
+    { id: 6, label: "Delivery"    },
   ];
 
   return (
-    <div className="w-full overflow-x-auto sm:overflow-visible">
-      <div className="flex items-center min-w-max">
+    <div className="w-full overflow-x-auto">
+      <div className="flex items-center min-w-max gap-0">
         {steps.map((step, index) => {
           const isCompleted = step.id < currentStep;
-          const isCurrent = step.id === currentStep;
-          
+          const isCurrent   = step.id === currentStep;
           return (
             <React.Fragment key={step.id}>
               <div className="flex flex-col items-center">
-                <div
-                  className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-medium transition-all ${
-                    isCompleted 
-                      ? "bg-[#96421f] text-white" 
-                      : isCurrent 
-                        ? "border-2 border-[#96421f] text-[#96421f] bg-white" 
-                        : "border border-gray-300 text-gray-400 bg-white"
-                  }`}
-                >
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold transition-all ${
+                  isCompleted ? "bg-accent text-accent-foreground"
+                  : isCurrent ? "border-2 border-primary text-primary bg-background"
+                  : "border border-border text-muted-foreground bg-background"
+                }`}>
                   {isCompleted ? <Check className="w-3 h-3" /> : step.id}
                 </div>
-                <span className={`text-[9px] mt-1 whitespace-nowrap font-medium ${
-                  isCompleted || isCurrent ? "text-[#96421f]" : "text-gray-400"
+                <span className={`text-[9px] mt-1 whitespace-nowrap tracking-wide uppercase font-medium ${
+                  isCurrent ? "text-primary" : isCompleted ? "text-accent" : "text-muted-foreground/60"
                 }`}>
                   {step.label}
                 </span>
               </div>
               {index < steps.length - 1 && (
-                <div 
-                  className={`w-6 sm:w-8 h-0.5 mx-0.5 mt-[-12px] ${
-                    step.id < currentStep ? "bg-[#96421f]" : "bg-gray-200"
-                  }`} 
-                />
+                <div className={`w-5 h-px mb-5 mx-0.5 ${step.id < currentStep ? "bg-accent/60" : "bg-border"}`} />
               )}
             </React.Fragment>
           );
@@ -118,15 +109,15 @@ const OrderProgressStepper = ({ currentStep }: { currentStep: number }) => {
 
 // Status config for badges
 const statusConfig: Record<string, { label: string; color: string }> = {
-  draft: { label: "Draft", color: "text-gray-600" },
-  tech_pack_pending: { label: "Design Submitted", color: "text-[#344C3D]" },
-  sent_to_manufacturer: { label: "Finalizing Manufacturer", color: "text-[#96421f]" },
-  manufacturer_review: { label: "Finalizing Manufacturer", color: "text-[#96421f]" },
-  production_approval: { label: "Sampling", color: "text-[#96421f]" },
-  sample_development: { label: "Sampling", color: "text-[#96421f]" },
-  quality_check: { label: "Quality Check", color: "text-[#96421f]" },
-  shipping: { label: "Shipping", color: "text-[#96421f]" },
-  delivered: { label: "Delivered", color: "text-[#344C3D]" },
+  draft: { label: "Draft", color: "text-muted-foreground" },
+  tech_pack_pending: { label: "Design Submitted",       color: "text-primary" },
+  sent_to_manufacturer: { label: "Finding Manufacturer", color: "text-accent"  },
+  manufacturer_review:  { label: "Finding Manufacturer", color: "text-accent"  },
+  production_approval:  { label: "Contract & Deposit",   color: "text-accent"  },
+  sample_development:   { label: "Sampling",             color: "text-accent"  },
+  quality_check:        { label: "Quality Check",        color: "text-accent"  },
+  shipping:             { label: "Shipping",             color: "text-accent"  },
+  delivered:            { label: "Delivered",            color: "text-primary" },
 };
 
 // Order Card Component
@@ -136,7 +127,7 @@ const OrderCard = ({ order, onClick }: { order: Order; onClick: () => void }) =>
 
   return (
     <Card 
-      className="p-4 sm:p-6 hover:shadow-md transition-shadow cursor-pointer border border-gray-100 bg-white" 
+      className="p-4 sm:p-6 hover:shadow-md transition-shadow cursor-pointer border border-border bg-card" 
       onClick={onClick}
     >
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-6">
@@ -147,7 +138,7 @@ const OrderCard = ({ order, onClick }: { order: Order; onClick: () => void }) =>
           </h3>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1.5">
-              <div className="w-5 h-5 rounded-full bg-[#344C3D] flex items-center justify-center">
+              <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
                 <span className="text-white text-[10px] font-medium">M</span>
               </div>
               <span>{order.manufacturers?.name || "No manufacturer yet"}</span>
@@ -297,7 +288,7 @@ const Dashboard = () => {
 
   if (isAuthenticated === null || roleLoading || loading) {
     return (
-      <div className="min-h-screen bg-[#FAF9F6]">
+      <div className="min-h-screen bg-background">
         <Navbar />
         <div className="flex flex-col md:flex-row mt-16">
           <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} />
@@ -368,7 +359,7 @@ const Dashboard = () => {
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h1
-            className="text-3xl font-serif font-bold text-[#344C3D] mb-1"
+            className="text-3xl font-cormorant font-semibold text-primary mb-1"
             data-help-target="dashboard-heading"
           >
             Dashboard
@@ -377,22 +368,22 @@ const Dashboard = () => {
         </div>
         <div className="relative w-full sm:w-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Search orders..." className="pl-9 w-full sm:w-64 bg-white border-gray-200" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+          <Input placeholder="Search orders..." className="pl-9 w-full sm:w-64 bg-card border-border" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
         </div>
       </div>
 
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-          <h2 className="text-xl font-serif font-semibold text-[#344C3D]">Manufacturing Orders</h2>
-          <Button onClick={() => navigate("/new-design")} className="bg-[#344C3D] hover:bg-[#344C3D]/90 w-full sm:w-auto">
+          <h2 className="text-xl font-cormorant font-semibold text-primary">Manufacturing Orders</h2>
+          <Button onClick={() => navigate("/new-design")} className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />New Order
           </Button>
         </div>
 
         {filteredOrders.length === 0 ? (
-          <Card className="p-12 text-center bg-white border-gray-100">
+          <Card className="p-12 text-center bg-card border-border">
             <p className="text-muted-foreground mb-4">No orders yet</p>
-            <Button onClick={() => navigate("/new-design")} className="bg-[#344C3D] hover:bg-[#344C3D]/90">Create your first design</Button>
+            <Button onClick={() => navigate("/new-design")} className="bg-primary hover:bg-primary/90">Create your first design</Button>
           </Card>
         ) : (
           <div className="space-y-4">
@@ -409,22 +400,22 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-serif font-bold text-[#344C3D] mb-1">Orders</h1>
+          <h1 className="text-3xl font-cormorant font-semibold text-primary mb-1">Orders</h1>
           <p className="text-muted-foreground">Manage and track all your manufacturing orders</p>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Button variant="outline" size="sm" className="border-[#344C3D] text-[#344C3D] flex-1 sm:flex-initial"><Download className="w-4 h-4 mr-2" />Export</Button>
-          <Button onClick={() => navigate("/new-design")} size="sm" className="bg-[#344C3D] hover:bg-[#344C3D]/90 flex-1 sm:flex-initial">New Order</Button>
+          <Button variant="outline" size="sm" className="border-primary text-primary flex-1 sm:flex-initial"><Download className="w-4 h-4 mr-2" />Export</Button>
+          <Button onClick={() => navigate("/new-design")} size="sm" className="bg-primary hover:bg-primary/90 flex-1 sm:flex-initial">New Order</Button>
         </div>
       </div>
 
       <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-4">
         <div className="relative flex-1 sm:max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Search orders..." className="pl-9 bg-white" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+          <Input placeholder="Search orders..." className="pl-9 bg-card" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-40 bg-white"><SelectValue placeholder="All Statuses" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-40 bg-card"><SelectValue placeholder="All Statuses" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="draft">Draft</SelectItem>
@@ -435,19 +426,19 @@ const Dashboard = () => {
           </SelectContent>
         </Select>
         <Select value={manufacturerFilter} onValueChange={setManufacturerFilter}>
-          <SelectTrigger className="w-full sm:w-48 bg-white"><SelectValue placeholder="All Manufacturers" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-48 bg-card"><SelectValue placeholder="All Manufacturers" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Manufacturers</SelectItem>
             {manufacturers.map(m => m && <SelectItem key={m} value={m}>{m}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Button variant="link" size="sm" onClick={clearFilters} className="text-[#344C3D]">Clear filters</Button>
+        <Button variant="link" size="sm" onClick={clearFilters} className="text-primary">Clear filters</Button>
       </div>
 
       <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Showing {filteredOrders.length} orders</p>
 
       {filteredOrders.length === 0 ? (
-        <Card className="p-8 text-center bg-white">
+        <Card className="p-8 text-center bg-card">
           <p className="text-muted-foreground mb-4">No orders match your filters</p>
           <Button variant="outline" onClick={clearFilters}>Clear filters</Button>
         </Card>
@@ -471,12 +462,12 @@ const Dashboard = () => {
       <div className="flex-1 min-w-[280px]">
         <div className="flex items-center gap-2 mb-4">
           <span className={`w-2 h-2 rounded-full ${dotColor}`} />
-          <h3 className="font-serif font-semibold text-[#344C3D]">{title}</h3>
-          <Badge variant="secondary" className="ml-1 bg-[#344C3D]/10 text-[#344C3D]">{columnOrders.length}</Badge>
+          <h3 className="font-cormorant font-semibold text-primary">{title}</h3>
+          <Badge variant="secondary" className="ml-1 bg-primary/10 text-primary">{columnOrders.length}</Badge>
         </div>
         <div className="space-y-3">
           {columnOrders.map(order => (
-            <Card key={order.id} className="p-4 cursor-pointer hover:shadow-md transition-shadow bg-white" onClick={() => navigate({ pathname: '/workflow', search: `?designId=${order.design_id}` })}>
+            <Card key={order.id} className="p-4 cursor-pointer hover:shadow-md transition-shadow bg-card" onClick={() => navigate({ pathname: '/workflow', search: `?designId=${order.design_id}` })}>
               <p className="text-xs text-muted-foreground font-mono mb-1">ORD-{order.id.slice(0, 8).toUpperCase()}</p>
               <h4 className="font-semibold mb-2">{order.designs?.name || "Untitled"}</h4>
               <div className="text-sm text-muted-foreground">
@@ -493,19 +484,19 @@ const Dashboard = () => {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-serif font-bold text-[#344C3D] mb-1">Production Status</h1>
+            <h1 className="text-3xl font-cormorant font-semibold text-primary mb-1">Production Status</h1>
             <p className="text-muted-foreground">Kanban view of your manufacturing pipeline</p>
           </div>
-        <div className="flex items-center gap-2 bg-white rounded-lg p-1 border w-full sm:w-auto">
-          <Button variant="secondary" size="sm" className="bg-[#344C3D] text-white hover:bg-[#344C3D]/90 flex-1 sm:flex-initial">Board</Button>
+        <div className="flex items-center gap-2 bg-card rounded-lg p-1 border w-full sm:w-auto">
+          <Button variant="secondary" size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 sm:flex-initial">Board</Button>
         </div>
       </div>
 
       <div className="flex gap-6 overflow-x-auto pb-4">
-        <KanbanColumn title="Design Submitted" columnOrders={designSubmitted} dotColor="bg-[#344C3D]" />
-        <KanbanColumn title="Sampling" columnOrders={sampling} dotColor="bg-[#96421f]" />
-        <KanbanColumn title="In Production" columnOrders={inProduction} dotColor="bg-[#B58C6A]" />
-        <KanbanColumn title="Delivered" columnOrders={delivered} dotColor="bg-[#344C3D]" />
+        <KanbanColumn title="Design Submitted" columnOrders={designSubmitted} dotColor="bg-primary" />
+        <KanbanColumn title="Sampling" columnOrders={sampling} dotColor="bg-accent" />
+        <KanbanColumn title="In Production" columnOrders={inProduction} dotColor="bg-accent/60" />
+        <KanbanColumn title="Delivered" columnOrders={delivered} dotColor="bg-primary" />
       </div>
       </div>
     );
@@ -517,14 +508,14 @@ const Dashboard = () => {
       return (
         <div className="space-y-6">
           <div>
-            <h1 className="text-3xl font-serif font-bold text-[#344C3D] mb-1">Messages</h1>
+            <h1 className="text-3xl font-cormorant font-semibold text-primary mb-1">Messages</h1>
             <p className="text-muted-foreground">Communication with manufacturers</p>
           </div>
           <div className="h-[400px] flex items-center justify-center border rounded-lg bg-card">
             <div className="text-center">
               <Lock className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
               <p className="text-muted-foreground mb-2">Sign up to message manufacturers</p>
-              <Button onClick={() => navigate('/auth')} className="bg-[#344C3D] hover:bg-[#344C3D]/90">
+              <Button onClick={() => navigate('/auth')} className="bg-primary hover:bg-primary/90">
                 Get Started
               </Button>
             </div>
@@ -556,7 +547,7 @@ const Dashboard = () => {
       return (
         <div className="space-y-6">
           <div>
-            <h1 className="text-3xl font-serif font-bold text-[#344C3D] mb-1">Messages</h1>
+            <h1 className="text-3xl font-cormorant font-semibold text-primary mb-1">Messages</h1>
             <p className="text-muted-foreground">Communication with manufacturers</p>
           </div>
           <div className="h-[400px] flex items-center justify-center border rounded-lg bg-card">
@@ -568,7 +559,7 @@ const Dashboard = () => {
               <p className="text-muted-foreground text-sm mb-6">
                 Start a new order and finalize with a manufacturer to begin messaging. Once your contract is confirmed, you can chat directly with your manufacturing partner.
               </p>
-              <Button onClick={() => navigate('/new-design')} className="bg-[#344C3D] hover:bg-[#344C3D]/90">
+              <Button onClick={() => navigate('/new-design')} className="bg-primary hover:bg-primary/90">
                 <Plus className="w-4 h-4 mr-2" />
                 Create New Order
               </Button>
@@ -581,7 +572,7 @@ const Dashboard = () => {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-serif font-bold text-[#344C3D] mb-1">Messages</h1>
+          <h1 className="text-3xl font-cormorant font-semibold text-primary mb-1">Messages</h1>
           <p className="text-muted-foreground">Communication with manufacturers</p>
         </div>
         
@@ -600,10 +591,10 @@ const Dashboard = () => {
   const renderSettingsContent = () => (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-serif font-bold text-[#344C3D] mb-1">Settings</h1>
+        <h1 className="text-3xl font-cormorant font-semibold text-primary mb-1">Settings</h1>
         <p className="text-muted-foreground">Manage your account preferences</p>
       </div>
-      <Card className="p-8 text-center bg-white"><p className="text-muted-foreground">Settings coming soon</p></Card>
+      <Card className="p-8 text-center bg-card"><p className="text-muted-foreground">Settings coming soon</p></Card>
     </div>
   );
 
@@ -619,7 +610,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] relative">
+    <div className="min-h-screen bg-background relative">
       <Navbar />
       <div className="flex flex-col md:flex-row mt-16">
         <SidebarWrapper>

@@ -10,10 +10,10 @@ gsap.registerPlugin(ScrollTrigger);
 
 /* ─── Chat ─── */
 const chatMessages = [
-  { from: 'brand',  text: "Where's my sample?" },
-  { from: 'formme', text: 'In QC review. Sign-off expected Thursday.' },
-  { from: 'brand',  text: 'Factory flagged a stitching issue on style #4.' },
-  { from: 'formme', text: 'On it. Fix requested, updated ETA sent to you.' },
+  { from: 'brand',  text: 'Tech pack approved — when does sampling start?' },
+  { from: 'formme', text: 'Factory confirmed. Proto sample ships in 12 days.' },
+  { from: 'brand',  text: 'Fit looks off on the shoulder. Can we revise?' },
+  { from: 'formme', text: 'Revision sent to factory. Fit sample ETA updated.' },
 ];
 
 const ChatUI = () => (
@@ -45,10 +45,11 @@ const ChatUI = () => (
 /* ─── Process steps ─── */
 const processSteps = [
   { num: '01', label: 'You design.' },
-  { num: '02', label: 'We source your factory.' },
-  { num: '03', label: 'We build your tech pack.' },
-  { num: '04', label: 'We manage sampling.' },
+  { num: '02', label: 'We build your tech pack.' },
+  { num: '03', label: 'We source your factory.' },
+  { num: '04', label: 'Sampling & sign-off.' },
   { num: '05', label: 'We run production.' },
+  { num: '06', label: 'QC & delivery.' },
 ];
 
 /* ─── Needle SVG ─── */
@@ -279,14 +280,24 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.5,
-      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-    });
-    lenis.on('scroll', ScrollTrigger.update);
-    const rafFn = (time: number) => lenis.raf(time * 1000);
-    gsap.ticker.add(rafFn);
-    gsap.ticker.lagSmoothing(0);
+    // Lenis smooth scroll only on desktop — mobile uses native scroll
+    // which is far smoother with touch momentum and avoids scroll lag on iOS/Android
+    const isMobile = window.innerWidth < 768;
+    let lenis: InstanceType<typeof Lenis> | null = null;
+    let rafFn: ((time: number) => void) | null = null;
+    if (!isMobile) {
+      lenis = new Lenis({
+        duration: 1.5,
+        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      });
+      lenis.on('scroll', ScrollTrigger.update);
+      rafFn = (time: number) => lenis!.raf(time * 1000);
+      gsap.ticker.add(rafFn);
+      gsap.ticker.lagSmoothing(0);
+    } else {
+      // On mobile, still hook native scroll into ScrollTrigger
+      ScrollTrigger.addEventListener('refresh', () => ScrollTrigger.update());
+    }
 
     const ctx = gsap.context(() => {
       const mm = gsap.matchMedia();
@@ -352,9 +363,13 @@ const Index = () => {
           .to('.process-step-3', { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.79)
           // Stitch 3
           .to('.stitch-3', { scaleY: 1, ease: 'none', duration: 0.09 }, 0.88)
-          // Step 05 + tagline
+          // Step 05
           .to('.process-step-4',   { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.92)
-          .to('.process-tagline',  { opacity: 0.28, ease: 'none', duration: 0.1 }, 0.97)
+          // Stitch 4
+          .to('.stitch-4',         { scaleY: 1, ease: 'none', duration: 0.09 }, 0.94)
+          // Step 06 + tagline
+          .to('.process-step-5',   { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.96)
+          .to('.process-tagline',  { opacity: 0.28, ease: 'none', duration: 0.1 }, 0.99)
           // Start needle bobbing once it's visible (looping tween outside scrub)
           .call(() => {
             gsap.to('.process-needle', {
@@ -373,8 +388,9 @@ const Index = () => {
             start: 'top top',
             end: '+=180vh',
             pin: true,
-            scrub: 1.2,
+            scrub: 0.8,
             anticipatePin: 1,
+            pinType: 'transform',
           },
         });
         mHeroTl
@@ -392,8 +408,9 @@ const Index = () => {
             start: 'top top',
             end: '+=300vh',
             pin: true,
-            scrub: 1.2,
+            scrub: 0.8,
             anticipatePin: 1,
+            pinType: 'transform',
           },
         });
         mProcessTl
@@ -409,7 +426,9 @@ const Index = () => {
           .to('.process-step-3', { opacity: 1, y: 0,  ease: 'none', duration: 0.14 }, 0.79)
           .to('.stitch-3',       { scaleY: 1,          ease: 'none', duration: 0.09 }, 0.88)
           .to('.process-step-4', { opacity: 1, y: 0,  ease: 'none', duration: 0.14 }, 0.92)
-          .to('.process-tagline',{ opacity: 0.28,       ease: 'none', duration: 0.1  }, 0.97)
+          .to('.stitch-4',       { scaleY: 1,          ease: 'none', duration: 0.09 }, 0.94)
+          .to('.process-step-5', { opacity: 1, y: 0,  ease: 'none', duration: 0.14 }, 0.96)
+          .to('.process-tagline',{ opacity: 0.28,       ease: 'none', duration: 0.1  }, 0.99)
           .call(() => {
             gsap.to('.process-needle', { y: 6, yoyo: true, repeat: -1, duration: 0.85, ease: 'sine.inOut' });
           }, undefined, 0.26);
@@ -421,8 +440,9 @@ const Index = () => {
             start: 'top top',
             end: '+=240vh',
             pin: true,
-            scrub: 1.2,
+            scrub: 0.8,
             anticipatePin: 1,
+            pinType: 'transform',
           },
         });
         mDoorTl
@@ -524,8 +544,11 @@ const Index = () => {
 
     return () => {
       ctx.revert();
-      lenis.destroy();
-      gsap.ticker.remove(rafFn);
+      ScrollTrigger.getAll().forEach(t => t.kill());
+      if (lenis) {
+        lenis.destroy();
+        if (rafFn) gsap.ticker.remove(rafFn);
+      }
     };
   }, []);
 
@@ -650,10 +673,10 @@ const Index = () => {
           </div>
           <div className="services-list pt-2">
             {[
-              'Manufacturer matching',
               'Tech pack generation',
-              'Sampling to delivery pipeline',
-              'Every problem resolved for you',
+              'Manufacturer matching & costing',
+              'Proto, fit & PP sampling rounds',
+              'Production, QC & delivery',
             ].map((item, i, arr) => (
               <div
                 key={i}

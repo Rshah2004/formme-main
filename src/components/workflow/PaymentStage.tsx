@@ -204,6 +204,24 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
       />
 
       <div className="space-y-6">
+        {/* Payment schedule overview */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="p-4 rounded-xl border border-border bg-primary/5">
+            <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-1">Due Now — Sampling Deposit</p>
+            <p className="text-2xl font-cormorant font-semibold text-primary">
+              {pricing?.total ? `$${(pricing.total * 0.5).toFixed(2)}` : '—'}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">50% of total · unlocks sample production</p>
+          </div>
+          <div className="p-4 rounded-xl border border-border bg-muted/30">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Due Before Shipment</p>
+            <p className="text-2xl font-cormorant font-semibold text-muted-foreground">
+              {pricing?.total ? `$${(pricing.total * 0.5).toFixed(2)}` : '—'}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">Remaining 50% · due after QC approval</p>
+          </div>
+        </div>
+
         <Card className="border-border">
           <CardContent className="p-5">
             <div className="flex items-start gap-3">

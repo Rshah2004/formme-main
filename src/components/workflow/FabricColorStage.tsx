@@ -108,6 +108,24 @@ const FabricColorStage = ({ design }: FabricColorStageProps) => {
     { id: '1', printType: 'None', notes: '', fileUrl: '' }
   ]);
 
+  // Labels & Packaging
+  const [packagingReqs, setPackagingReqs] = useState({
+    labelType: 'woven' as 'woven' | 'printed' | 'none',
+    labelProvider: 'brand' as 'brand' | 'factory',
+    hasHangtag: false,
+    hangtagProvider: 'brand' as 'brand' | 'factory',
+    packagingType: 'polybag' as 'polybag' | 'folded' | 'hanger',
+    hasBarcode: false,
+    unitsPerCarton: '',
+    packagingNotes: '',
+  });
+
+  const updatePackaging = (key: string, value: any) => {
+    if (isContractFinalized) return;
+    setPackagingReqs(prev => ({ ...prev, [key]: value }));
+    setHasUnsavedChanges(true);
+  };
+
 
 
   // Calculate total fiber percentage
@@ -147,6 +165,8 @@ const FabricColorStage = ({ design }: FabricColorStageProps) => {
         if (specs.print_type) setPrintType(specs.print_type);
         if (specs.construction_notes) setConstructionNotes(specs.construction_notes);
         if (specs.artwork_url) setPatternUrl(specs.artwork_url);
+        const pkgReqs = (specs.attachments as any)?.packagingRequirements;
+        if (pkgReqs) setPackagingReqs(prev => ({ ...prev, ...pkgReqs }));
         const extractedColorNotes = [
           extraction?.additionalDetails?.colorNotes,
           Array.isArray(extraction?.additionalDetails?.colors)
@@ -532,6 +552,7 @@ const onPrintImageRemove = (printId: string) => {
         artwork_url: patternUrl || null,
         attachments: {
           ...existingAttachments,
+          packagingRequirements: packagingReqs,
           techPackExtraction: extractionSource
             ? {
                 ...extractionSource,
@@ -1056,6 +1077,115 @@ const onPrintImageRemove = (printId: string) => {
     ))}
   </CardContent>
 </Card>
+
+      {/* Labels & Packaging Card */}
+      <Card className="border-border">
+        <CardHeader>
+          <CardTitle className="text-lg">Labels & Packaging</CardTitle>
+          <CardDescription>
+            Specify label, hangtag, and packaging requirements for the manufacturer
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Labels */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Care & Brand Label Type</Label>
+              <Select value={packagingReqs.labelType} onValueChange={(v) => updatePackaging('labelType', v)} disabled={isContractFinalized}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="woven">Woven label</SelectItem>
+                  <SelectItem value="printed">Printed / heat transfer label</SelectItem>
+                  <SelectItem value="none">No label (blank garment)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Label Provider</Label>
+              <Select value={packagingReqs.labelProvider} onValueChange={(v) => updatePackaging('labelProvider', v)} disabled={isContractFinalized}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="brand">Brand ships labels to factory</SelectItem>
+                  <SelectItem value="factory">Factory sources labels</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Hangtag */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Hangtag</Label>
+              <Select value={packagingReqs.hasHangtag ? 'yes' : 'no'} onValueChange={(v) => updatePackaging('hasHangtag', v === 'yes')} disabled={isContractFinalized}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="yes">Yes — include hangtag</SelectItem>
+                  <SelectItem value="no">No hangtag needed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {packagingReqs.hasHangtag && (
+              <div className="space-y-2">
+                <Label>Hangtag Provider</Label>
+                <Select value={packagingReqs.hangtagProvider} onValueChange={(v) => updatePackaging('hangtagProvider', v)} disabled={isContractFinalized}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="brand">Brand ships hangtags</SelectItem>
+                    <SelectItem value="factory">Factory sources hangtags</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
+          {/* Packaging & Barcodes */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Packaging Method</Label>
+              <Select value={packagingReqs.packagingType} onValueChange={(v) => updatePackaging('packagingType', v)} disabled={isContractFinalized}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="polybag">Individual polybag</SelectItem>
+                  <SelectItem value="folded">Folded (no bag)</SelectItem>
+                  <SelectItem value="hanger">Hanger</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Barcode / UPC Required</Label>
+              <Select value={packagingReqs.hasBarcode ? 'yes' : 'no'} onValueChange={(v) => updatePackaging('hasBarcode', v === 'yes')} disabled={isContractFinalized}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="yes">Yes — barcode needed</SelectItem>
+                  <SelectItem value="no">No barcode</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Units per Carton</Label>
+              <Input
+                type="number"
+                value={packagingReqs.unitsPerCarton}
+                onChange={(e) => updatePackaging('unitsPerCarton', e.target.value)}
+                placeholder="12"
+                min={1}
+                disabled={isContractFinalized}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Additional Packaging Notes</Label>
+            <Textarea
+              value={packagingReqs.packagingNotes}
+              onChange={(e) => updatePackaging('packagingNotes', e.target.value)}
+              placeholder="e.g., tissue paper inside bag, specific fold style, sticker placement, etc."
+              rows={2}
+              disabled={isContractFinalized}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Construction Notes Card */}
       <Card className="border-border">

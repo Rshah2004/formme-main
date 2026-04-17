@@ -161,6 +161,10 @@ const SampleStage = ({ design }: SampleStageProps) => {
   const samplePhotos = orderData?.production_timeline_data?.sample_photos || [];
   const sampleNotes = orderData?.production_timeline_data?.sample_notes || '';
   const hasSampleData = samplePhotos.length > 0 || orderData?.sample_submitted_at;
+
+  // Sample round tracking: explicit field or derived from rejection history
+  const sampleRound: number = orderData?.production_timeline_data?.sample_round || 1;
+  const sampleRoundLabel = sampleRound === 1 ? 'Proto Sample' : sampleRound === 2 ? 'Fit Sample' : `Round ${sampleRound} Sample`;
   const sampleTypePreference = orderData?.production_timeline_data?.sample_type_preference || workflowData.sampleType || 'physical';
   const isPhysicalSample = sampleTypePreference === 'physical';
   const sampleReceivedAt = orderData?.production_timeline_data?.sample_received_at;
@@ -358,18 +362,19 @@ const SampleStage = ({ design }: SampleStageProps) => {
 
   return (
     <div>
-      <StageHeader 
-        icon={Package} 
-        title="View your design sample" 
+      <StageHeader
+        icon={Package}
+        title="View your design sample"
         description={
           isPhysicalSample
             ? "Track your physical sample, mark it received, then review and approve before production begins."
             : "Review each aspect of the sample and approve or request changes before production begins."
-        } 
+        }
         contextInfo={[
-          { label: 'Factory', value: workflowData.selectedFactory?.name || 'Not selected' }, 
-          { label: 'Quantity', value: workflowData.quantity || 'Not set' }
-        ]} 
+          { label: 'Factory', value: workflowData.selectedFactory?.name || 'Not selected' },
+          { label: 'Quantity', value: workflowData.quantity || 'Not set' },
+          { label: 'Sample Round', value: sampleRoundLabel },
+        ]}
       />
       
       {!hasSampleData ? (
