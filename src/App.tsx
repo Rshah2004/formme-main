@@ -32,7 +32,7 @@ function App() {
     <DndProvider backend={HTML5Backend}>
       <div className="App">
         <Routes>
-          <Route path="/" element={<Templates />} />
+          <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/deme/signup" element={<Auth />} />
           <Route path="/profile" element={<Profile />} />

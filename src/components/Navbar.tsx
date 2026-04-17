@@ -103,7 +103,7 @@ const NavBar: React.FC<NavBarProps> = ({ initialDark = false }) => {
       <Link to="/" className="flex items-center">
         <div
           className={cn(
-            "text-2xl sm:text-3xl font-bold bg-none tracking-tight drop-shadow-sm transition-colors duration-300",
+            "text-xl sm:text-2xl font-light tracking-[0.25em] transition-colors duration-300",
             initialDark && !scrolled ? "text-[#111827]" : "text-foreground",
           )}
         >

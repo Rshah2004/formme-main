@@ -113,8 +113,10 @@ export default {
 				'shimmer': 'shimmerMove 3s ease-in-out infinite',
 			},
 			fontFamily: {
+				cormorant: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+				inter: ['Inter', 'system-ui', 'sans-serif'],
+				'dm-sans': ['"DM Sans"', 'system-ui', 'sans-serif'],
 				instrument: ['"Instrument Sans"', 'sans-serif'],
-				inter: ['Inter', 'sans-serif'],
 			},
 			backgroundSize: {
 				shimmer: '300% 100%',

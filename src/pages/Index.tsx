@@ -1,545 +1,758 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import NavBar from '@/components/Navbar';
-import FabricBackdrop from '@/components/homePage/FabricBackdrop';
 import Footer from '@/components/Footer';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  ArrowRight,
-  BadgeCheck,
-  Factory,
-  FileText,
-  Handshake,
-  Leaf,
-  PenTool,
-  Sparkles,
-  Truck,
-  Users,
-} from 'lucide-react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import Lenis from 'lenis';
 
+gsap.registerPlugin(ScrollTrigger);
+
+/* ─── Chat ─── */
+const chatMessages = [
+  { from: 'brand',  text: "Where's my sample?" },
+  { from: 'formme', text: 'In QC review. Sign-off expected Thursday.' },
+  { from: 'brand',  text: 'Factory flagged a stitching issue on style #4.' },
+  { from: 'formme', text: 'On it. Fix requested, updated ETA sent to you.' },
+];
+
+const ChatUI = () => (
+  <div className="chat-ui-wrap w-full max-w-[600px] mx-auto">
+    <div className="border-t border-[#E8E3DA]" />
+    <div className="py-14 md:py-16 space-y-10">
+      {chatMessages.map((msg, i) => (
+        <div
+          key={i}
+          className={`chat-msg msg-from-${msg.from} flex flex-col gap-1.5 ${
+            msg.from === 'brand' ? 'items-end' : 'items-start'
+          }`}
+        >
+          <span className="text-[11px] uppercase tracking-[0.38em] text-[#AEAEAA] font-inter">
+            {msg.from === 'brand' ? 'Brand' : 'formme'}
+          </span>
+          <p className={`text-[17px] font-dm-sans font-light leading-relaxed text-[#0D0D0D] max-w-[380px] ${
+            msg.from === 'brand' ? 'text-right' : 'text-left'
+          }`}>
+            {msg.text}
+          </p>
+        </div>
+      ))}
+    </div>
+    <div className="border-b border-[#E8E3DA]" />
+  </div>
+);
+
+/* ─── Process steps ─── */
+const processSteps = [
+  { num: '01', label: 'You design.' },
+  { num: '02', label: 'We source your factory.' },
+  { num: '03', label: 'We build your tech pack.' },
+  { num: '04', label: 'We manage sampling.' },
+  { num: '05', label: 'We run production.' },
+];
+
+/* ─── Needle SVG ─── */
+const NeedleSVG = () => (
+  <svg width="18" height="100" viewBox="0 0 18 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    {/* Needle body — tapers to point at bottom */}
+    <path
+      d="M9 100 C8 86 6.5 70 6.5 50 L6.5 24 C6.5 10 7.5 0 9 0 C10.5 0 11.5 10 11.5 24 L11.5 50 C11.5 70 10 86 9 100 Z"
+      fill="#F5F0E8"
+    />
+    {/* Eye — hollow oval */}
+    <ellipse cx="9" cy="17" rx="2.4" ry="4.2" fill="transparent" stroke="#F5F0E8" strokeWidth="1.1" />
+    {/* Inner eye — dark fill to look like a hole */}
+    <ellipse cx="9" cy="17" rx="1.3" ry="3" fill="#1A1814" />
+    {/* Subtle highlight */}
+    <path d="M8 28 L7.5 72" stroke="rgba(255,255,255,0.1)" strokeWidth="0.8" strokeLinecap="round" />
+  </svg>
+);
+
+/* ─── Factory door section ─── */
+const factorySteps = [
+  {
+    label: 'Pattern cutting',
+    desc: 'Cut to your exact tech pack specs',
+    style: { top: '18%', left: '7%' } as React.CSSProperties,
+  },
+  {
+    label: 'Industrial stitching',
+    desc: 'Sewn on factory-grade machines',
+    style: { top: '34%', right: '7%' } as React.CSSProperties,
+  },
+  {
+    label: 'Quality control',
+    desc: 'Every piece checked before sign-off',
+    style: { bottom: '32%', left: '7%' } as React.CSSProperties,
+  },
+  {
+    label: 'Final pressing & pack',
+    desc: 'Finished and ready for delivery',
+    style: { bottom: '18%', right: '7%' } as React.CSSProperties,
+  },
+];
+
+const DoorSection = () => (
+  <section
+    className="door-pin relative h-screen overflow-hidden bg-[#0D0D0D]"
+    aria-label="Inside manufacturing"
+  >
+    {/* Factory backdrop — drop /public/factory.jpg (pexels.com → "sewing factory") */}
+    <div
+      className="absolute inset-0"
+      style={{
+        backgroundImage: 'url(/factory.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center 40%',
+        filter: 'brightness(0.52) sepia(0.15)',
+      }}
+    />
+    <div
+      className="absolute inset-0 pointer-events-none"
+      style={{ background: 'radial-gradient(ellipse at center, transparent 22%, rgba(8,7,6,0.78) 100%)' }}
+    />
+
+    {/* 3D door wrapper */}
+    <div className="absolute inset-0" style={{ perspective: '1200px' }}>
+      {/* Left panel */}
+      <div
+        className="door-left absolute inset-y-0 left-0 w-1/2 bg-[#1A1814]"
+        style={{ transformOrigin: 'left center', willChange: 'transform' }}
+      >
+        <div className="absolute inset-[9%_7%] border border-[#252320] pointer-events-none" />
+        <div className="absolute inset-[20%_11%] border border-[#252320] pointer-events-none" />
+        <div className="absolute right-6 top-1/2 -translate-y-1/2 w-1.5 h-10 bg-[#2E2B28] rounded-full" />
+      </div>
+
+      {/* Right panel */}
+      <div
+        className="door-right absolute inset-y-0 right-0 w-1/2 bg-[#1A1814]"
+        style={{ transformOrigin: 'right center', willChange: 'transform' }}
+      >
+        <div className="absolute inset-[9%_7%] border border-[#252320] pointer-events-none" />
+        <div className="absolute inset-[20%_11%] border border-[#252320] pointer-events-none" />
+        <div className="absolute left-6 top-1/2 -translate-y-1/2 w-1.5 h-10 bg-[#2E2B28] rounded-full" />
+      </div>
+    </div>
+
+    {/* Centre seam */}
+    <div
+      className="door-seam absolute inset-y-0 left-1/2 -translate-x-1/2 w-px z-10 pointer-events-none"
+      style={{ background: 'rgba(0,0,0,0.75)' }}
+    />
+
+    {/* Header — fades in after doors open */}
+    <div
+      className="door-header absolute top-12 inset-x-0 flex flex-col items-center z-20 pointer-events-none"
+      style={{ opacity: 0 }}
+    >
+      <p className="text-[11px] uppercase tracking-[0.45em] text-[#F5F0E8]/40 font-inter mb-4">
+        What we handle
+      </p>
+      <p
+        className="font-cormorant font-light text-[#F5F0E8] text-center leading-tight"
+        style={{ fontSize: 'clamp(28px, 3.8vw, 52px)' }}
+      >
+        Inside your production.
+      </p>
+    </div>
+
+    {/* Step annotations — stagger in */}
+    {factorySteps.map((step, i) => (
+      <div
+        key={i}
+        className={`door-step-${i} absolute z-20 pointer-events-none`}
+        style={{ ...step.style, opacity: 0, transform: 'translateY(10px)' }}
+      >
+        <div className="flex items-center gap-2.5 mb-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-[#C97B5A] flex-shrink-0" />
+          <span className="text-[13px] uppercase tracking-[0.3em] text-[#F5F0E8] font-inter font-medium">
+            {step.label}
+          </span>
+        </div>
+        <p className="text-[14px] font-dm-sans font-light text-[#F5F0E8]/60 leading-snug pl-[22px]">
+          {step.desc}
+        </p>
+      </div>
+    ))}
+
+    {/* Bottom note */}
+    <div
+      className="door-bottom-note absolute bottom-10 inset-x-0 flex justify-center z-20 pointer-events-none"
+      style={{ opacity: 0 }}
+    >
+      <p className="text-[12px] uppercase tracking-[0.35em] text-[#F5F0E8]/35 font-inter">
+        Formme manages every step between your design and the final garment
+      </p>
+    </div>
+  </section>
+);
+
+/* ─── Process section ─── */
+const ProcessSection = () => (
+  <section
+    className="process-pin relative h-screen overflow-hidden flex items-center justify-center"
+    aria-label="How it works"
+  >
+    {/* Background — GSAP transitions this from #F5F0E8 to #1A1814 */}
+    <div className="process-bg absolute inset-0" style={{ backgroundColor: '#F5F0E8' }} />
+
+    {/* Content column */}
+    <div className="relative z-10 flex flex-col items-center text-center select-none">
+
+      {/* Needle */}
+      <div className="process-needle" style={{ opacity: 0, transform: 'translateY(-10px)' }}>
+        <NeedleSVG />
+      </div>
+
+      {/* Thread from needle eye to first step */}
+      <div
+        className="process-thread"
+        style={{
+          width: 0,
+          borderLeft: '1px dashed rgba(245,240,232,0.22)',
+          height: '28px',
+          transform: 'scaleY(0)',
+          transformOrigin: 'top center',
+          marginTop: '2px',
+        }}
+      />
+
+      {/* Steps + connecting stitches */}
+      {processSteps.map((step, i) => (
+        <React.Fragment key={i}>
+          <div
+            className={`process-step-${i} flex flex-col items-center gap-0.5`}
+            style={{ opacity: 0, transform: 'translateY(12px)' }}
+          >
+            <span
+              className="font-inter uppercase tracking-[0.45em] text-[#F5F0E8]"
+              style={{ fontSize: '10px', opacity: 0.35 }}
+            >
+              {step.num}
+            </span>
+            <span
+              className="font-cormorant font-light text-[#F5F0E8] leading-tight"
+              style={{ fontSize: 'clamp(20px, 2.4vw, 34px)' }}
+            >
+              {step.label}
+            </span>
+          </div>
+
+          {i < processSteps.length - 1 && (
+            <div
+              className={`stitch-${i}`}
+              style={{
+                width: 0,
+                borderLeft: '1px dashed rgba(245,240,232,0.18)',
+                height: '22px',
+                transform: 'scaleY(0)',
+                transformOrigin: 'top center',
+              }}
+            />
+          )}
+        </React.Fragment>
+      ))}
+
+      {/* Tagline */}
+      <p
+        className="process-tagline font-inter uppercase tracking-[0.5em] text-[#F5F0E8] mt-10"
+        style={{ fontSize: '10px', opacity: 0 }}
+      >
+        Production starts in days, not months
+      </p>
+    </div>
+  </section>
+);
+
+/* ─── Page ─── */
 const Index = () => {
+  const [email, setEmail] = useState('');
+  const [prefersReduced, setPrefersReduced] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    setPrefersReduced(mq?.matches ?? false);
+    const handler = (e: MediaQueryListEvent) => setPrefersReduced(e.matches);
+    mq?.addEventListener('change', handler);
+    return () => mq?.removeEventListener('change', handler);
+  }, []);
+
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.5,
+      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    });
+    lenis.on('scroll', ScrollTrigger.update);
+    const rafFn = (time: number) => lenis.raf(time * 1000);
+    gsap.ticker.add(rafFn);
+    gsap.ticker.lagSmoothing(0);
+
+    const ctx = gsap.context(() => {
+      const mm = gsap.matchMedia();
+
+      /* ── Desktop hero pin ── */
+      mm.add('(min-width: 768px)', () => {
+        gsap.set('.hero-line2', { opacity: 0, y: '10vh' });
+
+        const heroTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: '.hero-pin',
+            start: 'top top',
+            end: '+=280vh',
+            pin: true,
+            scrub: 1.5,
+            anticipatePin: 1,
+          },
+        });
+
+        heroTl
+          .to('.hero-you',    { x: '-44vw', scale: 1.12, ease: 'none', duration: 1 }, 0)
+          .to('.hero-design', { x:  '44vw', scale: 1.12, ease: 'none', duration: 1 }, 0)
+          .to('.hero-line2',  { opacity: 1, y: 0, ease: 'none', duration: 0.85 }, 0.45)
+          .to('.hero-you',    { opacity: 0, x: '-52vw', ease: 'none', duration: 0.9 }, 1.5)
+          .to('.hero-design', { opacity: 0, x:  '52vw', ease: 'none', duration: 0.9 }, 1.5)
+          .to('.hero-line2',  { opacity: 0, y: '10vh',  ease: 'none', duration: 0.9 }, 1.5)
+          ;
+      });
+
+      /* ── Desktop process pin ── */
+      mm.add('(min-width: 768px)', () => {
+        const processTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: '.process-pin',
+            start: 'top top',
+            end: '+=500vh',
+            pin: true,
+            scrub: 1.2,
+            anticipatePin: 1,
+          },
+        });
+
+        processTl
+          // Darken background
+          .to('.process-bg', { backgroundColor: '#1A1814', ease: 'none', duration: 0.18 }, 0)
+          // Needle drops in
+          .to('.process-needle', { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.12)
+          // Thread from needle draws
+          .to('.process-thread', { scaleY: 1, ease: 'none', duration: 0.1 }, 0.22)
+          // Step 01
+          .to('.process-step-0', { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.28)
+          // Stitch 0
+          .to('.stitch-0', { scaleY: 1, ease: 'none', duration: 0.09 }, 0.40)
+          // Step 02
+          .to('.process-step-1', { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.46)
+          // Stitch 1
+          .to('.stitch-1', { scaleY: 1, ease: 'none', duration: 0.09 }, 0.57)
+          // Step 03
+          .to('.process-step-2', { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.63)
+          // Stitch 2
+          .to('.stitch-2', { scaleY: 1, ease: 'none', duration: 0.09 }, 0.73)
+          // Step 04
+          .to('.process-step-3', { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.79)
+          // Stitch 3
+          .to('.stitch-3', { scaleY: 1, ease: 'none', duration: 0.09 }, 0.88)
+          // Step 05 + tagline
+          .to('.process-step-4',   { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.92)
+          .to('.process-tagline',  { opacity: 0.28, ease: 'none', duration: 0.1 }, 0.97)
+          // Start needle bobbing once it's visible (looping tween outside scrub)
+          .call(() => {
+            gsap.to('.process-needle', {
+              y: 6, yoyo: true, repeat: -1, duration: 0.85, ease: 'sine.inOut',
+            });
+          }, undefined, 0.26);
+      });
+
+      /* ── Mobile — same pinned animations, tighter scroll distances ── */
+      mm.add('(max-width: 767px)', () => {
+        // Hero pin
+        gsap.set('.hero-line2', { opacity: 0, y: '6vh' });
+        const mHeroTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: '.hero-pin',
+            start: 'top top',
+            end: '+=180vh',
+            pin: true,
+            scrub: 1.2,
+            anticipatePin: 1,
+          },
+        });
+        mHeroTl
+          .to('.hero-you',    { x: '-40vw', scale: 1.08, ease: 'none', duration: 1 }, 0)
+          .to('.hero-design', { x:  '40vw', scale: 1.08, ease: 'none', duration: 1 }, 0)
+          .to('.hero-line2',  { opacity: 1, y: 0, ease: 'none', duration: 0.85 }, 0.45)
+          .to('.hero-you',    { opacity: 0, x: '-48vw', ease: 'none', duration: 0.9 }, 1.5)
+          .to('.hero-design', { opacity: 0, x:  '48vw', ease: 'none', duration: 0.9 }, 1.5)
+          .to('.hero-line2',  { opacity: 0, y: '8vh',   ease: 'none', duration: 0.9 }, 1.5);
+
+        // Process pin
+        const mProcessTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: '.process-pin',
+            start: 'top top',
+            end: '+=300vh',
+            pin: true,
+            scrub: 1.2,
+            anticipatePin: 1,
+          },
+        });
+        mProcessTl
+          .to('.process-bg',     { backgroundColor: '#1A1814', ease: 'none', duration: 0.18 }, 0)
+          .to('.process-needle', { opacity: 1, y: 0,  ease: 'none', duration: 0.14 }, 0.12)
+          .to('.process-thread', { scaleY: 1,          ease: 'none', duration: 0.1  }, 0.22)
+          .to('.process-step-0', { opacity: 1, y: 0,  ease: 'none', duration: 0.14 }, 0.28)
+          .to('.stitch-0',       { scaleY: 1,          ease: 'none', duration: 0.09 }, 0.40)
+          .to('.process-step-1', { opacity: 1, y: 0,  ease: 'none', duration: 0.14 }, 0.46)
+          .to('.stitch-1',       { scaleY: 1,          ease: 'none', duration: 0.09 }, 0.57)
+          .to('.process-step-2', { opacity: 1, y: 0,  ease: 'none', duration: 0.14 }, 0.63)
+          .to('.stitch-2',       { scaleY: 1,          ease: 'none', duration: 0.09 }, 0.73)
+          .to('.process-step-3', { opacity: 1, y: 0,  ease: 'none', duration: 0.14 }, 0.79)
+          .to('.stitch-3',       { scaleY: 1,          ease: 'none', duration: 0.09 }, 0.88)
+          .to('.process-step-4', { opacity: 1, y: 0,  ease: 'none', duration: 0.14 }, 0.92)
+          .to('.process-tagline',{ opacity: 0.28,       ease: 'none', duration: 0.1  }, 0.97)
+          .call(() => {
+            gsap.to('.process-needle', { y: 6, yoyo: true, repeat: -1, duration: 0.85, ease: 'sine.inOut' });
+          }, undefined, 0.26);
+
+        // Door pin
+        const mDoorTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: '.door-pin',
+            start: 'top top',
+            end: '+=240vh',
+            pin: true,
+            scrub: 1.2,
+            anticipatePin: 1,
+          },
+        });
+        mDoorTl
+          .to('.door-left',        { rotateY: -90, ease: 'none', duration: 0.46 }, 0)
+          .to('.door-right',       { rotateY:  90, ease: 'none', duration: 0.46 }, 0)
+          .to('.door-seam',        { opacity: 0,   ease: 'none', duration: 0.14 }, 0.16)
+          .to('.door-header',      { opacity: 1,   ease: 'none', duration: 0.18 }, 0.44)
+          .to('.door-step-0',      { opacity: 1, y: 0, ease: 'none', duration: 0.16 }, 0.54)
+          .to('.door-step-1',      { opacity: 1, y: 0, ease: 'none', duration: 0.16 }, 0.64)
+          .to('.door-step-2',      { opacity: 1, y: 0, ease: 'none', duration: 0.16 }, 0.74)
+          .to('.door-step-3',      { opacity: 1, y: 0, ease: 'none', duration: 0.16 }, 0.83)
+          .to('.door-bottom-note', { opacity: 1,   ease: 'none', duration: 0.14 }, 0.92);
+      });
+
+      /* ── Door: factory reveal ── */
+      mm.add('(min-width: 768px)', () => {
+        const doorTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: '.door-pin',
+            start: 'top top',
+            end: '+=400vh',
+            pin: true,
+            scrub: 1.5,
+            anticipatePin: 1,
+          },
+        });
+
+        doorTl
+          // Doors swing open
+          .to('.door-left',         { rotateY: -90, ease: 'none', duration: 0.46 }, 0)
+          .to('.door-right',        { rotateY:  90, ease: 'none', duration: 0.46 }, 0)
+          .to('.door-seam',         { opacity: 0,   ease: 'none', duration: 0.14 }, 0.16)
+          // Header fades in
+          .to('.door-header',       { opacity: 1,   ease: 'none', duration: 0.18 }, 0.44)
+          // Step annotations stagger in with descriptions
+          .to('.door-step-0',       { opacity: 1, y: 0, ease: 'none', duration: 0.16 }, 0.54)
+          .to('.door-step-1',       { opacity: 1, y: 0, ease: 'none', duration: 0.16 }, 0.64)
+          .to('.door-step-2',       { opacity: 1, y: 0, ease: 'none', duration: 0.16 }, 0.74)
+          .to('.door-step-3',       { opacity: 1, y: 0, ease: 'none', duration: 0.16 }, 0.83)
+          // Bottom note last
+          .to('.door-bottom-note',  { opacity: 1,   ease: 'none', duration: 0.14 }, 0.92);
+      });
+
+      /* ── Chat: alternating x-slide ── */
+      const chatTl = gsap.timeline({
+        scrollTrigger: { trigger: '.chat-ui-wrap', start: 'top 78%', once: true },
+      });
+      gsap.utils.toArray<HTMLElement>('.chat-msg').forEach((el, i) => {
+        const fromBrand = el.classList.contains('msg-from-brand');
+        chatTl.from(el, { opacity: 0, x: fromBrand ? 32 : -32, duration: 0.7, ease: 'power2.out' }, i * 0.44);
+      });
+
+      /* ── Pain: stacked → separated (scrub) ── */
+      gsap.set('.pain-line-0', { y: '1.5em' });
+      gsap.set('.pain-line-2', { y: '-1.5em' });
+      gsap.timeline({
+        scrollTrigger: { trigger: '.pain-section', start: 'top 72%', end: 'center 48%', scrub: 1.2 },
+      })
+        .to('.pain-line-0', { y: 0, ease: 'none' }, 0)
+        .to('.pain-line-2', { y: 0, ease: 'none' }, 0);
+
+      /* ── Stats: count up ── */
+      const statDefs = [
+        { sel: '.stat-count-0', from: 0,   to: 8,   suffix: '',  dur: 2.0 },
+        { sel: '.stat-count-1', from: 0,   to: 4,   suffix: '+', dur: 2.2 },
+        { sel: '.stat-count-2', from: 12,  to: 0,   suffix: '',  dur: 2.8 },
+        { sel: '.stat-count-3', from: 0,   to: 150, suffix: '+', dur: 2.5 },
+      ];
+      statDefs.forEach(({ sel, from, to, suffix, dur }) => {
+        const obj = { val: from };
+        const el = document.querySelector<HTMLElement>(sel);
+        if (!el) return;
+        el.textContent = from + suffix;
+        gsap.to(obj, {
+          val: to, duration: dur, ease: 'power2.out',
+          scrollTrigger: { trigger: sel, start: 'top 88%', once: true },
+          onUpdate() { el.textContent = Math.round(obj.val) + suffix; },
+        });
+      });
+
+      /* ── Generic reveals ── */
+      gsap.utils.toArray<Element>('.reveal').forEach((el) => {
+        gsap.from(el, {
+          opacity: 0, y: 32, duration: 1.2, ease: 'power3.out',
+          scrollTrigger: { trigger: el, start: 'top 88%', once: true },
+        });
+      });
+
+      gsap.from('.service-item', {
+        opacity: 0, x: -20, stagger: 0.1, duration: 0.9, ease: 'power2.out',
+        scrollTrigger: { trigger: '.services-list', start: 'top 85%', once: true },
+      });
+
+      gsap.from('.closing-cta', {
+        opacity: 0, y: 28, duration: 1.2, ease: 'power3.out',
+        scrollTrigger: { trigger: '.closing-cta', start: 'top 88%', once: true },
+      });
+    });
+
+    return () => {
+      ctx.revert();
+      lenis.destroy();
+      gsap.ticker.remove(rafFn);
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen font-inter bg-[#F6EFE4] text-[#101010]">
-      <FabricBackdrop />
+    <div className="min-h-screen bg-[#F5F0E8] text-[#0D0D0D] overflow-x-hidden">
       <NavBar />
 
-      {/* Hero */}
-      <section className="relative pt-28 sm:pt-32 md:pt-40 pb-16 sm:pb-20">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute left-[8%] top-6 h-[420px] w-[420px] rounded-full bg-[#2F3E35]/12 blur-[130px]" />
-          <div className="absolute right-[6%] top-16 h-[460px] w-[460px] rounded-full bg-[#9B5A38]/12 blur-[140px]" />
-        </div>
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-16 items-center">
-            <div>
-              <p className="uppercase tracking-[0.35em] text-xs text-[#2E3F36] mb-4">
-                Formme for designers + production
-              </p>
-              <h1 className="text-[44px] sm:text-[64px] md:text-[86px] font-instrument font-semibold leading-[0.95]">
-                A production platform with studio-grade precision.
-              </h1>
-              <p className="mt-6 text-base sm:text-lg text-[#3D3D3D] max-w-xl">
-                Create, spec, and manufacture with the clarity of an atelier and the reliability of a vetted supply network.
-              </p>
-              <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
-                <Button className="bg-[#2F3E35] hover:bg-[#243229] text-white rounded-full py-6 px-8">
-                  Request access
-                  <ArrowRight className="ml-2 w-4 h-4" />
-                </Button>
-                <Link to="/designer">
-                  <Button
-                    variant="outline"
-                    className="rounded-full py-6 px-8 border-[#2F3E35] text-[#2F3E35] hover:bg-[#2F3E35] hover:text-white"
-                  >
-                    Launch Designer
-                  </Button>
-                </Link>
-              </div>
-              <div className="mt-10 flex flex-wrap gap-3 text-xs text-[#6B6B6B]">
-                <span className="px-3 py-1 rounded-full border border-[#E7E1D7] bg-white/70">Sampling-first</span>
-                <span className="px-3 py-1 rounded-full border border-[#E7E1D7] bg-white/70">MOQ-friendly</span>
-                <span className="px-3 py-1 rounded-full border border-[#E7E1D7] bg-white/70">Material transparency</span>
-                <span className="px-3 py-1 rounded-full border border-[#E7E1D7] bg-white/70">Live QC</span>
-              </div>
-            </div>
+      {/* ════════════════════════════════════════════════
+          HERO — Desktop pinned scroll transform
+      ════════════════════════════════════════════════ */}
+      <section className="hero-pin relative h-screen overflow-hidden" aria-label="Hero">
+        {!prefersReduced ? (
+          <>
+            <video
+              className="absolute inset-0 w-full h-full object-cover blur-[28px] scale-110"
+              autoPlay muted loop playsInline preload="metadata"
+            >
+              <source src="/backgroundVideo.mp4" type="video/mp4" />
+            </video>
+            <div className="absolute inset-0 bg-[#F5F0E8]/60" />
+          </>
+        ) : (
+          <div className="absolute inset-0 bg-[#F5F0E8]" />
+        )}
 
-            <div className="relative">
-              <div className="rounded-[28px] border border-[#E7E1D7] bg-white/85 backdrop-blur-md p-6 sm:p-8 shadow-[0_28px_90px_rgba(0,0,0,0.16)]">
-                <div className="flex items-center justify-between mb-5">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.25em] text-[#2E3F36]">Active order</p>
-                    <h3 className="text-2xl font-semibold">FM-1098</h3>
-                  </div>
-                  <span className="rounded-full bg-[#2F3E35]/10 px-3 py-1 text-xs font-semibold text-[#2F3E35]">
-                    In sampling
-                  </span>
-                </div>
-                <div className="rounded-2xl border border-[#EFE6DA] bg-[#FDF9F3] p-5">
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { label: 'Tech Pack', value: 'Locked' },
-                      { label: 'Sample ETA', value: 'Apr 18' },
-                      { label: 'Lead Time', value: '5–7 weeks' },
-                      { label: 'Unit Cost', value: '$12.40' },
-                    ].map((item) => (
-                      <div key={item.label} className="rounded-xl bg-white border border-[#EFE6DA] p-3">
-                        <p className="text-xs uppercase tracking-[0.2em] text-[#6B6B6B]">{item.label}</p>
-                        <p className="text-sm font-semibold text-[#121212]">{item.value}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-5 rounded-xl border border-[#EFE6DA] bg-white p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-[#6B6B6B] mb-2">Update</p>
-                    <p className="text-sm text-[#3D3D3D]">
-                      Factory uploaded fit photos. Awaiting designer approval.
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {['Fit notes', 'Materials', 'Costing', 'QC'].map((chip) => (
-                    <span key={chip} className="rounded-full bg-[#121212]/5 px-3 py-1 text-xs font-semibold">
-                      {chip}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div className="absolute -bottom-8 -right-6 h-32 w-32 rounded-3xl bg-[#2F3E35] text-white p-4 shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
-                <p className="text-xs uppercase tracking-[0.2em] text-white/70">Network</p>
-                <p className="text-xl font-semibold mt-1">120+</p>
-                <p className="text-xs text-white/70 mt-2">Vetted factories</p>
-              </div>
-            </div>
-          </div>
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+          <span
+            className="hero-you font-cormorant font-light text-[#0D0D0D] whitespace-nowrap"
+            style={{ fontSize: 'clamp(56px, 12vw, 180px)', display: 'inline-block' }}
+          >
+            YOU
+          </span>
+          <span aria-hidden="true" style={{ display: 'inline-block', width: '0.22em', fontSize: 'clamp(56px, 12vw, 180px)' }} />
+          <span
+            className="hero-design font-cormorant font-light text-[#0D0D0D] whitespace-nowrap"
+            style={{ fontSize: 'clamp(56px, 12vw, 180px)', display: 'inline-block' }}
+          >
+            DESIGN.
+          </span>
+        </div>
+
+        <div className="hero-line2 absolute inset-0 flex items-center justify-center pointer-events-none select-none px-6">
+          <span
+            className="font-cormorant font-light text-[#0D0D0D] text-center leading-tight"
+            style={{ fontSize: 'clamp(26px, 7.2vw, 106px)' }}
+          >
+            WE HANDLE THE REST.
+          </span>
         </div>
       </section>
 
-      {/* Trust */}
-      <section className="relative py-10 sm:py-12 bg-white/60 backdrop-blur-md">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-            <div>
-              <p className="uppercase tracking-[0.3em] text-xs text-[#2E3F36] mb-2">Trusted by</p>
-              <h3 className="text-xl sm:text-2xl font-semibold">
-                Independent studios, brand founders, and production teams
-              </h3>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs sm:text-sm text-[#6B6B6B]">
-              {['Studio North', 'Loom Labs', 'Common Thread', 'Atelier Works'].map((name) => (
-                <div
-                  key={name}
-                  className="rounded-full border border-[#E7E1D7] bg-white/80 px-4 py-2 text-center uppercase tracking-[0.2em]"
-                >
-                  {name}
-                </div>
-              ))}
-            </div>
-          </div>
+      {/* ════════════════════════════════════════════════
+          PROCESS — dark pinned stitch reveal
+      ════════════════════════════════════════════════ */}
+      <ProcessSection />
+
+      {/* ════════════════════════════════════════════════
+          DOOR — factory reveal
+      ════════════════════════════════════════════════ */}
+      <DoorSection />
+
+      {/* ════════════════════════════════════════════════
+          CREDIBILITY BAR
+      ════════════════════════════════════════════════ */}
+      <section className="border-y border-[#E8E3DA] py-12 px-6 reveal">
+        <div className="mx-auto flex w-full max-w-[1400px] flex-col sm:flex-row items-center justify-center gap-y-3 gap-x-6 text-center">
+          <p className="text-[11px] uppercase tracking-[0.42em] text-[#AEAEAA] font-inter flex-shrink-0">
+            Our manufacturers have produced for
+          </p>
+          <span className="hidden sm:block text-[#D0C8BC] text-lg">·</span>
+          <p className="font-cormorant font-light text-[#0D0D0D]" style={{ fontSize: 'clamp(18px, 2.2vw, 28px)', letterSpacing: '0.08em' }}>
+            Fanatics&nbsp;&nbsp;·&nbsp;&nbsp;Champions&nbsp;&nbsp;·&nbsp;&nbsp;US Polo Assn&nbsp;&nbsp;·&nbsp;&nbsp;Old Navy
+          </p>
         </div>
       </section>
 
-      {/* Value Pillars */}
-      <section className="relative py-16 sm:py-24">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="max-w-5xl mx-auto text-center mb-10 sm:mb-14">
-            <p className="uppercase tracking-[0.25em] text-xs sm:text-sm text-[#2E3F36] mb-3">
-              Built for independent brands
-            </p>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold mb-4">
-              A production system that feels as refined as your product
-            </h2>
-            <p className="text-base sm:text-lg text-[#344C3D] max-w-3xl mx-auto">
-              Formme pairs a modern design studio with a vetted manufacturing network so you can move from sketch to shipment without chaos.
-            </p>
-          </div>
+      {/* ════════════════════════════════════════════════
+          PRODUCT CHAT
+      ════════════════════════════════════════════════ */}
+      <section className="py-40 md:py-44 px-6 flex flex-col items-center border-b border-[#E8E3DA]">
+        <p className="reveal text-[10px] uppercase tracking-[0.45em] text-[#AEAEAA] font-inter mb-6 text-center">
+          What formme does
+        </p>
+        <p className="reveal font-cormorant font-light text-[#0D0D0D] text-center mb-24 leading-[1.2]" style={{ fontSize: 'clamp(28px, 3.5vw, 48px)' }}>
+          Every production problem, handled.
+        </p>
+        <ChatUI />
+      </section>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+      {/* ════════════════════════════════════════════════
+          PAIN — stacked lines separate on scroll
+      ════════════════════════════════════════════════ */}
+      <section className="pain-section py-40 md:py-48 px-6 text-center overflow-hidden border-b border-[#E8E3DA]">
+        <div className="max-w-3xl mx-auto">
+          <p className="reveal text-[10px] uppercase tracking-[0.45em] text-[#AEAEAA] font-inter mb-16">
+            The reality of production
+          </p>
+          <p className="pain-line-0 font-cormorant font-light text-[#0D0D0D] leading-[1.25]" style={{ fontSize: 'clamp(24px, 4vw, 54px)' }}>
+            Factories go quiet.
+          </p>
+          <p className="pain-line-1 font-cormorant font-light text-[#0D0D0D] leading-[1.25]" style={{ fontSize: 'clamp(24px, 4vw, 54px)' }}>
+            Samples come back wrong.
+          </p>
+          <p className="pain-line-2 font-cormorant font-light italic text-[#0D0D0D] leading-[1.25]" style={{ fontSize: 'clamp(24px, 4vw, 54px)' }}>
+            You're running production instead of your brand.
+          </p>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════
+          WHAT WE HANDLE
+      ════════════════════════════════════════════════ */}
+      <section className="py-40 md:py-44 px-6 md:px-16 border-b border-[#E8E3DA]">
+        <div className="max-w-5xl mx-auto grid md:grid-cols-[1.05fr_0.95fr] gap-16 md:gap-24 items-start">
+          <div>
+            <p className="reveal text-[10px] uppercase tracking-[0.45em] text-[#AEAEAA] font-inter mb-6">
+              What we handle
+            </p>
+            <h3 className="reveal font-cormorant font-medium text-[#0D0D0D] leading-[1.06]" style={{ fontSize: 'clamp(34px, 4.8vw, 68px)' }}>
+              Everything between your design and the final garment.
+            </h3>
+          </div>
+          <div className="services-list pt-2">
             {[
-              {
-                title: 'Design to spec, not guesswork',
-                body: 'Precision tech packs, production parameters, and approvals in one place.',
-                icon: FileText,
-              },
-              {
-                title: 'Match with the right factory',
-                body: 'Capability-based matching that respects MOQ, lead time, and materials.',
-                icon: Factory,
-              },
-              {
-                title: 'Ship with confidence',
-                body: 'Live updates, proofs, and QC checkpoints to protect quality.',
-                icon: BadgeCheck,
-              },
-            ].map((item) => (
+              'Manufacturer matching',
+              'Tech pack generation',
+              'Sampling to delivery pipeline',
+              'Every problem resolved for you',
+            ].map((item, i, arr) => (
               <div
-                key={item.title}
-                className="rounded-2xl border border-[#E7E1D7] bg-white/85 backdrop-blur-md p-6 sm:p-7 shadow-[0_16px_46px_rgba(0,0,0,0.10)]"
+                key={i}
+                className={`service-item flex items-baseline gap-6 py-7 ${i < arr.length - 1 ? 'border-b border-[#E8E3DA]' : ''}`}
               >
-                <div className="h-12 w-12 rounded-xl bg-[#344C3D]/10 flex items-center justify-center mb-4">
-                  <item.icon className="h-6 w-6 text-[#344C3D]" />
-                </div>
-                <h3 className="text-lg sm:text-xl font-semibold text-[#121212] mb-2">
-                  {item.title}
-                </h3>
-                <p className="text-sm sm:text-base text-[#5A5A5A] leading-relaxed">{item.body}</p>
+                <span className="text-[#AEAEAA] font-inter text-sm font-light select-none flex-shrink-0">—</span>
+                <span className="text-[17px] font-dm-sans font-light text-[#0D0D0D] tracking-[-0.01em] leading-snug">{item}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Studio Preview */}
-      <section className="relative py-16 sm:py-24 bg-[#F1E8DA]">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 lg:gap-12 items-center">
-            <div className="rounded-[28px] border border-[#E7E1D7] bg-white/85 backdrop-blur-md p-6 sm:p-8 shadow-[0_24px_70px_rgba(0,0,0,0.14)]">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.25em] text-[#2E3F36]">Live studio</p>
-                  <h3 className="text-2xl font-semibold text-[#121212]">Design workspace</h3>
-                </div>
-                <span className="rounded-full bg-[#344C3D]/10 px-3 py-1 text-xs font-semibold text-[#344C3D]">
-                  Prototype
-                </span>
-              </div>
-              <div className="rounded-2xl border border-[#EFE6DA] bg-[#FDF9F3] p-5">
-                <div className="flex items-center justify-between text-xs text-[#7B7B7B] mb-4">
-                  <span>Layers</span>
-                  <span>Materials</span>
-                  <span>Measurements</span>
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                  {['Front panel', 'Back panel', 'Sleeve'].map((layer) => (
-                    <div key={layer} className="rounded-xl bg-white border border-[#EFE6DA] p-3 text-sm text-[#121212]">
-                      {layer}
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-5 grid grid-cols-2 gap-3">
-                  <div className="rounded-xl bg-white border border-[#EFE6DA] p-3">
-                    <p className="text-xs uppercase tracking-[0.2em] text-[#6B6B6B]">Fabric</p>
-                    <p className="text-sm font-semibold text-[#121212]">Organic cotton, 220gsm</p>
-                  </div>
-                  <div className="rounded-xl bg-white border border-[#EFE6DA] p-3">
-                    <p className="text-xs uppercase tracking-[0.2em] text-[#6B6B6B]">Color</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="h-4 w-4 rounded-full bg-[#344C3D]" />
-                      <span className="text-sm font-semibold text-[#121212]">Evergreen</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-6 flex flex-wrap gap-3">
-                {['Auto tech pack', 'Revision history', 'Fit notes', 'File exports'].map((chip) => (
-                  <span key={chip} className="rounded-full bg-[#121212]/5 px-3 py-1 text-xs font-semibold text-[#121212]">
-                    {chip}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div>
-              <p className="uppercase tracking-[0.25em] text-xs sm:text-sm text-[#2E3F36] mb-3">
-                Creative control
-              </p>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-[#121212] mb-4">
-                Make production feel as creative as design
-              </h2>
-              <p className="text-base sm:text-lg text-[#344C3D] mb-6">
-                Formme keeps your process cohesive — from sketches and spec sheets to approvals and production tracking.
-              </p>
-              <div className="space-y-3">
-                {[
-                  'Unified asset library for images, patterns, and tech packs',
-                  'Automated measurement tables and construction notes',
-                  'Factory messaging tied directly to order stages',
-                ].map((line) => (
-                  <div key={line} className="flex items-start gap-3">
-                    <span className="mt-1 h-2 w-2 rounded-full bg-[#344C3D]" />
-                    <p className="text-sm sm:text-base text-[#5A5A5A]">{line}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Workflow */}
-      <section className="relative py-16 sm:py-24">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            <div>
-              <p className="uppercase tracking-[0.25em] text-xs sm:text-sm text-[#2E3F36] mb-3">
-                Workflow
-              </p>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-[#121212] mb-4">
-                From concept to delivery, mapped into a clean pipeline
-              </h2>
-              <p className="text-base sm:text-lg text-[#344C3D] mb-6">
-                Formme is a production OS. Every decision has a place, every handoff is tracked, and every update is visible.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <span className="px-3 py-1 rounded-full bg-[#344C3D]/10 text-[#344C3D] text-xs font-semibold">Design Studio</span>
-                <span className="px-3 py-1 rounded-full bg-[#974320]/10 text-[#974320] text-xs font-semibold">Tech Packs</span>
-                <span className="px-3 py-1 rounded-full bg-[#1F2933]/10 text-[#1F2933] text-xs font-semibold">Production Tracking</span>
-                <span className="px-3 py-1 rounded-full bg-[#2E3F36]/10 text-[#2E3F36] text-xs font-semibold">Quality Gate</span>
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-[#E7E1D7] bg-white/85 backdrop-blur-md p-6 sm:p-8 shadow-[0_16px_50px_rgba(0,0,0,0.12)]">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[
-                  { label: 'Design', icon: PenTool, note: 'Upload sketches + references' },
-                  { label: 'Spec', icon: FileText, note: 'Measurements, fabrics, trims' },
-                  { label: 'Match', icon: Users, note: 'Factories tailored to your needs' },
-                  { label: 'Align', icon: Handshake, note: 'Approve samples and pricing' },
-                  { label: 'Produce', icon: Factory, note: 'Live updates and milestones' },
-                  { label: 'Deliver', icon: Truck, note: 'QC, shipping, and receipts' },
-                ].map((step) => (
-                  <div key={step.label} className="rounded-2xl bg-white/80 border border-[#EFE6DA] p-4">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="h-10 w-10 rounded-lg bg-[#121212]/5 flex items-center justify-center">
-                        <step.icon className="h-5 w-5 text-[#121212]" />
-                      </div>
-                      <span className="text-sm font-semibold text-[#121212]">{step.label}</span>
-                    </div>
-                    <p className="text-xs sm:text-sm text-[#5A5A5A]">{step.note}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Services */}
-      <section className="relative py-16 sm:py-24 bg-white/65 backdrop-blur-md">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="max-w-4xl mx-auto text-center mb-10 sm:mb-14">
-            <p className="uppercase tracking-[0.25em] text-xs sm:text-sm text-[#2E3F36] mb-3">Services</p>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold mb-4">
-              Production support that scales with you
-            </h2>
-            <p className="text-base sm:text-lg text-[#344C3D]">
-              Whether you’re developing your first run or managing multiple collections, the workflow flexes.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {[
-              { title: 'Sampling', body: 'Fit rounds, grading, and sample tracking in one view.' },
-              { title: 'Costing', body: 'Unit economics, shipping, and margin views.' },
-              { title: 'Quality', body: 'QC checklists and approvals for every stage.' },
-              { title: 'Logistics', body: 'Shipping timelines, invoices, and delivery updates.' },
-            ].map((item) => (
-              <div key={item.title} className="rounded-2xl border border-[#E7E1D7] bg-white/90 p-5 shadow-[0_14px_38px_rgba(0,0,0,0.1)]">
-                <h3 className="text-lg font-semibold text-[#121212] mb-2">{item.title}</h3>
-                <p className="text-sm text-[#5A5A5A] leading-relaxed">{item.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Network */}
-      <section className="relative py-16 sm:py-24">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-            <div className="lg:col-span-2 rounded-3xl border border-[#E7E1D7] bg-gradient-to-br from-white/85 via-white/70 to-white/50 backdrop-blur-md p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
-              <p className="uppercase tracking-[0.25em] text-xs sm:text-sm text-[#2E3F36] mb-3">
-                Manufacturing network
-              </p>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-[#121212] mb-4">
-                A curated global network, built for quality
-              </h2>
-              <p className="text-base sm:text-lg text-[#344C3D] mb-6 max-w-2xl">
-                We work with manufacturers who understand independent brands — flexible MOQs, transparent lead times, and real craftsmanship.
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {[
-                  { value: '120+', label: 'Vetted partners' },
-                  { value: '18', label: 'Countries' },
-                  { value: '3-6', label: 'Week lead times' },
-                  { value: '98%', label: 'On-time rate' },
-                ].map((stat) => (
-                  <div key={stat.label} className="rounded-2xl bg-white/90 border border-[#EFE6DA] p-4 text-center">
-                    <div className="text-xl sm:text-2xl font-semibold text-[#121212]">{stat.value}</div>
-                    <div className="text-xs sm:text-sm text-[#5A5A5A]">{stat.label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-[#E7E1D7] bg-[#2E3F36] text-white p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.2)]">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="h-11 w-11 rounded-xl bg-white/10 flex items-center justify-center">
-                  <Leaf className="h-6 w-6 text-[#FFF7DE]" />
-                </div>
-                <div>
-                  <p className="text-sm uppercase tracking-[0.2em] text-white/60">Sustainability</p>
-                  <p className="text-lg font-semibold">Material transparency</p>
-                </div>
-              </div>
-              <p className="text-sm sm:text-base text-white/80 mb-6">
-                Track fabric sourcing, dye methods, and certifications for every production run. Sustainability isn’t a feature — it’s the default.
-              </p>
-              <div className="rounded-2xl bg-white/10 border border-white/10 p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-white/60 mb-2">Certifications</p>
-                <div className="flex flex-wrap gap-2">
-                  {['GOTS', 'OEKO-TEX', 'GRS', 'Bluesign'].map((c) => (
-                    <span key={c} className="px-3 py-1 rounded-full bg-white/10 text-xs font-semibold text-white/80">
-                      {c}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Production OS */}
-      <section className="relative py-16 sm:py-24 bg-[#F1E8DA]">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            <div className="rounded-3xl border border-[#E7E1D7] bg-white/85 backdrop-blur-md p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-[#2E3F36]">Live production view</p>
-                  <h3 className="text-2xl font-semibold text-[#121212]">Order: FM-1042</h3>
-                </div>
-                <span className="px-3 py-1 rounded-full bg-[#2E3F36]/10 text-[#2E3F36] text-xs font-semibold">
-                  On Track
-                </span>
-              </div>
-              <div className="space-y-4">
-                {[
-                  { label: 'Tech pack confirmed', status: 'Complete' },
-                  { label: 'Production parameters approved', status: 'Complete' },
-                  { label: 'Sampling in progress', status: 'In Review' },
-                  { label: 'Quality check scheduled', status: 'Upcoming' },
-                ].map((row) => (
-                  <div key={row.label} className="flex items-center justify-between rounded-xl border border-[#EFE6DA] bg-white/90 p-3">
-                    <span className="text-sm text-[#121212]">{row.label}</span>
-                    <span className="text-xs font-semibold text-[#344C3D]">{row.status}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-6 grid grid-cols-2 gap-3">
-                <div className="rounded-xl bg-[#974320]/10 p-3">
-                  <p className="text-xs uppercase tracking-[0.2em] text-[#974320]">ETA</p>
-                  <p className="text-lg font-semibold text-[#121212]">Apr 22</p>
-                </div>
-                <div className="rounded-xl bg-[#344C3D]/10 p-3">
-                  <p className="text-xs uppercase tracking-[0.2em] text-[#344C3D]">Unit cost</p>
-                  <p className="text-lg font-semibold text-[#121212]">$12.40</p>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <p className="uppercase tracking-[0.25em] text-xs sm:text-sm text-[#2E3F36] mb-3">
-                The studio
-              </p>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-[#121212] mb-4">
-                A clean workspace for serious production decisions
-              </h2>
-              <p className="text-base sm:text-lg text-[#344C3D] mb-6">
-                No more scattered files and endless threads. Every approval, note, and file lives in a focused workspace.
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-xl bg-[#121212]/5 flex items-center justify-center">
-                  <Sparkles className="h-6 w-6 text-[#121212]" />
-                </div>
-                <p className="text-sm text-[#5A5A5A]">
-                  Built for independent designers who care about quality, pace, and control.
+      {/* ════════════════════════════════════════════════
+          STATS — count up
+      ════════════════════════════════════════════════ */}
+      <section className="py-44 md:py-48 px-6 border-b border-[#E8E3DA]">
+        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
+          {[
+            { cls: 'stat-count-0', init: '0',  label: 'vetted\nmanufacturers', sub: 'BGD · IND · CHN · PAK · CAN' },
+            { cls: 'stat-count-1', init: '0',  label: 'major\nbrands served',  sub: null },
+            { cls: 'stat-count-3', init: '0',  label: 'garments under\nproduction', sub: null },
+            { cls: 'stat-count-2', init: '12', label: 'production fires\nyou ever fight', sub: null },
+          ].map(({ cls, init, label, sub }) => (
+            <div key={cls} className="flex flex-col items-center gap-4">
+              <span
+                className={`${cls} font-cormorant font-light text-[#0D0D0D] leading-none`}
+                style={{ fontSize: 'clamp(60px, 10vw, 140px)' }}
+              >
+                {init}
+              </span>
+              <div className="flex flex-col items-center gap-1.5">
+                <p className="text-[10px] uppercase tracking-[0.38em] text-[#AEAEAA] font-inter leading-[1.9] whitespace-pre-line text-center">
+                  {label}
                 </p>
+                {sub && (
+                  <p className="text-[10px] tracking-[0.12em] text-[#AEAEAA]/60 font-inter font-light text-center">
+                    {sub}
+                  </p>
+                )}
               </div>
             </div>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="relative py-16 sm:py-24">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-10 sm:mb-12">
-              <p className="uppercase tracking-[0.25em] text-xs sm:text-sm text-[#2E3F36] mb-3">FAQ</p>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold mb-4">
-                Common questions from designers
-              </h2>
-              <p className="text-base sm:text-lg text-[#344C3D]">
-                Clear answers so you can move forward with confidence.
-              </p>
-            </div>
-            <div className="space-y-4">
-              {[
-                {
-                  q: 'Do I need a full tech pack before joining?',
-                  a: 'No. Formme helps you build tech packs progressively as you design and refine.',
-                },
-                {
-                  q: 'Can I work with my existing manufacturer?',
-                  a: 'Yes. You can invite your own factory or use the Formme network.',
-                },
-                {
-                  q: 'How are lead times handled?',
-                  a: 'Every order includes agreed timelines and live progress updates from your manufacturer.',
-                },
-                {
-                  q: 'Is Formme suitable for small runs?',
-                  a: 'Yes. We support flexible MOQs and sampling-first workflows.',
-                },
-              ].map((item) => (
-                <div key={item.q} className="rounded-2xl border border-[#E7E1D7] bg-white/85 p-5 shadow-[0_10px_28px_rgba(0,0,0,0.06)]">
-                  <h3 className="text-base sm:text-lg font-semibold text-[#121212] mb-2">{item.q}</h3>
-                  <p className="text-sm sm:text-base text-[#5A5A5A]">{item.a}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+      {/* ════════════════════════════════════════════════
+          SOCIAL PROOF LINE
+      ════════════════════════════════════════════════ */}
+      <section className="py-32 md:py-36 px-6 reveal border-b border-[#E8E3DA]">
+        <p className="text-center text-[10px] uppercase tracking-[0.5em] text-[#AEAEAA] font-inter">
+          Now working with independent brands across North America
+        </p>
       </section>
 
-      {/* CTA */}
-      <section className="relative py-16 sm:py-24 bg-white/70 backdrop-blur-md">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="rounded-3xl border border-[#E7E1D7] bg-white/90 backdrop-blur-md p-8 sm:p-12 text-center shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-[#121212] mb-4">
-              Build with Formme
-            </h2>
-            <p className="text-base sm:text-lg text-[#344C3D] mb-8 max-w-3xl mx-auto">
-              Start your next collection with a production partner and a platform that feels as elevated as your brand.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 max-w-2xl mx-auto">
-              <Input
-                type="email"
-                placeholder="Work email"
-                className="w-full sm:flex-1 bg-white/90 border-[#E7E1D7]"
-              />
-              <Button className="w-full sm:w-auto bg-[#2F3E35] hover:bg-[#243229] text-white rounded-full py-6 px-8">
-                Request access
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
-            </div>
-            <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs text-[#5A5A5A]">
-              <span>Designers</span>
-              <span>Manufacturers</span>
-              <span>Production managers</span>
-            </div>
-            <div className="mt-8">
-              <Link to="/designer" className="inline-block w-full sm:w-auto">
-                <Button
-                  variant="outline"
-                  className="group w-full sm:w-auto border-[#2F3E35] text-[#2F3E35] hover:bg-[#2F3E35] hover:text-white rounded-full py-5 px-8"
-                >
-                  Launch Designer
-                  <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
+      {/* ════════════════════════════════════════════════
+          CLOSING CTA — dark
+      ════════════════════════════════════════════════ */}
+      <section className="closing-cta bg-[#0D0D0D] py-44 md:py-48 px-6 flex flex-col items-center text-center">
+        <p className="text-[10px] uppercase tracking-[0.45em] text-[#555550] font-inter mb-8">
+          Early access
+        </p>
+        <h2
+          className="font-cormorant font-light text-white leading-[1.08] mb-14 max-w-xl"
+          style={{ fontSize: 'clamp(34px, 5.5vw, 76px)' }}
+        >
+          Ready to only think about design?
+        </h2>
+
+        <form
+          className="flex items-end border-b border-[#333330] w-full max-w-[320px] mb-10"
+          onSubmit={(e) => {
+            e.preventDefault();
+            window.location.href = `/auth?mode=signup&email=${encodeURIComponent(email)}`;
+          }}
+        >
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="your@email.com"
+            required
+            className="flex-1 pb-3 pt-1 text-[13px] bg-transparent outline-none font-dm-sans font-light text-white placeholder:text-[#555550]"
+          />
+          <button
+            type="submit"
+            className="pb-3 pt-1 pl-3 text-base font-light text-white hover:text-[#C97B5A] transition-colors duration-300"
+            aria-label="Submit"
+          >
+            →
+          </button>
+        </form>
+
+        <p className="text-[12px] text-[#555550] font-inter font-light">
+          or write to us at{' '}
+          <a href="mailto:formme.design@gmail.com" className="cta-link text-[#AEAEAA] text-[12px]">
+            formme.design@gmail.com
+          </a>
+        </p>
       </section>
 
       <Footer />
