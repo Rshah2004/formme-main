@@ -306,6 +306,7 @@ const Index = () => {
       mm.add('(min-width: 768px)', () => {
         gsap.set('.hero-line2', { opacity: 0, y: '10vh' });
 
+        let heroScrolled = false;
         const heroTl = gsap.timeline({
           scrollTrigger: {
             trigger: '.hero-pin',
@@ -314,6 +315,17 @@ const Index = () => {
             pin: true,
             scrub: 1.5,
             anticipatePin: 1,
+            onEnterBack: () => { heroScrolled = false; },
+            onUpdate: (self) => {
+              if (self.progress > 0.22 && !heroScrolled) {
+                heroScrolled = true;
+                if (lenis) {
+                  lenis.scrollTo(self.end, { duration: 0.9 });
+                } else {
+                  window.scrollTo({ top: self.end, behavior: 'smooth' });
+                }
+              }
+            },
           },
         });
 
@@ -337,6 +349,17 @@ const Index = () => {
             pin: true,
             scrub: 1.2,
             anticipatePin: 1,
+            onLeave: () => {
+              setTimeout(() => {
+                const target = document.querySelector('.door-pin') as HTMLElement | null;
+                if (!target) return;
+                if (lenis) {
+                  lenis.scrollTo(target, { duration: 1.0 });
+                } else {
+                  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }, 80);
+            },
           },
         });
 
@@ -378,83 +401,104 @@ const Index = () => {
           }, undefined, 0.26);
       });
 
-      /* ── Mobile — same pinned animations, tighter scroll distances ── */
+      /* ── Mobile — scrub: true = instant 1:1 scroll response, no lag ── */
       mm.add('(max-width: 767px)', () => {
-        // Hero pin
+        // Hero pin — 120vh feels snappy on a phone
         gsap.set('.hero-line2', { opacity: 0, y: '6vh' });
+        let mHeroScrolled = false;
         const mHeroTl = gsap.timeline({
           scrollTrigger: {
             trigger: '.hero-pin',
             start: 'top top',
-            end: '+=180vh',
+            end: '+=120vh',
             pin: true,
-            scrub: 0.8,
+            scrub: true,
             anticipatePin: 1,
             pinType: 'transform',
+            onEnterBack: () => { mHeroScrolled = false; },
+            onUpdate: (self) => {
+              if (self.progress > 0.22 && !mHeroScrolled) {
+                mHeroScrolled = true;
+                window.scrollTo({ top: self.end, behavior: 'smooth' });
+              }
+            },
           },
         });
         mHeroTl
           .to('.hero-you',    { x: '-40vw', scale: 1.08, ease: 'none', duration: 1 }, 0)
           .to('.hero-design', { x:  '40vw', scale: 1.08, ease: 'none', duration: 1 }, 0)
-          .to('.hero-line2',  { opacity: 1, y: 0, ease: 'none', duration: 0.85 }, 0.45)
-          .to('.hero-you',    { opacity: 0, x: '-48vw', ease: 'none', duration: 0.9 }, 1.5)
-          .to('.hero-design', { opacity: 0, x:  '48vw', ease: 'none', duration: 0.9 }, 1.5)
-          .to('.hero-line2',  { opacity: 0, y: '8vh',   ease: 'none', duration: 0.9 }, 1.5);
+          .to('.hero-line2',  { opacity: 1, y: 0, ease: 'none', duration: 0.6 }, 0.38)
+          .to('.hero-you',    { opacity: 0, x: '-48vw', ease: 'none', duration: 0.5 }, 1.5)
+          .to('.hero-design', { opacity: 0, x:  '48vw', ease: 'none', duration: 0.5 }, 1.5)
+          .to('.hero-line2',  { opacity: 0, y: '8vh',   ease: 'none', duration: 0.5 }, 1.5);
 
-        // Process pin
+        // Process pin — auto-advances on small scroll so all steps show up automatically
+        let mProcessScrolled = false;
         const mProcessTl = gsap.timeline({
           scrollTrigger: {
             trigger: '.process-pin',
             start: 'top top',
-            end: '+=300vh',
+            end: '+=200vh',
             pin: true,
-            scrub: 0.8,
+            scrub: true,
             anticipatePin: 1,
             pinType: 'transform',
+            onEnterBack: () => { mProcessScrolled = false; },
+            onUpdate: (self) => {
+              if (self.progress > 0.06 && !mProcessScrolled) {
+                mProcessScrolled = true;
+                window.scrollTo({ top: self.end, behavior: 'smooth' });
+              }
+            },
           },
         });
         mProcessTl
-          .to('.process-bg',     { backgroundColor: '#1A1814', ease: 'none', duration: 0.18 }, 0)
-          .to('.process-needle', { opacity: 1, y: 0,  ease: 'none', duration: 0.14 }, 0.12)
-          .to('.process-thread', { scaleY: 1,          ease: 'none', duration: 0.1  }, 0.22)
-          .to('.process-step-0', { opacity: 1, y: 0,  ease: 'none', duration: 0.14 }, 0.28)
-          .to('.stitch-0',       { scaleY: 1,          ease: 'none', duration: 0.09 }, 0.40)
-          .to('.process-step-1', { opacity: 1, y: 0,  ease: 'none', duration: 0.14 }, 0.46)
-          .to('.stitch-1',       { scaleY: 1,          ease: 'none', duration: 0.09 }, 0.57)
-          .to('.process-step-2', { opacity: 1, y: 0,  ease: 'none', duration: 0.14 }, 0.63)
-          .to('.stitch-2',       { scaleY: 1,          ease: 'none', duration: 0.09 }, 0.73)
-          .to('.process-step-3', { opacity: 1, y: 0,  ease: 'none', duration: 0.14 }, 0.79)
-          .to('.stitch-3',       { scaleY: 1,          ease: 'none', duration: 0.09 }, 0.88)
-          .to('.process-step-4', { opacity: 1, y: 0,  ease: 'none', duration: 0.14 }, 0.92)
-          .to('.stitch-4',       { scaleY: 1,          ease: 'none', duration: 0.09 }, 0.94)
-          .to('.process-step-5', { opacity: 1, y: 0,  ease: 'none', duration: 0.14 }, 0.96)
-          .to('.process-tagline',{ opacity: 0.28,       ease: 'none', duration: 0.1  }, 0.99)
-          .call(() => {
-            gsap.to('.process-needle', { y: 6, yoyo: true, repeat: -1, duration: 0.85, ease: 'sine.inOut' });
-          }, undefined, 0.26);
+          .to('.process-bg',     { backgroundColor: '#1A1814', ease: 'none', duration: 0.12 }, 0)
+          .to('.process-needle', { opacity: 1, y: 0,  ease: 'none', duration: 0.10 }, 0.08)
+          .to('.process-thread', { scaleY: 1,          ease: 'none', duration: 0.08 }, 0.16)
+          .to('.process-step-0', { opacity: 1, y: 0,  ease: 'none', duration: 0.10 }, 0.22)
+          .to('.stitch-0',       { scaleY: 1,          ease: 'none', duration: 0.07 }, 0.31)
+          .to('.process-step-1', { opacity: 1, y: 0,  ease: 'none', duration: 0.10 }, 0.37)
+          .to('.stitch-1',       { scaleY: 1,          ease: 'none', duration: 0.07 }, 0.46)
+          .to('.process-step-2', { opacity: 1, y: 0,  ease: 'none', duration: 0.10 }, 0.52)
+          .to('.stitch-2',       { scaleY: 1,          ease: 'none', duration: 0.07 }, 0.60)
+          .to('.process-step-3', { opacity: 1, y: 0,  ease: 'none', duration: 0.10 }, 0.65)
+          .to('.stitch-3',       { scaleY: 1,          ease: 'none', duration: 0.07 }, 0.73)
+          .to('.process-step-4', { opacity: 1, y: 0,  ease: 'none', duration: 0.10 }, 0.78)
+          .to('.stitch-4',       { scaleY: 1,          ease: 'none', duration: 0.07 }, 0.84)
+          .to('.process-step-5', { opacity: 1, y: 0,  ease: 'none', duration: 0.10 }, 0.88)
+          .to('.process-tagline',{ opacity: 0.28,       ease: 'none', duration: 0.08 }, 0.97);
 
-        // Door pin
+        // Door pin — auto-advances so factory reveal plays through automatically
+        let mDoorScrolled = false;
         const mDoorTl = gsap.timeline({
           scrollTrigger: {
             trigger: '.door-pin',
             start: 'top top',
-            end: '+=240vh',
+            end: '+=160vh',
             pin: true,
-            scrub: 0.8,
+            scrub: true,
             anticipatePin: 1,
             pinType: 'transform',
+            onEnterBack: () => { mDoorScrolled = false; },
+            onUpdate: (self) => {
+              if (self.progress > 0.06 && !mDoorScrolled) {
+                mDoorScrolled = true;
+                window.scrollTo({ top: self.end, behavior: 'smooth' });
+              }
+            },
           },
         });
         mDoorTl
-          .to('.door-left',        { rotateY: -90, ease: 'none', duration: 0.46 }, 0)
-          .to('.door-right',       { rotateY:  90, ease: 'none', duration: 0.46 }, 0)
-          .to('.door-seam',        { opacity: 0,   ease: 'none', duration: 0.14 }, 0.16)
-          .to('.door-header',      { opacity: 1,   ease: 'none', duration: 0.18 }, 0.44)
-          .to('.door-step-0',      { opacity: 1, y: 0, ease: 'none', duration: 0.16 }, 0.54)
-          .to('.door-step-1',      { opacity: 1, y: 0, ease: 'none', duration: 0.16 }, 0.64)
-          .to('.door-step-2',      { opacity: 1, y: 0, ease: 'none', duration: 0.16 }, 0.74)
-          .to('.door-step-3',      { opacity: 1, y: 0, ease: 'none', duration: 0.16 }, 0.83)
-          .to('.door-bottom-note', { opacity: 1,   ease: 'none', duration: 0.14 }, 0.92);
+          .to('.door-left',        { rotateY: -90, ease: 'none', duration: 0.38 }, 0)
+          .to('.door-right',       { rotateY:  90, ease: 'none', duration: 0.38 }, 0)
+          .to('.door-seam',        { opacity: 0,   ease: 'none', duration: 0.12 }, 0.12)
+          .to('.door-header',      { opacity: 1,   ease: 'none', duration: 0.14 }, 0.38)
+          .to('.door-step-0',      { opacity: 1, y: 0, ease: 'none', duration: 0.12 }, 0.48)
+          .to('.door-step-1',      { opacity: 1, y: 0, ease: 'none', duration: 0.12 }, 0.60)
+          .to('.door-step-2',      { opacity: 1, y: 0, ease: 'none', duration: 0.12 }, 0.72)
+          .to('.door-step-3',      { opacity: 1, y: 0, ease: 'none', duration: 0.12 }, 0.82)
+          .to('.door-bottom-note', { opacity: 1,   ease: 'none', duration: 0.10 }, 0.92);
       });
 
       /* ── Door: factory reveal ── */
@@ -467,6 +511,17 @@ const Index = () => {
             pin: true,
             scrub: 1.5,
             anticipatePin: 1,
+            onLeave: () => {
+              setTimeout(() => {
+                const target = document.querySelector('.chat-section') as HTMLElement | null;
+                if (!target) return;
+                if (lenis) {
+                  lenis.scrollTo(target, { duration: 1.0 });
+                } else {
+                  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }, 80);
+            },
           },
         });
 
@@ -628,7 +683,7 @@ const Index = () => {
       {/* ════════════════════════════════════════════════
           PRODUCT CHAT
       ════════════════════════════════════════════════ */}
-      <section className="py-40 md:py-44 px-6 flex flex-col items-center border-b border-[#E8E3DA]">
+      <section className="chat-section py-40 md:py-44 px-6 flex flex-col items-center border-b border-[#E8E3DA]">
         <p className="reveal text-[10px] uppercase tracking-[0.45em] text-[#AEAEAA] font-inter mb-6 text-center">
           What formme does
         </p>
