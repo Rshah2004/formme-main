@@ -434,31 +434,29 @@ const Index = () => {
           scrollTrigger: { trigger: '.process-pin', start: 'top 65%', once: true },
         });
 
-        // Door: pinType fixed — stays in place while doors open + steps reveal on scroll
+        // Door: auto-plays when section enters viewport, no pin/scrub
         gsap.set(['.door-header', '.door-step-0', '.door-step-1',
                   '.door-step-2', '.door-step-3', '.door-bottom-note'], { opacity: 0, y: 14 });
 
         const mDoorTl = gsap.timeline({
+          paused: true,
           scrollTrigger: {
             trigger: '.door-pin',
-            start: 'top top',
-            end: '+=180vh',
-            pin: true,
-            pinType: 'fixed',
-            scrub: true,
-            anticipatePin: 1,
+            start: 'top 80%',
+            once: true,
+            onEnter: () => mDoorTl.play(),
           },
         });
         mDoorTl
-          .to('.door-left',        { x: '-100%',  ease: 'none', duration: 0.40 }, 0)
-          .to('.door-right',       { x:  '100%',  ease: 'none', duration: 0.40 }, 0)
-          .to('.door-seam',        { opacity: 0,   ease: 'none', duration: 0.15 }, 0.10)
-          .to('.door-header',      { opacity: 1, y: 0, ease: 'none', duration: 0.15 }, 0.38)
-          .to('.door-step-0',      { opacity: 1, y: 0, ease: 'none', duration: 0.12 }, 0.50)
-          .to('.door-step-1',      { opacity: 1, y: 0, ease: 'none', duration: 0.12 }, 0.62)
-          .to('.door-step-2',      { opacity: 1, y: 0, ease: 'none', duration: 0.12 }, 0.74)
-          .to('.door-step-3',      { opacity: 1, y: 0, ease: 'none', duration: 0.12 }, 0.84)
-          .to('.door-bottom-note', { opacity: 1,   ease: 'none', duration: 0.10 }, 0.94);
+          .to('.door-left',        { x: '-100%',  ease: 'power2.inOut', duration: 0.55 })
+          .to('.door-right',       { x:  '100%',  ease: 'power2.inOut', duration: 0.55 }, '<')
+          .to('.door-seam',        { opacity: 0,  ease: 'none',         duration: 0.20 }, '<+=0.1')
+          .to('.door-header',      { opacity: 1, y: 0, ease: 'power2.out', duration: 0.30 }, '-=0.1')
+          .to('.door-step-0',      { opacity: 1, y: 0, ease: 'power2.out', duration: 0.25 }, '-=0.05')
+          .to('.door-step-1',      { opacity: 1, y: 0, ease: 'power2.out', duration: 0.25 }, '-=0.10')
+          .to('.door-step-2',      { opacity: 1, y: 0, ease: 'power2.out', duration: 0.25 }, '-=0.10')
+          .to('.door-step-3',      { opacity: 1, y: 0, ease: 'power2.out', duration: 0.25 }, '-=0.10')
+          .to('.door-bottom-note', { opacity: 1,       ease: 'power2.out', duration: 0.20 }, '-=0.05');
       });
 
       /* ── Door: factory reveal ── */
@@ -608,7 +606,7 @@ const Index = () => {
         <div className="hero-line2 absolute inset-0 flex items-center justify-center pointer-events-none select-none px-6">
           <span
             className="font-cormorant font-light text-[#0D0D0D] text-center leading-tight"
-            style={{ fontSize: 'clamp(26px, 7.2vw, 106px)' }}
+            style={{ fontSize: 'clamp(48px, 10vw, 106px)' }}
           >
             WE HANDLE THE REST.
           </span>
