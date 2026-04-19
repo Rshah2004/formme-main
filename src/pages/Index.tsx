@@ -411,8 +411,8 @@ const Index = () => {
         mHeroTl
           .to('.hero-you',    { x: '-110vw', ease: 'none', duration: 0.45 }, 0)
           .to('.hero-design', { x:  '110vw', ease: 'none', duration: 0.45 }, 0)
-          .to('.hero-line2',  { opacity: 1, y: 0,    ease: 'none', duration: 0.25 }, 0.40)
-          .to('.hero-line2',  { opacity: 0, y: '-8vh', ease: 'none', duration: 0.30 }, 0.70);
+          .to('.hero-line2',  { opacity: 1, y: 0,     ease: 'none', duration: 0.20 }, 0.42)
+          .to('.hero-line2',  { opacity: 0, y: '-8vh', ease: 'none', duration: 0.15 }, 0.85);
 
         // Process: set hidden, then play once when section enters viewport
         gsap.set(['.process-needle', '.process-thread',
@@ -450,8 +450,8 @@ const Index = () => {
           },
         });
         mDoorTl
-          .to('.door-left',        { rotateY: -90, ease: 'none', duration: 0.40 }, 0)
-          .to('.door-right',       { rotateY:  90, ease: 'none', duration: 0.40 }, 0)
+          .to('.door-left',        { x: '-100%',  ease: 'none', duration: 0.40 }, 0)
+          .to('.door-right',       { x:  '100%',  ease: 'none', duration: 0.40 }, 0)
           .to('.door-seam',        { opacity: 0,   ease: 'none', duration: 0.15 }, 0.10)
           .to('.door-header',      { opacity: 1, y: 0, ease: 'none', duration: 0.15 }, 0.38)
           .to('.door-step-0',      { opacity: 1, y: 0, ease: 'none', duration: 0.12 }, 0.50)
