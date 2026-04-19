@@ -27,6 +27,7 @@ const Auth = () => {
   const [showBookDemo, setShowBookDemo] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const prefillEmail = searchParams.get("email") || "";
 
   useEffect(() => {
     if (isDirectSignupRoute) {
@@ -810,9 +811,19 @@ const handleResetPassword = async (e: React.FormEvent) => {
                 <p className="text-sm text-muted-foreground mb-5">
                   Share your details and we&apos;ll reach out when we&apos;re ready to onboard you.
                 </p>
+                {prefillEmail && (
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Joining as <span className="font-medium text-foreground">{prefillEmail}</span>
+                  </p>
+                )}
                 <Button
                   type="button"
-                  onClick={() => window.open(WAITLIST_URL, "_blank", "noopener,noreferrer")}
+                  onClick={() => {
+                    const url = prefillEmail
+                      ? `${WAITLIST_URL}&entry.1045781291=${encodeURIComponent(prefillEmail)}`
+                      : WAITLIST_URL;
+                    window.open(url, "_blank", "noopener,noreferrer");
+                  }}
                   className="w-full mt-3 h-11 rounded-xl"
                 >
                   Join Waitlist
