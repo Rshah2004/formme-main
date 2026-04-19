@@ -306,7 +306,6 @@ const Index = () => {
       mm.add('(min-width: 768px)', () => {
         gsap.set('.hero-line2', { opacity: 0, y: '10vh' });
 
-        let heroScrolled = false;
         const heroTl = gsap.timeline({
           scrollTrigger: {
             trigger: '.hero-pin',
@@ -315,16 +314,8 @@ const Index = () => {
             pin: true,
             scrub: 1.5,
             anticipatePin: 1,
-            onEnterBack: () => { heroScrolled = false; },
-            onUpdate: (self) => {
-              if (self.progress > 0.22 && !heroScrolled) {
-                heroScrolled = true;
-                if (lenis) {
-                  lenis.scrollTo(self.end, { duration: 0.9 });
-                } else {
-                  window.scrollTo({ top: self.end, behavior: 'smooth' });
-                }
-              }
+            onLeave: () => {
+              if (lenis) lenis.scrollTo('.process-pin', { duration: 0.8 });
             },
           },
         });
@@ -401,55 +392,39 @@ const Index = () => {
           }, undefined, 0.26);
       });
 
-      /* ── Mobile — scrub: true = instant 1:1 scroll response, no lag ── */
+      /* ── Mobile — short pins, pure scrub, no programmatic scroll ── */
       mm.add('(max-width: 767px)', () => {
-        // Hero pin — 120vh feels snappy on a phone
+        // Hero — 70vh total. Text appears at ~19% (~13vh), user barely swipes and exits.
         gsap.set('.hero-line2', { opacity: 0, y: '6vh' });
-        let mHeroScrolled = false;
         const mHeroTl = gsap.timeline({
           scrollTrigger: {
             trigger: '.hero-pin',
             start: 'top top',
-            end: '+=120vh',
+            end: '+=70vh',
             pin: true,
             scrub: true,
             anticipatePin: 1,
             pinType: 'transform',
-            onEnterBack: () => { mHeroScrolled = false; },
-            onUpdate: (self) => {
-              if (self.progress > 0.22 && !mHeroScrolled) {
-                mHeroScrolled = true;
-                window.scrollTo({ top: self.end, behavior: 'smooth' });
-              }
-            },
           },
         });
         mHeroTl
           .to('.hero-you',    { x: '-40vw', scale: 1.08, ease: 'none', duration: 1 }, 0)
           .to('.hero-design', { x:  '40vw', scale: 1.08, ease: 'none', duration: 1 }, 0)
-          .to('.hero-line2',  { opacity: 1, y: 0, ease: 'none', duration: 0.6 }, 0.38)
-          .to('.hero-you',    { opacity: 0, x: '-48vw', ease: 'none', duration: 0.5 }, 1.5)
-          .to('.hero-design', { opacity: 0, x:  '48vw', ease: 'none', duration: 0.5 }, 1.5)
-          .to('.hero-line2',  { opacity: 0, y: '8vh',   ease: 'none', duration: 0.5 }, 1.5);
+          .to('.hero-line2',  { opacity: 1, y: 0, ease: 'none', duration: 0.5 }, 0.35)
+          .to('.hero-you',    { opacity: 0, x: '-48vw', ease: 'none', duration: 0.4 }, 1.5)
+          .to('.hero-design', { opacity: 0, x:  '48vw', ease: 'none', duration: 0.4 }, 1.5)
+          .to('.hero-line2',  { opacity: 0, y: '8vh',   ease: 'none', duration: 0.4 }, 1.5);
 
-        // Process pin — auto-advances on small scroll so all steps show up automatically
-        let mProcessScrolled = false;
+        // Process — 100vh. All 6 steps reveal across a single phone-height swipe.
         const mProcessTl = gsap.timeline({
           scrollTrigger: {
             trigger: '.process-pin',
             start: 'top top',
-            end: '+=200vh',
+            end: '+=100vh',
             pin: true,
             scrub: true,
             anticipatePin: 1,
             pinType: 'transform',
-            onEnterBack: () => { mProcessScrolled = false; },
-            onUpdate: (self) => {
-              if (self.progress > 0.06 && !mProcessScrolled) {
-                mProcessScrolled = true;
-                window.scrollTo({ top: self.end, behavior: 'smooth' });
-              }
-            },
           },
         });
         mProcessTl
@@ -469,24 +444,16 @@ const Index = () => {
           .to('.process-step-5', { opacity: 1, y: 0,  ease: 'none', duration: 0.10 }, 0.88)
           .to('.process-tagline',{ opacity: 0.28,       ease: 'none', duration: 0.08 }, 0.97);
 
-        // Door pin — auto-advances so factory reveal plays through automatically
-        let mDoorScrolled = false;
+        // Door — 80vh. Doors open and steps fade in across one quick swipe.
         const mDoorTl = gsap.timeline({
           scrollTrigger: {
             trigger: '.door-pin',
             start: 'top top',
-            end: '+=160vh',
+            end: '+=80vh',
             pin: true,
             scrub: true,
             anticipatePin: 1,
             pinType: 'transform',
-            onEnterBack: () => { mDoorScrolled = false; },
-            onUpdate: (self) => {
-              if (self.progress > 0.06 && !mDoorScrolled) {
-                mDoorScrolled = true;
-                window.scrollTo({ top: self.end, behavior: 'smooth' });
-              }
-            },
           },
         });
         mDoorTl
