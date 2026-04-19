@@ -392,80 +392,73 @@ const Index = () => {
           }, undefined, 0.26);
       });
 
-      /* ── Mobile — short pins, pure scrub, no programmatic scroll ── */
+      /* ── Mobile — NO pins, NO scrub. Hero auto-plays; process+door fire once on enter. ── */
       mm.add('(max-width: 767px)', () => {
-        // Hero — 70vh total. Text appears at ~19% (~13vh), user barely swipes and exits.
-        gsap.set('.hero-line2', { opacity: 0, y: '6vh' });
+        // Hero: GSAP pin with pinType fixed (GPU layer, smooth on iOS)
+        gsap.set('.hero-line2', { opacity: 0, y: '5vh' });
+
         const mHeroTl = gsap.timeline({
           scrollTrigger: {
             trigger: '.hero-pin',
             start: 'top top',
-            end: '+=70vh',
+            end: '+=180vh',
             pin: true,
+            pinType: 'fixed',
             scrub: true,
             anticipatePin: 1,
-            pinType: 'transform',
           },
         });
         mHeroTl
-          .to('.hero-you',    { x: '-40vw', scale: 1.08, ease: 'none', duration: 1 }, 0)
-          .to('.hero-design', { x:  '40vw', scale: 1.08, ease: 'none', duration: 1 }, 0)
-          .to('.hero-line2',  { opacity: 1, y: 0, ease: 'none', duration: 0.5 }, 0.35)
-          .to('.hero-you',    { opacity: 0, x: '-48vw', ease: 'none', duration: 0.4 }, 1.5)
-          .to('.hero-design', { opacity: 0, x:  '48vw', ease: 'none', duration: 0.4 }, 1.5)
-          .to('.hero-line2',  { opacity: 0, y: '8vh',   ease: 'none', duration: 0.4 }, 1.5);
+          .to('.hero-you',    { x: '-110vw', ease: 'none', duration: 0.45 }, 0)
+          .to('.hero-design', { x:  '110vw', ease: 'none', duration: 0.45 }, 0)
+          .to('.hero-line2',  { opacity: 1, y: 0,    ease: 'none', duration: 0.25 }, 0.40)
+          .to('.hero-line2',  { opacity: 0, y: '-8vh', ease: 'none', duration: 0.30 }, 0.70);
 
-        // Process — 100vh. All 6 steps reveal across a single phone-height swipe.
-        const mProcessTl = gsap.timeline({
-          scrollTrigger: {
-            trigger: '.process-pin',
-            start: 'top top',
-            end: '+=100vh',
-            pin: true,
-            scrub: true,
-            anticipatePin: 1,
-            pinType: 'transform',
-          },
+        // Process: set hidden, then play once when section enters viewport
+        gsap.set(['.process-needle', '.process-thread',
+                  '.process-step-0', '.process-step-1', '.process-step-2',
+                  '.process-step-3', '.process-step-4', '.process-step-5',
+                  '.stitch-0', '.stitch-1', '.stitch-2', '.stitch-3', '.stitch-4',
+                  '.process-tagline'], { opacity: 0, y: 14 });
+
+        gsap.to('.process-bg', {
+          backgroundColor: '#1A1814', duration: 0.5,
+          scrollTrigger: { trigger: '.process-pin', start: 'top 75%', once: true },
         });
-        mProcessTl
-          .to('.process-bg',     { backgroundColor: '#1A1814', ease: 'none', duration: 0.12 }, 0)
-          .to('.process-needle', { opacity: 1, y: 0,  ease: 'none', duration: 0.10 }, 0.08)
-          .to('.process-thread', { scaleY: 1,          ease: 'none', duration: 0.08 }, 0.16)
-          .to('.process-step-0', { opacity: 1, y: 0,  ease: 'none', duration: 0.10 }, 0.22)
-          .to('.stitch-0',       { scaleY: 1,          ease: 'none', duration: 0.07 }, 0.31)
-          .to('.process-step-1', { opacity: 1, y: 0,  ease: 'none', duration: 0.10 }, 0.37)
-          .to('.stitch-1',       { scaleY: 1,          ease: 'none', duration: 0.07 }, 0.46)
-          .to('.process-step-2', { opacity: 1, y: 0,  ease: 'none', duration: 0.10 }, 0.52)
-          .to('.stitch-2',       { scaleY: 1,          ease: 'none', duration: 0.07 }, 0.60)
-          .to('.process-step-3', { opacity: 1, y: 0,  ease: 'none', duration: 0.10 }, 0.65)
-          .to('.stitch-3',       { scaleY: 1,          ease: 'none', duration: 0.07 }, 0.73)
-          .to('.process-step-4', { opacity: 1, y: 0,  ease: 'none', duration: 0.10 }, 0.78)
-          .to('.stitch-4',       { scaleY: 1,          ease: 'none', duration: 0.07 }, 0.84)
-          .to('.process-step-5', { opacity: 1, y: 0,  ease: 'none', duration: 0.10 }, 0.88)
-          .to('.process-tagline',{ opacity: 0.28,       ease: 'none', duration: 0.08 }, 0.97);
+        gsap.to(['.process-needle', '.process-thread',
+                 '.process-step-0', '.process-step-1', '.process-step-2',
+                 '.process-step-3', '.process-step-4', '.process-step-5',
+                 '.stitch-0', '.stitch-1', '.stitch-2', '.stitch-3', '.stitch-4',
+                 '.process-tagline'], {
+          opacity: 1, y: 0, stagger: 0.07, duration: 0.35, ease: 'power2.out',
+          scrollTrigger: { trigger: '.process-pin', start: 'top 65%', once: true },
+        });
 
-        // Door — 80vh. Doors open and steps fade in across one quick swipe.
+        // Door: pinType fixed — stays in place while doors open + steps reveal on scroll
+        gsap.set(['.door-header', '.door-step-0', '.door-step-1',
+                  '.door-step-2', '.door-step-3', '.door-bottom-note'], { opacity: 0, y: 14 });
+
         const mDoorTl = gsap.timeline({
           scrollTrigger: {
             trigger: '.door-pin',
             start: 'top top',
-            end: '+=80vh',
+            end: '+=180vh',
             pin: true,
+            pinType: 'fixed',
             scrub: true,
             anticipatePin: 1,
-            pinType: 'transform',
           },
         });
         mDoorTl
-          .to('.door-left',        { rotateY: -90, ease: 'none', duration: 0.38 }, 0)
-          .to('.door-right',       { rotateY:  90, ease: 'none', duration: 0.38 }, 0)
-          .to('.door-seam',        { opacity: 0,   ease: 'none', duration: 0.12 }, 0.12)
-          .to('.door-header',      { opacity: 1,   ease: 'none', duration: 0.14 }, 0.38)
-          .to('.door-step-0',      { opacity: 1, y: 0, ease: 'none', duration: 0.12 }, 0.48)
-          .to('.door-step-1',      { opacity: 1, y: 0, ease: 'none', duration: 0.12 }, 0.60)
-          .to('.door-step-2',      { opacity: 1, y: 0, ease: 'none', duration: 0.12 }, 0.72)
-          .to('.door-step-3',      { opacity: 1, y: 0, ease: 'none', duration: 0.12 }, 0.82)
-          .to('.door-bottom-note', { opacity: 1,   ease: 'none', duration: 0.10 }, 0.92);
+          .to('.door-left',        { rotateY: -90, ease: 'none', duration: 0.40 }, 0)
+          .to('.door-right',       { rotateY:  90, ease: 'none', duration: 0.40 }, 0)
+          .to('.door-seam',        { opacity: 0,   ease: 'none', duration: 0.15 }, 0.10)
+          .to('.door-header',      { opacity: 1, y: 0, ease: 'none', duration: 0.15 }, 0.38)
+          .to('.door-step-0',      { opacity: 1, y: 0, ease: 'none', duration: 0.12 }, 0.50)
+          .to('.door-step-1',      { opacity: 1, y: 0, ease: 'none', duration: 0.12 }, 0.62)
+          .to('.door-step-2',      { opacity: 1, y: 0, ease: 'none', duration: 0.12 }, 0.74)
+          .to('.door-step-3',      { opacity: 1, y: 0, ease: 'none', duration: 0.12 }, 0.84)
+          .to('.door-bottom-note', { opacity: 1,   ease: 'none', duration: 0.10 }, 0.94);
       });
 
       /* ── Door: factory reveal ── */
