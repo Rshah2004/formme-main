@@ -286,7 +286,7 @@ const FactoryMatchStage = ({ design }: FactoryMatchStageProps) => {
   return (
     <div>
       <StageHeader
-        icon={FactoryIcon}
+        stageLabel="Step 02 · Manufacturers"
         title="Find Your Manufacturing Partner"
         description="Select production quantity and preferences. We'll match you with the best factories for your needs."
         contextInfo={[

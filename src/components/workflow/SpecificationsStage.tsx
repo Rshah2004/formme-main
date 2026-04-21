@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useIsAdmin, useContractStatus } from '@/hooks/useContractStatus';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { StageHeader } from './StageHeader';
 
 interface SpecificationsStageProps {
   design: any;
@@ -156,20 +157,14 @@ const SpecificationsStage = ({ design }: SpecificationsStageProps) => {
         </Alert>
       )}
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Specifications</h2>
-          <p className="text-muted-foreground mt-1">
-            Define the measurements and sizing for your garment
-          </p>
-        </div>
-        {!isContractFinalized && hasUnsavedChanges && (
-          <Button onClick={handleSave}>
-            Save Changes
-          </Button>
-        )}
-      </div>
+      <StageHeader
+        stageLabel="Step 01 · Tech Pack"
+        title="Specifications."
+        description="Define the measurements and sizing for your garment."
+        action={!isContractFinalized && hasUnsavedChanges ? (
+          <Button onClick={handleSave}>Save Changes</Button>
+        ) : undefined}
+      />
 
       {/* Measurements Card */}
       <Card className="border-border">

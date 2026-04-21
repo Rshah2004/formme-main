@@ -63,46 +63,28 @@ const getStepFromStatus = (status: string): number => {
   }
 };
 
-// Order Progress Stepper
+// Order Progress Stepper — slim segmented bar
 const OrderProgressStepper = ({ currentStep }: { currentStep: number }) => {
-  const steps = [
-    { id: 1, label: "Design"      },
-    { id: 2, label: "Finalize"    },
-    { id: 3, label: "Contract"    },
-    { id: 4, label: "Sampling"    },
-    { id: 5, label: "QC"          },
-    { id: 6, label: "Delivery"    },
-  ];
-
+  const total = 6;
+  const steps = ["Design", "Finalize", "Contract", "Sampling", "QC", "Delivery"];
   return (
-    <div className="w-full overflow-x-auto">
-      <div className="flex items-center min-w-max gap-0">
-        {steps.map((step, index) => {
-          const isCompleted = step.id < currentStep;
-          const isCurrent   = step.id === currentStep;
-          return (
-            <React.Fragment key={step.id}>
-              <div className="flex flex-col items-center">
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold transition-all ${
-                  isCompleted ? "bg-accent text-accent-foreground"
-                  : isCurrent ? "border-2 border-primary text-primary bg-background"
-                  : "border border-border text-muted-foreground bg-background"
-                }`}>
-                  {isCompleted ? <Check className="w-3 h-3" /> : step.id}
-                </div>
-                <span className={`text-[9px] mt-1 whitespace-nowrap tracking-wide uppercase font-medium ${
-                  isCurrent ? "text-primary" : isCompleted ? "text-accent" : "text-muted-foreground/60"
-                }`}>
-                  {step.label}
-                </span>
-              </div>
-              {index < steps.length - 1 && (
-                <div className={`w-5 h-px mb-5 mx-0.5 ${step.id < currentStep ? "bg-accent/60" : "bg-border"}`} />
-              )}
-            </React.Fragment>
-          );
-        })}
+    <div className="w-full min-w-[180px]">
+      <div className="flex gap-0.5 mb-1.5">
+        {Array.from({ length: total }).map((_, i) => (
+          <div
+            key={i}
+            className={`flex-1 h-1 rounded-full transition-all ${
+              i + 1 < currentStep ? 'bg-accent' :
+              i + 1 === currentStep ? 'bg-primary' :
+              'bg-border'
+            }`}
+          />
+        ))}
       </div>
+      <p className="text-[10px] text-muted-foreground font-medium">
+        {steps[currentStep - 1] || steps[0]}
+        <span className="text-muted-foreground/50 ml-1">· step {currentStep} of {total}</span>
+      </p>
     </div>
   );
 };
@@ -124,48 +106,42 @@ const statusConfig: Record<string, { label: string; color: string }> = {
 const OrderCard = ({ order, onClick }: { order: Order; onClick: () => void }) => {
   const statusInfo = statusConfig[order.status] || statusConfig.draft;
   const orderId = `ORD-${order.id.slice(0, 8).toUpperCase()}`;
+  const currentStep = getStepFromStatus(order.status);
 
   return (
-    <Card 
-      className="p-4 sm:p-6 hover:shadow-md transition-shadow cursor-pointer border border-border bg-card" 
+    <div
       onClick={onClick}
+      className="group flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-8 px-6 py-5 border-b border-border hover:bg-muted/30 cursor-pointer transition-colors last:border-b-0"
     >
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-6">
-        <div className="flex-1 min-w-0">
-          <p className="text-xs text-muted-foreground font-mono mb-1">{orderId}</p>
-          <h3 className="font-serif font-semibold text-lg sm:text-xl text-foreground mb-2 truncate">
-            {order.designs?.name || "Untitled"}
-          </h3>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1.5">
-              <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                <span className="text-white text-[10px] font-medium">M</span>
-              </div>
-              <span>{order.manufacturers?.name || "No manufacturer yet"}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Calendar className="w-4 h-4" />
-              <span>{new Date(order.created_at).toLocaleDateString()}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full lg:w-auto">
-          <div className="w-full sm:w-auto">
-            <OrderProgressStepper currentStep={getStepFromStatus(order.status)} />
-          </div>
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
-            <Badge 
-              variant="outline" 
-              className={`${statusInfo.color} border-current bg-transparent px-3 py-1.5 text-sm font-medium`}
-            >
-              {statusInfo.label}
-            </Badge>
-            <ChevronRight className="w-5 h-5 text-muted-foreground hidden sm:block" />
-          </div>
-        </div>
+      {/* Left: identity */}
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60 mb-1 font-medium">{orderId}</p>
+        <h3
+          className="font-cormorant font-semibold text-foreground leading-tight truncate mb-1"
+          style={{ fontSize: 'clamp(20px, 2vw, 26px)' }}
+        >
+          {order.designs?.name || "Untitled Design"}
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          {order.manufacturers?.name || "Awaiting manufacturer"}
+          <span className="mx-2 text-border">·</span>
+          {new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+        </p>
       </div>
-    </Card>
+
+      {/* Right: progress + status */}
+      <div className="flex flex-col gap-2 sm:w-56 shrink-0">
+        <OrderProgressStepper currentStep={currentStep} />
+      </div>
+
+      {/* Status pill + arrow */}
+      <div className="flex items-center gap-3 shrink-0">
+        <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${statusInfo.color} border-current bg-transparent`}>
+          {statusInfo.label}
+        </span>
+        <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-foreground transition-colors" />
+      </div>
+    </div>
   );
 };
 
@@ -386,7 +362,7 @@ const Dashboard = () => {
             <Button onClick={() => navigate("/new-design")} className="bg-primary hover:bg-primary/90">Create your first design</Button>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="border border-border rounded-xl overflow-hidden bg-card">
             {filteredOrders.map((order) => (
               <OrderCard key={order.id} order={order} onClick={() => navigate({ pathname: '/workflow', search: `?designId=${order.design_id}` })} />
             ))}

@@ -105,7 +105,7 @@ const ShippingStage = ({ design }: ShippingStageProps) => {
 
   return (
     <div>
-      <StageHeader icon={Truck} title="Shipping & Logistics" description="Track your shipment and access shipping documents." />
+      <StageHeader stageLabel="Step 03 · Production" title="Shipping & Logistics" description="Track your shipment and access shipping documents." />
       
       {/* Waiting for Manufacturer Alert */}
       {!isShippingConfirmed && (

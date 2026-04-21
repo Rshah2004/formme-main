@@ -180,7 +180,7 @@ const ProductionTrackingStage = ({ design }: ProductionTrackingStageProps) => {
   return (
     <div>
       <StageHeader
-        icon={Factory}
+        stageLabel="Step 03 · Production"
         title="Production Tracking"
         description="Track your order's production progress in real-time. The manufacturer updates this as production moves through each phase."
       />

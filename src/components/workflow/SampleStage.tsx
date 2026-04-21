@@ -339,7 +339,7 @@ const SampleStage = ({ design }: SampleStageProps) => {
   if (orderData?.sample_approved === true) {
     return (
       <div>
-        <StageHeader icon={Package} title="Sample Review" description="Sample has been approved." />
+        <StageHeader stageLabel="Step 03 · Production" title="Sample Review" description="Sample has been approved." />
         <div className="max-w-3xl mx-auto mt-8">
           <Card className="border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-900">
             <CardContent className="p-8 text-center">
@@ -363,7 +363,7 @@ const SampleStage = ({ design }: SampleStageProps) => {
   return (
     <div>
       <StageHeader
-        icon={Package}
+        stageLabel="Step 03 · Production"
         title="View your design sample"
         description={
           isPhysicalSample

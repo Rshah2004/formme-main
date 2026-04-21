@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { SEO } from '@/components/SEO';
 import { Button } from '@/components/ui/button';
 import NavBar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -32,6 +33,11 @@ const About = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="About"
+        canonical="/about"
+        description="Learn how formme was built to help independent fashion brands find and work with reliable clothing manufacturers — from first sketch to final delivery."
+      />
       <NavBar />
       
       {/* Hero Section with Background Image */}

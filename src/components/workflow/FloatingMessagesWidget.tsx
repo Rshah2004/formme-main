@@ -185,88 +185,69 @@ export const FloatingMessagesWidget: React.FC<FloatingMessagesWidgetProps> = ({ 
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-[94vw] sm:max-w-6xl max-h-[90dvh] p-0 overflow-hidden w-[94vw] h-[90dvh] rounded-2xl sm:rounded-xl sm:w-auto sm:h-[75vh] sm:max-h-[720px] mx-auto">
-          <DialogClose className="absolute right-3 top-3 z-20 rounded-full border border-border bg-background/90 p-2 text-foreground hover:bg-background">
-            <X className="h-4 w-4" />
-          </DialogClose>
-          <div className="flex h-full min-h-0 flex-col sm:flex-row">
-            {/* Left Sidebar */}
-            <div
-              className={`w-full sm:w-[320px] border-b sm:border-b-0 sm:border-r border-border flex-col h-[42%] sm:h-full min-h-0 ${
-                showContacts ? "flex" : "hidden sm:flex"
-              }`}
-            >
-              <DialogHeader className="p-4 border-b border-border">
-                <DialogTitle>Manufacturer Contacts</DialogTitle>
-              </DialogHeader>
-              <ScrollArea className="flex-1 h-full">
-                <div className="p-3">
-                  <ManufacturerContactsList
-                    designId={designId}
-                    onSelectManufacturer={handleSelectManufacturer}
-                  />
-                </div>
-              </ScrollArea>
+        <DialogContent className="p-0 overflow-hidden rounded-2xl gap-0 w-[96vw] max-w-5xl h-[85dvh] max-h-[720px]">
+          <div className="flex h-full min-h-0">
+            {/* Left sidebar — contacts */}
+            <div className={`flex-col w-[260px] border-r border-border min-h-0 shrink-0 ${showContacts ? 'flex' : 'hidden sm:flex'}`}>
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                <DialogTitle className="text-sm font-semibold">Manufacturers</DialogTitle>
+              </div>
+              <div className="flex-1 overflow-y-auto p-3 min-h-0">
+                <ManufacturerContactsList
+                  designId={designId}
+                  onSelectManufacturer={handleSelectManufacturer}
+                />
+              </div>
             </div>
 
-            {/* Right Chat Pane */}
-            <div className="flex-1 flex flex-col h-full min-h-0 relative">
-              <div className="p-4 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-10">
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setShowContacts((v) => !v)}
-                      className="sm:hidden inline-flex items-center justify-center rounded-full border border-border text-foreground px-3 h-9 text-xs font-medium"
-                      aria-label="Toggle manufacturers"
-                    >
-                      {showContacts ? "Hide manufacturers" : "Show manufacturers"}
-                    </button>
-                    <div>
-                      <h2 className="text-lg font-semibold">
-                        {selectedManufacturer ? `Chat with ${selectedManufacturer?.name}` : 'Select a manufacturer'}
-                      </h2>
-                      <p className="text-sm text-muted-foreground">
-                        {selectedManufacturer?.location || 'Choose a contact to start chatting'}
-                      </p>
+            {/* Right — chat pane */}
+            <div className="flex flex-col flex-1 min-w-0 min-h-0">
+              {/* Chat header */}
+              <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-border shrink-0">
+                <div className="flex items-center gap-3 min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => setShowContacts(v => !v)}
+                    className="sm:hidden shrink-0 w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground"
+                  >
+                    <span className="text-xs">☰</span>
+                  </button>
+                  {selectedManufacturer ? (
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <span className="text-xs font-semibold text-primary">{selectedManufacturer.name?.charAt(0)}</span>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{selectedManufacturer.name}</p>
+                        {selectedManufacturer.location && (
+                          <p className="text-[11px] text-muted-foreground truncate">{selectedManufacturer.location}</p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  {selectedManufacturer && orderId && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      This is the manufacturer your order is finalized with.
-                    </p>
-                  )}
-                  {orderId && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleViewDesignDetails}
-                      disabled={detailsLoading}
-                      data-help-target="design-details-button"
-                      className="w-full sm:w-auto"
-                    >
-                      {detailsLoading ? 'Loading...' : 'View Design Details Submitted'}
-                    </Button>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Select a manufacturer</p>
                   )}
                 </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {orderId && (
+                    <Button variant="ghost" size="sm" onClick={handleViewDesignDetails} disabled={detailsLoading}
+                      data-help-target="design-details-button" className="text-xs h-8 px-3">
+                      {detailsLoading ? 'Loading…' : 'Design details'}
+                    </Button>
+                  )}
+                  <DialogClose className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                    <X className="w-3.5 h-3.5" />
+                  </DialogClose>
+                </div>
               </div>
-              <div className="flex-1 min-h-0 bg-transparent">
+
+              {/* Messages */}
+              <div className="flex-1 min-h-0 overflow-hidden">
                 {selectedManufacturer ? (
-                  orderId ? (
-                    <FactoryMessaging
-                      designId={designId}
-                      orderId={orderId}
-                      onMessagesRead={fetchUnreadCount}
-                    />
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <p>No active order with this manufacturer yet.</p>
-                      <p className="text-sm mt-1">Send a request to start a conversation.</p>
-                    </div>
-                  )
+                  <FactoryMessaging designId={designId} orderId={orderId || undefined} onMessagesRead={fetchUnreadCount} />
                 ) : (
-                  <div className="flex items-center justify-center h-full text-muted-foreground">
-                    <p>Select a manufacturer from the left to view messages.</p>
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-sm text-muted-foreground">Select a manufacturer from the left to view messages.</p>
                   </div>
                 )}
               </div>

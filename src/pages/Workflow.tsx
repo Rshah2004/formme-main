@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
 import { Plus, Clock, AlertCircle, CheckCircle, Package, Truck, FileCheck, Factory, Send, CreditCard, ArrowLeft, Lock } from 'lucide-react';
 import { useDesigns } from '@/hooks/useDesigns';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -39,26 +38,27 @@ import { FloatingMessagesWidget } from '@/components/workflow/FloatingMessagesWi
 import { useRef} from "react";
 
 const ProgressBar = () => {
-  const { getProgress, completedStages } = useWorkflow();
+  const { getProgress } = useWorkflow();
   const progress = getProgress();
-  
+  const phases = [
+    { label: 'Tech Pack', threshold: 33 },
+    { label: 'Manufacturers', threshold: 66 },
+    { label: 'Production', threshold: 100 },
+  ];
   return (
-    <Card className="border-border" data-help-target="overall-progress">
-      <div className="p-4">
-        <div className="flex items-center gap-4">
-          <div className="flex-1">
-            <div className="flex justify-between text-xs mb-1.5">
-              <span className="text-muted-foreground">Overall Progress</span>
-              <span className="font-medium text-foreground">{progress}%</span>
-            </div>
-            <Progress value={progress} className="h-1.5" />
+    <div className="flex items-center gap-3" data-help-target="overall-progress">
+      {phases.map((phase, i) => (
+        <React.Fragment key={phase.label}>
+          <div className="flex items-center gap-2 min-w-0">
+            <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${progress >= phase.threshold ? 'bg-accent' : progress >= (phases[i-1]?.threshold ?? 0) ? 'bg-primary' : 'bg-border'}`} />
+            <span className={`text-xs whitespace-nowrap ${progress >= (phases[i-1]?.threshold ?? 0) && progress < phase.threshold ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+              {phase.label}
+            </span>
           </div>
-          <div className="text-xs text-muted-foreground">
-            {progress === 0 ? 'Get started with Tech Pack' : `${completedStages.length} stages completed`}
-          </div>
-        </div>
-      </div>
-    </Card>
+          {i < phases.length - 1 && <div className="flex-1 h-px bg-border min-w-4" />}
+        </React.Fragment>
+      ))}
+    </div>
   );
 };
 
@@ -461,38 +461,40 @@ const initializedRef = useRef(false);
       <WorkflowProvider key={designId} initialStage={initialStage}>
         <div className="min-h-screen bg-background">
           <Navbar />
-          
-          <main className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 mt-16 sm:mt-20 max-w-7xl">
+
+          <main className="container mx-auto px-4 sm:px-6 mt-16 sm:mt-20 max-w-5xl">
             <WorkflowHelpOverlay />
             <MessagingHelpOverlay />
-            {/* Back Button */}
-            <Button 
-              variant="ghost" 
-              className="mb-3 sm:mb-4 text-primary hover:text-primary/80 hover:bg-primary/5 -ml-2 sm:ml-0" 
-              onClick={() => navigate('/dashboard')}
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">Back to Dashboard</span>
-              <span className="sm:hidden">Back</span>
-            </Button>
 
-            {/* Compact Header */}
-            <div className="mb-4 sm:mb-6">
-              <div className="flex items-start sm:items-center justify-between mb-3 sm:mb-4 gap-2">
-                <div className="min-w-0 flex-1">
-                  <h1 className="text-lg sm:text-2xl font-serif font-bold text-primary truncate">{selectedDesign.name}</h1>
-                  <Badge variant="outline" className={cn("mt-1", getStatusColor(selectedDesign.status))}>
-                    {selectedDesign.status?.replace(/_/g, ' ') || 'draft'}
-                  </Badge>
-                </div>
+            {/* Order header bar */}
+            <div className="flex items-center justify-between py-4 border-b border-border mb-8">
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                Dashboard
+              </button>
+
+              <div className="absolute left-1/2 -translate-x-1/2 text-center pointer-events-none hidden sm:block">
+                <p
+                  className="font-cormorant font-semibold text-foreground leading-none"
+                  style={{ fontSize: 'clamp(16px, 2vw, 22px)' }}
+                >
+                  {selectedDesign.name}
+                </p>
               </div>
 
               <ProgressBar />
             </div>
 
+            {/* Mobile design name */}
+            <p className="font-cormorant font-semibold text-foreground text-xl mb-6 sm:hidden">
+              {selectedDesign.name}
+            </p>
+
             <WorkspaceContent design={selectedDesign} />
-            
-            {/* Floating Messages Widget */}
+
             <FloatingMessagesWidget designId={designId} />
           </main>
         </div>

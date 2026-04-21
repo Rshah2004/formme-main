@@ -193,7 +193,7 @@ const PaymentStage = ({ design }: PaymentStageProps) => {
   return (
     <div>
       <StageHeader
-        icon={CreditCard}
+        stageLabel="Step 03 · Production"
         title="Make payment"
         description="Send an Interac transfer and upload proof to begin sampling."
         contextInfo={[

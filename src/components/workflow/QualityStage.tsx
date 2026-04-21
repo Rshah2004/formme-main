@@ -132,10 +132,10 @@ const QualityStage = ({ design }: QualityStageProps) => {
 
   return (
     <div>
-      <StageHeader 
-        icon={CheckCircle} 
-        title="Quality Check" 
-        description="Review factory quality control assessment and approve or reject based on your standards." 
+      <StageHeader
+        stageLabel="Step 03 · Production"
+        title="Quality Check"
+        description="Review factory quality control assessment and approve or reject based on your standards."
       />
       <div className="space-y-6">
         {!order?.qc_submitted_at && (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, FileText, Factory, Package } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { useWorkflow } from '@/context/WorkflowContext';
 import { cn } from '@/lib/utils';
 import { useSearchParams } from 'react-router-dom';
@@ -7,21 +7,21 @@ import { useContractStatus } from '@/hooks/useContractStatus';
 import { toast } from 'sonner';
 
 const topLevelStages = [
-  { id: 'tech-pack',     label: 'Tech Pack',     number: '01', icon: FileText },
-  { id: 'manufacturers', label: 'Manufacturers',  number: '02', icon: Factory  },
-  { id: 'production',    label: 'Production',     number: '03', icon: Package  },
+  { id: 'tech-pack',     label: 'Tech Pack',      number: '01' },
+  { id: 'manufacturers', label: 'Manufacturers',   number: '02' },
+  { id: 'production',    label: 'Production',      number: '03' },
 ];
 
 export const techPackSubStages = [
-  { id: 'upload-tech-pack',      label: 'Upload' },
-  { id: 'design',                label: 'Design Details' },
-  { id: 'specifications',        label: 'Specifications' },
-  { id: 'fabric-color',          label: 'Fabric & Color' },
+  { id: 'upload-tech-pack',       label: 'Upload' },
+  { id: 'design',                 label: 'Design Details' },
+  { id: 'specifications',         label: 'Specifications' },
+  { id: 'fabric-color',           label: 'Fabric & Color' },
   { id: 'final-tech-pack-review', label: 'Review' },
 ];
 
 export const manufacturersSubStages = [
-  { id: 'factory-match',       label: 'Find Manufacturers' },
+  { id: 'factory-match',         label: 'Find Manufacturers' },
   { id: 'manufacture-selection', label: 'Finalize Manufacturer' },
 ];
 
@@ -34,15 +34,9 @@ export const productionSubStages = [
 ];
 
 export const getTopLevelStage = (currentStage: string): string => {
-  if (['upload-tech-pack','design','specifications','fabric-color','tech-pack','tech-pack-review','tech-pack-overview','final-tech-pack-review'].includes(currentStage)) {
-    return 'tech-pack';
-  }
-  if (['factory-match','factory-selection','send-tech-pack','waiting','manufacture-selection'].includes(currentStage)) {
-    return 'manufacturers';
-  }
-  if (['payment','production','waiting-sample','sample','production-tracking','quality','shipping'].includes(currentStage)) {
-    return 'production';
-  }
+  if (['upload-tech-pack','design','specifications','fabric-color','tech-pack','tech-pack-review','tech-pack-overview','final-tech-pack-review'].includes(currentStage)) return 'tech-pack';
+  if (['factory-match','factory-selection','send-tech-pack','waiting','manufacture-selection'].includes(currentStage)) return 'manufacturers';
+  if (['payment','production','waiting-sample','sample','production-tracking','quality','shipping'].includes(currentStage)) return 'production';
   return 'tech-pack';
 };
 
@@ -51,14 +45,12 @@ export const HorizontalProgressTabs = () => {
   const [searchParams] = useSearchParams();
   const designId = searchParams.get('designId');
   const { isContractFinalized } = useContractStatus(designId);
-
   const activeTopLevel = getTopLevelStage(currentStage);
 
   const getStageStatus = (stageId: string) => {
     const order = topLevelStages.map(s => s.id);
     const currentIdx = order.indexOf(activeTopLevel);
-    const stageIdx  = order.indexOf(stageId);
-
+    const stageIdx   = order.indexOf(stageId);
     if (isContractFinalized && (stageId === 'tech-pack' || stageId === 'manufacturers')) return 'locked';
     if (stageIdx < currentIdx) return 'completed';
     if (stageId === activeTopLevel) return 'current';
@@ -78,62 +70,69 @@ export const HorizontalProgressTabs = () => {
   };
 
   return (
-    <div className="w-full space-y-3">
-      {/* Phase stepper */}
-      <div className="flex items-center bg-card border border-border rounded-xl px-3 py-2.5 shadow-sm">
+    <div className="w-full space-y-0">
+      {/* Phase rail */}
+      <div className="flex items-center gap-0 border-b border-border mb-0 pb-0">
         {topLevelStages.map((stage, index) => {
-          const status = getStageStatus(stage.id);
+          const status      = getStageStatus(stage.id);
           const isCompleted = status === 'completed';
           const isCurrent   = status === 'current';
           const isLocked    = status === 'locked';
 
           return (
-            <div key={stage.id} className="flex flex-1 items-center">
+            <React.Fragment key={stage.id}>
               <button
                 onClick={() => handleStageClick(stage.id, status)}
                 disabled={isLocked}
                 className={cn(
-                  'flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all flex-1 justify-center min-w-0',
-                  isCurrent  && 'bg-primary text-primary-foreground shadow-sm',
-                  isCompleted && 'text-accent hover:bg-accent/10',
-                  isLocked   && 'text-muted-foreground/40 cursor-not-allowed',
-                  !isCurrent && !isCompleted && !isLocked && 'hover:bg-muted/50 text-muted-foreground',
+                  'relative flex items-center gap-2.5 px-5 py-3.5 text-sm transition-all group',
+                  isCurrent  && 'text-foreground',
+                  isCompleted && 'text-muted-foreground hover:text-foreground',
+                  isLocked   && 'text-muted-foreground/35 cursor-not-allowed',
                 )}
               >
-                <div className={cn(
-                  'w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-semibold',
-                  isCurrent  && 'bg-white/15 text-primary-foreground',
-                  isCompleted && 'bg-accent text-accent-foreground',
-                  isLocked   && 'bg-muted text-muted-foreground/50',
-                  !isCurrent && !isCompleted && !isLocked && 'bg-muted',
+                {/* Active underline */}
+                {isCurrent && (
+                  <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary rounded-full" />
+                )}
+
+                {/* Number or check */}
+                <span className={cn(
+                  'w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold shrink-0 transition-all',
+                  isCurrent   && 'bg-primary text-primary-foreground',
+                  isCompleted && 'bg-accent/20 text-accent',
+                  isLocked    && 'bg-muted text-muted-foreground/40',
                 )}>
-                  {isCompleted ? <Check className="w-3.5 h-3.5" /> : <span>{stage.number}</span>}
-                </div>
-                <span className="font-medium text-sm hidden sm:inline truncate">
+                  {isCompleted ? <Check className="w-3 h-3" /> : stage.number}
+                </span>
+
+                <span className={cn(
+                  'font-medium hidden sm:inline',
+                  isCurrent && 'text-foreground',
+                )}>
                   {stage.label}
                 </span>
               </button>
 
               {index < topLevelStages.length - 1 && (
-                <div className={cn(
-                  'w-6 h-px mx-1 shrink-0',
-                  index < topLevelStages.findIndex(s => s.id === activeTopLevel) ? 'bg-accent/50' : 'bg-border',
-                )} />
+                <span className="text-border text-xs px-1 select-none">/</span>
               )}
-            </div>
+            </React.Fragment>
           );
         })}
       </div>
 
-      {/* Sub-stage pills */}
-      {activeTopLevel === 'tech-pack'     && <TechPackSubTabs />}
-      {activeTopLevel === 'manufacturers' && <ManufacturersSubTabs />}
-      {activeTopLevel === 'production'    && <ProductionSubTabs />}
+      {/* Sub-stage row */}
+      <div className="pt-3">
+        {activeTopLevel === 'tech-pack'     && <TechPackSubTabs />}
+        {activeTopLevel === 'manufacturers' && <ManufacturersSubTabs />}
+        {activeTopLevel === 'production'    && <ProductionSubTabs />}
+      </div>
     </div>
   );
 };
 
-/* ── Shared sub-tab bar ── */
+/* ── Sub-tab bar ── */
 interface SubTabBarProps {
   stages: { id: string; label: string }[];
   currentIndex: number;
@@ -144,7 +143,7 @@ interface SubTabBarProps {
 }
 
 const SubTabBar = ({ stages, currentIndex, onSelect, completedStages, useIndexCompletion, lockFuture }: SubTabBarProps) => (
-  <div className="flex items-center gap-1 bg-muted/30 border border-border/50 rounded-lg p-1.5 overflow-x-auto">
+  <div className="flex items-center gap-0 overflow-x-auto">
     {stages.map((stage, index) => {
       const isCurrent   = index === currentIndex;
       const isCompleted = useIndexCompletion ? index < currentIndex : completedStages.includes(stage.id);
@@ -156,14 +155,14 @@ const SubTabBar = ({ stages, currentIndex, onSelect, completedStages, useIndexCo
           onClick={() => !isLocked && onSelect(stage.id)}
           disabled={isLocked}
           className={cn(
-            'flex items-center gap-1.5 px-3.5 py-2 rounded-md text-xs font-medium transition-all whitespace-nowrap',
-            isCurrent  && 'bg-card text-primary shadow-sm border border-border/50',
-            isCompleted && !isCurrent && 'text-accent hover:bg-card/60',
-            isLocked   && 'text-muted-foreground/40 cursor-not-allowed',
-            !isCurrent && !isCompleted && !isLocked && 'text-muted-foreground hover:bg-card/60',
+            'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all whitespace-nowrap mr-1.5',
+            isCurrent   && 'bg-primary/10 text-primary border border-primary/20',
+            isCompleted && !isCurrent && 'text-accent hover:text-accent/80',
+            isLocked    && 'text-muted-foreground/30 cursor-not-allowed',
+            !isCurrent && !isCompleted && !isLocked && 'text-muted-foreground hover:text-foreground',
           )}
         >
-          {isCompleted && !isCurrent && <Check className="w-3 h-3 text-accent shrink-0" />}
+          {isCompleted && !isCurrent && <Check className="w-2.5 h-2.5 shrink-0" />}
           {stage.label}
         </button>
       );
@@ -171,7 +170,7 @@ const SubTabBar = ({ stages, currentIndex, onSelect, completedStages, useIndexCo
   </div>
 );
 
-/* ── Phase-specific sub-tab components ── */
+/* ── Phase sub-tab components ── */
 const TechPackSubTabs = () => {
   const { currentStage, setCurrentStage, completedStages } = useWorkflow();
   const getCurrentSubIndex = () => {

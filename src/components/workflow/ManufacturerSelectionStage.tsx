@@ -470,7 +470,7 @@ export const ManufacturerSelectionStage = ({ design }: ManufacturerSelectionStag
   return (
     <div>
       <StageHeader
-        icon={Clock}
+        stageLabel="Step 02 · Manufacturers"
         title="Manufacturer Review Status"
         description="Track manufacturer responses and feasibility reviews. Production agreements can only be finalized after a manufacturer confirms feasibility."
       />

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { SEO } from "@/components/SEO";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -340,6 +341,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
+      <SEO title="Join the waitlist" canonical="/auth" noindex={true} />
       <Navbar />
       <div className="flex-1 flex items-center justify-center p-4 pt-24">
         <Card className="w-full max-w-2xl p-8 bg-white/70 backdrop-blur-md border border-border/40 shadow-lg rounded-2xl">

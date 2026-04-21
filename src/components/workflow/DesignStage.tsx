@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useIsAdmin, useContractStatus } from '@/hooks/useContractStatus';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { StageHeader } from './StageHeader';
 
 interface DesignStageProps {
   design: any;
@@ -370,13 +371,11 @@ useEffect(() => {
         </Alert>
       )}
 
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">Upload Your Design</h2>
-        <p className="text-muted-foreground mt-1">
-          Start by uploading your garment design. We'll help you turn it into a production-ready tech pack.
-        </p>
-      </div>
+      <StageHeader
+        stageLabel="Step 01 · Tech Pack"
+        title="Upload your design."
+        description="Start by uploading your garment design. We'll help you turn it into a production-ready tech pack."
+      />
 
       {/* Incomplete Status Banner */}
       {!isComplete && !isContractFinalized && (

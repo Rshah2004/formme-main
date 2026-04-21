@@ -14,6 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { StageHeader } from './StageHeader';
 
 interface FabricColorStageProps {
   design: any;
@@ -674,20 +675,14 @@ const onPrintImageRemove = (printId: string) => {
         </Alert>
       )}
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Fabric & Color</h2>
-          <p className="text-muted-foreground mt-1">
-            Specify the materials and finishes for your garment
-          </p>
-        </div>
-        {!isContractFinalized && hasUnsavedChanges && (
-          <Button onClick={handleSave}>
-            Save Changes
-          </Button>
-        )}
-      </div>
+      <StageHeader
+        stageLabel="Step 01 · Tech Pack"
+        title="Fabric & Color."
+        description="Specify the materials and finishes for your garment."
+        action={!isContractFinalized && hasUnsavedChanges ? (
+          <Button onClick={handleSave}>Save Changes</Button>
+        ) : undefined}
+      />
 
       {/* Fiber Percentage Warning */}
       {!isFiberPercentValid && fabrics.length > 0 && fabrics[0].type && (

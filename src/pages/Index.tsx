@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { SEO } from '@/components/SEO';
 import NavBar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import gsap from 'gsap';
@@ -567,6 +568,10 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F0E8] text-[#0D0D0D] overflow-x-hidden">
+      <SEO
+        canonical="/"
+        description="formme helps independent fashion brands find reliable clothing manufacturers. Upload a tech pack, get matched with vetted factories, and manage your entire production pipeline in one place."
+      />
       <NavBar />
 
       {/* ════════════════════════════════════════════════

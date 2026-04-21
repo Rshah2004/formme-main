@@ -1,9 +1,9 @@
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { FileText, Image, Ruler, Palette, CheckCircle, ArrowRight } from 'lucide-react';
+import { Image, Ruler, Palette, CheckCircle, ArrowRight, ChevronRight } from 'lucide-react';
 import { useWorkflow } from '@/context/WorkflowContext';
+import { StageHeader } from './StageHeader';
+import { cn } from '@/lib/utils';
 
 interface TechPackOverviewStageProps {
   design: any;
@@ -39,115 +39,69 @@ const TechPackOverviewStage = ({ design }: TechPackOverviewStageProps) => {
   const completedCount = techPackSections.filter(s => s.isComplete).length;
   const isReady = completedCount === techPackSections.length;
 
-  const handleSectionClick = (sectionId: string) => {
-    // Navigate to the appropriate stage
-    setCurrentStage(sectionId);
-  };
-
   const handleContinue = async () => {
-    // guard
-    if (!isReady) {
-      return;
-    }
-    // purely client-side
+    if (!isReady) return;
     markStageComplete('tech-pack');
-
-    // navigate forward
     setCurrentStage('factory-match');
-    console.log('this should run', currentStage);
-
   };
-  console.log('what is the current stage', currentStage);
-
 
   return (
-    <div className="space-y-6">
-      <Card className="border-border">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-primary" />
-                Tech Pack Overview
-              </CardTitle>
-              <CardDescription>
-                Review your complete tech pack before finding manufacturers
-              </CardDescription>
-            </div>
-            <Badge variant={isReady ? "default" : "secondary"}>
-              {completedCount}/{techPackSections.length} Complete
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {techPackSections.map((section) => {
-            const Icon = section.icon;
-            
-            return (
-              <button
-                key={section.id}
-                onClick={() => handleSectionClick(section.id)}
-                className="w-full flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors text-left"
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    section.isComplete ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
-                  }`}>
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-foreground">{section.title}</h4>
-                    <p className="text-sm text-muted-foreground">{section.description}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {section.isComplete ? (
-                    <CheckCircle className="w-5 h-5 text-primary" />
-                  ) : (
-                    <Button variant="outline" size="sm">
-                      Complete
-                    </Button>
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </CardContent>
-      </Card>
+    <div className="space-y-8">
+      <StageHeader
+        stageLabel="Step 01 · Tech Pack"
+        title="Review your tech pack."
+        description="Check that each section is complete before we find you the right manufacturers."
+        contextInfo={[
+          { label: 'Design', value: design?.name || 'Untitled' },
+          { label: 'Progress', value: `${completedCount} of ${techPackSections.length} complete` },
+        ]}
+      />
 
-      {/* Tech Pack Preview */}
-      <Card className="border-border">
-        <CardHeader>
-          <CardTitle className="text-lg">Tech Pack Summary</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Product Name</p>
-              <p className="font-medium">{design?.name || 'Not set'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Category</p>
-              <p className="font-medium">{design?.category || 'Not set'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Status</p>
-              <Badge variant="outline">{design?.status?.replace(/_/g, ' ') || 'Draft'}</Badge>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Created</p>
-              <p className="font-medium">
-                {design?.created_at ? new Date(design.created_at).toLocaleDateString() : 'N/A'}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Sections list */}
+      <div className="border border-border rounded-xl overflow-hidden">
+        {techPackSections.map((section, idx) => {
+          const Icon = section.icon;
+          return (
+            <button
+              key={section.id}
+              onClick={() => setCurrentStage(section.id)}
+              className={cn(
+                'w-full flex items-center gap-4 px-6 py-4 text-left transition-colors hover:bg-muted/40',
+                idx < techPackSections.length - 1 && 'border-b border-border',
+              )}
+            >
+              <div className={cn(
+                'w-9 h-9 rounded-full flex items-center justify-center shrink-0',
+                section.isComplete ? 'bg-accent/15 text-accent' : 'bg-muted text-muted-foreground',
+              )}>
+                {section.isComplete ? <CheckCircle className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={cn('text-sm font-medium', section.isComplete ? 'text-foreground' : 'text-muted-foreground')}>
+                  {section.title}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">{section.description}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {section.isComplete ? (
+                  <span className="text-[10px] uppercase tracking-widest text-accent font-medium">Done</span>
+                ) : (
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium">Incomplete</span>
+                )}
+                <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
+              </div>
+            </button>
+          );
+        })}
+      </div>
 
-      {/* Continue Button */}
-      <div className="flex justify-end">
-        <Button 
-          size="lg" 
+      <div className="flex items-center justify-between pt-2">
+        <p className="text-sm text-muted-foreground">
+          {isReady
+            ? 'All sections complete — ready to find manufacturers.'
+            : `${techPackSections.length - completedCount} section${techPackSections.length - completedCount !== 1 ? 's' : ''} still need attention.`}
+        </p>
+        <Button
           onClick={handleContinue}
           disabled={!isReady}
           className="gap-2"
