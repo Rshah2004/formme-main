@@ -116,11 +116,10 @@ const HeroSection: React.FC = () => {
     <section className="relative min-h-[100svh] overflow-hidden pt-16 sm:pt-40 md:pt-52 px-5 sm:px-10 md:pl-24 md:pr-10 flex items-center sm:block">
 
       <div className="relative z-10 max-w-3xl text-center sm:text-left mx-auto sm:mx-0">
-        <p className="uppercase tracking-[0.25em] text-xs sm:text-sm text-[#2E3F36] mb-4 relative -top-10 sm:top-0">
+        <p className="uppercase tracking-[0.25em] text-xs sm:text-sm text-[#2E3F36] mb-4">
           A digital workspace for apparel production and manufacturing
         </p>
-        <h1
-          className="text-[72px] sm:text-[72px] md:text-[96px] lg:text-[128px] font-instrument font-bold leading-none text-transparent relative -top-6 sm:top-0
+        <h1 className="text-[72px] sm:text-[72px] md:text-[96px] lg:text-[128px] font-instrument font-bold leading-none text-transparent relative -top-6 sm:top-0
           bg-gradient-to-r from-[#09100B] via-[#4A6A5C] to-[#09100B] 
           bg-[length:300%_100%] bg-clip-text animate-shimmer"
           style={{ textShadow: "0px 4px 4px rgba(0, 0, 0, 0.4)" }}
