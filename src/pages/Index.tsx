@@ -521,7 +521,7 @@ const Index = () => {
       /* ── Stats: count up ── */
       const statDefs = [
         { sel: '.stat-count-0', from: 0,   to: 8,   suffix: '',  dur: 2.0 },
-        { sel: '.stat-count-1', from: 0,   to: 3,   suffix: '+', dur: 2.2 },
+        { sel: '.stat-count-1', from: 0,   to: 4,   suffix: '+', dur: 2.2 },
         { sel: '.stat-count-2', from: 12,  to: 0,   suffix: '',  dur: 2.8 },
         { sel: '.stat-count-3', from: 0,   to: 500, suffix: '+', dur: 2.5 },
       ];
