@@ -395,25 +395,13 @@ const Index = () => {
 
       /* ── Mobile — NO pins, NO scrub. Hero auto-plays; process+door fire once on enter. ── */
       mm.add('(max-width: 767px)', () => {
-        // Hero: GSAP pin with pinType fixed (GPU layer, smooth on iOS)
-        gsap.set('.hero-line2', { opacity: 0, y: '5vh' });
+        // Hero: pure auto-play, no scroll dependency — avoids iOS fixed-position bugs entirely
+        gsap.set('.hero-line2', { opacity: 0 });
 
-        const mHeroTl = gsap.timeline({
-          scrollTrigger: {
-            trigger: '.hero-pin',
-            start: 'top top',
-            end: '+=180vh',
-            pin: true,
-            pinType: 'fixed',
-            scrub: true,
-            anticipatePin: 1,
-          },
-        });
-        mHeroTl
-          .to('.hero-you',    { x: '-110vw', ease: 'none', duration: 0.45 }, 0)
-          .to('.hero-design', { x:  '110vw', ease: 'none', duration: 0.45 }, 0)
-          .to('.hero-line2',  { opacity: 1, y: 0,     ease: 'none', duration: 0.20 }, 0.42)
-          .to('.hero-line2',  { opacity: 0, y: '-8vh', ease: 'none', duration: 0.15 }, 0.85);
+        gsap.timeline({ delay: 0.6 })
+          .to('.hero-you',    { x: '-110vw', ease: 'power2.inOut', duration: 0.55 }, 0)
+          .to('.hero-design', { x:  '110vw', ease: 'power2.inOut', duration: 0.55 }, 0)
+          .to('.hero-line2',  { opacity: 1,  ease: 'power2.out',   duration: 0.45 }, 0.45);
 
         // Process: set hidden, then play once when section enters viewport
         gsap.set(['.process-needle', '.process-thread',
@@ -577,20 +565,19 @@ const Index = () => {
       {/* ════════════════════════════════════════════════
           HERO — Desktop pinned scroll transform
       ════════════════════════════════════════════════ */}
-      <section className="hero-pin relative h-screen overflow-hidden" aria-label="Hero">
+      <section className="hero-pin relative h-screen overflow-hidden" aria-label="Hero" style={{ touchAction: 'pan-y' }}>
         {!prefersReduced ? (
           <>
             <video
-              className="absolute inset-0 w-full h-full object-cover blur-[28px] scale-110"
+              className="absolute inset-0 w-full h-full object-cover blur-[28px] scale-110 hidden md:block"
               autoPlay muted loop playsInline preload="metadata"
             >
               <source src="/backgroundVideo.mp4" type="video/mp4" />
             </video>
-            <div className="absolute inset-0 bg-[#F5F0E8]/60" />
+            <div className="absolute inset-0 bg-[#F5F0E8]/60 hidden md:block" />
           </>
-        ) : (
-          <div className="absolute inset-0 bg-[#F5F0E8]" />
-        )}
+        ) : null}
+        <div className="absolute inset-0 bg-[#F5F0E8] md:hidden" />
 
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
           <span
