@@ -75,22 +75,22 @@ const factorySteps = [
   {
     label: 'Pattern cutting',
     desc: 'Cut to your exact tech pack specs',
-    style: { top: '18%', left: '7%' } as React.CSSProperties,
+    style: { top: '18%', left: '5%' } as React.CSSProperties,
   },
   {
     label: 'Industrial stitching',
     desc: 'Sewn on factory-grade machines',
-    style: { top: '34%', right: '7%' } as React.CSSProperties,
+    style: { top: '34%', right: '5%' } as React.CSSProperties,
   },
   {
     label: 'Quality control',
     desc: 'Every piece checked before sign-off',
-    style: { bottom: '32%', left: '7%' } as React.CSSProperties,
+    style: { bottom: '32%', left: '5%' } as React.CSSProperties,
   },
   {
     label: 'Final pressing & pack',
     desc: 'Finished and ready for delivery',
-    style: { bottom: '18%', right: '7%' } as React.CSSProperties,
+    style: { bottom: '18%', right: '5%' } as React.CSSProperties,
   },
 ];
 
@@ -168,11 +168,11 @@ const DoorSection = () => (
       >
         <div className="flex items-center gap-2.5 mb-2">
           <div className="w-1.5 h-1.5 rounded-full bg-[#C97B5A] flex-shrink-0" />
-          <span className="text-[13px] uppercase tracking-[0.3em] text-[#F5F0E8] font-inter font-medium">
+          <span className="text-[11px] md:text-[13px] uppercase tracking-[0.2em] md:tracking-[0.3em] text-[#F5F0E8] font-inter font-medium">
             {step.label}
           </span>
         </div>
-        <p className="text-[14px] font-dm-sans font-light text-[#F5F0E8]/60 leading-snug pl-[22px]">
+        <p className="hidden md:block text-[14px] font-dm-sans font-light text-[#F5F0E8]/60 leading-snug pl-[22px]">
           {step.desc}
         </p>
       </div>
@@ -193,7 +193,7 @@ const DoorSection = () => (
 /* ─── Process section ─── */
 const ProcessSection = () => (
   <section
-    className="process-pin relative h-screen overflow-hidden flex items-center justify-center"
+    className="process-pin relative md:h-screen md:overflow-hidden flex items-center justify-center py-24 md:py-0 min-h-[600px]"
     aria-label="How it works"
   >
     {/* Background — GSAP transitions this from #F5F0E8 to #1A1814 */}
@@ -523,7 +523,7 @@ const Index = () => {
         { sel: '.stat-count-0', from: 0,   to: 8,   suffix: '',  dur: 2.0 },
         { sel: '.stat-count-1', from: 0,   to: 3,   suffix: '+', dur: 2.2 },
         { sel: '.stat-count-2', from: 12,  to: 0,   suffix: '',  dur: 2.8 },
-        { sel: '.stat-count-3', from: 0,   to: 150, suffix: '+', dur: 2.5 },
+        { sel: '.stat-count-3', from: 0,   to: 500, suffix: '+', dur: 2.5 },
       ];
       statDefs.forEach(({ sel, from, to, suffix, dur }) => {
         const obj = { val: from };
@@ -637,8 +637,8 @@ const Index = () => {
             Our manufacturers have produced for
           </p>
           <span className="hidden sm:block text-[#D0C8BC] text-lg">·</span>
-          <p className="font-cormorant font-light text-[#0D0D0D]" style={{ fontSize: 'clamp(18px, 2.2vw, 28px)', letterSpacing: '0.08em' }}>
-            Fanatics&nbsp;&nbsp;·&nbsp;&nbsp;Champions&nbsp;&nbsp;·&nbsp;&nbsp;US Polo Assn&nbsp;&nbsp;·&nbsp;&nbsp;Old Navy
+          <p className="font-cormorant font-light text-[#0D0D0D]" style={{ fontSize: 'clamp(16px, 2.2vw, 28px)', letterSpacing: '0.08em' }}>
+            Walmart&nbsp;&nbsp;·&nbsp;&nbsp;Old Navy&nbsp;&nbsp;·&nbsp;&nbsp;Costco&nbsp;&nbsp;·&nbsp;&nbsp;Fanatics&nbsp;&nbsp;·&nbsp;&nbsp;Champions&nbsp;&nbsp;·&nbsp;&nbsp;US Polo Assn
           </p>
         </div>
       </section>
