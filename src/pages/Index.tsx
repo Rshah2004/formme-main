@@ -509,7 +509,7 @@ const Index = () => {
       /* ── Stats: count up ── */
       const statDefs = [
         { sel: '.stat-count-0', from: 0,   to: 8,   suffix: '',  dur: 2.0 },
-        { sel: '.stat-count-1', from: 0,   to: 4,   suffix: '+', dur: 2.2 },
+        { sel: '.stat-count-1', from: 0,   to: 4,   suffix: '',  dur: 2.2 },
         { sel: '.stat-count-2', from: 12,  to: 0,   suffix: '',  dur: 2.8 },
         { sel: '.stat-count-3', from: 0,   to: 500, suffix: '+', dur: 2.5 },
       ];
@@ -628,6 +628,19 @@ const Index = () => {
             Walmart&nbsp;&nbsp;·&nbsp;&nbsp;Old Navy&nbsp;&nbsp;·&nbsp;&nbsp;Costco&nbsp;&nbsp;·&nbsp;&nbsp;Fanatics&nbsp;&nbsp;·&nbsp;&nbsp;Champions&nbsp;&nbsp;·&nbsp;&nbsp;US Polo Assn
           </p>
         </div>
+        <div className="mx-auto mt-6 flex w-full max-w-[1400px] flex-col sm:flex-row items-center justify-center gap-y-2 gap-x-3 text-center">
+          <p className="text-[10px] uppercase tracking-[0.38em] text-[#AEAEAA]/70 font-inter">
+            Factories now onboarding onto formme's ERP — starting with{' '}
+            <a
+              href="https://www.supremegroupbd.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#0D0D0D] underline decoration-[#D0C8BC] underline-offset-4 hover:text-[#C97B5A] transition-colors"
+            >
+              Supreme Stitch, Bangladesh
+            </a>
+          </p>
+        </div>
       </section>
 
       {/* ════════════════════════════════════════════════
@@ -702,7 +715,7 @@ const Index = () => {
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
           {[
             { cls: 'stat-count-0', init: '0',  label: 'vetted\nmanufacturers', sub: 'BGD · IND · CHN · PAK · CAN' },
-            { cls: 'stat-count-1', init: '0',  label: 'major\nbrands served',  sub: null },
+            { cls: 'stat-count-1', init: '0',  label: 'brands\nin production',  sub: null },
             { cls: 'stat-count-3', init: '0',  label: 'garments under\nproduction', sub: null },
             { cls: 'stat-count-2', init: '12', label: 'production fires\nyou ever fight', sub: null },
           ].map(({ cls, init, label, sub }) => (
