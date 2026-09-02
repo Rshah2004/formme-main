@@ -136,6 +136,8 @@ const productionRows: {
   { style: 'Track Pant', code: 'FM-2831', swatch: '#2B2622', design: 'done', sampling: 'done', stage: 'QC', tone: 'accent' },
   { style: 'Zip Hoodie', code: 'FM-2825', swatch: '#C97B5A', design: 'done', sampling: 'done', stage: 'Shipped', tone: 'good' },
   { style: 'Puffer Vest', code: 'FM-2819', swatch: '#4A4038', design: 'progress', sampling: 'pending', stage: 'Pending', tone: 'muted' },
+  { style: 'Wide-Leg Trouser', code: 'FM-2812', swatch: '#6B5B4D', design: 'done', sampling: 'done', stage: 'Shipped', tone: 'good' },
+  { style: 'Cargo Short', code: 'FM-2806', swatch: '#2B2622', design: 'done', sampling: 'progress', stage: 'Cutting', tone: 'muted' },
 ];
 
 const stageTone: Record<string, { bg: string; fg: string }> = {
@@ -159,19 +161,12 @@ const StatusCell = ({ state }: { state: CellState }) => {
 };
 
 const notifCards = [
-  { initials: 'PS', name: 'Priya', action: 'Approved tech pack', time: '5 min ago', pos: '-right-6 -top-6' },
-  { initials: 'SS', name: 'Supreme Stitch', action: 'Updated sewing progress', time: '18 min ago', pos: '-left-10 top-[38%]' },
-  { initials: 'QC', name: 'QC Team', action: 'Approved final inspection', time: '2 hours ago', pos: '-right-8 -bottom-8' },
+  { initials: 'PS', name: 'Priya', action: 'Approved tech pack', time: '5 min ago', pos: '-right-6 -top-6', bg: INK },
+  { initials: 'SS', name: 'Supreme Stitch', action: 'Updated sewing progress', time: '18 min ago', pos: '-left-10 top-[38%]', bg: ACCENT },
+  { initials: 'QC', name: 'QC Team', action: 'Approved final inspection', time: '2 hours ago', pos: '-right-8 -bottom-8', bg: '#4A7C59' },
 ];
 
-const trustLogos = [
-  { name: 'Walmart', className: 'font-dm-sans font-medium' },
-  { name: 'Old Navy', className: 'font-cormorant italic font-medium' },
-  { name: 'Costco', className: 'font-inter font-semibold uppercase tracking-[0.08em]' },
-  { name: 'Fanatics', className: 'font-dm-sans font-medium' },
-  { name: 'Champions', className: 'font-cormorant italic font-medium' },
-  { name: 'US Polo Assn', className: 'font-inter font-semibold uppercase tracking-[0.08em]' },
-];
+const trustLogos = ['Walmart', 'Old Navy', 'Costco', 'Fanatics', 'Champions', 'US Polo Assn'];
 
 const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersReduced: boolean }) => {
   const [email, setEmail] = useState('');
@@ -188,14 +183,14 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
               </div>
 
               <h1
-                className="reveal mt-8 font-dm-sans font-medium leading-[1.1] tracking-[-0.02em]"
-                style={{ color: INK, fontSize: 'clamp(34px, 3.6vw, 52px)' }}
+                className="reveal mt-8 font-dm-sans font-semibold leading-[1.12] tracking-[-0.02em]"
+                style={{ color: INK, fontSize: 'clamp(28px, 3.2vw, 46px)' }}
               >
                 Faster tech packs <span style={{ color: ACCENT }}>✓</span>
                 <br />
-                Live production data <span style={{ color: ACCENT }}>✓</span>
+                Less confusion <span style={{ color: ACCENT }}>✓</span>
                 <br />
-                One system, start to ship <span style={{ color: ACCENT }}>✓</span>
+                Better results <span style={{ color: ACCENT }}>✓</span>
               </h1>
 
               <p
@@ -226,14 +221,6 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
                   Book a demo
                 </button>
               </form>
-
-              <a
-                href="#product"
-                className="cta-link reveal inline-block mt-5 text-[13px] font-inter font-medium tracking-[0.04em]"
-                style={{ color: INK }}
-              >
-                See how it works <span aria-hidden="true">→</span>
-              </a>
             </div>
 
             {/* Right — live order dashboard + activity notifications */}
@@ -310,7 +297,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
                 >
                   <span
                     className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-inter font-medium"
-                    style={{ background: INK, color: CREAM }}
+                    style={{ background: n.bg, color: CREAM }}
                   >
                     {n.initials}
                   </span>
@@ -327,21 +314,25 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
           {/* Trust strip */}
           <div className="reveal mt-20 md:mt-24 flex flex-col items-center gap-8 text-center">
             <span
-              className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-inter bg-white shadow-sm"
-              style={{ color: MUTED2, border: `1px solid ${CARD_BORDER}` }}
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-[12px] font-inter"
+              style={{ background: INK, color: CREAM }}
             >
               <span
-                className="w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0 text-white"
-                style={{ background: ACCENT, fontSize: 8 }}
+                className="w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ background: ACCENT, color: CREAM, fontSize: 8 }}
               >
                 ✓
               </span>
               Trusted by manufacturers producing for
             </span>
-            <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
-              {trustLogos.map((l) => (
-                <span key={l.name} className={l.className} style={{ color: MUTED2, fontSize: 19, letterSpacing: '0.02em' }}>
-                  {l.name}
+            <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-4">
+              {trustLogos.map((name) => (
+                <span
+                  key={name}
+                  className="font-dm-sans font-medium uppercase"
+                  style={{ color: MUTED2, fontSize: 16, letterSpacing: '0.06em' }}
+                >
+                  {name}
                 </span>
               ))}
             </div>
