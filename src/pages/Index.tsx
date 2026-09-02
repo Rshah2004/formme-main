@@ -51,17 +51,6 @@ const Tag = ({ label, value, mono = false }: { label: string; value: string; mon
   </div>
 );
 
-const TagDark = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex flex-col gap-1">
-    <span className="text-[9px] uppercase tracking-[0.24em] font-inter" style={{ color: MUTED2 }}>
-      {label}
-    </span>
-    <span className="text-[13px] leading-tight font-dm-sans" style={{ color: INK }}>
-      {value}
-    </span>
-  </div>
-);
-
 /* ════════════════════════════════════════════════
    HEADER — minimal, integrated
 ════════════════════════════════════════════════ */
@@ -133,170 +122,155 @@ const LandingHeader = ({ onBookDemo }: { onBookDemo: () => void }) => {
 /* ════════════════════════════════════════════════
    HERO
 ════════════════════════════════════════════════ */
-const PANEL_LIGHT = '#EFEAE0';
-const PANEL_BORDER = '#E1D8C7';
+const HERO_BG = '#EFE6D6';
+const CARD_BORDER = '#E4DCC9';
 
-const fabricSwatches = ['#2B2622', '#8E5A40', '#C97B5A'];
+const orderRows: { style: string; code: string; stage: string; tone: 'accent' | 'muted' | 'good' }[] = [
+  { style: 'Oversized Hoodie', code: 'FM-2841', stage: 'Sewing', tone: 'accent' },
+  { style: 'Crewneck', code: 'FM-2838', stage: 'Cutting', tone: 'muted' },
+  { style: 'Track Pant', code: 'FM-2831', stage: 'QC', tone: 'accent' },
+  { style: 'Zip Hoodie', code: 'FM-2825', stage: 'Shipped', tone: 'good' },
+];
+
+const stageTone: Record<string, { bg: string; fg: string }> = {
+  accent: { bg: 'rgba(201,123,90,0.12)', fg: ACCENT },
+  muted: { bg: 'rgba(142,129,117,0.12)', fg: MUTED2 },
+  good: { bg: 'rgba(74,124,89,0.12)', fg: '#4A7C59' },
+};
+
+const notifCards = [
+  { initials: 'SS', name: 'Supreme Stitch', action: 'Updated sewing progress', time: '5 min ago' },
+  { initials: 'QC', name: 'QC Team', action: 'Approved final inspection', time: '2 hours ago' },
+];
 
 const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersReduced: boolean }) => (
-  <section className="hero-sec relative pt-32 md:pt-40 pb-20 md:pb-28 px-6" aria-label="Hero">
-    <div className="mx-auto max-w-[1400px] flex flex-col items-center text-center">
-      <div className="reveal mb-8">
-        <Pill>Concept to shipment platform</Pill>
-      </div>
-
-      <h1
-        className="reveal font-dm-sans font-medium leading-[1.02] tracking-[-0.02em]"
-        style={{ color: INK, fontSize: 'clamp(38px, 6.6vw, 96px)' }}
-      >
-        The operating system
-        <br />
-        for fashion production.
-      </h1>
-
-      <p
-        className="reveal mt-8 max-w-xl font-inter font-light leading-relaxed"
-        style={{ color: MUTED2, fontSize: 'clamp(15px, 1.6vw, 19px)' }}
-      >
-        Connect orders, factories and brands from PO to factory floor.
-      </p>
-
-      <div className="reveal mt-10 flex items-center gap-8">
-        <button
-          onClick={onBookDemo}
-          className="px-7 py-3.5 rounded-full text-[13px] font-inter font-medium tracking-[0.04em] transition-transform duration-300 hover:-translate-y-0.5"
-          style={{ background: INK, color: CREAM }}
-        >
-          Book a demo
-        </button>
-        <a
-          href="#product"
-          className="cta-link text-[13px] font-inter font-medium tracking-[0.04em]"
-          style={{ color: INK }}
-        >
-          See how it works <span aria-hidden="true">→</span>
-        </a>
-      </div>
-    </div>
-
-    {/* Editorial composition — garment + live production data, collaged like a moodboard */}
-    <div className="hero-panel reveal mx-auto mt-20 md:mt-24 max-w-[1200px]">
-      {/* Desktop — collaged panel, garment tile + floating data cards */}
-      <div
-        className="hidden md:block relative w-full overflow-hidden rounded-[24px] border"
-        style={{ background: PANEL_LIGHT, borderColor: PANEL_BORDER, minHeight: 620 }}
-      >
-        <div
-          className={`hero-garment absolute left-[9%] top-[150px] w-[240px] rounded-2xl overflow-hidden shadow-xl ${prefersReduced ? '' : 'float-soft'}`}
-          style={{ background: INK_PANEL, aspectRatio: '3 / 4' }}
-        >
-          <img
-            src="/mockupHoodieFront.png"
-            alt="Formme production sample — style FM-HOOD-004"
-            className="w-full h-full object-cover object-top scale-[1.35]"
-            loading="eager"
-          />
-        </div>
-
-        {/* Fabric swatch card */}
-        <div
-          className="hero-chip-0 flex absolute left-[7%] bottom-[10%] flex-col gap-3 rounded-xl px-5 py-4 bg-white shadow-md"
-          style={{ border: `1px solid ${PANEL_BORDER}` }}
-        >
-          <span className="text-[9px] uppercase tracking-[0.24em] font-inter" style={{ color: MUTED2 }}>
-            Fabric · Color
-          </span>
-          <div className="flex items-center gap-4">
-            <div className="flex gap-1.5">
-              {fabricSwatches.map((c) => (
-                <span key={c} className="w-4 h-4 rounded-full border border-black/5" style={{ background: c }} />
-              ))}
+  <section className="hero-sec relative" aria-label="Hero">
+    <div style={{ background: HERO_BG }}>
+      <div className="mx-auto max-w-[1400px] px-6 pt-28 md:pt-36 pb-16 md:pb-20">
+        <div className="grid md:grid-cols-2 gap-14 md:gap-16 items-center">
+          {/* Left — copy */}
+          <div className="text-center md:text-left">
+            <div className="reveal">
+              <Pill>Concept to shipment platform</Pill>
             </div>
-            <span className="text-[12px] font-dm-sans" style={{ color: INK }}>420 GSM · Washed Black</span>
+
+            <h1
+              className="reveal mt-8 font-dm-sans font-medium leading-[1.04] tracking-[-0.02em]"
+              style={{ color: INK, fontSize: 'clamp(38px, 4.6vw, 68px)' }}
+            >
+              The operating system for fashion production.
+            </h1>
+
+            <p
+              className="reveal mt-7 max-w-md mx-auto md:mx-0 font-inter font-light leading-relaxed"
+              style={{ color: MUTED2, fontSize: 'clamp(15px, 1.4vw, 18px)' }}
+            >
+              Connect orders, factories and brands from PO to factory floor.
+            </p>
+
+            <div className="reveal mt-9 flex items-center justify-center md:justify-start gap-8">
+              <button
+                onClick={onBookDemo}
+                className="px-7 py-3.5 rounded-full text-[13px] font-inter font-medium tracking-[0.04em] transition-transform duration-300 hover:-translate-y-0.5"
+                style={{ background: INK, color: CREAM }}
+              >
+                Book a demo
+              </button>
+              <a
+                href="#product"
+                className="cta-link text-[13px] font-inter font-medium tracking-[0.04em]"
+                style={{ color: INK }}
+              >
+                See how it works <span aria-hidden="true">→</span>
+              </a>
+            </div>
+          </div>
+
+          {/* Right — live order dashboard + activity notifications */}
+          <div className="hero-panel reveal relative mx-auto md:mx-0 w-full max-w-[440px]">
+            <div
+              className="hero-garment relative rounded-2xl overflow-hidden bg-white shadow-2xl"
+              style={{ border: `1px solid ${CARD_BORDER}` }}
+            >
+              <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: BORDER }}>
+                <span className="text-[10px] uppercase tracking-[0.22em] font-inter" style={{ color: MUTED2 }}>
+                  Active orders
+                </span>
+                <span className="text-[10px] font-inter" style={{ color: MUTED }}>Spring '26</span>
+              </div>
+
+              <div>
+                {orderRows.map((row) => (
+                  <div
+                    key={row.code}
+                    className="flex items-center gap-3 px-6 py-3.5 border-b last:border-b-0"
+                    style={{ borderColor: BORDER }}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: stageTone[row.tone].fg }} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-dm-sans truncate" style={{ color: INK }}>{row.style}</p>
+                      <p className="text-[10px] font-inter" style={{ color: MUTED }}>{row.code}</p>
+                    </div>
+                    <span
+                      className="text-[10px] uppercase tracking-[0.12em] font-inter font-medium px-2.5 py-1 rounded-full flex-shrink-0"
+                      style={{ background: stageTone[row.tone].bg, color: stageTone[row.tone].fg }}
+                    >
+                      {row.stage}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Floating activity cards */}
+            {notifCards.map((n, i) => (
+              <div
+                key={n.initials}
+                className={`hero-chip-${i} hidden sm:flex absolute items-center gap-3 rounded-xl px-4 py-3 bg-white shadow-lg ${
+                  prefersReduced ? '' : i === 0 ? 'float-soft' : 'float-soft-delay'
+                } ${i === 0 ? '-left-8 top-8' : '-right-6 bottom-10'}`}
+                style={{ border: `1px solid ${CARD_BORDER}`, maxWidth: 230 }}
+              >
+                <span
+                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-inter font-medium"
+                  style={{ background: INK, color: CREAM }}
+                >
+                  {n.initials}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[12px] font-dm-sans truncate" style={{ color: INK }}>
+                    <span className="font-medium">{n.name}</span>
+                  </p>
+                  <p className="text-[11px] font-inter truncate" style={{ color: MUTED2 }}>{n.action}</p>
+                  <p className="text-[10px] font-inter" style={{ color: MUTED }}>{n.time}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Style / Order card */}
-        <div
-          className={`hero-chip-1 block absolute left-[38%] top-[8%] rounded-xl px-5 py-4 bg-white shadow-md ${prefersReduced ? '' : 'float-soft-delay'}`}
-          style={{ border: `1px solid ${PANEL_BORDER}` }}
-        >
-          <div className="flex gap-7">
-            <TagDark label="Style" value="FM-HOOD-004" />
-            <TagDark label="Order" value="#FM-2841" />
-          </div>
-        </div>
-
-        {/* Quantity / Factory card */}
-        <div
-          className="hero-chip-2 block absolute right-[6%] top-[14%] rounded-xl px-5 py-4 bg-white shadow-md"
-          style={{ border: `1px solid ${PANEL_BORDER}` }}
-        >
-          <div className="flex gap-7">
-            <TagDark label="Quantity" value="600 pcs" />
-            <TagDark label="Factory" value="Supreme Stitch" />
-          </div>
-        </div>
-
-        {/* Stage / progress card */}
-        <div
-          className={`hero-chip-3 flex absolute right-[5%] bottom-[10%] flex-col gap-4 rounded-xl px-5 py-4 bg-white shadow-md ${prefersReduced ? '' : 'float-soft'}`}
-          style={{ border: `1px solid ${PANEL_BORDER}` }}
-        >
-          <div className="flex gap-7">
-            <TagDark label="Current stage" value="Sewing" />
-            <TagDark label="Expected" value="Sep 08" />
-          </div>
-          <div className="w-40 h-[3px] rounded-full overflow-hidden" style={{ background: PANEL_BORDER }}>
-            <div className="h-full rounded-full" style={{ width: '72%', background: ACCENT }} />
-          </div>
+        {/* Trust strip */}
+        <div className="reveal mt-16 md:mt-20 flex flex-col items-center gap-5 text-center">
+          <span
+            className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-inter bg-white shadow-sm"
+            style={{ color: MUTED2, border: `1px solid ${CARD_BORDER}` }}
+          >
+            <span
+              className="w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0 text-white"
+              style={{ background: ACCENT, fontSize: 8 }}
+            >
+              ✓
+            </span>
+            Trusted by manufacturers producing for
+          </span>
+          <p
+            className="font-dm-sans"
+            style={{ fontSize: 'clamp(14px, 1.6vw, 19px)', letterSpacing: '0.06em', color: MUTED2 }}
+          >
+            Walmart&nbsp;&nbsp;·&nbsp;&nbsp;Old Navy&nbsp;&nbsp;·&nbsp;&nbsp;Costco&nbsp;&nbsp;·&nbsp;&nbsp;Fanatics&nbsp;&nbsp;·&nbsp;&nbsp;Champions&nbsp;&nbsp;·&nbsp;&nbsp;US Polo Assn
+          </p>
         </div>
       </div>
-
-      {/* Mobile — simple stacked card, no absolute positioning */}
-      <div
-        className="md:hidden relative w-full rounded-[24px] border overflow-hidden flex flex-col items-center gap-5 px-6 pt-8 pb-6"
-        style={{ background: PANEL_LIGHT, borderColor: PANEL_BORDER }}
-      >
-        <div
-          className="w-[190px] rounded-2xl overflow-hidden shadow-xl"
-          style={{ background: INK_PANEL, aspectRatio: '3 / 4' }}
-        >
-          <img
-            src="/mockupHoodieFront.png"
-            alt="Formme production sample — style FM-HOOD-004"
-            className="w-full h-full object-cover object-top scale-[1.35]"
-            loading="eager"
-          />
-        </div>
-
-        <div className="w-full max-w-[260px] rounded-xl px-5 py-4 bg-white shadow-md flex flex-col gap-3" style={{ border: `1px solid ${PANEL_BORDER}` }}>
-          <div className="flex gap-6">
-            <TagDark label="Style" value="FM-HOOD-004" />
-            <TagDark label="Order" value="#FM-2841" />
-          </div>
-          <div className="flex gap-6">
-            <TagDark label="Current stage" value="Sewing" />
-            <TagDark label="Expected" value="Sep 08" />
-          </div>
-          <div className="w-full h-[3px] rounded-full overflow-hidden" style={{ background: PANEL_BORDER }}>
-            <div className="h-full rounded-full" style={{ width: '72%', background: ACCENT }} />
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {/* Trust strip */}
-    <div className="reveal mx-auto mt-16 md:mt-20 max-w-[1400px] flex flex-col items-center gap-3 text-center">
-      <p className="text-[10px] uppercase tracking-[0.4em] font-inter" style={{ color: MUTED }}>
-        Our manufacturers have produced for
-      </p>
-      <p
-        className="font-dm-sans"
-        style={{ fontSize: 'clamp(14px, 1.6vw, 19px)', letterSpacing: '0.06em', color: MUTED2 }}
-      >
-        Walmart&nbsp;&nbsp;·&nbsp;&nbsp;Old Navy&nbsp;&nbsp;·&nbsp;&nbsp;Costco&nbsp;&nbsp;·&nbsp;&nbsp;Fanatics&nbsp;&nbsp;·&nbsp;&nbsp;Champions&nbsp;&nbsp;·&nbsp;&nbsp;US Polo Assn
-      </p>
     </div>
   </section>
 );
@@ -755,7 +729,7 @@ const Index = () => {
       /* Hero garment — subtle parallax as page loads */
       if (!reduced) {
         gsap.from('.hero-garment', { opacity: 0, y: 24, duration: 1.1, ease: 'power3.out', delay: 0.15 });
-        gsap.from('.hero-chip-0, .hero-chip-1, .hero-chip-2, .hero-chip-3', {
+        gsap.from('.hero-chip-0, .hero-chip-1', {
           opacity: 0, y: 16, stagger: 0.12, duration: 0.9, ease: 'power2.out', delay: 0.5,
         });
       }
