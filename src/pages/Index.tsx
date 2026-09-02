@@ -1,276 +1,710 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  Check, ArrowRight, ChevronDown, FileText, Shirt, Factory, ShieldCheck, Package,
+  LayoutGrid, ClipboardList, Layers, MessageSquare, BarChart3, Settings, Filter, Plus,
+  Instagram, Linkedin,
+} from 'lucide-react';
 import { SEO } from '@/components/SEO';
-import NavBar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import BookDemoModal from '@/components/homePage/BookDemoModal';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 
 gsap.registerPlugin(ScrollTrigger);
 
-/* ─── Chat ─── */
-const chatMessages = [
-  { from: 'brand',  text: 'Tech pack approved — when does sampling start?' },
-  { from: 'formme', text: 'Factory confirmed. Proto sample ships in 12 days.' },
-  { from: 'brand',  text: 'Fit looks off on the shoulder. Can we revise?' },
-  { from: 'formme', text: 'Revision sent to factory. Fit sample ETA updated.' },
-];
+/* ─── Palette ─── */
+const BG = '#FFFFFF';
+const LAVENDER = '#F1EEFA';
+const INK = '#131316';
+const MUTED = '#9B99A6';
+const MUTED2 = '#6B6876';
+const BORDER = '#E8E5F1';
+const PURPLE = '#6C63A6';
+const PURPLE_BG = 'rgba(108,99,166,0.10)';
+const GREEN = '#3FA66E';
+const GREEN_BG = 'rgba(63,166,110,0.12)';
+const GREY_BADGE_BG = '#F1F0F4';
 
-const ChatUI = () => (
-  <div className="chat-ui-wrap w-full max-w-[600px] mx-auto">
-    <div className="border-t border-[#E8E3DA]" />
-    <div className="py-14 md:py-16 space-y-10">
-      {chatMessages.map((msg, i) => (
-        <div
-          key={i}
-          className={`chat-msg msg-from-${msg.from} flex flex-col gap-1.5 ${
-            msg.from === 'brand' ? 'items-end' : 'items-start'
-          }`}
-        >
-          <span className="text-[11px] uppercase tracking-[0.38em] text-[#AEAEAA] font-inter">
-            {msg.from === 'brand' ? 'Brand' : 'formme'}
-          </span>
-          <p className={`text-[17px] font-dm-sans font-light leading-relaxed text-[#0D0D0D] max-w-[380px] ${
-            msg.from === 'brand' ? 'text-right' : 'text-left'
-          }`}>
-            {msg.text}
-          </p>
-        </div>
-      ))}
-    </div>
-    <div className="border-b border-[#E8E3DA]" />
-  </div>
-);
-
-/* ─── Process steps ─── */
-const processSteps = [
-  { num: '01', label: 'You design.' },
-  { num: '02', label: 'We build your tech pack.' },
-  { num: '03', label: 'We source your factory.' },
-  { num: '04', label: 'Sampling & sign-off.' },
-  { num: '05', label: 'We run production.' },
-  { num: '06', label: 'QC & delivery.' },
-];
-
-/* ─── Needle SVG ─── */
-const NeedleSVG = () => (
-  <svg width="18" height="100" viewBox="0 0 18 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    {/* Needle body — tapers to point at bottom */}
-    <path
-      d="M9 100 C8 86 6.5 70 6.5 50 L6.5 24 C6.5 10 7.5 0 9 0 C10.5 0 11.5 10 11.5 24 L11.5 50 C11.5 70 10 86 9 100 Z"
-      fill="#F5F0E8"
-    />
-    {/* Eye — hollow oval */}
-    <ellipse cx="9" cy="17" rx="2.4" ry="4.2" fill="transparent" stroke="#F5F0E8" strokeWidth="1.1" />
-    {/* Inner eye — dark fill to look like a hole */}
-    <ellipse cx="9" cy="17" rx="1.3" ry="3" fill="#1A1814" />
-    {/* Subtle highlight */}
-    <path d="M8 28 L7.5 72" stroke="rgba(255,255,255,0.1)" strokeWidth="0.8" strokeLinecap="round" />
-  </svg>
-);
-
-/* ─── Factory door section ─── */
-const factorySteps = [
-  {
-    label: 'Pattern cutting',
-    desc: 'Cut to your exact tech pack specs',
-    style: { top: '18%', left: '5%' } as React.CSSProperties,
-  },
-  {
-    label: 'Industrial stitching',
-    desc: 'Sewn on factory-grade machines',
-    style: { top: '34%', right: '5%' } as React.CSSProperties,
-  },
-  {
-    label: 'Quality control',
-    desc: 'Every piece checked before sign-off',
-    style: { bottom: '32%', left: '5%' } as React.CSSProperties,
-  },
-  {
-    label: 'Final pressing & pack',
-    desc: 'Finished and ready for delivery',
-    style: { bottom: '18%', right: '5%' } as React.CSSProperties,
-  },
-];
-
-const DoorSection = () => (
-  <section
-    className="door-pin relative h-screen overflow-hidden bg-[#0D0D0D]"
-    aria-label="Inside manufacturing"
+const CheckMark = () => (
+  <span
+    className="inline-flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0 align-middle -translate-y-1"
+    style={{ background: PURPLE }}
   >
-    {/* Factory backdrop — drop /public/factory.jpg (pexels.com → "sewing factory") */}
-    <div
-      className="absolute inset-0"
-      style={{
-        backgroundImage: 'url(/factory.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center 40%',
-        filter: 'brightness(0.52) sepia(0.15)',
-      }}
-    />
-    <div
-      className="absolute inset-0 pointer-events-none"
-      style={{ background: 'radial-gradient(ellipse at center, transparent 22%, rgba(8,7,6,0.78) 100%)' }}
-    />
-
-    {/* 3D door wrapper */}
-    <div className="absolute inset-0" style={{ perspective: '1200px' }}>
-      {/* Left panel */}
-      <div
-        className="door-left absolute inset-y-0 left-0 w-1/2 bg-[#1A1814]"
-        style={{ transformOrigin: 'left center', willChange: 'transform' }}
-      >
-        <div className="absolute inset-[9%_7%] border border-[#252320] pointer-events-none" />
-        <div className="absolute inset-[20%_11%] border border-[#252320] pointer-events-none" />
-        <div className="absolute right-6 top-1/2 -translate-y-1/2 w-1.5 h-10 bg-[#2E2B28] rounded-full" />
-      </div>
-
-      {/* Right panel */}
-      <div
-        className="door-right absolute inset-y-0 right-0 w-1/2 bg-[#1A1814]"
-        style={{ transformOrigin: 'right center', willChange: 'transform' }}
-      >
-        <div className="absolute inset-[9%_7%] border border-[#252320] pointer-events-none" />
-        <div className="absolute inset-[20%_11%] border border-[#252320] pointer-events-none" />
-        <div className="absolute left-6 top-1/2 -translate-y-1/2 w-1.5 h-10 bg-[#2E2B28] rounded-full" />
-      </div>
-    </div>
-
-    {/* Centre seam */}
-    <div
-      className="door-seam absolute inset-y-0 left-1/2 -translate-x-1/2 w-px z-10 pointer-events-none"
-      style={{ background: 'rgba(0,0,0,0.75)' }}
-    />
-
-    {/* Header — fades in after doors open */}
-    <div
-      className="door-header absolute top-12 inset-x-0 flex flex-col items-center z-20 pointer-events-none"
-      style={{ opacity: 0 }}
-    >
-      <p className="text-[11px] uppercase tracking-[0.45em] text-[#F5F0E8]/40 font-inter mb-4">
-        What we handle
-      </p>
-      <p
-        className="font-cormorant font-light text-[#F5F0E8] text-center leading-tight"
-        style={{ fontSize: 'clamp(28px, 3.8vw, 52px)' }}
-      >
-        Inside your production.
-      </p>
-    </div>
-
-    {/* Step annotations — stagger in */}
-    {factorySteps.map((step, i) => (
-      <div
-        key={i}
-        className={`door-step-${i} absolute z-20 pointer-events-none`}
-        style={{ ...step.style, opacity: 0, transform: 'translateY(10px)' }}
-      >
-        <div className="flex items-center gap-2.5 mb-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#C97B5A] flex-shrink-0" />
-          <span className="text-[11px] md:text-[13px] uppercase tracking-[0.2em] md:tracking-[0.3em] text-[#F5F0E8] font-inter font-medium">
-            {step.label}
-          </span>
-        </div>
-        <p className="hidden md:block text-[14px] font-dm-sans font-light text-[#F5F0E8]/60 leading-snug pl-[22px]">
-          {step.desc}
-        </p>
-      </div>
-    ))}
-
-    {/* Bottom note */}
-    <div
-      className="door-bottom-note absolute bottom-10 inset-x-0 flex justify-center z-20 pointer-events-none"
-      style={{ opacity: 0 }}
-    >
-      <p className="text-[12px] uppercase tracking-[0.35em] text-[#F5F0E8]/35 font-inter">
-        Formme manages every step between your design and the final garment
-      </p>
-    </div>
-  </section>
+    <Check className="w-[18px] h-[18px]" style={{ color: '#fff' }} strokeWidth={3.5} />
+  </span>
 );
 
-/* ─── Process section ─── */
-const ProcessSection = () => (
-  <section
-    className="process-pin relative md:h-screen md:overflow-hidden flex items-center justify-center py-24 md:py-0 min-h-[600px]"
-    aria-label="How it works"
+const Eyebrow = ({ children }: { children: React.ReactNode }) => (
+  <span
+    className="inline-flex items-center rounded-full px-3.5 py-1.5 text-[11px] font-inter font-medium mb-5"
+    style={{ background: PURPLE_BG, color: PURPLE }}
   >
-    {/* Background — GSAP transitions this from #F5F0E8 to #1A1814 */}
-    <div className="process-bg absolute inset-0" style={{ backgroundColor: '#F5F0E8' }} />
+    {children}
+  </span>
+);
 
-    {/* Content column */}
-    <div className="relative z-10 flex flex-col items-center text-center select-none">
+const PrimaryButton = ({
+  children, onClick, href, dark = true,
+}: { children: React.ReactNode; onClick?: () => void; href?: string; dark?: boolean }) => {
+  const cls =
+    'inline-flex items-center gap-1.5 rounded-[10px] px-5 py-3 text-[13px] font-inter font-medium transition-transform duration-300 hover:-translate-y-0.5';
+  const style = dark ? { background: INK, color: '#fff' } : { background: 'transparent', color: INK, border: `1px solid ${BORDER}` };
+  if (href) {
+    return (
+      <Link to={href} className={cls} style={style}>
+        {children}
+      </Link>
+    );
+  }
+  return (
+    <button onClick={onClick} className={cls} style={style}>
+      {children}
+    </button>
+  );
+};
 
-      {/* Needle */}
-      <div className="process-needle" style={{ opacity: 0, transform: 'translateY(-10px)' }}>
-        <NeedleSVG />
+/* ════════════════════════════════════════════════
+   HEADER
+════════════════════════════════════════════════ */
+const LandingHeader = ({ onBookDemo }: { onBookDemo: () => void }) => {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const navLinks: { label: string; href: string; route?: boolean; chevron?: boolean }[] = [
+    { label: 'Product', href: '#product', chevron: true },
+    { label: 'Factories', href: '#factories' },
+    { label: 'Brands', href: '#brands' },
+    { label: 'Resources', href: '/support', route: true, chevron: true },
+  ];
+
+  return (
+    <header
+      className={`fixed inset-x-0 top-0 z-[100] transition-colors duration-300 ${scrolled ? 'shadow-sm' : ''}`}
+      style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)', borderBottom: `1px solid ${scrolled ? BORDER : 'transparent'}` }}
+    >
+      <div className="mx-auto max-w-[1400px] flex items-center justify-between px-6 md:px-10 h-16 md:h-[72px]">
+        <Link to="/" className="text-[17px] font-dm-sans font-bold tracking-[-0.01em]" style={{ color: INK }}>
+          FORMME
+        </Link>
+
+        <nav className="hidden md:flex items-center gap-8">
+          {navLinks.map((item) =>
+            item.route ? (
+              <Link key={item.label} to={item.href} className="inline-flex items-center gap-1 text-[13px] font-inter" style={{ color: MUTED2 }}>
+                {item.label}
+                {item.chevron && <ChevronDown className="w-3.5 h-3.5" />}
+              </Link>
+            ) : (
+              <a key={item.label} href={item.href} className="inline-flex items-center gap-1 text-[13px] font-inter" style={{ color: MUTED2 }}>
+                {item.label}
+                {item.chevron && <ChevronDown className="w-3.5 h-3.5" />}
+              </a>
+            )
+          )}
+          <button onClick={onBookDemo} className="text-[13px] font-inter" style={{ color: MUTED2 }}>
+            Pricing
+          </button>
+        </nav>
+
+        <div className="flex items-center gap-5">
+          <Link to="/auth?mode=signin" className="hidden sm:inline text-[13px] font-inter font-medium" style={{ color: INK }}>
+            Sign in
+          </Link>
+          <PrimaryButton onClick={onBookDemo}>
+            Book a Demo <ArrowRight className="w-3.5 h-3.5" />
+          </PrimaryButton>
+        </div>
       </div>
+    </header>
+  );
+};
 
-      {/* Thread from needle eye to first step */}
-      <div
-        className="process-thread"
-        style={{
-          width: 0,
-          borderLeft: '1px dashed rgba(245,240,232,0.22)',
-          height: '28px',
-          transform: 'scaleY(0)',
-          transformOrigin: 'top center',
-          marginTop: '2px',
-        }}
-      />
+/* ════════════════════════════════════════════════
+   HERO
+════════════════════════════════════════════════ */
+type Badge = { label: string; tone: 'good' | 'progress' | 'muted' | 'dash' };
 
-      {/* Steps + connecting stitches */}
-      {processSteps.map((step, i) => (
-        <React.Fragment key={i}>
-          <div
-            className={`process-step-${i} flex flex-col items-center gap-0.5`}
-            style={{ opacity: 0, transform: 'translateY(12px)' }}
-          >
-            <span
-              className="font-inter uppercase tracking-[0.45em] text-[#F5F0E8]"
-              style={{ fontSize: '10px', opacity: 0.35 }}
+const orderRows: { style: string; code: string; factory: string; sample: Badge; production: number; qc: Badge; shipment: Badge }[] = [
+  { style: 'Boxy Hoodie', code: 'FM-SS25-001', factory: 'Skyline Apparel', sample: { label: 'Approved', tone: 'good' }, production: 72, qc: { label: 'In Progress', tone: 'progress' }, shipment: { label: 'On Track', tone: 'good' } },
+  { style: 'Oversized Tee', code: 'FM-SS25-002', factory: 'Delta Garments', sample: { label: 'In Review', tone: 'muted' }, production: 45, qc: { label: 'Pending', tone: 'muted' }, shipment: { label: '—', tone: 'dash' } },
+  { style: 'Cargo Pant', code: 'FM-SS25-003', factory: 'Stitch Line Ltd.', sample: { label: 'Approved', tone: 'good' }, production: 30, qc: { label: 'Pending', tone: 'muted' }, shipment: { label: '—', tone: 'dash' } },
+  { style: 'Zip Jacket', code: 'FM-SS25-004', factory: 'Summit Fashions', sample: { label: 'Approved', tone: 'good' }, production: 85, qc: { label: 'In Progress', tone: 'progress' }, shipment: { label: 'On Track', tone: 'good' } },
+  { style: 'Shorts', code: 'FM-SS25-005', factory: 'Needlecraft Intl.', sample: { label: 'In Review', tone: 'muted' }, production: 15, qc: { label: 'Pending', tone: 'muted' }, shipment: { label: '—', tone: 'dash' } },
+];
+
+const badgeStyle: Record<Badge['tone'], { bg: string; fg: string }> = {
+  good: { bg: GREEN_BG, fg: GREEN },
+  progress: { bg: PURPLE_BG, fg: PURPLE },
+  muted: { bg: GREY_BADGE_BG, fg: MUTED2 },
+  dash: { bg: 'transparent', fg: MUTED },
+};
+
+const BadgeChip = ({ b }: { b: Badge }) => (
+  <span
+    className="inline-flex text-[10px] font-inter font-medium px-2.5 py-1 rounded-full whitespace-nowrap"
+    style={{ background: badgeStyle[b.tone].bg, color: badgeStyle[b.tone].fg }}
+  >
+    {b.label}
+  </span>
+);
+
+const sidebarIcons = [
+  { label: 'Overview', Icon: LayoutGrid, active: true },
+  { label: 'Styles', Icon: Shirt },
+  { label: 'Orders', Icon: ClipboardList },
+  { label: 'Samples', Icon: Layers },
+  { label: 'Production', Icon: Factory },
+  { label: 'QC', Icon: ShieldCheck },
+  { label: 'Shipments', Icon: Package },
+  { label: 'Messages', Icon: MessageSquare },
+  { label: 'Reports', Icon: BarChart3 },
+  { label: 'Settings', Icon: Settings },
+];
+
+const notifCards = [
+  { initials: 'E', name: 'Emily', action: 'Viewed tech pack', time: '5 min ago', pos: '-right-5 -top-6', bg: PURPLE },
+  { initials: 'M', name: 'Mike', action: 'Updated fabric', time: '22 min ago', pos: '-left-8 top-[64%]', bg: GREEN },
+  { initials: 'S', name: 'Sarah', action: 'Approved proto sample', time: '1 hour ago', pos: 'right-[8%] -bottom-8', bg: '#C97B5A' },
+];
+
+const trustLogos = ['Walmart', 'Old Navy', 'Costco', 'Fanatics', 'Champions', 'US Polo Assn'];
+
+const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersReduced: boolean }) => {
+  const [email, setEmail] = useState('');
+
+  return (
+    <section className="hero-sec relative" aria-label="Hero" style={{ background: LAVENDER }}>
+      <div className="mx-auto max-w-[1400px] px-6 pt-28 md:pt-32 pb-16 md:pb-20">
+        <div className="grid md:grid-cols-[0.82fr_1.18fr] gap-14 md:gap-16 items-center">
+          {/* Left — copy */}
+          <div className="text-center md:text-left">
+            <div className="reveal">
+              <Eyebrow>Fashion production platform</Eyebrow>
+            </div>
+
+            <h1
+              className="reveal font-dm-sans font-bold leading-[1.14] tracking-[-0.02em]"
+              style={{ color: INK, fontSize: 'clamp(28px, 3.2vw, 44px)' }}
             >
-              {step.num}
-            </span>
-            <span
-              className="font-cormorant font-light text-[#F5F0E8] leading-tight"
-              style={{ fontSize: 'clamp(20px, 2.4vw, 34px)' }}
+              Faster production updates. <CheckMark />
+              <br />
+              Less confusion. <CheckMark />
+              <br />
+              Better deliveries. <CheckMark />
+            </h1>
+
+            <p
+              className="reveal mt-6 max-w-md mx-auto md:mx-0 font-inter leading-relaxed"
+              style={{ color: MUTED2, fontSize: 'clamp(14px, 1.3vw, 16px)' }}
             >
-              {step.label}
-            </span>
+              Replace scattered spreadsheets, WhatsApp threads and manual follow-ups. Formme gives factories and brands one shared system for orders, sampling, production, quality and shipment visibility.
+            </p>
+
+            <form
+              onSubmit={(e) => { e.preventDefault(); onBookDemo(); }}
+              className="reveal mt-8 flex items-center gap-3 max-w-md mx-auto md:mx-0"
+            >
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="What's your work email?"
+                className="flex-1 min-w-0 bg-white rounded-[10px] px-4 py-3 text-[14px] font-inter outline-none"
+                style={{ color: INK, border: `1px solid ${BORDER}` }}
+              />
+              <button
+                type="submit"
+                className="rounded-[10px] px-5 py-3 text-[13px] font-inter font-medium flex-shrink-0 transition-transform duration-300 hover:-translate-y-0.5"
+                style={{ background: INK, color: '#fff' }}
+              >
+                Get a Demo
+              </button>
+            </form>
+
+            <p className="reveal mt-8 text-[12px] font-inter" style={{ color: MUTED }}>
+              Trusted by growing apparel teams
+            </p>
           </div>
 
-          {i < processSteps.length - 1 && (
-            <div
-              className={`stitch-${i}`}
-              style={{
-                width: 0,
-                borderLeft: '1px dashed rgba(245,240,232,0.18)',
-                height: '22px',
-                transform: 'scaleY(0)',
-                transformOrigin: 'top center',
-              }}
-            />
-          )}
-        </React.Fragment>
-      ))}
+          {/* Right — live order dashboard + activity notifications */}
+          <div className="hero-panel reveal relative mx-auto md:mx-0 w-full mt-6 md:mt-0">
+            <div className="hero-garment relative rounded-2xl overflow-hidden bg-white shadow-2xl flex" style={{ border: `1px solid ${BORDER}` }}>
+              {/* Icon rail */}
+              <div className="hidden sm:flex flex-col items-center gap-1 py-4 px-2 border-r flex-shrink-0" style={{ borderColor: BORDER }}>
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center mb-2 text-[11px] font-inter font-bold flex-shrink-0" style={{ background: INK, color: '#fff' }}>
+                  F
+                </div>
+                {sidebarIcons.map(({ label, Icon, active }) => (
+                  <div
+                    key={label}
+                    className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style={{ background: active ? PURPLE_BG : 'transparent' }}
+                    title={label}
+                  >
+                    <Icon className="w-3.5 h-3.5" style={{ color: active ? PURPLE : MUTED }} />
+                  </div>
+                ))}
+              </div>
 
-      {/* Tagline */}
-      <p
-        className="process-tagline font-inter uppercase tracking-[0.5em] text-[#F5F0E8] mt-10"
-        style={{ fontSize: '10px', opacity: 0 }}
-      >
-        Production starts in days, not months
-      </p>
+              {/* Main panel */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: BORDER }}>
+                  <span className="text-[13px] font-dm-sans font-semibold" style={{ color: INK }}>Orders</span>
+                  <div className="hidden sm:flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-inter px-2.5 py-1.5 rounded-[8px]" style={{ border: `1px solid ${BORDER}`, color: MUTED2 }}>
+                      <Filter className="w-3 h-3" /> Filters
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-inter font-medium px-2.5 py-1.5 rounded-[8px]" style={{ background: INK, color: '#fff' }}>
+                      <Plus className="w-3 h-3" /> New Order
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-5 px-5 py-2.5 border-b" style={{ borderColor: BORDER }}>
+                  {['All Orders', 'In Production', 'At Risk', 'Completed'].map((tab) => (
+                    <span
+                      key={tab}
+                      className="text-[11px] font-inter pb-1 whitespace-nowrap"
+                      style={tab === 'All Orders' ? { color: INK, borderBottom: `2px solid ${PURPLE}` } : { color: MUTED }}
+                    >
+                      {tab}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="hidden sm:grid grid-cols-[1.3fr_1fr_0.8fr_1fr_0.8fr_0.8fr] gap-2 px-5 py-2 border-b" style={{ borderColor: BORDER }}>
+                  {['Style', 'Factory', 'Sample', 'Production', 'QC', 'Shipment'].map((h) => (
+                    <span key={h} className="text-[9px] uppercase tracking-[0.14em] font-inter" style={{ color: MUTED }}>{h}</span>
+                  ))}
+                </div>
+
+                <div>
+                  {orderRows.map((row, i) => (
+                    <div
+                      key={row.code}
+                      className="grid grid-cols-[1fr_auto] sm:grid-cols-[1.3fr_1fr_0.8fr_1fr_0.8fr_0.8fr] items-center gap-2 px-5 py-3 border-b last:border-b-0"
+                      style={{ borderColor: BORDER, background: i === 3 ? PURPLE_BG : 'transparent' }}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: GREY_BADGE_BG }}>
+                          <Shirt className="w-3.5 h-3.5" style={{ color: MUTED2 }} />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-[12px] font-dm-sans truncate" style={{ color: INK }}>{row.code}</p>
+                          <p className="text-[10px] font-inter truncate" style={{ color: MUTED }}>{row.style}</p>
+                        </div>
+                      </div>
+                      <div className="hidden sm:block text-[11px] font-inter truncate" style={{ color: MUTED2 }}>{row.factory}</div>
+                      <div className="hidden sm:block"><BadgeChip b={row.sample} /></div>
+                      <div className="hidden sm:flex items-center gap-2">
+                        <span className="text-[11px] font-inter font-medium w-8" style={{ color: INK }}>{row.production}%</span>
+                        <div className="w-14 h-[3px] rounded-full overflow-hidden" style={{ background: BORDER }}>
+                          <div className="h-full rounded-full" style={{ width: `${row.production}%`, background: PURPLE }} />
+                        </div>
+                      </div>
+                      <div className="hidden sm:block"><BadgeChip b={row.qc} /></div>
+                      <div className="hidden sm:block"><BadgeChip b={row.shipment} /></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Floating activity cards */}
+            {notifCards.map((n, i) => (
+              <div
+                key={n.initials}
+                className={`hero-chip-${i} hidden md:flex absolute items-center gap-3 rounded-xl px-4 py-3 bg-white shadow-lg z-10 ${
+                  prefersReduced ? '' : i % 2 === 0 ? 'float-soft' : 'float-soft-delay'
+                } ${n.pos}`}
+                style={{ border: `1px solid ${BORDER}`, maxWidth: 210 }}
+              >
+                <span className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-inter font-medium" style={{ background: n.bg, color: '#fff' }}>
+                  {n.initials}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[12px] font-dm-sans font-medium truncate" style={{ color: INK }}>{n.name}</p>
+                  <p className="text-[11px] font-inter truncate" style={{ color: MUTED2 }}>{n.action} · {n.time}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Trust strip */}
+        <div className="reveal mt-16 md:mt-20 flex flex-wrap items-center justify-center gap-x-12 gap-y-4">
+          {trustLogos.map((name) => (
+            <span key={name} className="font-dm-sans font-medium uppercase" style={{ color: MUTED, fontSize: 15, letterSpacing: '0.06em' }}>
+              {name}
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ════════════════════════════════════════════════
+   ONE SYSTEM — tech pack to shipment
+════════════════════════════════════════════════ */
+const flowIconSteps = [
+  { label: 'Tech Pack', desc: 'Create and share tech packs, BOMs, measurements and files.', Icon: FileText },
+  { label: 'Sample', desc: 'Manage samples, feedback loops and approvals.', Icon: Shirt },
+  { label: 'Production', desc: 'Track orders, WIP, capacity and real-time progress.', Icon: Factory },
+  { label: 'Quality', desc: 'Log inspections, issues and QC approvals.', Icon: ShieldCheck },
+  { label: 'Shipment', desc: 'Organize shipments, docs and delivery timelines.', Icon: Package },
+];
+
+const OneSystemSection = () => (
+  <section id="product" className="py-24 md:py-28 px-6" style={{ background: BG }}>
+    <h2
+      className="reveal text-center mx-auto max-w-2xl font-dm-sans font-semibold leading-[1.15]"
+      style={{ color: INK, fontSize: 'clamp(24px, 3vw, 36px)' }}
+    >
+      One system from tech pack to shipment
+    </h2>
+
+    <div className="reveal mx-auto mt-16 max-w-[1200px] grid grid-cols-2 sm:grid-cols-5 gap-x-4 gap-y-14">
+      {flowIconSteps.map(({ label, desc, Icon }, i) => (
+        <div key={label} className="relative flex flex-col items-center text-center px-2">
+          {i < flowIconSteps.length - 1 && (
+            <span className="hidden sm:flex absolute top-7 left-[calc(50%+34px)] w-[calc(100%-34px)] items-center">
+              <span className="w-full border-t border-dashed" style={{ borderColor: BORDER }} />
+              <ArrowRight className="w-3.5 h-3.5 flex-shrink-0 -ml-1" style={{ color: MUTED }} />
+            </span>
+          )}
+          <span className="relative z-10 w-14 h-14 rounded-full flex items-center justify-center mb-4" style={{ background: PURPLE_BG }}>
+            <Icon className="w-6 h-6" style={{ color: PURPLE }} />
+          </span>
+          <p className="font-dm-sans font-semibold text-[15px]" style={{ color: INK }}>{label}</p>
+          <p className="mt-2 font-inter text-[12px] leading-relaxed max-w-[150px]" style={{ color: MUTED2 }}>{desc}</p>
+        </div>
+      ))}
     </div>
   </section>
+);
+
+/* ════════════════════════════════════════════════
+   FOR MANUFACTURERS
+════════════════════════════════════════════════ */
+const manufacturerStats = [
+  { label: 'Active Orders', value: '28' },
+  { label: 'In Production', value: '16' },
+  { label: 'On Time Delivery', value: '93%' },
+  { label: 'Open Issues', value: '7' },
+];
+
+const activeOrders = [
+  { style: 'Boxy Hoodie', code: 'FM-SS25-001', brand: 'Aurélie', qty: '2,000 pcs', progress: 72, stage: 'Cutting', eta: 'May 28', priority: 'High' },
+  { style: 'Zip Jacket', code: 'FM-SS25-004', brand: 'Véra', qty: '1,500 pcs', progress: 85, stage: 'Sewing', eta: 'May 22', priority: 'High' },
+  { style: 'Oversized Tee', code: 'FM-SS25-002', brand: 'SNDYS', qty: '3,000 pcs', progress: 45, stage: 'Printing', eta: 'May 30', priority: 'Medium' },
+];
+
+const sampleApprovals = [
+  { style: 'FM-SS25-001', name: 'Boxy Hoodie', tone: 'good' as const },
+  { style: 'FM-SS25-002', name: 'Oversized Tee', tone: 'progress' as const },
+];
+
+const FactoriesSection = () => (
+  <section id="factories" className="py-24 md:py-28 px-6" style={{ background: LAVENDER }}>
+    <div className="mx-auto max-w-[1300px] grid md:grid-cols-2 gap-14 md:gap-16 items-center">
+      <div className="reveal">
+        <Eyebrow>For Manufacturers</Eyebrow>
+        <h2 className="font-dm-sans font-bold leading-[1.1] tracking-[-0.015em] mb-5" style={{ color: INK, fontSize: 'clamp(28px, 3.2vw, 42px)' }}>
+          Run production from one system
+        </h2>
+        <p className="font-inter leading-relaxed max-w-md mb-8" style={{ color: MUTED2, fontSize: '15px' }}>
+          Plan capacity, manage orders, track progress and keep every department aligned in real time.
+        </p>
+        <PrimaryButton href="#factories">
+          Explore for Manufacturers <ArrowRight className="w-3.5 h-3.5" />
+        </PrimaryButton>
+      </div>
+
+      <div className="reveal rounded-2xl bg-white shadow-xl p-6 md:p-7" style={{ border: `1px solid ${BORDER}` }}>
+        <p className="text-[12px] font-dm-sans font-semibold mb-4" style={{ color: INK }}>Factory Dashboard</p>
+
+        <div className="grid grid-cols-4 gap-3 mb-6 pb-6 border-b" style={{ borderColor: BORDER }}>
+          {manufacturerStats.map((s) => (
+            <div key={s.label}>
+              <p className="font-dm-sans font-bold" style={{ color: INK, fontSize: 'clamp(16px, 2vw, 22px)' }}>{s.value}</p>
+              <p className="text-[9px] font-inter mt-1 leading-tight" style={{ color: MUTED }}>{s.label}</p>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-[10px] uppercase tracking-[0.14em] font-inter mb-3" style={{ color: MUTED }}>Active Orders</p>
+        <div className="flex flex-col gap-3 mb-6">
+          {activeOrders.map((o) => (
+            <div key={o.code} className="flex items-center gap-3">
+              <span className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: GREY_BADGE_BG }}>
+                <Shirt className="w-3.5 h-3.5" style={{ color: MUTED2 }} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[12px] font-dm-sans truncate" style={{ color: INK }}>{o.style} <span style={{ color: MUTED }}>· {o.brand}</span></p>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="flex-1 h-[3px] rounded-full overflow-hidden max-w-[110px]" style={{ background: BORDER }}>
+                    <div className="h-full rounded-full" style={{ width: `${o.progress}%`, background: PURPLE }} />
+                  </div>
+                  <span className="text-[10px] font-inter" style={{ color: MUTED2 }}>{o.stage} · ETA {o.eta}</span>
+                </div>
+              </div>
+              <span
+                className="text-[9px] font-inter font-medium px-2 py-1 rounded-full flex-shrink-0"
+                style={{ background: o.priority === 'High' ? 'rgba(217,86,86,0.1)' : GREY_BADGE_BG, color: o.priority === 'High' ? '#C25656' : MUTED2 }}
+              >
+                {o.priority}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-2 gap-6 pt-5 border-t" style={{ borderColor: BORDER }}>
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.14em] font-inter mb-3" style={{ color: MUTED }}>Sample Approvals</p>
+            <div className="flex flex-col gap-2">
+              {sampleApprovals.map((s) => (
+                <div key={s.style} className="flex items-center justify-between">
+                  <span className="text-[11px] font-inter truncate" style={{ color: MUTED2 }}>{s.name}</span>
+                  <BadgeChip b={{ label: s.tone === 'good' ? 'Approved' : 'In Review', tone: s.tone }} />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.14em] font-inter mb-3" style={{ color: MUTED }}>QC Snapshot</p>
+            <div className="flex items-center gap-5">
+              <div><p className="font-dm-sans font-bold text-[16px]" style={{ color: GREEN }}>124</p><p className="text-[9px] font-inter" style={{ color: MUTED }}>Passed</p></div>
+              <div><p className="font-dm-sans font-bold text-[16px]" style={{ color: '#C25656' }}>6</p><p className="text-[9px] font-inter" style={{ color: MUTED }}>Failed</p></div>
+              <div><p className="font-dm-sans font-bold text-[16px]" style={{ color: MUTED2 }}>18</p><p className="text-[9px] font-inter" style={{ color: MUTED }}>Pending</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+/* ════════════════════════════════════════════════
+   FOR BRANDS
+════════════════════════════════════════════════ */
+const BrandsSection = () => (
+  <section id="brands" className="py-24 md:py-28 px-6" style={{ background: BG }}>
+    <div className="mx-auto max-w-[1300px]">
+      <div className="reveal max-w-2xl mx-auto text-center mb-14">
+        <div className="flex justify-center"><Eyebrow>For Brands</Eyebrow></div>
+        <h2 className="font-dm-sans font-bold leading-[1.1] tracking-[-0.015em] mb-5" style={{ color: INK, fontSize: 'clamp(28px, 3.2vw, 42px)' }}>
+          See what's happening without asking
+        </h2>
+        <p className="font-inter leading-relaxed mx-auto mb-8" style={{ color: MUTED2, fontSize: '15px', maxWidth: 440 }}>
+          Real-time visibility across orders and factories so you always know where things stand.
+        </p>
+        <PrimaryButton href="#brands">
+          Explore for Brands <ArrowRight className="w-3.5 h-3.5" />
+        </PrimaryButton>
+      </div>
+
+      <div className="reveal max-w-[900px] mx-auto rounded-2xl bg-white shadow-xl p-6 md:p-7 flex flex-col sm:flex-row gap-6" style={{ border: `1px solid ${BORDER}` }}>
+        <div className="w-full sm:w-[160px] flex-shrink-0 rounded-xl overflow-hidden" style={{ background: LAVENDER, aspectRatio: '4 / 5' }}>
+          <img src="/mockupHoodieFront.png" alt="Boxy Hoodie — order FM-SS25-001" className="w-full h-full object-contain scale-[0.85] mix-blend-luminosity opacity-90" loading="lazy" />
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.14em] font-inter mb-1" style={{ color: MUTED }}>FM-SS25-001</p>
+              <p className="font-dm-sans font-semibold text-[16px]" style={{ color: INK }}>Boxy Hoodie</p>
+            </div>
+            <BadgeChip b={{ label: 'In Production', tone: 'progress' }} />
+          </div>
+
+          <p className="text-[11px] font-inter mb-1.5" style={{ color: MUTED2 }}>Production Progress</p>
+          <div className="flex items-center gap-3 mb-5">
+            <div className="flex-1 h-[6px] rounded-full overflow-hidden" style={{ background: BORDER }}>
+              <div className="h-full rounded-full" style={{ width: '72%', background: PURPLE }} />
+            </div>
+            <span className="text-[13px] font-dm-sans font-semibold" style={{ color: INK }}>72%</span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4 mb-5 pb-5 border-b" style={{ borderColor: BORDER }}>
+            <div>
+              <p className="text-[9px] uppercase tracking-[0.12em] font-inter mb-1" style={{ color: MUTED }}>Current Stage</p>
+              <p className="text-[12px] font-dm-sans" style={{ color: INK }}>Sewing</p>
+            </div>
+            <div>
+              <p className="text-[9px] uppercase tracking-[0.12em] font-inter mb-1" style={{ color: MUTED }}>Factory</p>
+              <p className="text-[12px] font-dm-sans" style={{ color: INK }}>Supreme Stitch</p>
+            </div>
+            <div>
+              <p className="text-[9px] uppercase tracking-[0.12em] font-inter mb-1" style={{ color: MUTED }}>Expected Completion</p>
+              <p className="text-[12px] font-dm-sans" style={{ color: INK }}>May 28, 2025</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-[9px] uppercase tracking-[0.12em] font-inter mb-1" style={{ color: MUTED }}>Latest Update</p>
+              <p className="text-[11px] font-inter leading-relaxed" style={{ color: MUTED2 }}>May 16 · Sewing in progress, 850/1,200 pcs completed.</p>
+            </div>
+            <div>
+              <p className="text-[9px] uppercase tracking-[0.12em] font-inter mb-1" style={{ color: MUTED }}>Next Milestone</p>
+              <p className="text-[11px] font-inter leading-relaxed" style={{ color: MUTED2 }}>QC Inspection · May 20, 2025</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+/* ════════════════════════════════════════════════
+   FACTORY FLOOR — full-width photo + live stats
+════════════════════════════════════════════════ */
+const RingStat = ({ pct }: { pct: number }) => {
+  const r = 20;
+  const c = 2 * Math.PI * r;
+  return (
+    <svg width="52" height="52" viewBox="0 0 52 52" className="flex-shrink-0">
+      <circle cx="26" cy="26" r={r} fill="none" stroke={BORDER} strokeWidth="5" />
+      <circle
+        cx="26" cy="26" r={r} fill="none" stroke={PURPLE} strokeWidth="5" strokeLinecap="round"
+        strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} transform="rotate(-90 26 26)"
+      />
+      <text x="26" y="30" textAnchor="middle" fontSize="12" fontFamily="DM Sans" fontWeight="600" fill={INK}>{pct}%</text>
+    </svg>
+  );
+};
+
+const FactoryFloorSection = ({ prefersReduced }: { prefersReduced: boolean }) => (
+  <section className="relative px-6 py-16 md:py-20" style={{ background: BG }} aria-label="Inside a Formme factory">
+    <div className="reveal mx-auto max-w-[1300px] relative rounded-2xl overflow-hidden" style={{ aspectRatio: '16 / 8.2' }}>
+      <img src="/factory.jpg" alt="Supreme Stitch factory floor running production on Formme" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(19,19,22,0) 45%, rgba(19,19,22,0.6) 100%)' }} />
+
+      <div className="absolute left-5 right-5 md:left-8 md:right-8 bottom-5 md:bottom-8 flex flex-col sm:flex-row gap-3">
+        <div className="flex items-center gap-3 rounded-xl bg-white/95 backdrop-blur-sm px-4 py-3 shadow-lg flex-1">
+          <RingStat pct={68} />
+          <div>
+            <p className="text-[11px] font-dm-sans font-semibold" style={{ color: INK }}>Line Progress</p>
+            <p className="text-[10px] font-inter" style={{ color: MUTED2 }}>Line A — Sewing</p>
+            <p className="text-[10px] font-inter" style={{ color: MUTED }}>820 / 1,200 pcs</p>
+          </div>
+        </div>
+        <div className="rounded-xl bg-white/95 backdrop-blur-sm px-4 py-3 shadow-lg flex-1">
+          <p className="text-[11px] font-dm-sans font-semibold" style={{ color: INK }}>QC Today</p>
+          <p className="font-dm-sans font-bold text-[18px]" style={{ color: INK }}>132 <span className="text-[10px] font-inter font-normal" style={{ color: MUTED }}>inspections</span></p>
+          <p className="text-[10px] font-inter" style={{ color: MUTED2 }}>Passed 124 · Failed 6</p>
+        </div>
+        <div className="rounded-xl bg-white/95 backdrop-blur-sm px-4 py-3 shadow-lg flex-1">
+          <p className="text-[11px] font-dm-sans font-semibold" style={{ color: INK }}>Daily Output</p>
+          <p className="font-dm-sans font-bold text-[18px]" style={{ color: INK }}>1,845 <span className="text-[10px] font-inter font-normal" style={{ color: MUTED }}>pcs</span></p>
+          <p className="text-[10px] font-inter" style={{ color: GREEN }}>↑ 12% vs yesterday</p>
+        </div>
+      </div>
+    </div>
+
+    <p className="reveal text-center mt-5 text-[12px] font-inter" style={{ color: MUTED2 }}>
+      Built with{' '}
+      <a href="https://www.supremegroupbd.com" target="_blank" rel="noopener noreferrer" className="font-medium" style={{ color: INK, textDecoration: 'underline', textUnderlineOffset: 3 }}>
+        Supreme Stitch
+      </a>{' '}— Dhaka, Bangladesh
+    </p>
+  </section>
+);
+
+/* ════════════════════════════════════════════════
+   FINAL CTA
+════════════════════════════════════════════════ */
+const FinalCTA = ({ onBookDemo }: { onBookDemo: () => void }) => (
+  <section className="py-24 md:py-32 px-6 flex flex-col items-center text-center" style={{ background: LAVENDER }}>
+    <h2
+      className="reveal font-dm-sans font-bold leading-[1.15] mb-6 max-w-3xl"
+      style={{ color: INK, fontSize: 'clamp(28px, 4.4vw, 52px)' }}
+    >
+      Orders. Production. Quality. Shipping. Connected.
+    </h2>
+    <p className="reveal max-w-md mb-10 font-inter" style={{ color: MUTED2, fontSize: '15px' }}>
+      Formme brings everyone and everything together so fashion gets made — better.
+    </p>
+    <div className="reveal">
+      <PrimaryButton onClick={onBookDemo}>
+        Book a Demo <ArrowRight className="w-3.5 h-3.5" />
+      </PrimaryButton>
+    </div>
+  </section>
+);
+
+/* ════════════════════════════════════════════════
+   FOOTER — landing-page specific, matches the new palette
+════════════════════════════════════════════════ */
+const footerColumns: { title: string; links: { label: string; to: string }[] }[] = [
+  { title: 'Product', links: [{ label: 'Overview', to: '#product' }, { label: 'Features', to: '#product' }, { label: 'Integrations', to: '#' }, { label: 'Security', to: '#' }] },
+  { title: 'For Manufacturers', links: [{ label: 'Factory ERP', to: '#factories' }, { label: 'Capacity Planning', to: '#factories' }, { label: 'Quality Control', to: '#factories' }, { label: 'Reports', to: '#factories' }] },
+  { title: 'For Brands', links: [{ label: 'Order Tracking', to: '#brands' }, { label: 'Sample Management', to: '#brands' }, { label: 'Shipment Tracking', to: '#brands' }, { label: 'Collaboration', to: '#brands' }] },
+  { title: 'Company', links: [{ label: 'About Us', to: '/about' }, { label: 'Careers', to: 'mailto:formme.design@gmail.com' }, { label: 'Contact', to: '/support' }, { label: 'Partners', to: 'mailto:formme.design@gmail.com' }] },
+  { title: 'Resources', links: [{ label: 'Help Center', to: '/support' }, { label: 'Blog', to: '#' }, { label: 'Guides', to: '#' }, { label: 'Templates', to: '#' }] },
+];
+
+const FooterLink = ({ to, children }: { to: string; children: React.ReactNode }) => {
+  const cls = 'text-[13px] font-inter transition-colors hover:opacity-70';
+  const style = { color: MUTED2 };
+  if (to.startsWith('/')) return <Link to={to} className={cls} style={style}>{children}</Link>;
+  if (to.startsWith('#') && to.length > 1) return <a href={to} className={cls} style={style}>{children}</a>;
+  if (to.startsWith('mailto:')) return <a href={to} className={cls} style={style}>{children}</a>;
+  return <span className={cls} style={style}>{children}</span>;
+};
+
+const LandingFooter = ({ onBookDemo }: { onBookDemo: () => void }) => (
+  <footer style={{ background: BG, borderTop: `1px solid ${BORDER}` }}>
+    <div className="mx-auto max-w-[1400px] px-6 py-16 md:py-20">
+      <div className="grid md:grid-cols-[1.4fr_repeat(5,1fr)] gap-10 mb-14">
+        <div>
+          <p className="font-dm-sans font-bold text-[17px] mb-3" style={{ color: INK }}>FORMME</p>
+          <p className="text-[13px] font-inter leading-relaxed max-w-[220px] mb-5" style={{ color: MUTED2 }}>
+            The fashion production platform for modern manufacturers and brands.
+          </p>
+          <div className="flex gap-3">
+            <a href="https://www.instagram.com/formme.design/" target="_blank" rel="noopener noreferrer" style={{ color: MUTED }}>
+              <Instagram className="h-4 w-4" />
+            </a>
+            <a href="https://www.linkedin.com/company/formmedesign" target="_blank" rel="noopener noreferrer" style={{ color: MUTED }}>
+              <Linkedin className="h-4 w-4" />
+            </a>
+          </div>
+        </div>
+
+        {footerColumns.map((col) => (
+          <div key={col.title}>
+            <p className="text-[11px] uppercase tracking-[0.1em] font-inter font-medium mb-4" style={{ color: INK }}>{col.title}</p>
+            <div className="flex flex-col gap-3">
+              {col.links.map((l) => <FooterLink key={l.label} to={l.to}>{l.label}</FooterLink>)}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="pt-8 flex flex-col md:flex-row gap-4 md:items-center md:justify-between" style={{ borderTop: `1px solid ${BORDER}` }}>
+        <p className="text-[13px] font-inter" style={{ color: MUTED }}>© {new Date().getFullYear()} Formme. All rights reserved.</p>
+        <div className="flex items-center gap-6">
+          <button onClick={onBookDemo} className="text-[13px] font-inter" style={{ color: MUTED2 }}>Book a Demo</button>
+          <span className="text-[13px] font-inter" style={{ color: MUTED }}>Privacy Policy</span>
+          <span className="text-[13px] font-inter" style={{ color: MUTED }}>Terms of Service</span>
+        </div>
+      </div>
+    </div>
+  </footer>
 );
 
 /* ─── Page ─── */
 const Index = () => {
-  const [email, setEmail] = useState('');
   const [prefersReduced, setPrefersReduced] = useState(false);
+  const [showBookDemo, setShowBookDemo] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)');
@@ -281,272 +715,40 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    // Lenis smooth scroll only on desktop — mobile uses native scroll
-    // which is far smoother with touch momentum and avoids scroll lag on iOS/Android
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     const isMobile = window.innerWidth < 768;
     let lenis: InstanceType<typeof Lenis> | null = null;
     let rafFn: ((time: number) => void) | null = null;
     if (!isMobile) {
       lenis = new Lenis({
-        duration: 1.5,
+        duration: 1.3,
         easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       });
       lenis.on('scroll', ScrollTrigger.update);
       rafFn = (time: number) => lenis!.raf(time * 1000);
       gsap.ticker.add(rafFn);
       gsap.ticker.lagSmoothing(0);
-    } else {
-      // On mobile, still hook native scroll into ScrollTrigger
-      ScrollTrigger.addEventListener('refresh', () => ScrollTrigger.update());
     }
 
     const ctx = gsap.context(() => {
-      const mm = gsap.matchMedia();
-
-      /* ── Desktop hero pin ── */
-      mm.add('(min-width: 768px)', () => {
-        gsap.set('.hero-line2', { opacity: 0, y: '10vh' });
-
-        const heroTl = gsap.timeline({
-          scrollTrigger: {
-            trigger: '.hero-pin',
-            start: 'top top',
-            end: '+=280vh',
-            pin: true,
-            scrub: 1.5,
-            anticipatePin: 1,
-            onLeave: () => {
-              if (lenis) lenis.scrollTo('.process-pin', { duration: 0.8 });
-            },
-          },
+      if (!reduced) {
+        gsap.from('.hero-garment', { opacity: 0, y: 24, duration: 1.1, ease: 'power3.out', delay: 0.15 });
+        gsap.from('.hero-chip-0, .hero-chip-1, .hero-chip-2', {
+          opacity: 0, y: 16, stagger: 0.12, duration: 0.9, ease: 'power2.out', delay: 0.5,
         });
+      }
 
-        heroTl
-          .to('.hero-you',    { x: '-44vw', scale: 1.12, ease: 'none', duration: 1 }, 0)
-          .to('.hero-design', { x:  '44vw', scale: 1.12, ease: 'none', duration: 1 }, 0)
-          .to('.hero-line2',  { opacity: 1, y: 0, ease: 'none', duration: 0.85 }, 0.45)
-          .to('.hero-you',    { opacity: 0, x: '-52vw', ease: 'none', duration: 0.9 }, 1.5)
-          .to('.hero-design', { opacity: 0, x:  '52vw', ease: 'none', duration: 0.9 }, 1.5)
-          .to('.hero-line2',  { opacity: 0, y: '10vh',  ease: 'none', duration: 0.9 }, 1.5)
-          ;
-      });
-
-      /* ── Desktop process pin ── */
-      mm.add('(min-width: 768px)', () => {
-        const processTl = gsap.timeline({
-          scrollTrigger: {
-            trigger: '.process-pin',
-            start: 'top top',
-            end: '+=500vh',
-            pin: true,
-            scrub: 1.2,
-            anticipatePin: 1,
-            onLeave: () => {
-              setTimeout(() => {
-                const target = document.querySelector('.door-pin') as HTMLElement | null;
-                if (!target) return;
-                if (lenis) {
-                  lenis.scrollTo(target, { duration: 1.0 });
-                } else {
-                  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-              }, 80);
-            },
-          },
-        });
-
-        processTl
-          // Darken background
-          .to('.process-bg', { backgroundColor: '#1A1814', ease: 'none', duration: 0.18 }, 0)
-          // Needle drops in
-          .to('.process-needle', { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.12)
-          // Thread from needle draws
-          .to('.process-thread', { scaleY: 1, ease: 'none', duration: 0.1 }, 0.22)
-          // Step 01
-          .to('.process-step-0', { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.28)
-          // Stitch 0
-          .to('.stitch-0', { scaleY: 1, ease: 'none', duration: 0.09 }, 0.40)
-          // Step 02
-          .to('.process-step-1', { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.46)
-          // Stitch 1
-          .to('.stitch-1', { scaleY: 1, ease: 'none', duration: 0.09 }, 0.57)
-          // Step 03
-          .to('.process-step-2', { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.63)
-          // Stitch 2
-          .to('.stitch-2', { scaleY: 1, ease: 'none', duration: 0.09 }, 0.73)
-          // Step 04
-          .to('.process-step-3', { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.79)
-          // Stitch 3
-          .to('.stitch-3', { scaleY: 1, ease: 'none', duration: 0.09 }, 0.88)
-          // Step 05
-          .to('.process-step-4',   { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.92)
-          // Stitch 4
-          .to('.stitch-4',         { scaleY: 1, ease: 'none', duration: 0.09 }, 0.94)
-          // Step 06 + tagline
-          .to('.process-step-5',   { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.96)
-          .to('.process-tagline',  { opacity: 0.28, ease: 'none', duration: 0.1 }, 0.99)
-          // Start needle bobbing once it's visible (looping tween outside scrub)
-          .call(() => {
-            gsap.to('.process-needle', {
-              y: 6, yoyo: true, repeat: -1, duration: 0.85, ease: 'sine.inOut',
-            });
-          }, undefined, 0.26);
-      });
-
-      /* ── Mobile — NO pins, NO scrub. Hero auto-plays; process+door fire once on enter. ── */
-      mm.add('(max-width: 767px)', () => {
-        // Hero: pure auto-play, no scroll dependency — avoids iOS fixed-position bugs entirely
-        gsap.set('.hero-line2', { opacity: 0 });
-
-        gsap.timeline({ delay: 0.6 })
-          .to('.hero-you',    { x: '-110vw', ease: 'power2.inOut', duration: 0.55 }, 0)
-          .to('.hero-design', { x:  '110vw', ease: 'power2.inOut', duration: 0.55 }, 0)
-          .to('.hero-line2',  { opacity: 1,  ease: 'power2.out',   duration: 0.45 }, 0.45);
-
-        // Process: set hidden, then play once when section enters viewport
-        gsap.set(['.process-needle', '.process-thread',
-                  '.process-step-0', '.process-step-1', '.process-step-2',
-                  '.process-step-3', '.process-step-4', '.process-step-5',
-                  '.stitch-0', '.stitch-1', '.stitch-2', '.stitch-3', '.stitch-4',
-                  '.process-tagline'], { opacity: 0, y: 14 });
-
-        gsap.to('.process-bg', {
-          backgroundColor: '#1A1814', duration: 0.5,
-          scrollTrigger: { trigger: '.process-pin', start: 'top 75%', once: true },
-        });
-        gsap.to(['.process-needle', '.process-thread',
-                 '.process-step-0', '.process-step-1', '.process-step-2',
-                 '.process-step-3', '.process-step-4', '.process-step-5',
-                 '.stitch-0', '.stitch-1', '.stitch-2', '.stitch-3', '.stitch-4',
-                 '.process-tagline'], {
-          opacity: 1, y: 0, stagger: 0.07, duration: 0.35, ease: 'power2.out',
-          scrollTrigger: { trigger: '.process-pin', start: 'top 65%', once: true },
-        });
-
-        // Door: auto-plays when section enters viewport, no pin/scrub
-        gsap.set(['.door-header', '.door-step-0', '.door-step-1',
-                  '.door-step-2', '.door-step-3', '.door-bottom-note'], { opacity: 0, y: 14 });
-
-        const mDoorTl = gsap.timeline({
-          paused: true,
-          scrollTrigger: {
-            trigger: '.door-pin',
-            start: 'top 80%',
-            once: true,
-            onEnter: () => mDoorTl.play(),
-          },
-        });
-        mDoorTl
-          .to('.door-left',        { x: '-100%',  ease: 'power2.inOut', duration: 0.55 })
-          .to('.door-right',       { x:  '100%',  ease: 'power2.inOut', duration: 0.55 }, '<')
-          .to('.door-seam',        { opacity: 0,  ease: 'none',         duration: 0.20 }, '<+=0.1')
-          .to('.door-header',      { opacity: 1, y: 0, ease: 'power2.out', duration: 0.30 }, '-=0.1')
-          .to('.door-step-0',      { opacity: 1, y: 0, ease: 'power2.out', duration: 0.25 }, '-=0.05')
-          .to('.door-step-1',      { opacity: 1, y: 0, ease: 'power2.out', duration: 0.25 }, '-=0.10')
-          .to('.door-step-2',      { opacity: 1, y: 0, ease: 'power2.out', duration: 0.25 }, '-=0.10')
-          .to('.door-step-3',      { opacity: 1, y: 0, ease: 'power2.out', duration: 0.25 }, '-=0.10')
-          .to('.door-bottom-note', { opacity: 1,       ease: 'power2.out', duration: 0.20 }, '-=0.05');
-      });
-
-      /* ── Door: factory reveal ── */
-      mm.add('(min-width: 768px)', () => {
-        const doorTl = gsap.timeline({
-          scrollTrigger: {
-            trigger: '.door-pin',
-            start: 'top top',
-            end: '+=400vh',
-            pin: true,
-            scrub: 1.5,
-            anticipatePin: 1,
-            onLeave: () => {
-              setTimeout(() => {
-                const target = document.querySelector('.chat-section') as HTMLElement | null;
-                if (!target) return;
-                if (lenis) {
-                  lenis.scrollTo(target, { duration: 1.0 });
-                } else {
-                  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-              }, 80);
-            },
-          },
-        });
-
-        doorTl
-          // Doors swing open
-          .to('.door-left',         { rotateY: -90, ease: 'none', duration: 0.46 }, 0)
-          .to('.door-right',        { rotateY:  90, ease: 'none', duration: 0.46 }, 0)
-          .to('.door-seam',         { opacity: 0,   ease: 'none', duration: 0.14 }, 0.16)
-          // Header fades in
-          .to('.door-header',       { opacity: 1,   ease: 'none', duration: 0.18 }, 0.44)
-          // Step annotations stagger in with descriptions
-          .to('.door-step-0',       { opacity: 1, y: 0, ease: 'none', duration: 0.16 }, 0.54)
-          .to('.door-step-1',       { opacity: 1, y: 0, ease: 'none', duration: 0.16 }, 0.64)
-          .to('.door-step-2',       { opacity: 1, y: 0, ease: 'none', duration: 0.16 }, 0.74)
-          .to('.door-step-3',       { opacity: 1, y: 0, ease: 'none', duration: 0.16 }, 0.83)
-          // Bottom note last
-          .to('.door-bottom-note',  { opacity: 1,   ease: 'none', duration: 0.14 }, 0.92);
-      });
-
-      /* ── Chat: alternating x-slide ── */
-      const chatTl = gsap.timeline({
-        scrollTrigger: { trigger: '.chat-ui-wrap', start: 'top 78%', once: true },
-      });
-      gsap.utils.toArray<HTMLElement>('.chat-msg').forEach((el, i) => {
-        const fromBrand = el.classList.contains('msg-from-brand');
-        chatTl.from(el, { opacity: 0, x: fromBrand ? 32 : -32, duration: 0.7, ease: 'power2.out' }, i * 0.44);
-      });
-
-      /* ── Pain: stacked → separated (scrub) ── */
-      gsap.set('.pain-line-0', { y: '1.5em' });
-      gsap.set('.pain-line-2', { y: '-1.5em' });
-      gsap.timeline({
-        scrollTrigger: { trigger: '.pain-section', start: 'top 72%', end: 'center 48%', scrub: 1.2 },
-      })
-        .to('.pain-line-0', { y: 0, ease: 'none' }, 0)
-        .to('.pain-line-2', { y: 0, ease: 'none' }, 0);
-
-      /* ── Stats: count up ── */
-      const statDefs = [
-        { sel: '.stat-count-0', from: 0,   to: 8,   suffix: '',  dur: 2.0 },
-        { sel: '.stat-count-1', from: 0,   to: 4,   suffix: '+', dur: 2.2 },
-        { sel: '.stat-count-2', from: 12,  to: 0,   suffix: '',  dur: 2.8 },
-        { sel: '.stat-count-3', from: 0,   to: 500, suffix: '+', dur: 2.5 },
-      ];
-      statDefs.forEach(({ sel, from, to, suffix, dur }) => {
-        const obj = { val: from };
-        const el = document.querySelector<HTMLElement>(sel);
-        if (!el) return;
-        el.textContent = from + suffix;
-        gsap.to(obj, {
-          val: to, duration: dur, ease: 'power2.out',
-          scrollTrigger: { trigger: sel, start: 'top 88%', once: true },
-          onUpdate() { el.textContent = Math.round(obj.val) + suffix; },
-        });
-      });
-
-      /* ── Generic reveals ── */
       gsap.utils.toArray<Element>('.reveal').forEach((el) => {
         gsap.from(el, {
-          opacity: 0, y: 32, duration: 1.2, ease: 'power3.out',
-          scrollTrigger: { trigger: el, start: 'top 88%', once: true },
+          opacity: 0, y: 28, duration: 1, ease: 'power3.out',
+          scrollTrigger: { trigger: el, start: 'top 90%', once: true },
         });
-      });
-
-      gsap.from('.service-item', {
-        opacity: 0, x: -20, stagger: 0.1, duration: 0.9, ease: 'power2.out',
-        scrollTrigger: { trigger: '.services-list', start: 'top 85%', once: true },
-      });
-
-      gsap.from('.closing-cta', {
-        opacity: 0, y: 28, duration: 1.2, ease: 'power3.out',
-        scrollTrigger: { trigger: '.closing-cta', start: 'top 88%', once: true },
       });
     });
 
     return () => {
       ctx.revert();
-      ScrollTrigger.getAll().forEach(t => t.kill());
+      ScrollTrigger.getAll().forEach((t) => t.kill());
       if (lenis) {
         lenis.destroy();
         if (rafFn) gsap.ticker.remove(rafFn);
@@ -555,235 +757,24 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#F5F0E8] text-[#0D0D0D] overflow-x-hidden">
+    <div className="min-h-screen overflow-x-hidden" style={{ background: BG, color: INK }}>
       <SEO
         canonical="/"
-        description="formme helps independent fashion brands find reliable clothing manufacturers. Upload a tech pack, get matched with vetted factories, and manage your entire production pipeline in one place."
+        description="Formme is the fashion production platform for modern manufacturers and brands — one shared system for orders, sampling, production, quality and shipment visibility."
       />
-      <NavBar />
 
-      {/* ════════════════════════════════════════════════
-          HERO — Desktop pinned scroll transform
-      ════════════════════════════════════════════════ */}
-      <section className="hero-pin relative h-screen overflow-hidden" aria-label="Hero" style={{ touchAction: 'pan-y' }}>
-        {!prefersReduced ? (
-          <>
-            <video
-              className="absolute inset-0 w-full h-full object-cover blur-[28px] scale-110 hidden md:block"
-              autoPlay muted loop playsInline preload="metadata"
-            >
-              <source src="/backgroundVideo.mp4" type="video/mp4" />
-            </video>
-            <div className="absolute inset-0 bg-[#F5F0E8]/60 hidden md:block" />
-          </>
-        ) : null}
-        <div className="absolute inset-0 bg-[#F5F0E8] md:hidden" />
+      <LandingHeader onBookDemo={() => setShowBookDemo(true)} />
 
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-          <span
-            className="hero-you font-cormorant font-light text-[#0D0D0D] whitespace-nowrap"
-            style={{ fontSize: 'clamp(56px, 12vw, 180px)', display: 'inline-block' }}
-          >
-            YOU
-          </span>
-          <span aria-hidden="true" style={{ display: 'inline-block', width: '0.22em', fontSize: 'clamp(56px, 12vw, 180px)' }} />
-          <span
-            className="hero-design font-cormorant font-light text-[#0D0D0D] whitespace-nowrap"
-            style={{ fontSize: 'clamp(56px, 12vw, 180px)', display: 'inline-block' }}
-          >
-            DESIGN.
-          </span>
-        </div>
+      <Hero onBookDemo={() => setShowBookDemo(true)} prefersReduced={prefersReduced} />
+      <OneSystemSection />
+      <FactoriesSection />
+      <BrandsSection />
+      <FactoryFloorSection prefersReduced={prefersReduced} />
+      <FinalCTA onBookDemo={() => setShowBookDemo(true)} />
 
-        <div className="hero-line2 absolute inset-0 flex items-center justify-center pointer-events-none select-none px-6">
-          <span
-            className="font-cormorant font-light text-[#0D0D0D] text-center leading-tight"
-            style={{ fontSize: 'clamp(48px, 10vw, 106px)' }}
-          >
-            WE HANDLE THE REST.
-          </span>
-        </div>
-      </section>
+      <LandingFooter onBookDemo={() => setShowBookDemo(true)} />
 
-      {/* ════════════════════════════════════════════════
-          PROCESS — dark pinned stitch reveal
-      ════════════════════════════════════════════════ */}
-      <ProcessSection />
-
-      {/* ════════════════════════════════════════════════
-          DOOR — factory reveal
-      ════════════════════════════════════════════════ */}
-      <DoorSection />
-
-      {/* ════════════════════════════════════════════════
-          CREDIBILITY BAR
-      ════════════════════════════════════════════════ */}
-      <section className="border-y border-[#E8E3DA] py-12 px-6 reveal">
-        <div className="mx-auto flex w-full max-w-[1400px] flex-col sm:flex-row items-center justify-center gap-y-3 gap-x-6 text-center">
-          <p className="text-[11px] uppercase tracking-[0.42em] text-[#AEAEAA] font-inter flex-shrink-0">
-            Our manufacturers have produced for
-          </p>
-          <span className="hidden sm:block text-[#D0C8BC] text-lg">·</span>
-          <p className="font-cormorant font-light text-[#0D0D0D]" style={{ fontSize: 'clamp(16px, 2.2vw, 28px)', letterSpacing: '0.08em' }}>
-            Walmart&nbsp;&nbsp;·&nbsp;&nbsp;Old Navy&nbsp;&nbsp;·&nbsp;&nbsp;Costco&nbsp;&nbsp;·&nbsp;&nbsp;Fanatics&nbsp;&nbsp;·&nbsp;&nbsp;Champions&nbsp;&nbsp;·&nbsp;&nbsp;US Polo Assn
-          </p>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════
-          PRODUCT CHAT
-      ════════════════════════════════════════════════ */}
-      <section className="chat-section py-40 md:py-44 px-6 flex flex-col items-center border-b border-[#E8E3DA]">
-        <p className="reveal text-[10px] uppercase tracking-[0.45em] text-[#AEAEAA] font-inter mb-6 text-center">
-          What formme does
-        </p>
-        <p className="reveal font-cormorant font-light text-[#0D0D0D] text-center mb-24 leading-[1.2]" style={{ fontSize: 'clamp(28px, 3.5vw, 48px)' }}>
-          Every production problem, handled.
-        </p>
-        <ChatUI />
-      </section>
-
-      {/* ════════════════════════════════════════════════
-          PAIN — stacked lines separate on scroll
-      ════════════════════════════════════════════════ */}
-      <section className="pain-section py-40 md:py-48 px-6 text-center overflow-hidden border-b border-[#E8E3DA]">
-        <div className="max-w-3xl mx-auto">
-          <p className="reveal text-[10px] uppercase tracking-[0.45em] text-[#AEAEAA] font-inter mb-16">
-            The reality of production
-          </p>
-          <p className="pain-line-0 font-cormorant font-light text-[#0D0D0D] leading-[1.25]" style={{ fontSize: 'clamp(24px, 4vw, 54px)' }}>
-            Factories go quiet.
-          </p>
-          <p className="pain-line-1 font-cormorant font-light text-[#0D0D0D] leading-[1.25]" style={{ fontSize: 'clamp(24px, 4vw, 54px)' }}>
-            Samples come back wrong.
-          </p>
-          <p className="pain-line-2 font-cormorant font-light italic text-[#0D0D0D] leading-[1.25]" style={{ fontSize: 'clamp(24px, 4vw, 54px)' }}>
-            You're running production instead of your brand.
-          </p>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════
-          WHAT WE HANDLE
-      ════════════════════════════════════════════════ */}
-      <section className="py-40 md:py-44 px-6 md:px-16 border-b border-[#E8E3DA]">
-        <div className="max-w-5xl mx-auto grid md:grid-cols-[1.05fr_0.95fr] gap-16 md:gap-24 items-start">
-          <div>
-            <p className="reveal text-[10px] uppercase tracking-[0.45em] text-[#AEAEAA] font-inter mb-6">
-              What we handle
-            </p>
-            <h3 className="reveal font-cormorant font-medium text-[#0D0D0D] leading-[1.06]" style={{ fontSize: 'clamp(34px, 4.8vw, 68px)' }}>
-              Everything between your design and the final garment.
-            </h3>
-          </div>
-          <div className="services-list pt-2">
-            {[
-              'Tech pack generation',
-              'Manufacturer matching & costing',
-              'Proto, fit & PP sampling rounds',
-              'Production, QC & delivery',
-            ].map((item, i, arr) => (
-              <div
-                key={i}
-                className={`service-item flex items-baseline gap-6 py-7 ${i < arr.length - 1 ? 'border-b border-[#E8E3DA]' : ''}`}
-              >
-                <span className="text-[#AEAEAA] font-inter text-sm font-light select-none flex-shrink-0">—</span>
-                <span className="text-[17px] font-dm-sans font-light text-[#0D0D0D] tracking-[-0.01em] leading-snug">{item}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════
-          STATS — count up
-      ════════════════════════════════════════════════ */}
-      <section className="py-44 md:py-48 px-6 border-b border-[#E8E3DA]">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
-          {[
-            { cls: 'stat-count-0', init: '0',  label: 'vetted\nmanufacturers', sub: 'BGD · IND · CHN · PAK · CAN' },
-            { cls: 'stat-count-1', init: '0',  label: 'major\nbrands served',  sub: null },
-            { cls: 'stat-count-3', init: '0',  label: 'garments under\nproduction', sub: null },
-            { cls: 'stat-count-2', init: '12', label: 'production fires\nyou ever fight', sub: null },
-          ].map(({ cls, init, label, sub }) => (
-            <div key={cls} className="flex flex-col items-center gap-4">
-              <span
-                className={`${cls} font-cormorant font-light text-[#0D0D0D] leading-none`}
-                style={{ fontSize: 'clamp(60px, 10vw, 140px)' }}
-              >
-                {init}
-              </span>
-              <div className="flex flex-col items-center gap-1.5">
-                <p className="text-[10px] uppercase tracking-[0.38em] text-[#AEAEAA] font-inter leading-[1.9] whitespace-pre-line text-center">
-                  {label}
-                </p>
-                {sub && (
-                  <p className="text-[10px] tracking-[0.12em] text-[#AEAEAA]/60 font-inter font-light text-center">
-                    {sub}
-                  </p>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════
-          SOCIAL PROOF LINE
-      ════════════════════════════════════════════════ */}
-      <section className="py-32 md:py-36 px-6 reveal border-b border-[#E8E3DA]">
-        <p className="text-center text-[10px] uppercase tracking-[0.5em] text-[#AEAEAA] font-inter">
-          Now working with independent brands across North America
-        </p>
-      </section>
-
-      {/* ════════════════════════════════════════════════
-          CLOSING CTA — dark
-      ════════════════════════════════════════════════ */}
-      <section className="closing-cta bg-[#0D0D0D] py-44 md:py-48 px-6 flex flex-col items-center text-center">
-        <p className="text-[10px] uppercase tracking-[0.45em] text-[#555550] font-inter mb-8">
-          Early access
-        </p>
-        <h2
-          className="font-cormorant font-light text-white leading-[1.08] mb-14 max-w-xl"
-          style={{ fontSize: 'clamp(34px, 5.5vw, 76px)' }}
-        >
-          Ready to only think about design?
-        </h2>
-
-        <form
-          className="flex items-end border-b border-[#333330] w-full max-w-[320px] mb-10"
-          onSubmit={(e) => {
-            e.preventDefault();
-            window.location.href = `/auth?mode=signup&email=${encodeURIComponent(email)}`;
-          }}
-        >
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="your@email.com"
-            required
-            className="flex-1 pb-3 pt-1 text-[13px] bg-transparent outline-none font-dm-sans font-light text-white placeholder:text-[#555550]"
-          />
-          <button
-            type="submit"
-            className="pb-3 pt-1 pl-3 text-base font-light text-white hover:text-[#C97B5A] transition-colors duration-300"
-            aria-label="Submit"
-          >
-            →
-          </button>
-        </form>
-
-        <p className="text-[12px] text-[#555550] font-inter font-light">
-          or write to us at{' '}
-          <a href="mailto:formme.design@gmail.com" className="cta-link text-[#AEAEAA] text-[12px]">
-            formme.design@gmail.com
-          </a>
-        </p>
-      </section>
-
-      <Footer />
+      <BookDemoModal open={showBookDemo} onOpenChange={setShowBookDemo} />
     </div>
   );
 };
