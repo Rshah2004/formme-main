@@ -133,11 +133,10 @@ const LandingHeader = ({ onBookDemo }: { onBookDemo: () => void }) => {
 /* ════════════════════════════════════════════════
    HERO
 ════════════════════════════════════════════════ */
-const heroChips = [
-  { style: { top: '7%', left: '5%' }, rows: [['Style', 'FM-HOOD-004'], ['Order', '#FM-2841']] },
-  { style: { bottom: '8%', left: '5%' }, rows: [['Quantity', '600 pcs'], ['Factory', 'Supreme Stitch']] },
-  { style: { top: '40%', right: '5%' }, rows: [['Current stage', 'Sewing'], ['Expected', 'Sep 08']], progress: 72 },
-];
+const PANEL_LIGHT = '#EFEAE0';
+const PANEL_BORDER = '#E1D8C7';
+
+const fabricSwatches = ['#2B2622', '#8E5A40', '#C97B5A'];
 
 const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersReduced: boolean }) => (
   <section className="hero-sec relative pt-32 md:pt-40 pb-20 md:pb-28 px-6" aria-label="Hero">
@@ -180,46 +179,110 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
       </div>
     </div>
 
-    {/* Editorial composition — garment + live production data */}
+    {/* Editorial composition — garment + live production data, collaged like a moodboard */}
     <div className="hero-panel reveal mx-auto mt-20 md:mt-24 max-w-[1200px]">
+      {/* Desktop — collaged panel, garment tile + floating data cards */}
       <div
-        className="relative w-full overflow-hidden rounded-[20px]"
-        style={{ background: INK_PANEL, aspectRatio: '16 / 9' }}
+        className="hidden md:block relative w-full overflow-hidden rounded-[24px] border"
+        style={{ background: PANEL_LIGHT, borderColor: PANEL_BORDER, minHeight: 620 }}
       >
-        <img
-          src="/mockupHoodieFront.png"
-          alt="Formme production sample — style FM-HOOD-004"
-          className="hero-garment absolute inset-0 w-full h-full object-contain object-center scale-[0.72] md:scale-[0.62]"
-          loading="eager"
-        />
+        <div
+          className={`hero-garment absolute left-[9%] top-[150px] w-[240px] rounded-2xl overflow-hidden shadow-xl ${prefersReduced ? '' : 'float-soft'}`}
+          style={{ background: INK_PANEL, aspectRatio: '3 / 4' }}
+        >
+          <img
+            src="/mockupHoodieFront.png"
+            alt="Formme production sample — style FM-HOOD-004"
+            className="w-full h-full object-cover object-top scale-[1.35]"
+            loading="eager"
+          />
+        </div>
 
-        {heroChips.map((chip, i) => (
-          <div
-            key={i}
-            className={`hero-chip-${i} absolute hidden sm:flex flex-col gap-4 rounded-xl px-5 py-4 backdrop-blur-sm ${
-              prefersReduced ? '' : i === 1 ? 'float-soft-delay' : i === 2 ? 'float-soft' : ''
-            }`}
-            style={{
-              ...chip.style,
-              background: 'rgba(20,18,16,0.72)',
-              border: '1px solid rgba(245,240,232,0.14)',
-            }}
-          >
-            <div className="flex gap-6">
-              {chip.rows.map(([l, v]) => (
-                <Tag key={l} label={l} value={v} />
+        {/* Fabric swatch card */}
+        <div
+          className="hero-chip-0 flex absolute left-[7%] bottom-[10%] flex-col gap-3 rounded-xl px-5 py-4 bg-white shadow-md"
+          style={{ border: `1px solid ${PANEL_BORDER}` }}
+        >
+          <span className="text-[9px] uppercase tracking-[0.24em] font-inter" style={{ color: MUTED2 }}>
+            Fabric · Color
+          </span>
+          <div className="flex items-center gap-4">
+            <div className="flex gap-1.5">
+              {fabricSwatches.map((c) => (
+                <span key={c} className="w-4 h-4 rounded-full border border-black/5" style={{ background: c }} />
               ))}
             </div>
-            {chip.progress && (
-              <div className="w-32 h-[3px] rounded-full overflow-hidden" style={{ background: 'rgba(245,240,232,0.14)' }}>
-                <div
-                  className="h-full rounded-full"
-                  style={{ width: `${chip.progress}%`, background: ACCENT }}
-                />
-              </div>
-            )}
+            <span className="text-[12px] font-dm-sans" style={{ color: INK }}>420 GSM · Washed Black</span>
           </div>
-        ))}
+        </div>
+
+        {/* Style / Order card */}
+        <div
+          className={`hero-chip-1 block absolute left-[38%] top-[8%] rounded-xl px-5 py-4 bg-white shadow-md ${prefersReduced ? '' : 'float-soft-delay'}`}
+          style={{ border: `1px solid ${PANEL_BORDER}` }}
+        >
+          <div className="flex gap-7">
+            <TagDark label="Style" value="FM-HOOD-004" />
+            <TagDark label="Order" value="#FM-2841" />
+          </div>
+        </div>
+
+        {/* Quantity / Factory card */}
+        <div
+          className="hero-chip-2 block absolute right-[6%] top-[14%] rounded-xl px-5 py-4 bg-white shadow-md"
+          style={{ border: `1px solid ${PANEL_BORDER}` }}
+        >
+          <div className="flex gap-7">
+            <TagDark label="Quantity" value="600 pcs" />
+            <TagDark label="Factory" value="Supreme Stitch" />
+          </div>
+        </div>
+
+        {/* Stage / progress card */}
+        <div
+          className={`hero-chip-3 flex absolute right-[5%] bottom-[10%] flex-col gap-4 rounded-xl px-5 py-4 bg-white shadow-md ${prefersReduced ? '' : 'float-soft'}`}
+          style={{ border: `1px solid ${PANEL_BORDER}` }}
+        >
+          <div className="flex gap-7">
+            <TagDark label="Current stage" value="Sewing" />
+            <TagDark label="Expected" value="Sep 08" />
+          </div>
+          <div className="w-40 h-[3px] rounded-full overflow-hidden" style={{ background: PANEL_BORDER }}>
+            <div className="h-full rounded-full" style={{ width: '72%', background: ACCENT }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile — simple stacked card, no absolute positioning */}
+      <div
+        className="md:hidden relative w-full rounded-[24px] border overflow-hidden flex flex-col items-center gap-5 px-6 pt-8 pb-6"
+        style={{ background: PANEL_LIGHT, borderColor: PANEL_BORDER }}
+      >
+        <div
+          className="w-[190px] rounded-2xl overflow-hidden shadow-xl"
+          style={{ background: INK_PANEL, aspectRatio: '3 / 4' }}
+        >
+          <img
+            src="/mockupHoodieFront.png"
+            alt="Formme production sample — style FM-HOOD-004"
+            className="w-full h-full object-cover object-top scale-[1.35]"
+            loading="eager"
+          />
+        </div>
+
+        <div className="w-full max-w-[260px] rounded-xl px-5 py-4 bg-white shadow-md flex flex-col gap-3" style={{ border: `1px solid ${PANEL_BORDER}` }}>
+          <div className="flex gap-6">
+            <TagDark label="Style" value="FM-HOOD-004" />
+            <TagDark label="Order" value="#FM-2841" />
+          </div>
+          <div className="flex gap-6">
+            <TagDark label="Current stage" value="Sewing" />
+            <TagDark label="Expected" value="Sep 08" />
+          </div>
+          <div className="w-full h-[3px] rounded-full overflow-hidden" style={{ background: PANEL_BORDER }}>
+            <div className="h-full rounded-full" style={{ width: '72%', background: ACCENT }} />
+          </div>
+        </div>
       </div>
     </div>
 
@@ -692,8 +755,8 @@ const Index = () => {
       /* Hero garment — subtle parallax as page loads */
       if (!reduced) {
         gsap.from('.hero-garment', { opacity: 0, y: 24, duration: 1.1, ease: 'power3.out', delay: 0.15 });
-        gsap.from('.hero-chip-0, .hero-chip-1, .hero-chip-2', {
-          opacity: 0, y: 16, stagger: 0.15, duration: 0.9, ease: 'power2.out', delay: 0.5,
+        gsap.from('.hero-chip-0, .hero-chip-1, .hero-chip-2, .hero-chip-3', {
+          opacity: 0, y: 16, stagger: 0.12, duration: 0.9, ease: 'power2.out', delay: 0.5,
         });
       }
 
