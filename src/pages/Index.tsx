@@ -1,276 +1,663 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Mail, MessageCircle, FileSpreadsheet, FileText } from 'lucide-react';
 import { SEO } from '@/components/SEO';
-import NavBar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import BookDemoModal from '@/components/homePage/BookDemoModal';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 
 gsap.registerPlugin(ScrollTrigger);
 
-/* ─── Chat ─── */
-const chatMessages = [
-  { from: 'brand',  text: 'Tech pack approved — when does sampling start?' },
-  { from: 'formme', text: 'Factory confirmed. Proto sample ships in 12 days.' },
-  { from: 'brand',  text: 'Fit looks off on the shoulder. Can we revise?' },
-  { from: 'formme', text: 'Revision sent to factory. Fit sample ETA updated.' },
-];
+/* ─── Shared bits ─── */
+const CREAM = '#F5F0E8';
+const INK = '#0D0D0D';
+const INK_PANEL = '#141210';
+const ACCENT = '#C97B5A';
+const MUTED = '#AEAEAA';
+const MUTED2 = '#8A8175';
+const BORDER = '#E8E3DA';
 
-const ChatUI = () => (
-  <div className="chat-ui-wrap w-full max-w-[600px] mx-auto">
-    <div className="border-t border-[#E8E3DA]" />
-    <div className="py-14 md:py-16 space-y-10">
-      {chatMessages.map((msg, i) => (
-        <div
-          key={i}
-          className={`chat-msg msg-from-${msg.from} flex flex-col gap-1.5 ${
-            msg.from === 'brand' ? 'items-end' : 'items-start'
-          }`}
-        >
-          <span className="text-[11px] uppercase tracking-[0.38em] text-[#AEAEAA] font-inter">
-            {msg.from === 'brand' ? 'Brand' : 'formme'}
-          </span>
-          <p className={`text-[17px] font-dm-sans font-light leading-relaxed text-[#0D0D0D] max-w-[380px] ${
-            msg.from === 'brand' ? 'text-right' : 'text-left'
-          }`}>
-            {msg.text}
-          </p>
-        </div>
-      ))}
-    </div>
-    <div className="border-b border-[#E8E3DA]" />
+const Eyebrow = ({ children, dark = false }: { children: React.ReactNode; dark?: boolean }) => (
+  <p
+    className="text-[10px] uppercase tracking-[0.42em] font-inter mb-5"
+    style={{ color: dark ? 'rgba(245,240,232,0.45)' : MUTED2 }}
+  >
+    {children}
+  </p>
+);
+
+const Pill = ({ children }: { children: React.ReactNode }) => (
+  <span
+    className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[10px] uppercase tracking-[0.28em] font-inter"
+    style={{ borderColor: BORDER, color: MUTED2, background: 'rgba(255,255,255,0.55)' }}
+  >
+    <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: ACCENT }} />
+    {children}
+  </span>
+);
+
+/* Small annotation label used throughout — "STYLE / FM-HOOD-004" style tags */
+const Tag = ({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) => (
+  <div className="flex flex-col gap-1">
+    <span className="text-[9px] uppercase tracking-[0.24em] font-inter" style={{ color: MUTED }}>
+      {label}
+    </span>
+    <span className={`text-[13px] leading-tight ${mono ? 'font-inter' : 'font-dm-sans'}`} style={{ color: CREAM }}>
+      {value}
+    </span>
   </div>
 );
 
-/* ─── Process steps ─── */
-const processSteps = [
-  { num: '01', label: 'You design.' },
-  { num: '02', label: 'We build your tech pack.' },
-  { num: '03', label: 'We source your factory.' },
-  { num: '04', label: 'Sampling & sign-off.' },
-  { num: '05', label: 'We run production.' },
-  { num: '06', label: 'QC & delivery.' },
-];
-
-/* ─── Needle SVG ─── */
-const NeedleSVG = () => (
-  <svg width="18" height="100" viewBox="0 0 18 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    {/* Needle body — tapers to point at bottom */}
-    <path
-      d="M9 100 C8 86 6.5 70 6.5 50 L6.5 24 C6.5 10 7.5 0 9 0 C10.5 0 11.5 10 11.5 24 L11.5 50 C11.5 70 10 86 9 100 Z"
-      fill="#F5F0E8"
-    />
-    {/* Eye — hollow oval */}
-    <ellipse cx="9" cy="17" rx="2.4" ry="4.2" fill="transparent" stroke="#F5F0E8" strokeWidth="1.1" />
-    {/* Inner eye — dark fill to look like a hole */}
-    <ellipse cx="9" cy="17" rx="1.3" ry="3" fill="#1A1814" />
-    {/* Subtle highlight */}
-    <path d="M8 28 L7.5 72" stroke="rgba(255,255,255,0.1)" strokeWidth="0.8" strokeLinecap="round" />
-  </svg>
+const TagDark = ({ label, value }: { label: string; value: string }) => (
+  <div className="flex flex-col gap-1">
+    <span className="text-[9px] uppercase tracking-[0.24em] font-inter" style={{ color: MUTED2 }}>
+      {label}
+    </span>
+    <span className="text-[13px] leading-tight font-dm-sans" style={{ color: INK }}>
+      {value}
+    </span>
+  </div>
 );
 
-/* ─── Factory door section ─── */
-const factorySteps = [
-  {
-    label: 'Pattern cutting',
-    desc: 'Cut to your exact tech pack specs',
-    style: { top: '18%', left: '5%' } as React.CSSProperties,
-  },
-  {
-    label: 'Industrial stitching',
-    desc: 'Sewn on factory-grade machines',
-    style: { top: '34%', right: '5%' } as React.CSSProperties,
-  },
-  {
-    label: 'Quality control',
-    desc: 'Every piece checked before sign-off',
-    style: { bottom: '32%', left: '5%' } as React.CSSProperties,
-  },
-  {
-    label: 'Final pressing & pack',
-    desc: 'Finished and ready for delivery',
-    style: { bottom: '18%', right: '5%' } as React.CSSProperties,
-  },
+/* ════════════════════════════════════════════════
+   HEADER — minimal, integrated
+════════════════════════════════════════════════ */
+const LandingHeader = ({ onBookDemo }: { onBookDemo: () => void }) => {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const navLinks = [
+    { label: 'Product', href: '#product' },
+    { label: 'Factories', href: '#factories' },
+    { label: 'Brands', href: '#brands' },
+    { label: 'Company', href: '/about', route: true },
+  ];
+
+  return (
+    <header
+      className={`fixed inset-x-0 top-0 z-[100] transition-colors duration-300 ${
+        scrolled ? 'backdrop-blur-md' : ''
+      }`}
+      style={{ background: scrolled ? 'rgba(245,240,232,0.82)' : 'transparent' }}
+    >
+      <div className="mx-auto max-w-[1400px] flex items-center justify-between px-6 md:px-10 h-16 md:h-[76px]">
+        <Link to="/" className="text-[15px] tracking-[0.32em] font-dm-sans font-medium" style={{ color: INK }}>
+          FORMME
+        </Link>
+
+        <nav className="hidden md:flex items-center gap-10">
+          {navLinks.map((item) =>
+            item.route ? (
+              <Link
+                key={item.label}
+                to={item.href}
+                className="text-[12px] uppercase tracking-[0.18em] font-inter transition-colors"
+                style={{ color: MUTED2 }}
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <a
+                key={item.label}
+                href={item.href}
+                className="text-[12px] uppercase tracking-[0.18em] font-inter transition-colors hover:opacity-100"
+                style={{ color: MUTED2 }}
+              >
+                {item.label}
+              </a>
+            )
+          )}
+        </nav>
+
+        <button
+          onClick={onBookDemo}
+          className="group inline-flex items-center gap-2 text-[12px] uppercase tracking-[0.18em] font-inter font-medium"
+          style={{ color: INK }}
+        >
+          Book a demo
+          <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+        </button>
+      </div>
+    </header>
+  );
+};
+
+/* ════════════════════════════════════════════════
+   HERO
+════════════════════════════════════════════════ */
+const heroChips = [
+  { style: { top: '7%', left: '5%' }, rows: [['Style', 'FM-HOOD-004'], ['Order', '#FM-2841']] },
+  { style: { bottom: '8%', left: '5%' }, rows: [['Quantity', '600 pcs'], ['Factory', 'Supreme Stitch']] },
+  { style: { top: '40%', right: '5%' }, rows: [['Current stage', 'Sewing'], ['Expected', 'Sep 08']], progress: 72 },
 ];
 
-const DoorSection = () => (
-  <section
-    className="door-pin relative h-screen overflow-hidden bg-[#0D0D0D]"
-    aria-label="Inside manufacturing"
-  >
-    {/* Factory backdrop — drop /public/factory.jpg (pexels.com → "sewing factory") */}
-    <div
-      className="absolute inset-0"
-      style={{
-        backgroundImage: 'url(/factory.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center 40%',
-        filter: 'brightness(0.52) sepia(0.15)',
-      }}
-    />
-    <div
-      className="absolute inset-0 pointer-events-none"
-      style={{ background: 'radial-gradient(ellipse at center, transparent 22%, rgba(8,7,6,0.78) 100%)' }}
-    />
-
-    {/* 3D door wrapper */}
-    <div className="absolute inset-0" style={{ perspective: '1200px' }}>
-      {/* Left panel */}
-      <div
-        className="door-left absolute inset-y-0 left-0 w-1/2 bg-[#1A1814]"
-        style={{ transformOrigin: 'left center', willChange: 'transform' }}
-      >
-        <div className="absolute inset-[9%_7%] border border-[#252320] pointer-events-none" />
-        <div className="absolute inset-[20%_11%] border border-[#252320] pointer-events-none" />
-        <div className="absolute right-6 top-1/2 -translate-y-1/2 w-1.5 h-10 bg-[#2E2B28] rounded-full" />
+const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersReduced: boolean }) => (
+  <section className="hero-sec relative pt-32 md:pt-40 pb-20 md:pb-28 px-6" aria-label="Hero">
+    <div className="mx-auto max-w-[1400px] flex flex-col items-center text-center">
+      <div className="reveal mb-8">
+        <Pill>Concept to shipment platform</Pill>
       </div>
 
-      {/* Right panel */}
-      <div
-        className="door-right absolute inset-y-0 right-0 w-1/2 bg-[#1A1814]"
-        style={{ transformOrigin: 'right center', willChange: 'transform' }}
+      <h1
+        className="reveal font-dm-sans font-medium leading-[1.02] tracking-[-0.02em]"
+        style={{ color: INK, fontSize: 'clamp(38px, 6.6vw, 96px)' }}
       >
-        <div className="absolute inset-[9%_7%] border border-[#252320] pointer-events-none" />
-        <div className="absolute inset-[20%_11%] border border-[#252320] pointer-events-none" />
-        <div className="absolute left-6 top-1/2 -translate-y-1/2 w-1.5 h-10 bg-[#2E2B28] rounded-full" />
+        The operating system
+        <br />
+        for fashion production.
+      </h1>
+
+      <p
+        className="reveal mt-8 max-w-xl font-inter font-light leading-relaxed"
+        style={{ color: MUTED2, fontSize: 'clamp(15px, 1.6vw, 19px)' }}
+      >
+        Connect orders, factories and brands from PO to factory floor.
+      </p>
+
+      <div className="reveal mt-10 flex items-center gap-8">
+        <button
+          onClick={onBookDemo}
+          className="px-7 py-3.5 rounded-full text-[13px] font-inter font-medium tracking-[0.04em] transition-transform duration-300 hover:-translate-y-0.5"
+          style={{ background: INK, color: CREAM }}
+        >
+          Book a demo
+        </button>
+        <a
+          href="#product"
+          className="cta-link text-[13px] font-inter font-medium tracking-[0.04em]"
+          style={{ color: INK }}
+        >
+          See how it works <span aria-hidden="true">→</span>
+        </a>
       </div>
     </div>
 
-    {/* Centre seam */}
-    <div
-      className="door-seam absolute inset-y-0 left-1/2 -translate-x-1/2 w-px z-10 pointer-events-none"
-      style={{ background: 'rgba(0,0,0,0.75)' }}
-    />
+    {/* Editorial composition — garment + live production data */}
+    <div className="hero-panel reveal mx-auto mt-20 md:mt-24 max-w-[1200px]">
+      <div
+        className="relative w-full overflow-hidden rounded-[20px]"
+        style={{ background: INK_PANEL, aspectRatio: '16 / 9' }}
+      >
+        <img
+          src="/mockupHoodieFront.png"
+          alt="Formme production sample — style FM-HOOD-004"
+          className="hero-garment absolute inset-0 w-full h-full object-contain object-center scale-[0.72] md:scale-[0.62]"
+          loading="eager"
+        />
 
-    {/* Header — fades in after doors open */}
-    <div
-      className="door-header absolute top-12 inset-x-0 flex flex-col items-center z-20 pointer-events-none"
-      style={{ opacity: 0 }}
-    >
-      <p className="text-[11px] uppercase tracking-[0.45em] text-[#F5F0E8]/40 font-inter mb-4">
-        What we handle
+        {heroChips.map((chip, i) => (
+          <div
+            key={i}
+            className={`hero-chip-${i} absolute hidden sm:flex flex-col gap-4 rounded-xl px-5 py-4 backdrop-blur-sm ${
+              prefersReduced ? '' : i === 1 ? 'float-soft-delay' : i === 2 ? 'float-soft' : ''
+            }`}
+            style={{
+              ...chip.style,
+              background: 'rgba(20,18,16,0.72)',
+              border: '1px solid rgba(245,240,232,0.14)',
+            }}
+          >
+            <div className="flex gap-6">
+              {chip.rows.map(([l, v]) => (
+                <Tag key={l} label={l} value={v} />
+              ))}
+            </div>
+            {chip.progress && (
+              <div className="w-32 h-[3px] rounded-full overflow-hidden" style={{ background: 'rgba(245,240,232,0.14)' }}>
+                <div
+                  className="h-full rounded-full"
+                  style={{ width: `${chip.progress}%`, background: ACCENT }}
+                />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Trust strip */}
+    <div className="reveal mx-auto mt-16 md:mt-20 max-w-[1400px] flex flex-col items-center gap-3 text-center">
+      <p className="text-[10px] uppercase tracking-[0.4em] font-inter" style={{ color: MUTED }}>
+        Our manufacturers have produced for
       </p>
       <p
-        className="font-cormorant font-light text-[#F5F0E8] text-center leading-tight"
-        style={{ fontSize: 'clamp(28px, 3.8vw, 52px)' }}
+        className="font-dm-sans"
+        style={{ fontSize: 'clamp(14px, 1.6vw, 19px)', letterSpacing: '0.06em', color: MUTED2 }}
       >
-        Inside your production.
-      </p>
-    </div>
-
-    {/* Step annotations — stagger in */}
-    {factorySteps.map((step, i) => (
-      <div
-        key={i}
-        className={`door-step-${i} absolute z-20 pointer-events-none`}
-        style={{ ...step.style, opacity: 0, transform: 'translateY(10px)' }}
-      >
-        <div className="flex items-center gap-2.5 mb-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#C97B5A] flex-shrink-0" />
-          <span className="text-[11px] md:text-[13px] uppercase tracking-[0.2em] md:tracking-[0.3em] text-[#F5F0E8] font-inter font-medium">
-            {step.label}
-          </span>
-        </div>
-        <p className="hidden md:block text-[14px] font-dm-sans font-light text-[#F5F0E8]/60 leading-snug pl-[22px]">
-          {step.desc}
-        </p>
-      </div>
-    ))}
-
-    {/* Bottom note */}
-    <div
-      className="door-bottom-note absolute bottom-10 inset-x-0 flex justify-center z-20 pointer-events-none"
-      style={{ opacity: 0 }}
-    >
-      <p className="text-[12px] uppercase tracking-[0.35em] text-[#F5F0E8]/35 font-inter">
-        Formme manages every step between your design and the final garment
+        Walmart&nbsp;&nbsp;·&nbsp;&nbsp;Old Navy&nbsp;&nbsp;·&nbsp;&nbsp;Costco&nbsp;&nbsp;·&nbsp;&nbsp;Fanatics&nbsp;&nbsp;·&nbsp;&nbsp;Champions&nbsp;&nbsp;·&nbsp;&nbsp;US Polo Assn
       </p>
     </div>
   </section>
 );
 
-/* ─── Process section ─── */
-const ProcessSection = () => (
-  <section
-    className="process-pin relative md:h-screen md:overflow-hidden flex items-center justify-center py-24 md:py-0 min-h-[600px]"
-    aria-label="How it works"
-  >
-    {/* Background — GSAP transitions this from #F5F0E8 to #1A1814 */}
-    <div className="process-bg absolute inset-0" style={{ backgroundColor: '#F5F0E8' }} />
+/* ════════════════════════════════════════════════
+   PROBLEM — fragmented tools → formme
+════════════════════════════════════════════════ */
+const scatteredTools = [
+  { label: 'WhatsApp', Icon: MessageCircle },
+  { label: 'Excel', Icon: FileSpreadsheet },
+  { label: 'Email', Icon: Mail },
+  { label: 'Documents', Icon: FileText },
+];
 
-    {/* Content column */}
-    <div className="relative z-10 flex flex-col items-center text-center select-none">
+const ProblemSection = () => (
+  <section className="py-32 md:py-40 px-6 border-t" style={{ borderColor: BORDER }}>
+    <div className="mx-auto max-w-3xl text-center">
+      <Eyebrow>The problem</Eyebrow>
+      <h2
+        className="reveal font-dm-sans font-medium leading-[1.08] tracking-[-0.015em]"
+        style={{ color: INK, fontSize: 'clamp(28px, 4.4vw, 56px)' }}
+      >
+        Fashion production still runs across disconnected tools.
+      </h2>
+    </div>
 
-      {/* Needle */}
-      <div className="process-needle" style={{ opacity: 0, transform: 'translateY(-10px)' }}>
-        <NeedleSVG />
+    <div className="reveal mx-auto mt-20 max-w-2xl flex flex-col items-center">
+      <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
+        {scatteredTools.map(({ label, Icon }) => (
+          <span
+            key={label}
+            className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[12px] font-inter"
+            style={{ borderColor: BORDER, color: MUTED2 }}
+          >
+            <Icon className="w-3.5 h-3.5" style={{ color: MUTED }} />
+            {label}
+          </span>
+        ))}
       </div>
 
-      {/* Thread from needle eye to first step */}
-      <div
-        className="process-thread"
-        style={{
-          width: 0,
-          borderLeft: '1px dashed rgba(245,240,232,0.22)',
-          height: '28px',
-          transform: 'scaleY(0)',
-          transformOrigin: 'top center',
-          marginTop: '2px',
-        }}
-      />
+      <svg width="2" height="56" viewBox="0 0 2 56" className="my-2">
+        <line x1="1" y1="0" x2="1" y2="56" stroke={BORDER} strokeWidth="2" className="line-flow" />
+      </svg>
 
-      {/* Steps + connecting stitches */}
-      {processSteps.map((step, i) => (
-        <React.Fragment key={i}>
-          <div
-            className={`process-step-${i} flex flex-col items-center gap-0.5`}
-            style={{ opacity: 0, transform: 'translateY(12px)' }}
-          >
-            <span
-              className="font-inter uppercase tracking-[0.45em] text-[#F5F0E8]"
-              style={{ fontSize: '10px', opacity: 0.35 }}
-            >
-              {step.num}
-            </span>
-            <span
-              className="font-cormorant font-light text-[#F5F0E8] leading-tight"
-              style={{ fontSize: 'clamp(20px, 2.4vw, 34px)' }}
-            >
-              {step.label}
-            </span>
-          </div>
-
-          {i < processSteps.length - 1 && (
-            <div
-              className={`stitch-${i}`}
-              style={{
-                width: 0,
-                borderLeft: '1px dashed rgba(245,240,232,0.18)',
-                height: '22px',
-                transform: 'scaleY(0)',
-                transformOrigin: 'top center',
-              }}
-            />
-          )}
-        </React.Fragment>
-      ))}
-
-      {/* Tagline */}
-      <p
-        className="process-tagline font-inter uppercase tracking-[0.5em] text-[#F5F0E8] mt-10"
-        style={{ fontSize: '10px', opacity: 0 }}
+      <span
+        className="inline-flex items-center rounded-full px-6 py-2.5 text-[12px] uppercase tracking-[0.28em] font-inter font-medium"
+        style={{ background: INK, color: CREAM }}
       >
-        Production starts in days, not months
+        Formme
+      </span>
+
+      <p
+        className="mt-14 font-dm-sans font-medium text-center"
+        style={{ color: INK, fontSize: 'clamp(22px, 2.8vw, 32px)' }}
+      >
+        One place for every order.
+      </p>
+      <p
+        className="mt-4 max-w-md text-center font-inter font-light leading-relaxed"
+        style={{ color: MUTED2, fontSize: '15px' }}
+      >
+        Production status, approvals, documents and timelines stay connected from order to shipment.
       </p>
     </div>
+  </section>
+);
+
+/* ════════════════════════════════════════════════
+   PRODUCTION FLOW — flagship product-demo section
+════════════════════════════════════════════════ */
+const flowStages = [
+  { label: 'Order', rows: [['PO', '#FM-2841'], ['Factory', 'Supreme Stitch'], ['Quantity', '600 pcs']] },
+  { label: 'Development', rows: [['Tech pack', 'Approved'], ['Fabric sourcing', 'Confirmed'], ['Costing', 'Signed off']] },
+  { label: 'Sample', rows: [['Proto', 'Approved'], ['Fit revision', '1 round'], ['PP sample', 'Approved']] },
+  { label: 'Production', rows: [['Cutting', '✓'], ['Sewing', '72%'], ['Finishing', '—'], ['QC', '—'], ['Packing', '—']] },
+  { label: 'QC', rows: [['Fabric', '✓'], ['Measurements', '✓'], ['Stitching', '✓'], ['Final inspection', 'In progress']] },
+  { label: 'Shipment', rows: [['Packed', '✓'], ['Documents', '✓'], ['Carrier', 'DHL'], ['ETA', 'Sep 08']] },
+];
+
+const FlowPanel = ({ active }: { active: number }) => (
+  <div
+    className="relative w-full rounded-[18px] overflow-hidden px-7 py-8 md:px-9 md:py-10"
+    style={{ background: INK_PANEL, minHeight: 280 }}
+  >
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={active}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+      >
+        <p className="text-[10px] uppercase tracking-[0.35em] font-inter mb-6" style={{ color: MUTED2 }}>
+          {String(active + 1).padStart(2, '0')} — {flowStages[active].label}
+        </p>
+        <div className="flex flex-col gap-4">
+          {flowStages[active].rows.map(([l, v]) => (
+            <div key={l} className="flex items-baseline justify-between border-b pb-3" style={{ borderColor: 'rgba(245,240,232,0.1)' }}>
+              <span className="text-[13px] font-inter" style={{ color: MUTED }}>{l}</span>
+              <span
+                className="text-[14px] font-dm-sans"
+                style={{ color: v === '✓' ? '#8FBF9A' : v === '—' ? MUTED2 : CREAM }}
+              >
+                {v}
+              </span>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  </div>
+);
+
+const FlowStepper = ({ active, onSelect }: { active: number; onSelect?: (i: number) => void }) => (
+  <div className="relative flex flex-col">
+    {flowStages.map((s, i) => (
+      <button
+        key={s.label}
+        type="button"
+        onClick={() => onSelect?.(i)}
+        className="relative flex items-center gap-5 py-4 text-left"
+      >
+        {i < flowStages.length - 1 && (
+          <span
+            className="absolute left-[7px] top-[22px] w-px transition-colors duration-500"
+            style={{ height: 'calc(100% - 6px)', background: i < active ? ACCENT : BORDER }}
+          />
+        )}
+        <span
+          className="relative z-10 w-[15px] h-[15px] rounded-full border-2 flex-shrink-0 transition-colors duration-300"
+          style={{
+            borderColor: i <= active ? ACCENT : BORDER,
+            background: i <= active ? ACCENT : CREAM,
+          }}
+        />
+        <span className="flex items-baseline gap-3">
+          <span className="text-[10px] font-inter" style={{ color: MUTED }}>
+            {String(i + 1).padStart(2, '0')}
+          </span>
+          <span
+            className="text-[15px] uppercase tracking-[0.1em] font-inter transition-colors duration-300"
+            style={{ color: i === active ? INK : MUTED2 }}
+          >
+            {s.label}
+          </span>
+        </span>
+      </button>
+    ))}
+  </div>
+);
+
+const ProductionFlowSection = () => {
+  const [active, setActive] = useState(0);
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      ScrollTrigger.matchMedia({
+        '(min-width: 768px)': () => {
+          ScrollTrigger.create({
+            trigger: sectionRef.current,
+            start: 'top top',
+            end: () => '+=' + window.innerHeight * 3.8,
+            pin: true,
+            scrub: 1,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              const idx = Math.min(flowStages.length - 1, Math.floor(self.progress * flowStages.length));
+              setActive(idx);
+            },
+          });
+        },
+      });
+    }, sectionRef);
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <section id="product" ref={sectionRef} className="relative py-32 md:py-0 md:h-screen md:flex md:items-center px-6 border-t" style={{ borderColor: BORDER, background: CREAM }}>
+      <div className="mx-auto max-w-[1200px] w-full">
+        <div className="max-w-2xl mb-16 md:mb-20">
+          <Eyebrow>The product</Eyebrow>
+          <h2
+            className="reveal font-dm-sans font-medium leading-[1.06] tracking-[-0.015em]"
+            style={{ color: INK, fontSize: 'clamp(28px, 4vw, 50px)' }}
+          >
+            One system. From order to shipment.
+          </h2>
+        </div>
+
+        {/* Desktop — scroll-driven */}
+        <div className="hidden md:grid grid-cols-[1.1fr_0.9fr] gap-16 items-start">
+          <div>
+            <FlowStepper active={active} onSelect={setActive} />
+          </div>
+          <FlowPanel active={active} />
+        </div>
+
+        {/* Mobile — static stacked list */}
+        <div className="md:hidden flex flex-col gap-10">
+          {flowStages.map((s, i) => (
+            <div key={s.label} className="reveal">
+              <p className="text-[11px] uppercase tracking-[0.24em] font-inter mb-4" style={{ color: ACCENT }}>
+                {String(i + 1).padStart(2, '0')} — {s.label}
+              </p>
+              <div
+                className="rounded-[16px] px-6 py-6 flex flex-col gap-3"
+                style={{ background: INK_PANEL }}
+              >
+                {s.rows.map(([l, v]) => (
+                  <div key={l} className="flex items-baseline justify-between border-b pb-2.5" style={{ borderColor: 'rgba(245,240,232,0.1)' }}>
+                    <span className="text-[12px] font-inter" style={{ color: MUTED }}>{l}</span>
+                    <span className="text-[13px] font-dm-sans" style={{ color: v === '✓' ? '#8FBF9A' : v === '—' ? MUTED2 : CREAM }}>{v}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ════════════════════════════════════════════════
+   FACTORIES
+════════════════════════════════════════════════ */
+const FactoriesSection = () => (
+  <section id="factories" className="py-32 md:py-40 px-6 border-t" style={{ borderColor: BORDER }}>
+    <div className="mx-auto max-w-[1300px] grid md:grid-cols-2 gap-14 md:gap-20 items-center">
+      <div className="reveal order-2 md:order-1">
+        <Eyebrow>For manufacturers</Eyebrow>
+        <h2
+          className="font-dm-sans font-medium leading-[1.06] tracking-[-0.015em] mb-6"
+          style={{ color: INK, fontSize: 'clamp(28px, 3.6vw, 46px)' }}
+        >
+          Run production from one system.
+        </h2>
+        <p className="font-inter font-light leading-relaxed max-w-md" style={{ color: MUTED2, fontSize: '16px' }}>
+          Manage orders, sampling, production, quality and shipments without scattered spreadsheets and messages.
+        </p>
+      </div>
+
+      <div className="reveal order-1 md:order-2 relative rounded-[18px] overflow-hidden" style={{ aspectRatio: '4 / 5' }}>
+        <img src="/factory.jpg" alt="Factory floor running production on formme" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(13,13,13,0) 40%, rgba(13,13,13,0.55) 100%)' }} />
+
+        <div
+          className="absolute left-5 right-5 bottom-5 rounded-xl px-5 py-4 backdrop-blur-sm"
+          style={{ background: 'rgba(20,18,16,0.78)', border: '1px solid rgba(245,240,232,0.14)' }}
+        >
+          <p className="text-[9px] uppercase tracking-[0.24em] font-inter mb-3" style={{ color: MUTED2 }}>Order queue</p>
+          <div className="flex flex-col gap-2.5">
+            {[
+              ['FM-2841', 'Oversized Hoodie', 'Sewing'],
+              ['FM-2838', 'Crewneck', 'Cutting'],
+              ['FM-2831', 'Track Pant', 'QC'],
+            ].map(([po, style, stage]) => (
+              <div key={po} className="flex items-center justify-between text-[12px] font-inter" style={{ color: CREAM }}>
+                <span style={{ color: MUTED }}>{po}</span>
+                <span className="flex-1 mx-3 truncate">{style}</span>
+                <span style={{ color: ACCENT }}>{stage}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+/* ════════════════════════════════════════════════
+   BRANDS
+════════════════════════════════════════════════ */
+const BrandsSection = () => (
+  <section id="brands" className="py-32 md:py-40 px-6 border-t" style={{ borderColor: BORDER }}>
+    <div className="mx-auto max-w-[1300px] grid md:grid-cols-2 gap-14 md:gap-20 items-center">
+      <div className="reveal relative rounded-[18px] overflow-hidden" style={{ background: INK_PANEL, aspectRatio: '4 / 5' }}>
+        <img
+          src="/mockupHoodie.png"
+          alt="Brand-facing order tracking on formme"
+          className="absolute inset-0 w-full h-full object-contain scale-[0.7] opacity-80"
+          loading="lazy"
+        />
+
+        <div
+          className="absolute left-5 right-5 top-5 rounded-xl px-5 py-5 backdrop-blur-sm"
+          style={{ background: 'rgba(20,18,16,0.8)', border: '1px solid rgba(245,240,232,0.14)' }}
+        >
+          <div className="flex items-baseline justify-between mb-5">
+            <div>
+              <p className="text-[9px] uppercase tracking-[0.24em] font-inter mb-1.5" style={{ color: MUTED2 }}>Order #2841</p>
+              <p className="text-[14px] font-dm-sans" style={{ color: CREAM }}>Oversized Hoodie · 600 units</p>
+            </div>
+            <span className="text-[20px] font-dm-sans font-medium" style={{ color: ACCENT }}>72%</span>
+          </div>
+
+          <div className="w-full h-[3px] rounded-full overflow-hidden mb-6" style={{ background: 'rgba(245,240,232,0.14)' }}>
+            <div className="h-full rounded-full" style={{ width: '72%', background: ACCENT }} />
+          </div>
+
+          <div className="grid grid-cols-2 gap-5">
+            <Tag label="Current stage" value="Sewing" />
+            <Tag label="Expected completion" value="8 Sep" />
+          </div>
+
+          <div className="mt-5 pt-4 border-t" style={{ borderColor: 'rgba(245,240,232,0.1)' }}>
+            <Tag label="Latest update" value="Line 04 · 2 hours ago" />
+          </div>
+        </div>
+      </div>
+
+      <div className="reveal">
+        <Eyebrow>For brands</Eyebrow>
+        <h2
+          className="font-dm-sans font-medium leading-[1.06] tracking-[-0.015em] mb-6"
+          style={{ color: INK, fontSize: 'clamp(28px, 3.6vw, 46px)' }}
+        >
+          See what's happening without asking what's happening.
+        </h2>
+        <p className="font-inter font-light leading-relaxed max-w-md" style={{ color: MUTED2, fontSize: '16px' }}>
+          Every stage your factory logs — sampling, cutting, sewing, QC, shipping — updates your order in real time. No status-check messages required.
+        </p>
+      </div>
+    </div>
+  </section>
+);
+
+/* ════════════════════════════════════════════════
+   SUPREME STITCH — built with manufacturers
+════════════════════════════════════════════════ */
+const SupremeStitchSection = ({ prefersReduced }: { prefersReduced: boolean }) => (
+  <section className="relative py-40 md:py-52 px-6 overflow-hidden border-t" style={{ borderColor: BORDER }} aria-label="Built with Supreme Stitch">
+    <div className="absolute inset-0">
+      {!prefersReduced ? (
+        <video className="w-full h-full object-cover" autoPlay muted loop playsInline preload="metadata">
+          <source src="/CraftsmanshipVideo.mp4" type="video/mp4" />
+        </video>
+      ) : (
+        <img src="/factory.jpg" alt="" className="w-full h-full object-cover" />
+      )}
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(13,13,13,0.55) 0%, rgba(13,13,13,0.78) 100%)' }} />
+    </div>
+
+    <div className="relative z-10 mx-auto max-w-3xl text-center">
+      <Eyebrow dark>Built with manufacturers</Eyebrow>
+      <h2
+        className="reveal font-dm-sans font-medium leading-[1.1] tracking-[-0.015em] mb-8"
+        style={{ color: CREAM, fontSize: 'clamp(30px, 4.6vw, 58px)' }}
+      >
+        Software designed on the factory floor.
+      </h2>
+      <p className="reveal font-cormorant italic font-light" style={{ color: 'rgba(245,240,232,0.75)', fontSize: 'clamp(20px, 2.4vw, 30px)' }}>
+        Supreme Stitch <span style={{ color: ACCENT }}>×</span> Formme
+      </p>
+
+      <div className="reveal mt-14 flex flex-wrap items-center justify-center gap-x-12 gap-y-6">
+        <TagDarkOnDark label="Factory" value="Supreme Stitch" />
+        <TagDarkOnDark label="Location" value="Dhaka, Bangladesh" />
+        <TagDarkOnDark label="Status" value="Onboarding onto formme" />
+      </div>
+
+      <a
+        href="https://www.supremegroupbd.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="reveal inline-flex items-center gap-2 mt-14 text-[12px] uppercase tracking-[0.24em] font-inter"
+        style={{ color: CREAM, borderBottom: '1px solid rgba(245,240,232,0.35)', paddingBottom: 4 }}
+      >
+        supremegroupbd.com <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </section>
+);
+
+const TagDarkOnDark = ({ label, value }: { label: string; value: string }) => (
+  <div className="flex flex-col gap-1.5 items-center">
+    <span className="text-[9px] uppercase tracking-[0.24em] font-inter" style={{ color: 'rgba(245,240,232,0.45)' }}>
+      {label}
+    </span>
+    <span className="text-[14px] font-dm-sans" style={{ color: CREAM }}>
+      {value}
+    </span>
+  </div>
+);
+
+/* ════════════════════════════════════════════════
+   FINAL CTA
+════════════════════════════════════════════════ */
+const FinalCTA = ({ onBookDemo }: { onBookDemo: () => void }) => (
+  <section className="closing-cta py-40 md:py-52 px-6 flex flex-col items-center text-center" style={{ background: INK }}>
+    <h2
+      className="font-dm-sans font-medium leading-[1.08] mb-16"
+      style={{ color: CREAM, fontSize: 'clamp(34px, 6vw, 78px)' }}
+    >
+      Orders.
+      <br />
+      Production.
+      <br />
+      Quality.
+      <br />
+      Shipping.
+      <br />
+      <span style={{ color: ACCENT }}>Connected.</span>
+    </h2>
+
+    <button
+      onClick={onBookDemo}
+      className="px-8 py-4 rounded-full text-[13px] font-inter font-medium tracking-[0.06em] transition-transform duration-300 hover:-translate-y-0.5 mb-16"
+      style={{ background: CREAM, color: INK }}
+    >
+      Book a demo
+    </button>
+
+    <p className="text-[13px] tracking-[0.35em] font-inter" style={{ color: 'rgba(245,240,232,0.35)' }}>
+      FORMME
+    </p>
   </section>
 );
 
 /* ─── Page ─── */
 const Index = () => {
-  const [email, setEmail] = useState('');
   const [prefersReduced, setPrefersReduced] = useState(false);
+  const [showBookDemo, setShowBookDemo] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)');
@@ -281,272 +668,47 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    // Lenis smooth scroll only on desktop — mobile uses native scroll
-    // which is far smoother with touch momentum and avoids scroll lag on iOS/Android
+    // Read reduced-motion directly (rather than depending on the `prefersReduced`
+    // state) so this effect only ever runs once — it owns the shared Lenis
+    // instance and its cleanup kills all ScrollTriggers, including the ones
+    // ProductionFlowSection creates in its own effect, which has no way to
+    // recreate them if this effect were to re-run mid-life.
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     const isMobile = window.innerWidth < 768;
     let lenis: InstanceType<typeof Lenis> | null = null;
     let rafFn: ((time: number) => void) | null = null;
     if (!isMobile) {
       lenis = new Lenis({
-        duration: 1.5,
+        duration: 1.3,
         easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       });
       lenis.on('scroll', ScrollTrigger.update);
       rafFn = (time: number) => lenis!.raf(time * 1000);
       gsap.ticker.add(rafFn);
       gsap.ticker.lagSmoothing(0);
-    } else {
-      // On mobile, still hook native scroll into ScrollTrigger
-      ScrollTrigger.addEventListener('refresh', () => ScrollTrigger.update());
     }
 
     const ctx = gsap.context(() => {
-      const mm = gsap.matchMedia();
-
-      /* ── Desktop hero pin ── */
-      mm.add('(min-width: 768px)', () => {
-        gsap.set('.hero-line2', { opacity: 0, y: '10vh' });
-
-        const heroTl = gsap.timeline({
-          scrollTrigger: {
-            trigger: '.hero-pin',
-            start: 'top top',
-            end: '+=280vh',
-            pin: true,
-            scrub: 1.5,
-            anticipatePin: 1,
-            onLeave: () => {
-              if (lenis) lenis.scrollTo('.process-pin', { duration: 0.8 });
-            },
-          },
+      /* Hero garment — subtle parallax as page loads */
+      if (!reduced) {
+        gsap.from('.hero-garment', { opacity: 0, y: 24, duration: 1.1, ease: 'power3.out', delay: 0.15 });
+        gsap.from('.hero-chip-0, .hero-chip-1, .hero-chip-2', {
+          opacity: 0, y: 16, stagger: 0.15, duration: 0.9, ease: 'power2.out', delay: 0.5,
         });
+      }
 
-        heroTl
-          .to('.hero-you',    { x: '-44vw', scale: 1.12, ease: 'none', duration: 1 }, 0)
-          .to('.hero-design', { x:  '44vw', scale: 1.12, ease: 'none', duration: 1 }, 0)
-          .to('.hero-line2',  { opacity: 1, y: 0, ease: 'none', duration: 0.85 }, 0.45)
-          .to('.hero-you',    { opacity: 0, x: '-52vw', ease: 'none', duration: 0.9 }, 1.5)
-          .to('.hero-design', { opacity: 0, x:  '52vw', ease: 'none', duration: 0.9 }, 1.5)
-          .to('.hero-line2',  { opacity: 0, y: '10vh',  ease: 'none', duration: 0.9 }, 1.5)
-          ;
-      });
-
-      /* ── Desktop process pin ── */
-      mm.add('(min-width: 768px)', () => {
-        const processTl = gsap.timeline({
-          scrollTrigger: {
-            trigger: '.process-pin',
-            start: 'top top',
-            end: '+=500vh',
-            pin: true,
-            scrub: 1.2,
-            anticipatePin: 1,
-            onLeave: () => {
-              setTimeout(() => {
-                const target = document.querySelector('.door-pin') as HTMLElement | null;
-                if (!target) return;
-                if (lenis) {
-                  lenis.scrollTo(target, { duration: 1.0 });
-                } else {
-                  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-              }, 80);
-            },
-          },
-        });
-
-        processTl
-          // Darken background
-          .to('.process-bg', { backgroundColor: '#1A1814', ease: 'none', duration: 0.18 }, 0)
-          // Needle drops in
-          .to('.process-needle', { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.12)
-          // Thread from needle draws
-          .to('.process-thread', { scaleY: 1, ease: 'none', duration: 0.1 }, 0.22)
-          // Step 01
-          .to('.process-step-0', { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.28)
-          // Stitch 0
-          .to('.stitch-0', { scaleY: 1, ease: 'none', duration: 0.09 }, 0.40)
-          // Step 02
-          .to('.process-step-1', { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.46)
-          // Stitch 1
-          .to('.stitch-1', { scaleY: 1, ease: 'none', duration: 0.09 }, 0.57)
-          // Step 03
-          .to('.process-step-2', { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.63)
-          // Stitch 2
-          .to('.stitch-2', { scaleY: 1, ease: 'none', duration: 0.09 }, 0.73)
-          // Step 04
-          .to('.process-step-3', { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.79)
-          // Stitch 3
-          .to('.stitch-3', { scaleY: 1, ease: 'none', duration: 0.09 }, 0.88)
-          // Step 05
-          .to('.process-step-4',   { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.92)
-          // Stitch 4
-          .to('.stitch-4',         { scaleY: 1, ease: 'none', duration: 0.09 }, 0.94)
-          // Step 06 + tagline
-          .to('.process-step-5',   { opacity: 1, y: 0, ease: 'none', duration: 0.14 }, 0.96)
-          .to('.process-tagline',  { opacity: 0.28, ease: 'none', duration: 0.1 }, 0.99)
-          // Start needle bobbing once it's visible (looping tween outside scrub)
-          .call(() => {
-            gsap.to('.process-needle', {
-              y: 6, yoyo: true, repeat: -1, duration: 0.85, ease: 'sine.inOut',
-            });
-          }, undefined, 0.26);
-      });
-
-      /* ── Mobile — NO pins, NO scrub. Hero auto-plays; process+door fire once on enter. ── */
-      mm.add('(max-width: 767px)', () => {
-        // Hero: pure auto-play, no scroll dependency — avoids iOS fixed-position bugs entirely
-        gsap.set('.hero-line2', { opacity: 0 });
-
-        gsap.timeline({ delay: 0.6 })
-          .to('.hero-you',    { x: '-110vw', ease: 'power2.inOut', duration: 0.55 }, 0)
-          .to('.hero-design', { x:  '110vw', ease: 'power2.inOut', duration: 0.55 }, 0)
-          .to('.hero-line2',  { opacity: 1,  ease: 'power2.out',   duration: 0.45 }, 0.45);
-
-        // Process: set hidden, then play once when section enters viewport
-        gsap.set(['.process-needle', '.process-thread',
-                  '.process-step-0', '.process-step-1', '.process-step-2',
-                  '.process-step-3', '.process-step-4', '.process-step-5',
-                  '.stitch-0', '.stitch-1', '.stitch-2', '.stitch-3', '.stitch-4',
-                  '.process-tagline'], { opacity: 0, y: 14 });
-
-        gsap.to('.process-bg', {
-          backgroundColor: '#1A1814', duration: 0.5,
-          scrollTrigger: { trigger: '.process-pin', start: 'top 75%', once: true },
-        });
-        gsap.to(['.process-needle', '.process-thread',
-                 '.process-step-0', '.process-step-1', '.process-step-2',
-                 '.process-step-3', '.process-step-4', '.process-step-5',
-                 '.stitch-0', '.stitch-1', '.stitch-2', '.stitch-3', '.stitch-4',
-                 '.process-tagline'], {
-          opacity: 1, y: 0, stagger: 0.07, duration: 0.35, ease: 'power2.out',
-          scrollTrigger: { trigger: '.process-pin', start: 'top 65%', once: true },
-        });
-
-        // Door: auto-plays when section enters viewport, no pin/scrub
-        gsap.set(['.door-header', '.door-step-0', '.door-step-1',
-                  '.door-step-2', '.door-step-3', '.door-bottom-note'], { opacity: 0, y: 14 });
-
-        const mDoorTl = gsap.timeline({
-          paused: true,
-          scrollTrigger: {
-            trigger: '.door-pin',
-            start: 'top 80%',
-            once: true,
-            onEnter: () => mDoorTl.play(),
-          },
-        });
-        mDoorTl
-          .to('.door-left',        { x: '-100%',  ease: 'power2.inOut', duration: 0.55 })
-          .to('.door-right',       { x:  '100%',  ease: 'power2.inOut', duration: 0.55 }, '<')
-          .to('.door-seam',        { opacity: 0,  ease: 'none',         duration: 0.20 }, '<+=0.1')
-          .to('.door-header',      { opacity: 1, y: 0, ease: 'power2.out', duration: 0.30 }, '-=0.1')
-          .to('.door-step-0',      { opacity: 1, y: 0, ease: 'power2.out', duration: 0.25 }, '-=0.05')
-          .to('.door-step-1',      { opacity: 1, y: 0, ease: 'power2.out', duration: 0.25 }, '-=0.10')
-          .to('.door-step-2',      { opacity: 1, y: 0, ease: 'power2.out', duration: 0.25 }, '-=0.10')
-          .to('.door-step-3',      { opacity: 1, y: 0, ease: 'power2.out', duration: 0.25 }, '-=0.10')
-          .to('.door-bottom-note', { opacity: 1,       ease: 'power2.out', duration: 0.20 }, '-=0.05');
-      });
-
-      /* ── Door: factory reveal ── */
-      mm.add('(min-width: 768px)', () => {
-        const doorTl = gsap.timeline({
-          scrollTrigger: {
-            trigger: '.door-pin',
-            start: 'top top',
-            end: '+=400vh',
-            pin: true,
-            scrub: 1.5,
-            anticipatePin: 1,
-            onLeave: () => {
-              setTimeout(() => {
-                const target = document.querySelector('.chat-section') as HTMLElement | null;
-                if (!target) return;
-                if (lenis) {
-                  lenis.scrollTo(target, { duration: 1.0 });
-                } else {
-                  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-              }, 80);
-            },
-          },
-        });
-
-        doorTl
-          // Doors swing open
-          .to('.door-left',         { rotateY: -90, ease: 'none', duration: 0.46 }, 0)
-          .to('.door-right',        { rotateY:  90, ease: 'none', duration: 0.46 }, 0)
-          .to('.door-seam',         { opacity: 0,   ease: 'none', duration: 0.14 }, 0.16)
-          // Header fades in
-          .to('.door-header',       { opacity: 1,   ease: 'none', duration: 0.18 }, 0.44)
-          // Step annotations stagger in with descriptions
-          .to('.door-step-0',       { opacity: 1, y: 0, ease: 'none', duration: 0.16 }, 0.54)
-          .to('.door-step-1',       { opacity: 1, y: 0, ease: 'none', duration: 0.16 }, 0.64)
-          .to('.door-step-2',       { opacity: 1, y: 0, ease: 'none', duration: 0.16 }, 0.74)
-          .to('.door-step-3',       { opacity: 1, y: 0, ease: 'none', duration: 0.16 }, 0.83)
-          // Bottom note last
-          .to('.door-bottom-note',  { opacity: 1,   ease: 'none', duration: 0.14 }, 0.92);
-      });
-
-      /* ── Chat: alternating x-slide ── */
-      const chatTl = gsap.timeline({
-        scrollTrigger: { trigger: '.chat-ui-wrap', start: 'top 78%', once: true },
-      });
-      gsap.utils.toArray<HTMLElement>('.chat-msg').forEach((el, i) => {
-        const fromBrand = el.classList.contains('msg-from-brand');
-        chatTl.from(el, { opacity: 0, x: fromBrand ? 32 : -32, duration: 0.7, ease: 'power2.out' }, i * 0.44);
-      });
-
-      /* ── Pain: stacked → separated (scrub) ── */
-      gsap.set('.pain-line-0', { y: '1.5em' });
-      gsap.set('.pain-line-2', { y: '-1.5em' });
-      gsap.timeline({
-        scrollTrigger: { trigger: '.pain-section', start: 'top 72%', end: 'center 48%', scrub: 1.2 },
-      })
-        .to('.pain-line-0', { y: 0, ease: 'none' }, 0)
-        .to('.pain-line-2', { y: 0, ease: 'none' }, 0);
-
-      /* ── Stats: count up ── */
-      const statDefs = [
-        { sel: '.stat-count-0', from: 0,   to: 8,   suffix: '',  dur: 2.0 },
-        { sel: '.stat-count-1', from: 0,   to: 4,   suffix: '',  dur: 2.2 },
-        { sel: '.stat-count-2', from: 12,  to: 0,   suffix: '',  dur: 2.8 },
-        { sel: '.stat-count-3', from: 0,   to: 500, suffix: '+', dur: 2.5 },
-      ];
-      statDefs.forEach(({ sel, from, to, suffix, dur }) => {
-        const obj = { val: from };
-        const el = document.querySelector<HTMLElement>(sel);
-        if (!el) return;
-        el.textContent = from + suffix;
-        gsap.to(obj, {
-          val: to, duration: dur, ease: 'power2.out',
-          scrollTrigger: { trigger: sel, start: 'top 88%', once: true },
-          onUpdate() { el.textContent = Math.round(obj.val) + suffix; },
-        });
-      });
-
-      /* ── Generic reveals ── */
+      /* Generic reveals */
       gsap.utils.toArray<Element>('.reveal').forEach((el) => {
         gsap.from(el, {
-          opacity: 0, y: 32, duration: 1.2, ease: 'power3.out',
-          scrollTrigger: { trigger: el, start: 'top 88%', once: true },
+          opacity: 0, y: 28, duration: 1, ease: 'power3.out',
+          scrollTrigger: { trigger: el, start: 'top 90%', once: true },
         });
-      });
-
-      gsap.from('.service-item', {
-        opacity: 0, x: -20, stagger: 0.1, duration: 0.9, ease: 'power2.out',
-        scrollTrigger: { trigger: '.services-list', start: 'top 85%', once: true },
-      });
-
-      gsap.from('.closing-cta', {
-        opacity: 0, y: 28, duration: 1.2, ease: 'power3.out',
-        scrollTrigger: { trigger: '.closing-cta', start: 'top 88%', once: true },
       });
     });
 
     return () => {
       ctx.revert();
-      ScrollTrigger.getAll().forEach(t => t.kill());
+      ScrollTrigger.getAll().forEach((t) => t.kill());
       if (lenis) {
         lenis.destroy();
         if (rafFn) gsap.ticker.remove(rafFn);
@@ -555,248 +717,25 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#F5F0E8] text-[#0D0D0D] overflow-x-hidden">
+    <div className="min-h-screen overflow-x-hidden" style={{ background: CREAM, color: INK }}>
       <SEO
         canonical="/"
-        description="formme helps independent fashion brands find reliable clothing manufacturers. Upload a tech pack, get matched with vetted factories, and manage your entire production pipeline in one place."
+        description="Formme is the operating system for fashion production — connecting factories, sourcing teams and brands from purchase order to shipment, with live tracking, sampling and quality control in one place."
       />
-      <NavBar />
 
-      {/* ════════════════════════════════════════════════
-          HERO — Desktop pinned scroll transform
-      ════════════════════════════════════════════════ */}
-      <section className="hero-pin relative h-screen overflow-hidden" aria-label="Hero" style={{ touchAction: 'pan-y' }}>
-        {!prefersReduced ? (
-          <>
-            <video
-              className="absolute inset-0 w-full h-full object-cover blur-[28px] scale-110 hidden md:block"
-              autoPlay muted loop playsInline preload="metadata"
-            >
-              <source src="/backgroundVideo.mp4" type="video/mp4" />
-            </video>
-            <div className="absolute inset-0 bg-[#F5F0E8]/60 hidden md:block" />
-          </>
-        ) : null}
-        <div className="absolute inset-0 bg-[#F5F0E8] md:hidden" />
+      <LandingHeader onBookDemo={() => setShowBookDemo(true)} />
 
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-          <span
-            className="hero-you font-cormorant font-light text-[#0D0D0D] whitespace-nowrap"
-            style={{ fontSize: 'clamp(56px, 12vw, 180px)', display: 'inline-block' }}
-          >
-            YOU
-          </span>
-          <span aria-hidden="true" style={{ display: 'inline-block', width: '0.22em', fontSize: 'clamp(56px, 12vw, 180px)' }} />
-          <span
-            className="hero-design font-cormorant font-light text-[#0D0D0D] whitespace-nowrap"
-            style={{ fontSize: 'clamp(56px, 12vw, 180px)', display: 'inline-block' }}
-          >
-            DESIGN.
-          </span>
-        </div>
-
-        <div className="hero-line2 absolute inset-0 flex items-center justify-center pointer-events-none select-none px-6">
-          <span
-            className="font-cormorant font-light text-[#0D0D0D] text-center leading-tight"
-            style={{ fontSize: 'clamp(48px, 10vw, 106px)' }}
-          >
-            WE HANDLE THE REST.
-          </span>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════
-          PROCESS — dark pinned stitch reveal
-      ════════════════════════════════════════════════ */}
-      <ProcessSection />
-
-      {/* ════════════════════════════════════════════════
-          DOOR — factory reveal
-      ════════════════════════════════════════════════ */}
-      <DoorSection />
-
-      {/* ════════════════════════════════════════════════
-          CREDIBILITY BAR
-      ════════════════════════════════════════════════ */}
-      <section className="border-y border-[#E8E3DA] py-12 px-6 reveal">
-        <div className="mx-auto flex w-full max-w-[1400px] flex-col sm:flex-row items-center justify-center gap-y-3 gap-x-6 text-center">
-          <p className="text-[11px] uppercase tracking-[0.42em] text-[#AEAEAA] font-inter flex-shrink-0">
-            Our manufacturers have produced for
-          </p>
-          <span className="hidden sm:block text-[#D0C8BC] text-lg">·</span>
-          <p className="font-cormorant font-light text-[#0D0D0D]" style={{ fontSize: 'clamp(16px, 2.2vw, 28px)', letterSpacing: '0.08em' }}>
-            Walmart&nbsp;&nbsp;·&nbsp;&nbsp;Old Navy&nbsp;&nbsp;·&nbsp;&nbsp;Costco&nbsp;&nbsp;·&nbsp;&nbsp;Fanatics&nbsp;&nbsp;·&nbsp;&nbsp;Champions&nbsp;&nbsp;·&nbsp;&nbsp;US Polo Assn
-          </p>
-        </div>
-        <div className="mx-auto mt-6 flex w-full max-w-[1400px] flex-col sm:flex-row items-center justify-center gap-y-2 gap-x-3 text-center">
-          <p className="text-[10px] uppercase tracking-[0.38em] text-[#AEAEAA]/70 font-inter">
-            Factories now onboarding onto formme's ERP — starting with{' '}
-            <a
-              href="https://www.supremegroupbd.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#0D0D0D] underline decoration-[#D0C8BC] underline-offset-4 hover:text-[#C97B5A] transition-colors"
-            >
-              Supreme Stitch, Bangladesh
-            </a>
-          </p>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════
-          PRODUCT CHAT
-      ════════════════════════════════════════════════ */}
-      <section className="chat-section py-40 md:py-44 px-6 flex flex-col items-center border-b border-[#E8E3DA]">
-        <p className="reveal text-[10px] uppercase tracking-[0.45em] text-[#AEAEAA] font-inter mb-6 text-center">
-          What formme does
-        </p>
-        <p className="reveal font-cormorant font-light text-[#0D0D0D] text-center mb-24 leading-[1.2]" style={{ fontSize: 'clamp(28px, 3.5vw, 48px)' }}>
-          Every production problem, handled.
-        </p>
-        <ChatUI />
-      </section>
-
-      {/* ════════════════════════════════════════════════
-          PAIN — stacked lines separate on scroll
-      ════════════════════════════════════════════════ */}
-      <section className="pain-section py-40 md:py-48 px-6 text-center overflow-hidden border-b border-[#E8E3DA]">
-        <div className="max-w-3xl mx-auto">
-          <p className="reveal text-[10px] uppercase tracking-[0.45em] text-[#AEAEAA] font-inter mb-16">
-            The reality of production
-          </p>
-          <p className="pain-line-0 font-cormorant font-light text-[#0D0D0D] leading-[1.25]" style={{ fontSize: 'clamp(24px, 4vw, 54px)' }}>
-            Factories go quiet.
-          </p>
-          <p className="pain-line-1 font-cormorant font-light text-[#0D0D0D] leading-[1.25]" style={{ fontSize: 'clamp(24px, 4vw, 54px)' }}>
-            Samples come back wrong.
-          </p>
-          <p className="pain-line-2 font-cormorant font-light italic text-[#0D0D0D] leading-[1.25]" style={{ fontSize: 'clamp(24px, 4vw, 54px)' }}>
-            You're running production instead of your brand.
-          </p>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════
-          WHAT WE HANDLE
-      ════════════════════════════════════════════════ */}
-      <section className="py-40 md:py-44 px-6 md:px-16 border-b border-[#E8E3DA]">
-        <div className="max-w-5xl mx-auto grid md:grid-cols-[1.05fr_0.95fr] gap-16 md:gap-24 items-start">
-          <div>
-            <p className="reveal text-[10px] uppercase tracking-[0.45em] text-[#AEAEAA] font-inter mb-6">
-              What we handle
-            </p>
-            <h3 className="reveal font-cormorant font-medium text-[#0D0D0D] leading-[1.06]" style={{ fontSize: 'clamp(34px, 4.8vw, 68px)' }}>
-              Everything between your design and the final garment.
-            </h3>
-          </div>
-          <div className="services-list pt-2">
-            {[
-              'Tech pack generation',
-              'Manufacturer matching & costing',
-              'Proto, fit & PP sampling rounds',
-              'Production, QC & delivery',
-            ].map((item, i, arr) => (
-              <div
-                key={i}
-                className={`service-item flex items-baseline gap-6 py-7 ${i < arr.length - 1 ? 'border-b border-[#E8E3DA]' : ''}`}
-              >
-                <span className="text-[#AEAEAA] font-inter text-sm font-light select-none flex-shrink-0">—</span>
-                <span className="text-[17px] font-dm-sans font-light text-[#0D0D0D] tracking-[-0.01em] leading-snug">{item}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════
-          STATS — count up
-      ════════════════════════════════════════════════ */}
-      <section className="py-44 md:py-48 px-6 border-b border-[#E8E3DA]">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-10 text-center">
-          {[
-            { cls: 'stat-count-0', init: '0',  label: 'vetted\nmanufacturers', sub: 'BGD · IND · CHN · PAK · CAN' },
-            { cls: 'stat-count-1', init: '0',  label: 'brands\nin production',  sub: null },
-            { cls: 'stat-count-3', init: '0',  label: 'garments under\nproduction', sub: null },
-            { cls: 'stat-count-2', init: '12', label: 'production fires\nyou ever fight', sub: null },
-          ].map(({ cls, init, label, sub }) => (
-            <div key={cls} className="flex flex-col items-center gap-4">
-              <span
-                className={`${cls} font-cormorant font-light text-[#0D0D0D] leading-none`}
-                style={{ fontSize: 'clamp(60px, 10vw, 140px)' }}
-              >
-                {init}
-              </span>
-              <div className="flex flex-col items-center gap-1.5">
-                <p className="text-[10px] uppercase tracking-[0.38em] text-[#AEAEAA] font-inter leading-[1.9] whitespace-pre-line text-center">
-                  {label}
-                </p>
-                {sub && (
-                  <p className="text-[10px] tracking-[0.12em] text-[#AEAEAA]/60 font-inter font-light text-center">
-                    {sub}
-                  </p>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════
-          SOCIAL PROOF LINE
-      ════════════════════════════════════════════════ */}
-      <section className="py-32 md:py-36 px-6 reveal border-b border-[#E8E3DA]">
-        <p className="text-center text-[10px] uppercase tracking-[0.5em] text-[#AEAEAA] font-inter">
-          Now working with independent brands across North America
-        </p>
-      </section>
-
-      {/* ════════════════════════════════════════════════
-          CLOSING CTA — dark
-      ════════════════════════════════════════════════ */}
-      <section className="closing-cta bg-[#0D0D0D] py-44 md:py-48 px-6 flex flex-col items-center text-center">
-        <p className="text-[10px] uppercase tracking-[0.45em] text-[#555550] font-inter mb-8">
-          Early access
-        </p>
-        <h2
-          className="font-cormorant font-light text-white leading-[1.08] mb-14 max-w-xl"
-          style={{ fontSize: 'clamp(34px, 5.5vw, 76px)' }}
-        >
-          Ready to only think about design?
-        </h2>
-
-        <form
-          className="flex items-end border-b border-[#333330] w-full max-w-[320px] mb-10"
-          onSubmit={(e) => {
-            e.preventDefault();
-            window.location.href = `/auth?mode=signup&email=${encodeURIComponent(email)}`;
-          }}
-        >
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="your@email.com"
-            required
-            className="flex-1 pb-3 pt-1 text-[13px] bg-transparent outline-none font-dm-sans font-light text-white placeholder:text-[#555550]"
-          />
-          <button
-            type="submit"
-            className="pb-3 pt-1 pl-3 text-base font-light text-white hover:text-[#C97B5A] transition-colors duration-300"
-            aria-label="Submit"
-          >
-            →
-          </button>
-        </form>
-
-        <p className="text-[12px] text-[#555550] font-inter font-light">
-          or write to us at{' '}
-          <a href="mailto:formme.design@gmail.com" className="cta-link text-[#AEAEAA] text-[12px]">
-            formme.design@gmail.com
-          </a>
-        </p>
-      </section>
+      <Hero onBookDemo={() => setShowBookDemo(true)} prefersReduced={prefersReduced} />
+      <ProblemSection />
+      <ProductionFlowSection />
+      <FactoriesSection />
+      <BrandsSection />
+      <SupremeStitchSection prefersReduced={prefersReduced} />
+      <FinalCTA onBookDemo={() => setShowBookDemo(true)} />
 
       <Footer />
+
+      <BookDemoModal open={showBookDemo} onOpenChange={setShowBookDemo} />
     </div>
   );
 };

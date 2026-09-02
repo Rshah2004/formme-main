@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -106,6 +106,29 @@
 .hero-word {
   display: inline-block;
   will-change: transform, opacity;
+}
+
+/* ── Landing: soft floating chip ── */
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-8px); }
+}
+.float-soft {
+  animation: float-soft 5.5s ease-in-out infinite;
+}
+.float-soft-delay {
+  animation: float-soft 5.5s ease-in-out infinite;
+  animation-delay: 1.2s;
+}
+
+/* ── Landing: connecting line pulse (fragmented-tools section) ── */
+@keyframes line-flow {
+  0%   { stroke-dashoffset: 24; }
+  100% { stroke-dashoffset: 0; }
+}
+.line-flow {
+  stroke-dasharray: 4 4;
+  animation: line-flow 1.2s linear infinite;
 }
 
 /* ── Existing component utilities (preserved for non-landing pages) ── */
