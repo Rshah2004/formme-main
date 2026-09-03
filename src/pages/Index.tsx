@@ -688,6 +688,22 @@ const StatPair = ({ label, value, color }: { label: string; value: string; color
   </div>
 );
 
+/* Per-card step badge shown only below md, where the shared dashed header row is hidden */
+const MobileStepLabel = ({ n, label }: { n: string; label: string }) => (
+  <div className="flex md:hidden items-center gap-2 mb-3">
+    <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-inter font-semibold flex-shrink-0" style={{ border: `1.5px solid ${PURPLE}`, color: PURPLE }}>{n}</span>
+    <span className="text-[12px] font-inter font-medium" style={{ color: INK }}>{label}</span>
+  </div>
+);
+
+/* Connector between workflow cards — a down arrow stacked on mobile, a right arrow inline on desktop */
+const StepArrow = () => (
+  <div className="flex items-center justify-center flex-shrink-0 py-1 md:py-0">
+    <ArrowDown className="w-4 h-4 md:hidden" style={{ color: MUTED, opacity: 0.5 }} />
+    <ArrowRight className="w-4 h-4 hidden md:block" style={{ color: MUTED, opacity: 0.5 }} />
+  </div>
+);
+
 const WorkflowSection = () => (
   <section id="product" className="py-20 md:py-24 px-6" style={{ background: LAVENDER }}>
     <div className="mx-auto max-w-[1300px]">
@@ -716,11 +732,11 @@ const WorkflowSection = () => (
         ))}
       </div>
 
-      <div className="reveal grid grid-cols-2 md:flex md:items-stretch gap-4">
+      <div className="reveal flex flex-col md:flex-row md:items-stretch gap-4">
         <div className="md:flex-1 md:min-w-0">
-          <p className="md:hidden text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>01 &nbsp; Tech Pack</p>
+          <MobileStepLabel n="01" label="Tech Pack" />
           <WorkflowStepCard>
-            <div className="rounded-lg mb-3 flex items-center justify-center p-4" style={{ background: '#F7F6FB', aspectRatio: '4/3' }}>
+            <div className="rounded-lg mb-3 flex items-center justify-center p-4" style={{ aspectRatio: '4/3' }}>
               <img
                 src="/mockupHoodieFront.png"
                 alt="Tech pack sketch"
@@ -741,14 +757,12 @@ const WorkflowSection = () => (
           </WorkflowStepCard>
         </div>
 
-        <div className="hidden md:flex items-center justify-center flex-shrink-0">
-          <ArrowRight className="w-4 h-4" style={{ color: MUTED, opacity: 0.5 }} />
-        </div>
+        <StepArrow />
 
         <div className="md:flex-1 md:min-w-0">
-          <p className="md:hidden text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>02 &nbsp; Sampling</p>
+          <MobileStepLabel n="02" label="Sampling" />
           <WorkflowStepCard>
-            <div className="rounded-lg mb-3 overflow-hidden" style={{ background: DARK_PANEL, aspectRatio: '4/3' }}>
+            <div className="rounded-lg mb-3 overflow-hidden" style={{ aspectRatio: '4/3' }}>
               <img src="/mockupHoodieFront.png" alt="Sample" className="w-full h-full object-cover object-top scale-125" loading="lazy" />
             </div>
             <p className="text-[9px] uppercase tracking-[0.08em] font-inter mb-2" style={{ color: MUTED }}>Fit & approvals</p>
@@ -764,12 +778,10 @@ const WorkflowSection = () => (
           </WorkflowStepCard>
         </div>
 
-        <div className="hidden md:flex items-center justify-center flex-shrink-0">
-          <ArrowRight className="w-4 h-4" style={{ color: MUTED, opacity: 0.5 }} />
-        </div>
+        <StepArrow />
 
         <div className="md:flex-1 md:min-w-0">
-          <p className="md:hidden text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>03 &nbsp; Production</p>
+          <MobileStepLabel n="03" label="Production" />
           <WorkflowStepCard>
             <div className="flex flex-col gap-2.5">
               {productionRows.map((r) => (
@@ -788,12 +800,10 @@ const WorkflowSection = () => (
           </WorkflowStepCard>
         </div>
 
-        <div className="hidden md:flex items-center justify-center flex-shrink-0">
-          <ArrowRight className="w-4 h-4" style={{ color: MUTED, opacity: 0.5 }} />
-        </div>
+        <StepArrow />
 
         <div className="md:flex-1 md:min-w-0">
-          <p className="md:hidden text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>04 &nbsp; Quality</p>
+          <MobileStepLabel n="04" label="Quality" />
           <WorkflowStepCard>
             <div className="flex flex-col gap-3">
               <StatPair label="Inspection" value="Line 04" />
@@ -803,12 +813,10 @@ const WorkflowSection = () => (
           </WorkflowStepCard>
         </div>
 
-        <div className="hidden md:flex items-center justify-center flex-shrink-0">
-          <ArrowRight className="w-4 h-4" style={{ color: MUTED, opacity: 0.5 }} />
-        </div>
+        <StepArrow />
 
         <div className="md:flex-1 md:min-w-0">
-          <p className="md:hidden text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>05 &nbsp; Shipment</p>
+          <MobileStepLabel n="05" label="Shipment" />
           <WorkflowStepCard>
             <div className="flex flex-col gap-3">
               <StatPair label="Ready to ship" value="600 PCS" />
