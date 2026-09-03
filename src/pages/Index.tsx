@@ -256,27 +256,16 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
               <div className="hero-step2 relative z-10 flex flex-col items-center py-4">
                 <div className="relative w-[240px]" style={{ aspectRatio: '766 / 912' }}>
                   <div
-                    className="absolute -inset-10 rounded-full pointer-events-none"
-                    style={{ background: `radial-gradient(closest-side, ${PURPLE_BG}, transparent)` }}
-                  />
-                  <div
                     className="absolute inset-0"
                     style={{
                       backgroundImage: 'url(/mockupHoodieFront.png)',
                       backgroundSize: '200.52% 112.28%',
                       backgroundPosition: '50% 16.96%',
                       backgroundRepeat: 'no-repeat',
-                      transform: 'rotate(-6deg)',
+                      transform: 'rotate(-3deg)',
                       filter: 'drop-shadow(0 18px 26px rgba(21,19,28,0.16))',
                     }}
                   />
-                </div>
-                <div className="relative z-10 -mt-5 rounded-2xl shadow-lg px-4 py-2.5 flex flex-col items-center gap-0.5" style={{ background: '#fff', border: `1px solid ${BORDER}` }}>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-4 h-4 rounded-md flex items-center justify-center text-[8px] font-dm-sans font-bold text-white flex-shrink-0" style={{ background: PURPLE }}>b</span>
-                    <span className="text-[12px] font-dm-sans font-semibold" style={{ color: INK }}>formme</span>
-                  </div>
-                  <span className="text-[9px] font-inter" style={{ color: MUTED }}>Connected order #FM-2841</span>
                 </div>
               </div>
 
@@ -338,27 +327,16 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
               <div className="reveal flex flex-col items-center">
                 <div className="relative w-[200px]" style={{ aspectRatio: '766 / 912' }}>
                   <div
-                    className="absolute -inset-8 rounded-full pointer-events-none"
-                    style={{ background: `radial-gradient(closest-side, ${PURPLE_BG}, transparent)` }}
-                  />
-                  <div
                     className="absolute inset-0"
                     style={{
                       backgroundImage: 'url(/mockupHoodieFront.png)',
                       backgroundSize: '200.52% 112.28%',
                       backgroundPosition: '50% 16.96%',
                       backgroundRepeat: 'no-repeat',
-                      transform: 'rotate(-6deg)',
+                      transform: 'rotate(-3deg)',
                       filter: 'drop-shadow(0 14px 20px rgba(21,19,28,0.16))',
                     }}
                   />
-                </div>
-                <div className="relative z-10 -mt-5 rounded-2xl shadow-lg px-4 py-2.5 flex flex-col items-center gap-0.5" style={{ background: '#fff', border: `1px solid ${BORDER}` }}>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-4 h-4 rounded-md flex items-center justify-center text-[8px] font-dm-sans font-bold text-white flex-shrink-0" style={{ background: PURPLE }}>b</span>
-                    <span className="text-[12px] font-dm-sans font-semibold" style={{ color: INK }}>formme</span>
-                  </div>
-                  <span className="text-[9px] font-inter" style={{ color: MUTED }}>Connected order #FM-2841</span>
                 </div>
               </div>
 
