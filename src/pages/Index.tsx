@@ -177,7 +177,27 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
       </div>
 
       {/* Diagram */}
-      <div className="hero-panel reveal mt-16 md:mt-20 grid md:grid-cols-[1fr_1.1fr_1fr] gap-8 md:gap-4 items-center">
+      <div className="hero-panel reveal relative mt-16 md:mt-20 grid md:grid-cols-[1fr_1.1fr_1fr] gap-8 md:gap-4 items-center">
+        <svg
+          className="hidden md:block absolute inset-0 w-full h-full pointer-events-none"
+          viewBox="0 0 1200 300"
+          preserveAspectRatio="none"
+          fill="none"
+          aria-hidden="true"
+        >
+          <defs>
+            <marker id="diagram-arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill={PURPLE} fillOpacity="0.45" />
+            </marker>
+            <marker id="diagram-arrow-muted" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill={MUTED} />
+            </marker>
+          </defs>
+          <path d="M 350 150 C 400 150, 410 95, 445 85" stroke={PURPLE} strokeOpacity="0.35" strokeWidth="1.5" markerEnd="url(#diagram-arrow)" />
+          <path d="M 775 95 C 810 90, 825 100, 850 110" stroke={PURPLE} strokeOpacity="0.35" strokeWidth="1.5" markerEnd="url(#diagram-arrow)" />
+          <path d="M 850 255 C 770 295, 690 285, 640 250" stroke={MUTED} strokeOpacity="0.6" strokeWidth="1.5" strokeDasharray="4 4" markerEnd="url(#diagram-arrow-muted)" />
+        </svg>
+
         {/* Input card */}
         <div className="hero-chip-0">
           <p className="text-[10px] uppercase tracking-[0.14em] font-inter font-medium mb-1" style={{ color: PURPLE }}>1 &nbsp; Input</p>
