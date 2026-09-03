@@ -219,7 +219,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
             <div className="reveal">
               <Eyebrow>Fashion production, connected</Eyebrow>
             </div>
-            <h1 className="reveal font-dm-sans font-semibold leading-[1.1] tracking-[-0.02em]" style={{ color: INK, fontSize: 'clamp(36px, 4vw, 54px)' }}>
+            <h1 className="reveal font-dm-sans font-semibold leading-[1.1] tracking-[-0.02em]" style={{ color: INK, fontSize: 'clamp(40px, 4.6vw, 60px)' }}>
               The operating system for{' '}
               <span className="font-cormorant italic font-medium" style={{ color: PURPLE }}>fashion production.</span>
             </h1>
@@ -243,7 +243,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
           {/* Right — the product story */}
           <div className="relative">
             {/* Desktop composition */}
-            <div className="hidden xl:grid relative grid-cols-[1fr_auto_0.95fr_auto_1fr] gap-2 items-center">
+            <div className="hidden xl:grid relative grid-cols-[1fr_auto_0.95fr_auto_1fr] gap-2 items-center w-fit ml-auto">
               {/* Step 1 — Brand order */}
               <div className="hero-step1 relative z-10">
                 <div className="mb-4">
@@ -282,7 +282,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
                       backgroundSize: '200.52% 112.28%',
                       backgroundPosition: '50% 16.96%',
                       backgroundRepeat: 'no-repeat',
-                      transform: 'rotateY(-18deg)',
+                      transform: 'rotateY(-26deg)',
                       filter: 'drop-shadow(0 18px 26px rgba(21,19,28,0.16))',
                     }}
                   />
@@ -359,7 +359,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
                       backgroundSize: '200.52% 112.28%',
                       backgroundPosition: '50% 16.96%',
                       backgroundRepeat: 'no-repeat',
-                      transform: 'rotateY(-18deg)',
+                      transform: 'rotateY(-26deg)',
                       filter: 'drop-shadow(0 14px 20px rgba(21,19,28,0.16))',
                     }}
                   />
