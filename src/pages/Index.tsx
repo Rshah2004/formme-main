@@ -664,6 +664,26 @@ const WorkflowStepCard = ({ children }: { children: React.ReactNode }) => (
   <div className="rounded-2xl bg-white p-4 shadow-sm h-full" style={{ border: `1px solid ${BORDER}` }}>{children}</div>
 );
 
+/* Flat technical line-art sketch of a hoodie, used on the Tech Pack step */
+const HoodieSketch = ({ className, color }: { className?: string; color: string }) => (
+  <svg viewBox="0 0 100 120" className={className} fill="none" stroke={color} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+    {/* hood */}
+    <path d="M35 18 C35 8 42 3 50 3 C58 3 65 8 65 18 L65 23 C58 27 42 27 35 23 Z" />
+    {/* drawstrings */}
+    <path d="M44 25 L42 39" />
+    <path d="M56 25 L58 39" />
+    {/* torso */}
+    <path d="M35 23 L27 29 L27 107 C27 112 31 115 36 115 L64 115 C69 115 73 112 73 107 L73 29 L65 23" />
+    {/* hem rib */}
+    <path d="M27 105 L73 105" />
+    {/* sleeves */}
+    <path d="M27 29 L9 38 L12 58 L27 52 Z" />
+    <path d="M73 29 L91 38 L88 58 L73 52 Z" />
+    {/* kangaroo pocket */}
+    <path d="M39 76 L61 76 L57 97 L43 97 Z" />
+  </svg>
+);
+
 const workflowStepBadges = [
   { n: '01', label: 'Tech Pack' },
   { n: '02', label: 'Sampling' },
@@ -720,12 +740,14 @@ const WorkflowSection = () => (
           <p className="md:hidden text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>01 &nbsp; Tech Pack</p>
           <WorkflowStepCard>
             <div className="rounded-lg mb-3 flex items-center justify-center" style={{ background: '#F7F6FB', aspectRatio: '4/3' }}>
-              <Shirt className="w-10 h-10" strokeWidth={1} style={{ color: MUTED }} />
+              <HoodieSketch className="w-16 h-16" color={MUTED} />
             </div>
             <div className="flex flex-col gap-1.5">
               {['Specs', 'Measurements', 'BOM', 'Construction'].map((t) => (
                 <span key={t} className="text-[10px] font-inter flex items-center gap-1.5" style={{ color: MUTED2 }}>
-                  <span className="w-2.5 h-2.5 rounded-[3px] flex-shrink-0" style={{ border: `1.5px solid ${MUTED}` }} /> {t}
+                  <span className="w-2.5 h-2.5 rounded-[3px] flex items-center justify-center flex-shrink-0" style={{ border: `1.5px solid ${MUTED}` }}>
+                    <Check className="w-2 h-2" style={{ color: MUTED }} strokeWidth={4} />
+                  </span> {t}
                 </span>
               ))}
             </div>
