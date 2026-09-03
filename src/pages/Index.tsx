@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Check, ArrowRight, ArrowUp, ChevronDown, FileText, Ruler, Factory, ShieldCheck, Package,
-  LayoutGrid, ClipboardList, BarChart3, Settings, Linkedin, CircleDot,
+  Check, ArrowRight, ArrowDown, ChevronDown, FileText, Shirt, Factory, ShieldCheck, Package,
+  LayoutGrid, ClipboardList, BarChart3, Settings, Linkedin, CircleDot, Scissors, Truck,
 } from 'lucide-react';
 import { SEO } from '@/components/SEO';
 import BookDemoModal from '@/components/homePage/BookDemoModal';
@@ -63,22 +63,47 @@ const OutlineButton = ({ children, href, dark = false }: { children: React.React
   </a>
 );
 
-const TagRow = ({ label, value, swatch }: { label: string; value: string; swatch?: string }) => (
+const TagRow = ({ label, value, swatch, image }: { label: string; value: string; swatch?: string; image?: string }) => (
   <div className="flex items-center justify-between py-2 border-b last:border-b-0" style={{ borderColor: BORDER }}>
     <span className="text-[11px] font-inter" style={{ color: MUTED }}>{label}</span>
     <span className="text-[12px] font-dm-sans flex items-center gap-1.5" style={{ color: INK }}>
       {swatch && <span className="w-3 h-3 rounded-sm flex-shrink-0" style={{ background: swatch }} />}
+      {image && <img src={image} alt="" className="w-5 h-5 rounded-sm object-cover flex-shrink-0" />}
       {value}
     </span>
   </div>
 );
 
-const ChecklistRow = ({ label, done, note, progress }: { label: string; done?: boolean; note: string; progress?: number }) => (
+/* Status dot for a checklist row: filled check (done), partial ring (active/in-progress), dashed outline (upcoming) */
+const StatusDot = ({ state, progress }: { state: 'done' | 'active' | 'upcoming'; progress?: number }) => {
+  if (state === 'done') {
+    return (
+      <span className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: GREEN }}>
+        <Check className="w-2.5 h-2.5" style={{ color: '#fff' }} strokeWidth={3.5} />
+      </span>
+    );
+  }
+  if (state === 'active') {
+    const pct = progress ?? 50;
+    const r = 6;
+    const c = 2 * Math.PI * r;
+    return (
+      <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 16 16">
+        <circle cx="8" cy="8" r={r} fill="none" stroke={BORDER} strokeWidth="2" />
+        <circle
+          cx="8" cy="8" r={r} fill="none" stroke={PURPLE} strokeWidth="2" strokeLinecap="round"
+          strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} transform="rotate(-90 8 8)"
+        />
+      </svg>
+    );
+  }
+  return <span className="w-4 h-4 rounded-full flex-shrink-0" style={{ border: `1.5px dashed ${MUTED}` }} />;
+};
+
+const ChecklistRow = ({ label, state = 'upcoming', note, progress }: { label: string; state?: 'done' | 'active' | 'upcoming'; note: string; progress?: number }) => (
   <div className="flex items-center justify-between py-2 border-b last:border-b-0" style={{ borderColor: BORDER }}>
     <div className="flex items-center gap-2">
-      <span className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: done ? GREEN_BG : '#F1F0F4' }}>
-        {done && <Check className="w-2.5 h-2.5" style={{ color: GREEN }} strokeWidth={3.5} />}
-      </span>
+      <StatusDot state={state} progress={progress} />
       <span className="text-[12px] font-inter" style={{ color: INK }}>{label}</span>
     </div>
     {progress !== undefined ? (
@@ -89,7 +114,7 @@ const ChecklistRow = ({ label, done, note, progress }: { label: string; done?: b
         <span className="text-[10px] font-inter" style={{ color: MUTED2 }}>{note}</span>
       </div>
     ) : (
-      <span className="text-[10px] font-inter" style={{ color: done ? GREEN : MUTED }}>{note}</span>
+      <span className="text-[10px] font-inter" style={{ color: state === 'done' ? GREEN : MUTED }}>{note}</span>
     )}
   </div>
 );
@@ -121,7 +146,7 @@ const LandingHeader = ({ onBookDemo }: { onBookDemo: () => void }) => {
       <div className="mx-auto max-w-[1400px] flex items-center justify-between px-6 md:px-10 h-16 md:h-[72px]">
         <Logo />
 
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden lg:flex items-center gap-8">
           {navLinks.map((item) =>
             item.route ? (
               <Link key={item.label} to={item.href} className="inline-flex items-center gap-1 text-[13px] font-inter" style={{ color: MUTED2 }}>
@@ -139,7 +164,7 @@ const LandingHeader = ({ onBookDemo }: { onBookDemo: () => void }) => {
           <Link to="/auth?mode=signin" className="hidden sm:inline text-[13px] font-inter font-medium" style={{ color: INK }}>
             Sign in
           </Link>
-          <SolidButton onClick={onBookDemo}>Book a demo</SolidButton>
+          <SolidButton onClick={onBookDemo}>Book a demo <ArrowRight className="w-3.5 h-3.5" /></SolidButton>
         </div>
       </div>
     </header>
@@ -147,130 +172,318 @@ const LandingHeader = ({ onBookDemo }: { onBookDemo: () => void }) => {
 };
 
 /* ════════════════════════════════════════════════
-   HERO — input → formme → output diagram
+   HERO — brand order → formme → factory execution / brand visibility
 ════════════════════════════════════════════════ */
-const flowLabels = [
-  { label: 'Tech Packs', Icon: FileText },
-  { label: 'Sampling', Icon: Ruler },
-  { label: 'Production', Icon: Factory },
-  { label: 'Quality', Icon: ShieldCheck },
-  { label: 'Shipment', Icon: Package },
+const workflowSteps = [
+  { icon: FileText, label: 'Tech Pack' },
+  { icon: Scissors, label: 'Sampling' },
+  { icon: Package, label: 'Production' },
+  { icon: ShieldCheck, label: 'Quality' },
+  { icon: Truck, label: 'Shipment' },
 ];
 
-const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersReduced: boolean }) => (
-  <section className="hero-sec relative" aria-label="Hero" style={{ background: LAVENDER }}>
-    <div className="mx-auto max-w-[1300px] px-6 pt-28 md:pt-36 pb-16 md:pb-20">
-      <div className="reveal">
-        <Eyebrow>Fashion production, connected</Eyebrow>
-      </div>
-      <h1 className="reveal font-dm-sans font-semibold leading-[1.08] tracking-[-0.02em]" style={{ color: INK, fontSize: 'clamp(34px, 4.6vw, 56px)' }}>
-        The operating system for
-        <br />
-        <span className="font-cormorant italic font-medium" style={{ color: PURPLE }}>fashion production.</span>
-      </h1>
-      <p className="reveal mt-6 max-w-lg font-inter leading-relaxed" style={{ color: MUTED2, fontSize: 'clamp(14px, 1.3vw, 16px)' }}>
-        Formme helps factories run production smarter and gives brands live visibility — from tech pack to shipment.
-      </p>
-      <div className="reveal mt-8 flex items-center gap-4">
-        <SolidButton onClick={onBookDemo}>Book a demo</SolidButton>
-        <OutlineButton href="#product">See how it works <ArrowRight className="w-3.5 h-3.5" /></OutlineButton>
-      </div>
-
-      {/* Diagram */}
-      <div className="hero-panel reveal relative mt-16 md:mt-20 grid md:grid-cols-[1fr_1.1fr_1fr] gap-8 md:gap-4 items-center">
-        <svg
-          className="hidden md:block absolute inset-0 w-full h-full pointer-events-none"
-          viewBox="0 0 1200 300"
-          preserveAspectRatio="none"
-          fill="none"
-          aria-hidden="true"
-        >
-          <defs>
-            <marker id="diagram-arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M0,0 L10,5 L0,10 z" fill={PURPLE} fillOpacity="0.45" />
-            </marker>
-            <marker id="diagram-arrow-muted" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M0,0 L10,5 L0,10 z" fill={MUTED} />
-            </marker>
-          </defs>
-          <path d="M 350 150 C 400 150, 410 95, 445 85" stroke={PURPLE} strokeOpacity="0.35" strokeWidth="1.5" markerEnd="url(#diagram-arrow)" />
-          <path d="M 775 95 C 810 90, 825 100, 850 110" stroke={PURPLE} strokeOpacity="0.35" strokeWidth="1.5" markerEnd="url(#diagram-arrow)" />
-          <path d="M 850 255 C 770 295, 690 285, 640 250" stroke={MUTED} strokeOpacity="0.6" strokeWidth="1.5" strokeDasharray="4 4" markerEnd="url(#diagram-arrow-muted)" />
-        </svg>
-
-        {/* Input card */}
-        <div className="hero-chip-0">
-          <p className="text-[10px] uppercase tracking-[0.14em] font-inter font-medium mb-1" style={{ color: PURPLE }}>1 &nbsp; Input</p>
-          <p className="text-[9px] uppercase tracking-[0.1em] font-inter mb-3" style={{ color: MUTED }}>Brand order</p>
-          <div className="rounded-2xl bg-white shadow-lg p-5" style={{ border: `1px solid ${BORDER}` }}>
-            <div className="flex items-center gap-2 mb-3">
-              <FileText className="w-4 h-4" style={{ color: PURPLE }} />
-              <span className="text-[13px] font-dm-sans font-semibold" style={{ color: INK }}>Tech Pack</span>
-            </div>
-            <TagRow label="Style" value="FM-HOOD-004" />
-            <TagRow label="Order" value="#FM-2841" />
-            <TagRow label="Quantity" value="600 PCS" />
-            <TagRow label="Fabric" value="420 GSM Cotton" />
-            <TagRow label="Color" value="Washed Black" swatch="#1A1A1A" />
-          </div>
-        </div>
-
-        {/* Center — garment + formme badge */}
-        <div className="hero-garment relative flex flex-col items-center py-4">
-          <span className="text-[11px] font-inter mb-2 flex items-center gap-1" style={{ color: MUTED2 }}>
-            Order created <ArrowRight className="w-3 h-3" />
-          </span>
-          <div className={`relative w-[180px] rounded-2xl overflow-hidden ${prefersReduced ? '' : 'float-soft'}`} style={{ background: DARK_PANEL, aspectRatio: '3 / 4' }}>
-            <img src="/mockupHoodieFront.png" alt="Boxy Hoodie sample" className="w-full h-full object-cover object-top scale-125" loading="eager" />
-          </div>
-          <div className="relative z-10 -mt-4 rounded-full shadow-lg px-4 py-2 flex items-center gap-1.5" style={{ background: '#fff', border: `1px solid ${BORDER}` }}>
-            <span className="w-4 h-4 rounded-md flex items-center justify-center text-[8px] font-dm-sans font-bold text-white" style={{ background: PURPLE }}>b</span>
-            <span className="text-[12px] font-dm-sans font-semibold" style={{ color: INK }}>formme</span>
-          </div>
-          <span className="text-[11px] font-inter mt-3 flex items-center gap-1" style={{ color: MUTED2 }}>
-            <ArrowUp className="w-3 h-3" /> Production updated
-          </span>
-          <span className="text-[10px] font-inter mt-1" style={{ color: MUTED }}>
-            ⟲ Status synced
-          </span>
-        </div>
-
-        {/* Output cards */}
-        <div className="flex flex-col gap-4">
-          <div className="hero-chip-1 rounded-2xl bg-white shadow-lg p-5" style={{ border: `1px solid ${BORDER}` }}>
-            <p className="text-[10px] uppercase tracking-[0.14em] font-inter font-medium mb-3" style={{ color: PURPLE }}>3A &nbsp; Factory execution</p>
-            <ChecklistRow label="Cutting" done note="Complete" />
-            <ChecklistRow label="Sewing" done note="72%" progress={72} />
-            <ChecklistRow label="Finishing" note="Upcoming" />
-            <ChecklistRow label="QC" note="Upcoming" />
-            <TagRow label="Expected completion" value="08 Sep" />
-          </div>
-          <div className="hero-chip-2 rounded-2xl bg-white shadow-lg p-5" style={{ border: `1px solid ${BORDER}` }}>
-            <p className="text-[10px] uppercase tracking-[0.14em] font-inter font-medium mb-3" style={{ color: PURPLE }}>3B &nbsp; Brand visibility</p>
-            <TagRow label="Order" value="#FM-2841" />
-            <TagRow label="Current stage" value="Sewing" swatch={PURPLE} />
-            <TagRow label="Factory" value="Supreme Stitch" />
-            <TagRow label="Latest update" value="Line 04 · 2 hours ago" />
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom strip */}
-      <div className="reveal mt-14 flex flex-col sm:flex-row items-center justify-between gap-6">
-        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-          {flowLabels.map(({ label, Icon }) => (
-            <span key={label} className="inline-flex items-center gap-1.5 text-[12px] font-inter" style={{ color: MUTED2 }}>
-              <Icon className="w-3.5 h-3.5" style={{ color: MUTED }} /> {label}
-            </span>
-          ))}
-        </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[11px] font-inter bg-white" style={{ border: `1px solid ${BORDER}`, color: MUTED2 }}>
-          Tech pack <ArrowRight className="w-3 h-3" /> Production <ArrowRight className="w-3 h-3" /> Live updates
-        </span>
-      </div>
-    </div>
-  </section>
+/* Rounded-chip step number used to mark each step in the hero's product story */
+const NumberChip = ({ children }: { children: React.ReactNode }) => (
+  <span
+    className="inline-flex items-center justify-center rounded-md px-2 py-1 text-[11px] font-inter font-bold leading-none flex-shrink-0"
+    style={{ background: PURPLE_BG, color: PURPLE, border: '1px solid rgba(93,82,214,0.25)' }}
+  >
+    {children}
+  </span>
 );
+
+const StepBadge = ({ n, label, sub }: { n: string; label: string; sub?: string }) => (
+  <div className="flex items-center gap-2">
+    <NumberChip>{n}</NumberChip>
+    <div className="flex flex-col leading-tight">
+      <span className="text-[11px] uppercase tracking-[0.1em] font-inter font-semibold" style={{ color: PURPLE }}>{label}</span>
+      {sub && <span className="text-[10px] uppercase tracking-[0.1em] font-inter" style={{ color: MUTED }}>{sub}</span>}
+    </div>
+  </div>
+);
+
+/* Straight labeled arrow connecting two steps — grid-aligned, so it never drifts from the cards it points between */
+const FlowArrow = ({ label, className }: { label: string; className?: string }) => (
+  <div className={`relative z-30 flex flex-col items-center justify-center px-1 ${className ?? ''}`}>
+    <span className="text-[9px] font-inter mb-2 whitespace-nowrap" style={{ color: MUTED }}>{label}</span>
+    <ArrowRight className="w-4 h-4" style={{ color: PURPLE, opacity: 0.5 }} />
+  </div>
+);
+
+/* Compact card used for both the Factory Execution and Brand Visibility outputs */
+const OutputCard = ({ step, label, className, children }: { step: string; label: string; className?: string; children: React.ReactNode }) => (
+  <div className={`rounded-2xl bg-white p-5 ${className ?? ''}`} style={{ border: `1px solid ${BORDER}`, boxShadow: '0 8px 24px -12px rgba(93,82,214,0.18)' }}>
+    <div className="flex items-center gap-2 pb-3 mb-3" style={{ borderBottom: `1px solid ${BORDER}` }}>
+      <NumberChip>{step}</NumberChip>
+      <span className="text-[11px] uppercase tracking-[0.1em] font-inter font-semibold" style={{ color: PURPLE }}>{label}</span>
+    </div>
+    {children}
+  </div>
+);
+
+/* Callout label pointing at a spot on the hero garment photo — dot, connector tick, label pill */
+const HoodieCallout = ({ x, y, side, label, value }: { x: number; y: number; side: 'left' | 'right'; label: string; value: string }) => (
+  <div
+    className="hero-callout absolute flex items-center gap-2 z-20"
+    style={
+      side === 'right'
+        ? { left: `${x}%`, top: `${y}%`, transform: 'translateY(-50%)' }
+        : { right: `${100 - x}%`, top: `${y}%`, transform: 'translateY(-50%)', flexDirection: 'row-reverse' }
+    }
+  >
+    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: PURPLE }} />
+    <span className="h-px w-4 flex-shrink-0" style={{ background: 'rgba(93,82,214,0.45)' }} />
+    <span className="rounded-md bg-white shadow-sm px-2.5 py-1.5 whitespace-nowrap" style={{ border: `1px solid ${BORDER}` }}>
+      <span className="block text-[8px] uppercase tracking-[0.08em] font-inter font-semibold" style={{ color: MUTED2 }}>{label}</span>
+      <span className="block text-[10px] font-dm-sans font-medium" style={{ color: INK }}>{value}</span>
+    </span>
+  </div>
+);
+
+const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersReduced: boolean }) => {
+  const heroRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (prefersReduced) return;
+    const ctx = gsap.context(() => {
+      gsap.set(['.hero-step1', '.hero-step2', '.hero-step3a', '.hero-step3b'], { opacity: 0, y: 14 });
+      gsap.set(['.hero-arrow-1', '.hero-arrow-2'], { opacity: 0 });
+      gsap.set('.hero-callout', { opacity: 0 });
+      gsap.set('.hero-progress-fill', { width: 0 });
+
+      gsap.timeline({ delay: 0.25 })
+        .to('.hero-step1', { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' })
+        .to('.hero-arrow-1', { opacity: 1, duration: 0.4, ease: 'power1.out' }, '-=0.15')
+        .to('.hero-step2', { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, '-=0.1')
+        .to('.hero-callout', { opacity: 1, duration: 0.3, stagger: 0.08, ease: 'power1.out' }, '-=0.2')
+        .to('.hero-arrow-2', { opacity: 1, duration: 0.4, ease: 'power1.out' }, '-=0.1')
+        .to('.hero-step3a', { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, '-=0.1')
+        .to('.hero-step3b', { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, '-=0.15')
+        .to('.hero-progress-fill', { width: '72%', duration: 0.9, ease: 'power2.out' }, '-=0.1');
+    }, heroRef);
+    return () => ctx.revert();
+  }, [prefersReduced]);
+
+  return (
+    <section ref={heroRef} className="hero-sec relative" aria-label="Hero" style={{ background: LAVENDER }}>
+      <div className="mx-auto max-w-[1360px] px-6 pt-28 md:pt-36 pb-20 md:pb-24">
+        <div className="grid md:grid-cols-[0.4fr_0.6fr] gap-14 md:gap-8 items-start xl:items-center">
+          {/* Left — positioning */}
+          <div>
+            <div className="reveal">
+              <Eyebrow>Fashion production, connected</Eyebrow>
+            </div>
+            <h1 className="reveal font-cormorant font-medium leading-[1.08] tracking-[-0.01em]" style={{ color: INK, fontSize: 'clamp(40px, 4.6vw, 60px)' }}>
+              The operating system for{' '}
+              <span className="italic" style={{ color: PURPLE }}>fashion production.</span>
+            </h1>
+            <p className="reveal mt-6 max-w-sm font-inter leading-relaxed" style={{ color: MUTED2, fontSize: '15px' }}>
+              Formme helps factories run production and gives brands live visibility — from tech pack to shipment.
+            </p>
+            <div className="reveal mt-8 flex items-center gap-6">
+              <SolidButton onClick={onBookDemo}>Book a demo</SolidButton>
+              <a href="#product" className="cta-link text-[13px] font-inter font-medium" style={{ color: PURPLE }}>
+                See how it works <ArrowRight className="w-3.5 h-3.5" />
+              </a>
+            </div>
+            <div className="reveal mt-9 flex items-center gap-3 flex-wrap">
+              {workflowSteps.map(({ icon: Icon, label }, i) => (
+                <React.Fragment key={label}>
+                  {i > 0 && <span style={{ color: PURPLE, opacity: 0.5 }}>&middot;</span>}
+                  <span className="flex items-center gap-1.5 text-[12px] font-inter font-medium" style={{ color: PURPLE }}>
+                    <Icon className="w-4 h-4" strokeWidth={1.75} />
+                    {label}
+                  </span>
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+
+          {/* Right — the product story */}
+          <div className="relative">
+            {/* Desktop composition */}
+            <div className="hidden xl:grid relative grid-cols-[1fr_auto_0.95fr_auto_1fr] gap-3 items-center w-fit ml-auto">
+              {/* Step 1 — Brand order */}
+              <div className="hero-step1 relative z-10">
+                <div className="mb-4">
+                  <StepBadge n="01" label="Brand order" />
+                </div>
+                <div className="rounded-2xl bg-white p-5 w-[228px]" style={{ border: `1px solid ${BORDER}`, boxShadow: '0 8px 24px -12px rgba(93,82,214,0.18)' }}>
+                  <p className="text-[13px] font-dm-sans font-bold mb-4" style={{ color: PURPLE }}>Tech Pack</p>
+                  <TagRow label="Style" value="FM-HOOD-004" />
+                  <TagRow label="Order" value="#FM-2841" />
+                  <TagRow label="Quantity" value="600 pcs" />
+                  <TagRow label="Fabric" value="420 GSM cotton" />
+                  <TagRow label="Color" value="Washed black" swatch="#1A1A1A" />
+                  <TagRow label="Size run" value="XS–XXL" />
+
+                  <div className="mt-4 rounded-xl flex items-center justify-center gap-3 py-5" style={{ background: LAVENDER }}>
+                    <Shirt className="w-12 h-12" strokeWidth={1} style={{ color: MUTED2 }} />
+                    <Shirt className="w-12 h-12 scale-x-[-1]" strokeWidth={1} style={{ color: MUTED2 }} />
+                  </div>
+
+                  <div className="mt-1">
+                    <TagRow label="Style" value="FM-HOOD-004" />
+                    <TagRow label="Fit" value="Oversized" />
+                    <TagRow label="Hood" value="Double layer" />
+                    <TagRow label="Pocket" value="Kangaroo" />
+                    <TagRow label="Rib" value="2x2" />
+                    <TagRow label="Label" value="Woven" />
+                  </div>
+
+                  <div className="mt-3 flex gap-1">
+                    {['#1A1A1A', '#6B6878', '#D9D6E8', '#1A1A1A'].map((c, i) => (
+                      <span key={i} className="flex-1 h-5 rounded-sm" style={{ background: c }} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <FlowArrow label="Order created" className="hero-arrow-1" />
+
+              {/* Step 2 — Formme */}
+              <div className="hero-step2 relative z-10 flex flex-col items-center">
+                <div className="relative w-[268px]" style={{ aspectRatio: '766 / 912', perspective: '900px' }}>
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      backgroundImage: 'url(/mockupHoodieFront.png)',
+                      backgroundSize: '200.52% 112.28%',
+                      backgroundPosition: '50% 16.96%',
+                      backgroundRepeat: 'no-repeat',
+                      transform: 'rotateY(-26deg)',
+                      filter: 'drop-shadow(0 18px 26px rgba(21,19,28,0.16))',
+                    }}
+                  />
+                  <HoodieCallout x={40} y={27} side="right" label="Style" value="FM-HOOD-004" />
+                  <HoodieCallout x={51} y={46} side="right" label="Fabric" value="420 GSM cotton" />
+                  <HoodieCallout x={40} y={61} side="left" label="Color" value="Washed black" />
+                  <HoodieCallout x={48} y={70} side="right" label="Quantity" value="600 pcs" />
+                  <HoodieCallout x={39} y={90} side="right" label="Size run" value="XS–XXL" />
+                </div>
+                <div className="relative z-10 mt-4 rounded-xl shadow-md px-4 py-3 flex items-center gap-2.5 w-[260px]" style={{ background: '#fff', border: `1px solid ${BORDER}` }}>
+                  <span className="w-8 h-8 rounded-lg flex items-center justify-center text-[14px] font-dm-sans font-bold text-white flex-shrink-0" style={{ background: PURPLE }}>b</span>
+                  <div className="flex flex-col leading-tight">
+                    <span className="text-[13px] font-dm-sans font-bold" style={{ color: INK }}>FORMME</span>
+                    <span className="text-[10px] font-inter" style={{ color: MUTED }}>Connected Order #FM-2841</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col justify-between hero-arrow-2" style={{ height: '300px' }}>
+                <FlowArrow label="Production updated" />
+                <FlowArrow label="Status synced" />
+              </div>
+
+              {/* Step 3 — outputs */}
+              <div className="flex flex-col gap-4">
+                <OutputCard step="02A" label="Factory execution" className="hero-step3a">
+                  <ChecklistRow label="Cutting" state="done" note="Complete" />
+                  <ChecklistRow label="Sewing" state="active" note="72%" progress={72} />
+                  <ChecklistRow label="Finishing" note="Upcoming" />
+                  <ChecklistRow label="Quality" note="Upcoming" />
+                  <ChecklistRow label="Packing" note="Upcoming" />
+                  <TagRow label="Line" value="Line 04" />
+                  <TagRow label="Expected completion" value="08 Sep" />
+                </OutputCard>
+
+                <OutputCard step="02B" label="Brand visibility" className="hero-step3b">
+                  <TagRow label="Order" value="#FM-2841" />
+                  <div className="flex items-center justify-between py-2 border-b" style={{ borderColor: BORDER }}>
+                    <span className="text-[11px] font-inter" style={{ color: MUTED }}>Production progress</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-16 h-[3px] rounded-full overflow-hidden" style={{ background: BORDER }}>
+                        <div className="hero-progress-fill h-full rounded-full" style={{ background: PURPLE }} />
+                      </div>
+                      <span className="text-[12px] font-dm-sans" style={{ color: INK }}>72%</span>
+                    </div>
+                  </div>
+                  <TagRow label="Current stage" value="Sewing" swatch={PURPLE} />
+                  <TagRow label="Factory" value="Supreme Stitch" image="/factory.jpg" />
+                  <TagRow label="Expected completion" value="08 Sep" />
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-[11px] font-inter" style={{ color: MUTED }}>Latest update</span>
+                    <span className="text-[12px] font-dm-sans text-right" style={{ color: INK }}>Sewing — Line 04<br /><span style={{ color: MUTED2, fontSize: 10 }}>2 hours ago</span></span>
+                  </div>
+                </OutputCard>
+              </div>
+            </div>
+
+            {/* Mobile — simple vertical sequence */}
+            <div className="xl:hidden flex flex-col items-center gap-3">
+              <div className="reveal w-full">
+                <div className="mb-3 flex justify-center">
+                  <StepBadge n="01" label="Brand order" />
+                </div>
+                <div className="rounded-2xl bg-white p-5" style={{ border: `1px solid ${BORDER}` }}>
+                  <p className="text-[13px] font-dm-sans font-bold mb-3" style={{ color: PURPLE }}>Tech Pack</p>
+                  <TagRow label="Style" value="FM-HOOD-004" />
+                  <TagRow label="Order" value="#FM-2841" />
+                  <TagRow label="Quantity" value="600 pcs" />
+                  <TagRow label="Fabric" value="420 GSM cotton" />
+                  <TagRow label="Color" value="Washed black" swatch="#1A1A1A" />
+                  <TagRow label="Size run" value="XS–XXL" />
+                </div>
+              </div>
+
+              <ArrowDown className="reveal w-4 h-4" style={{ color: MUTED }} />
+
+              <div className="reveal flex flex-col items-center">
+                <div className="relative w-[220px]" style={{ aspectRatio: '766 / 912', perspective: '700px' }}>
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      backgroundImage: 'url(/mockupHoodieFront.png)',
+                      backgroundSize: '200.52% 112.28%',
+                      backgroundPosition: '50% 16.96%',
+                      backgroundRepeat: 'no-repeat',
+                      transform: 'rotateY(-26deg)',
+                      filter: 'drop-shadow(0 14px 20px rgba(21,19,28,0.16))',
+                    }}
+                  />
+                </div>
+                <div className="relative z-10 mt-4 rounded-xl shadow-md px-4 py-3 flex items-center gap-2.5 w-[240px]" style={{ background: '#fff', border: `1px solid ${BORDER}` }}>
+                  <span className="w-8 h-8 rounded-lg flex items-center justify-center text-[14px] font-dm-sans font-bold text-white flex-shrink-0" style={{ background: PURPLE }}>b</span>
+                  <div className="flex flex-col leading-tight">
+                    <span className="text-[13px] font-dm-sans font-bold" style={{ color: INK }}>FORMME</span>
+                    <span className="text-[10px] font-inter" style={{ color: MUTED }}>Connected Order #FM-2841</span>
+                  </div>
+                </div>
+              </div>
+
+              <ArrowDown className="reveal w-4 h-4" style={{ color: MUTED }} />
+
+              <div className="reveal w-full">
+                <OutputCard step="02A" label="Factory execution">
+                  <ChecklistRow label="Cutting" state="done" note="Complete" />
+                  <ChecklistRow label="Sewing" state="active" note="72%" progress={72} />
+                  <ChecklistRow label="Finishing" note="Upcoming" />
+                  <ChecklistRow label="Quality" note="Upcoming" />
+                  <ChecklistRow label="Packing" note="Upcoming" />
+                  <TagRow label="Line" value="Line 04" />
+                  <TagRow label="Expected completion" value="08 Sep" />
+                </OutputCard>
+              </div>
+
+              <ArrowDown className="reveal w-4 h-4" style={{ color: MUTED }} />
+
+              <div className="reveal w-full">
+                <OutputCard step="02B" label="Brand visibility">
+                  <TagRow label="Order" value="#FM-2841" />
+                  <TagRow label="Production progress" value="72%" />
+                  <TagRow label="Current stage" value="Sewing" swatch={PURPLE} />
+                  <TagRow label="Factory" value="Supreme Stitch" image="/factory.jpg" />
+                  <TagRow label="Expected completion" value="08 Sep" />
+                  <TagRow label="Latest update" value="Sewing — Line 04, 2h ago" />
+                </OutputCard>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
 
 /* ════════════════════════════════════════════════
    FOR MANUFACTURERS / FOR BRANDS
@@ -279,16 +492,16 @@ const manufacturerChecklist = ['Real-time production tracking', 'Smarter plannin
 const brandChecklist = ['Live order & production visibility', 'Quality, rework & approvals', 'Shipment tracking & ETAs', 'Fewer follow-ups, more clarity'];
 
 const lineProgress = [
-  { line: 'Line 01', dots: [1, 1, 1, 1, 1, 0, 0], color: PURPLE },
-  { line: 'Line 02', dots: [1, 1, 1, 0, 0, 0, 0], color: '#D9A441' },
-  { line: 'Line 03', dots: [1, 1, 1, 1, 1, 1, 0], color: GREEN },
-  { line: 'Line 04', dots: [1, 1, 1, 1, 0, 0, 0], color: PURPLE },
+  { line: 'Line 01', dots: [1, 1, 1, 1, 1, 0], color: PURPLE },
+  { line: 'Line 02', dots: [1, 1, 1, 0, 0, 0], color: '#D9A441' },
+  { line: 'Line 03', dots: [1, 1, 1, 1, 1, 1], color: GREEN },
+  { line: 'Line 04', dots: [1, 1, 1, 1, 0, 0], color: PURPLE },
 ];
 
 const upcomingDeliveries = [
-  { code: 'FM-HOOD-004', factory: 'Supreme Stitch', qty: '600 PCS', date: '06 Sep' },
-  { code: 'FM-TS-101', factory: 'Ace Garments', qty: '300 PCS', date: '12 Sep' },
-  { code: 'FM-JOG-201', factory: 'Moda Works', qty: '600 PCS', date: '15 Sep' },
+  { code: 'FM-HOOD-004', date: '06 Sep', factory: 'Supreme Stitch', qty: '600 PCS', stage: 'Finishing', stageColor: '#D9A441' },
+  { code: 'FM-TS-101', date: '10 Sep', factory: 'Ace Garments', qty: '300 PCS', stage: 'Cutting', stageColor: RED },
+  { code: 'FM-JOG-201', date: '12 Sep', factory: 'Moda Works', qty: '600 PCS', stage: 'Finishing', stageColor: '#D9A441' },
 ];
 
 const orderProgressRows = [
@@ -298,9 +511,9 @@ const orderProgressRows = [
 ];
 
 const recentUpdates = [
-  'Line 04 moved to sewing · FM-HOOD-004 · 2 hours ago',
-  'Quality check passed · 4 hours ago',
-  'Shipment scheduled for 12 Sep · 1 day ago',
+  { text: 'Line 04 moved to sewing', meta: 'FM-HOOD-004 · 2 hours ago' },
+  { text: 'Quality check passed', meta: 'FM-TS-101 · 4 hours ago' },
+  { text: 'Shipment scheduled for 12 Sep', meta: 'FM-JOG-201 · 1 day ago' },
 ];
 
 const FactoriesSection = () => (
@@ -340,20 +553,31 @@ const FactoriesSection = () => (
             {lineProgress.map((l) => (
               <div key={l.line} className="flex items-center gap-3">
                 <span className="text-[10px] font-inter w-12 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.5)' }}>{l.line}</span>
-                <div className="flex gap-1">
+                <div className="relative flex items-center gap-0 flex-1">
+                  <div className="absolute left-[5px] right-[5px] h-px" style={{ background: 'rgba(255,255,255,0.12)' }} />
                   {l.dots.map((d, i) => (
-                    <span key={i} className="w-1.5 h-1.5 rounded-full" style={{ background: d ? l.color : 'rgba(255,255,255,0.12)' }} />
+                    <span key={i} className="relative flex-1 flex justify-center first:justify-start last:justify-end">
+                      <span className="w-[7px] h-[7px] rounded-full" style={{ background: d ? l.color : 'rgba(255,255,255,0.16)' }} />
+                    </span>
                   ))}
                 </div>
               </div>
             ))}
           </div>
           <p className="text-[10px] uppercase tracking-[0.1em] font-inter mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>Upcoming Deliveries</p>
-          <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-3">
             {upcomingDeliveries.map((d) => (
-              <div key={d.code} className="flex items-center justify-between text-[11px] font-inter">
-                <span style={{ color: 'rgba(255,255,255,0.85)' }}>{d.code} <span style={{ color: 'rgba(255,255,255,0.4)' }}>· {d.factory}</span></span>
-                <span style={{ color: 'rgba(255,255,255,0.5)' }}>{d.qty} · {d.date}</span>
+              <div key={d.code} className="flex flex-col gap-1">
+                <div className="flex items-center justify-between text-[11px] font-inter">
+                  <span style={{ color: 'rgba(255,255,255,0.85)' }}>{d.code}</span>
+                  <span style={{ color: 'rgba(255,255,255,0.85)' }}>{d.qty}</span>
+                </div>
+                <div className="flex items-center justify-between text-[10px] font-inter">
+                  <span className="flex items-center gap-1.5" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                    <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: d.stageColor }} /> {d.factory}
+                  </span>
+                  <span style={{ color: d.stageColor }}>{d.stage}</span>
+                </div>
               </div>
             ))}
           </div>
@@ -381,25 +605,29 @@ const FactoriesSection = () => (
 
         <div className="mt-9 rounded-2xl bg-white p-5 shadow-md" style={{ border: `1px solid ${BORDER}` }}>
           <p className="text-[11px] font-dm-sans font-medium mb-4" style={{ color: INK }}>Brand Dashboard</p>
-          <div className="grid grid-cols-3 gap-3 mb-5 pb-5 border-b" style={{ borderColor: BORDER }}>
+          <p className="text-[10px] uppercase tracking-[0.1em] font-inter mb-2" style={{ color: MUTED }}>Order Overview</p>
+          <div className="grid grid-cols-3 gap-2 mb-5">
             {[['Total Orders', '12'], ['In Production', '8'], ['On-time Rate', '92%']].map(([l, v]) => (
-              <div key={l}>
-                <p className="font-dm-sans font-bold text-[18px]" style={{ color: INK }}>{v}</p>
-                <p className="text-[9px] font-inter mt-1" style={{ color: MUTED }}>{l}</p>
+              <div key={l} className="rounded-lg p-2.5" style={{ border: `1px solid ${BORDER}` }}>
+                <p className="font-dm-sans font-bold text-[16px]" style={{ color: INK }}>{v}</p>
+                <p className="text-[8px] font-inter mt-1 leading-tight" style={{ color: MUTED }}>{l}</p>
               </div>
             ))}
           </div>
           <p className="text-[10px] uppercase tracking-[0.1em] font-inter mb-3" style={{ color: MUTED }}>Order Progress</p>
           <div className="hidden sm:grid grid-cols-[1.4fr_repeat(5,1fr)] gap-1 mb-1.5">
             <span />
-            {['Cut', 'Sew', 'Fin', 'QC', 'Ship'].map((h) => (
-              <span key={h} className="text-[8px] uppercase text-center font-inter" style={{ color: MUTED }}>{h}</span>
+            {['Cutting', 'Sewing', 'Finishing', 'QC', 'Shipment'].map((h) => (
+              <span key={h} className="text-[7px] uppercase text-center font-inter" style={{ color: MUTED }}>{h}</span>
             ))}
           </div>
-          <div className="flex flex-col gap-2 mb-6">
+          <div className="flex flex-col gap-2.5 mb-6">
             {orderProgressRows.map((r) => (
               <div key={r.code} className="grid grid-cols-[1.4fr_repeat(5,1fr)] gap-1 items-center">
-                <span className="text-[10px] font-inter truncate" style={{ color: MUTED2 }}>{r.code}</span>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-inter truncate" style={{ color: INK }}>{r.code}</p>
+                  <p className="text-[8px] font-inter" style={{ color: MUTED }}>{r.qty}</p>
+                </div>
                 {r.cols.map((c, i) => (
                   <span key={i} className="text-[9px] text-center font-inter" style={{ color: c === 100 ? GREEN : c === 0 ? MUTED : INK }}>{c}%</span>
                 ))}
@@ -410,9 +638,17 @@ const FactoriesSection = () => (
             <p className="text-[10px] uppercase tracking-[0.1em] font-inter" style={{ color: MUTED }}>Recent Updates</p>
             <span className="text-[10px] font-inter" style={{ color: PURPLE }}>View all</span>
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2.5">
             {recentUpdates.map((u) => (
-              <p key={u} className="text-[10px] font-inter leading-relaxed" style={{ color: MUTED2 }}>{u}</p>
+              <div key={u.text} className="flex items-start gap-2">
+                <span className="w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0 mt-px" style={{ background: PURPLE_BG }}>
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: PURPLE }} />
+                </span>
+                <div className="flex flex-col leading-tight">
+                  <span className="text-[10px] font-inter" style={{ color: INK }}>{u.text}</span>
+                  <span className="text-[9px] font-inter" style={{ color: MUTED }}>{u.meta}</span>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -428,8 +664,78 @@ const WorkflowStepCard = ({ children }: { children: React.ReactNode }) => (
   <div className="rounded-2xl bg-white p-4 shadow-sm h-full" style={{ border: `1px solid ${BORDER}` }}>{children}</div>
 );
 
+const workflowStepBadges = [
+  { n: '01', label: 'Tech Pack' },
+  { n: '02', label: 'Sampling' },
+  { n: '03', label: 'Production' },
+  { n: '04', label: 'Quality' },
+  { n: '05', label: 'Shipment' },
+];
+
+const productionRows: { label: string; value?: string; color?: string; progress?: number }[] = [
+  { label: 'Cutting', value: 'Complete', color: GREEN },
+  { label: 'Sewing', progress: 72 },
+  { label: 'Finishing', value: 'In progress', color: MUTED2 },
+  { label: 'Packing', value: 'Upcoming', color: MUTED },
+  { label: 'Proving', value: 'Upcoming', color: MUTED },
+];
+
+const StatPair = ({ label, value, color }: { label: string; value: string; color?: string }) => (
+  <div>
+    <p className="text-[9px] font-inter mb-1" style={{ color: MUTED }}>{label}</p>
+    <p className="font-dm-sans font-bold text-[14px]" style={{ color: color ?? INK }}>{value}</p>
+  </div>
+);
+
+/* Per-card step badge shown only below md, where the shared dashed header row is hidden */
+const MobileStepLabel = ({ n, label }: { n: string; label: string }) => (
+  <div className="flex md:hidden items-center gap-2 mb-3">
+    <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-inter font-semibold flex-shrink-0" style={{ border: `1.5px solid ${PURPLE}`, color: PURPLE }}>{n}</span>
+    <span className="text-[12px] font-inter font-medium" style={{ color: INK }}>{label}</span>
+  </div>
+);
+
+/* Connector between workflow cards — a down arrow stacked on mobile, a right arrow inline on desktop */
+const StepArrow = () => (
+  <div className="flex items-center justify-center flex-shrink-0 py-1 md:py-0">
+    <ArrowDown className="w-4 h-4 md:hidden" style={{ color: MUTED, opacity: 0.5 }} />
+    <ArrowRight className="w-4 h-4 hidden md:block" style={{ color: MUTED, opacity: 0.5 }} />
+  </div>
+);
+
 const WorkflowSection = () => (
   <section id="product" className="py-20 md:py-24 px-6" style={{ background: LAVENDER }}>
+    {/* Turns a solid-fill photo into hollow line art: run edge detection on its luminance for
+        the internal stitch lines (seams/drawstrings/pocket), separately trace a clean solid
+        ring around the garment's own alpha silhouette for the outer border, union the two,
+        dilate slightly to close gaps in weak/broken edges, then clip to the original alpha so
+        the fill stays fully transparent and nothing bleeds past the silhouette. */}
+    <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
+      <filter id="outline-only" x="-20%" y="-20%" width="140%" height="140%">
+        {/* internal stitch-line detail via luminance edge detection */}
+        <feColorMatrix in="SourceGraphic" type="matrix" values="0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0 0 0 1 0" result="gray" />
+        <feGaussianBlur in="gray" stdDeviation="0.5" result="graySmooth" />
+        <feConvolveMatrix in="graySmooth" order="3" kernelMatrix="-1 -1 -1 -1 8 -1 -1 -1 -1" divisor="1" bias="0" edgeMode="none" preserveAlpha="true" result="edges" />
+        <feComponentTransfer in="edges" result="edgesBoost">
+          <feFuncR type="discrete" tableValues="0 0 1 1 1 1 1 1" />
+          <feFuncG type="discrete" tableValues="0 0 1 1 1 1 1 1" />
+          <feFuncB type="discrete" tableValues="0 0 1 1 1 1 1 1" />
+        </feComponentTransfer>
+        <feMorphology in="edgesBoost" operator="dilate" radius="0.4" result="edgesDilated" />
+        <feColorMatrix in="edgesDilated" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.33 0.33 0.33 0 0" result="edgeAlpha" />
+
+        {/* clean solid outer border traced from the garment's own alpha silhouette */}
+        <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="alpha" />
+        <feMorphology in="alpha" operator="erode" radius="1.5" result="eroded" />
+        <feComposite in="alpha" in2="eroded" operator="out" result="ring" />
+
+        {/* union internal lines + outer border, fill black, clip to the original silhouette */}
+        <feComposite in="edgeAlpha" in2="ring" operator="lighter" result="combinedAlpha" />
+        <feFlood floodColor="#15131C" result="black" />
+        <feComposite in="black" in2="combinedAlpha" operator="in" result="blackLines" />
+        <feComposite in="blackLines" in2="SourceAlpha" operator="in" />
+      </filter>
+    </svg>
     <div className="mx-auto max-w-[1300px]">
       <div className="reveal flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-14">
         <div>
@@ -443,70 +749,112 @@ const WorkflowSection = () => (
         </p>
       </div>
 
-      <div className="reveal grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>01 &nbsp; Tech Pack</p>
+      {/* Step badges — circular numbers linked by a dashed line */}
+      <div className="reveal relative hidden md:flex items-center mb-6">
+        {workflowStepBadges.map((s, i) => (
+          <React.Fragment key={s.n}>
+            <div className="flex items-center gap-2 flex-shrink-0 relative z-10 pr-3" style={{ background: LAVENDER }}>
+              <span className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-inter font-semibold flex-shrink-0" style={{ border: `1.5px solid ${PURPLE}`, color: PURPLE }}>{s.n}</span>
+              <span className="text-[13px] font-inter font-medium whitespace-nowrap" style={{ color: INK }}>{s.label}</span>
+            </div>
+            {i < workflowStepBadges.length - 1 && <div className="flex-1 h-0" style={{ borderTop: `1px dashed ${BORDER}` }} />}
+          </React.Fragment>
+        ))}
+      </div>
+
+      <div className="reveal flex flex-col md:flex-row md:items-stretch gap-4">
+        <div className="md:flex-1 md:min-w-0">
+          <MobileStepLabel n="01" label="Tech Pack" />
           <WorkflowStepCard>
-            <div className="rounded-lg mb-3 flex items-center justify-center" style={{ background: '#F7F6FB', aspectRatio: '4/3' }}>
-              <FileText className="w-8 h-8" style={{ color: MUTED }} />
+            <div className="rounded-lg mb-3 flex items-center justify-center p-3" style={{ background: '#F7F6FB', aspectRatio: '4/3' }}>
+              <img
+                src="/mockupHoodieWhite.png"
+                alt="Tech pack sketch"
+                className="w-full h-full object-contain"
+                style={{
+                  filter: 'url(#outline-only)',
+                }}
+                loading="lazy"
+              />
             </div>
             <div className="flex flex-col gap-1.5">
               {['Specs', 'Measurements', 'BOM', 'Construction'].map((t) => (
                 <span key={t} className="text-[10px] font-inter flex items-center gap-1.5" style={{ color: MUTED2 }}>
-                  <Check className="w-2.5 h-2.5" style={{ color: GREEN }} strokeWidth={3} /> {t}
+                  <span className="w-2.5 h-2.5 rounded-[3px] flex items-center justify-center flex-shrink-0" style={{ border: `1.5px solid ${MUTED}` }}>
+                    <Check className="w-2 h-2" style={{ color: MUTED }} strokeWidth={4} />
+                  </span> {t}
                 </span>
               ))}
             </div>
           </WorkflowStepCard>
         </div>
 
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>02 &nbsp; Sampling</p>
+        <StepArrow />
+
+        <div className="md:flex-1 md:min-w-0">
+          <MobileStepLabel n="02" label="Sampling" />
           <WorkflowStepCard>
-            <div className="rounded-lg mb-3 overflow-hidden" style={{ background: DARK_PANEL, aspectRatio: '4/3' }}>
+            <div className="rounded-lg mb-3 overflow-hidden" style={{ aspectRatio: '4/3' }}>
               <img src="/mockupHoodieFront.png" alt="Sample" className="w-full h-full object-cover object-top scale-125" loading="lazy" />
             </div>
-            <p className="text-[9px] uppercase tracking-[0.08em] font-inter mb-1.5" style={{ color: MUTED }}>Fit & approvals</p>
-            <span className="text-[10px] font-inter flex items-center gap-1.5" style={{ color: GREEN }}>
-              <Check className="w-2.5 h-2.5" strokeWidth={3} /> Sample approved 08 Jul
-            </span>
-          </WorkflowStepCard>
-        </div>
-
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>03 &nbsp; Production</p>
-          <WorkflowStepCard>
-            <ChecklistRow label="Cutting" done note="Complete" />
-            <ChecklistRow label="Sewing" done note="In progress" progress={55} />
-            <ChecklistRow label="Finishing" note="Upcoming" />
-            <ChecklistRow label="Packing" note="Upcoming" />
-          </WorkflowStepCard>
-        </div>
-
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>04 &nbsp; Quality</p>
-          <WorkflowStepCard>
-            <p className="text-[9px] uppercase tracking-[0.08em] font-inter mb-2" style={{ color: MUTED }}>Inspection · Line 04</p>
-            <div className="flex flex-col gap-2 mt-2">
-              <div>
-                <p className="font-dm-sans font-bold text-[16px]" style={{ color: GREEN }}>352 PCS</p>
-                <p className="text-[9px] font-inter" style={{ color: MUTED }}>Passed</p>
-              </div>
-              <div>
-                <p className="font-dm-sans font-bold text-[16px]" style={{ color: RED }}>12 PCS</p>
-                <p className="text-[9px] font-inter" style={{ color: MUTED }}>Failed</p>
+            <p className="text-[9px] uppercase tracking-[0.08em] font-inter mb-2" style={{ color: MUTED }}>Fit & approvals</p>
+            <div className="flex items-start gap-1.5">
+              <span className="w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0 mt-px" style={{ background: GREEN }}>
+                <Check className="w-2 h-2" style={{ color: '#fff' }} strokeWidth={4} />
+              </span>
+              <div className="flex flex-col leading-tight">
+                <span className="text-[10px] font-inter font-medium" style={{ color: INK }}>Sample approved</span>
+                <span className="text-[9px] font-inter" style={{ color: MUTED }}>08 Jul</span>
               </div>
             </div>
           </WorkflowStepCard>
         </div>
 
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>05 &nbsp; Shipment</p>
+        <StepArrow />
+
+        <div className="md:flex-1 md:min-w-0">
+          <MobileStepLabel n="03" label="Production" />
           <WorkflowStepCard>
-            <p className="text-[9px] uppercase tracking-[0.08em] font-inter mb-1.5" style={{ color: MUTED }}>Ready to ship</p>
-            <p className="font-dm-sans font-bold text-[16px] mb-3" style={{ color: INK }}>600 PCS</p>
-            <TagRow label="ETD" value="10 Sep" />
-            <TagRow label="ETA" value="22 Sep" />
+            <div className="flex flex-col gap-2.5">
+              {productionRows.map((r) => (
+                <div key={r.label} className="flex items-center justify-between">
+                  <span className="text-[11px] font-inter" style={{ color: INK }}>{r.label}</span>
+                  {r.progress !== undefined ? (
+                    <div className="w-16 h-[3px] rounded-full overflow-hidden flex-shrink-0" style={{ background: BORDER }}>
+                      <div className="h-full rounded-full" style={{ width: `${r.progress}%`, background: PURPLE }} />
+                    </div>
+                  ) : (
+                    <span className="text-[10px] font-inter" style={{ color: r.color }}>{r.value}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </WorkflowStepCard>
+        </div>
+
+        <StepArrow />
+
+        <div className="md:flex-1 md:min-w-0">
+          <MobileStepLabel n="04" label="Quality" />
+          <WorkflowStepCard>
+            <div className="flex flex-col gap-3">
+              <StatPair label="Inspection" value="Line 04" />
+              <StatPair label="Passed" value="352 PCS" color={GREEN} />
+              <StatPair label="Failed" value="12 PCS" color={RED} />
+            </div>
+          </WorkflowStepCard>
+        </div>
+
+        <StepArrow />
+
+        <div className="md:flex-1 md:min-w-0">
+          <MobileStepLabel n="05" label="Shipment" />
+          <WorkflowStepCard>
+            <div className="flex flex-col gap-3">
+              <StatPair label="Ready to ship" value="600 PCS" />
+              <StatPair label="ETD" value="10 Sep" />
+              <StatPair label="ETA" value="22 Sep" />
+            </div>
           </WorkflowStepCard>
         </div>
       </div>
@@ -735,7 +1083,6 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     const isMobile = window.innerWidth < 768;
     let lenis: InstanceType<typeof Lenis> | null = null;
     let rafFn: ((time: number) => void) | null = null;
@@ -751,13 +1098,6 @@ const Index = () => {
     }
 
     const ctx = gsap.context(() => {
-      if (!reduced) {
-        gsap.from('.hero-garment', { opacity: 0, y: 24, duration: 1.1, ease: 'power3.out', delay: 0.15 });
-        gsap.from('.hero-chip-0, .hero-chip-1, .hero-chip-2', {
-          opacity: 0, y: 16, stagger: 0.12, duration: 0.9, ease: 'power2.out', delay: 0.4,
-        });
-      }
-
       gsap.utils.toArray<Element>('.reveal').forEach((el) => {
         gsap.from(el, {
           opacity: 0, y: 28, duration: 1, ease: 'power3.out',
