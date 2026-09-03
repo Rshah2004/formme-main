@@ -492,16 +492,16 @@ const manufacturerChecklist = ['Real-time production tracking', 'Smarter plannin
 const brandChecklist = ['Live order & production visibility', 'Quality, rework & approvals', 'Shipment tracking & ETAs', 'Fewer follow-ups, more clarity'];
 
 const lineProgress = [
-  { line: 'Line 01', dots: [1, 1, 1, 1, 1, 0, 0], color: PURPLE },
-  { line: 'Line 02', dots: [1, 1, 1, 0, 0, 0, 0], color: '#D9A441' },
-  { line: 'Line 03', dots: [1, 1, 1, 1, 1, 1, 0], color: GREEN },
-  { line: 'Line 04', dots: [1, 1, 1, 1, 0, 0, 0], color: PURPLE },
+  { line: 'Line 01', dots: [1, 1, 1, 1, 1, 0], color: PURPLE },
+  { line: 'Line 02', dots: [1, 1, 1, 0, 0, 0], color: '#D9A441' },
+  { line: 'Line 03', dots: [1, 1, 1, 1, 1, 1], color: GREEN },
+  { line: 'Line 04', dots: [1, 1, 1, 1, 0, 0], color: PURPLE },
 ];
 
 const upcomingDeliveries = [
-  { code: 'FM-HOOD-004', factory: 'Supreme Stitch', qty: '600 PCS', date: '06 Sep' },
-  { code: 'FM-TS-101', factory: 'Ace Garments', qty: '300 PCS', date: '12 Sep' },
-  { code: 'FM-JOG-201', factory: 'Moda Works', qty: '600 PCS', date: '15 Sep' },
+  { code: 'FM-HOOD-004', date: '06 Sep', factory: 'Supreme Stitch', qty: '600 PCS', stage: 'Finishing', stageColor: '#D9A441' },
+  { code: 'FM-TS-101', date: '10 Sep', factory: 'Ace Garments', qty: '300 PCS', stage: 'Cutting', stageColor: RED },
+  { code: 'FM-JOG-201', date: '12 Sep', factory: 'Moda Works', qty: '600 PCS', stage: 'Finishing', stageColor: '#D9A441' },
 ];
 
 const orderProgressRows = [
@@ -511,9 +511,9 @@ const orderProgressRows = [
 ];
 
 const recentUpdates = [
-  'Line 04 moved to sewing · FM-HOOD-004 · 2 hours ago',
-  'Quality check passed · 4 hours ago',
-  'Shipment scheduled for 12 Sep · 1 day ago',
+  { text: 'Line 04 moved to sewing', meta: 'FM-HOOD-004 · 2 hours ago' },
+  { text: 'Quality check passed', meta: 'FM-TS-101 · 4 hours ago' },
+  { text: 'Shipment scheduled for 12 Sep', meta: 'FM-JOG-201 · 1 day ago' },
 ];
 
 const FactoriesSection = () => (
@@ -553,20 +553,31 @@ const FactoriesSection = () => (
             {lineProgress.map((l) => (
               <div key={l.line} className="flex items-center gap-3">
                 <span className="text-[10px] font-inter w-12 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.5)' }}>{l.line}</span>
-                <div className="flex gap-1">
+                <div className="relative flex items-center gap-0 flex-1">
+                  <div className="absolute left-[5px] right-[5px] h-px" style={{ background: 'rgba(255,255,255,0.12)' }} />
                   {l.dots.map((d, i) => (
-                    <span key={i} className="w-1.5 h-1.5 rounded-full" style={{ background: d ? l.color : 'rgba(255,255,255,0.12)' }} />
+                    <span key={i} className="relative flex-1 flex justify-center first:justify-start last:justify-end">
+                      <span className="w-[7px] h-[7px] rounded-full" style={{ background: d ? l.color : 'rgba(255,255,255,0.16)' }} />
+                    </span>
                   ))}
                 </div>
               </div>
             ))}
           </div>
           <p className="text-[10px] uppercase tracking-[0.1em] font-inter mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>Upcoming Deliveries</p>
-          <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-3">
             {upcomingDeliveries.map((d) => (
-              <div key={d.code} className="flex items-center justify-between text-[11px] font-inter">
-                <span style={{ color: 'rgba(255,255,255,0.85)' }}>{d.code} <span style={{ color: 'rgba(255,255,255,0.4)' }}>· {d.factory}</span></span>
-                <span style={{ color: 'rgba(255,255,255,0.5)' }}>{d.qty} · {d.date}</span>
+              <div key={d.code} className="flex flex-col gap-1">
+                <div className="flex items-center justify-between text-[11px] font-inter">
+                  <span style={{ color: 'rgba(255,255,255,0.85)' }}>{d.code}</span>
+                  <span style={{ color: 'rgba(255,255,255,0.85)' }}>{d.qty}</span>
+                </div>
+                <div className="flex items-center justify-between text-[10px] font-inter">
+                  <span className="flex items-center gap-1.5" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                    <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: d.stageColor }} /> {d.factory}
+                  </span>
+                  <span style={{ color: d.stageColor }}>{d.stage}</span>
+                </div>
               </div>
             ))}
           </div>
@@ -594,25 +605,29 @@ const FactoriesSection = () => (
 
         <div className="mt-9 rounded-2xl bg-white p-5 shadow-md" style={{ border: `1px solid ${BORDER}` }}>
           <p className="text-[11px] font-dm-sans font-medium mb-4" style={{ color: INK }}>Brand Dashboard</p>
-          <div className="grid grid-cols-3 gap-3 mb-5 pb-5 border-b" style={{ borderColor: BORDER }}>
+          <p className="text-[10px] uppercase tracking-[0.1em] font-inter mb-2" style={{ color: MUTED }}>Order Overview</p>
+          <div className="grid grid-cols-3 gap-2 mb-5">
             {[['Total Orders', '12'], ['In Production', '8'], ['On-time Rate', '92%']].map(([l, v]) => (
-              <div key={l}>
-                <p className="font-dm-sans font-bold text-[18px]" style={{ color: INK }}>{v}</p>
-                <p className="text-[9px] font-inter mt-1" style={{ color: MUTED }}>{l}</p>
+              <div key={l} className="rounded-lg p-2.5" style={{ border: `1px solid ${BORDER}` }}>
+                <p className="font-dm-sans font-bold text-[16px]" style={{ color: INK }}>{v}</p>
+                <p className="text-[8px] font-inter mt-1 leading-tight" style={{ color: MUTED }}>{l}</p>
               </div>
             ))}
           </div>
           <p className="text-[10px] uppercase tracking-[0.1em] font-inter mb-3" style={{ color: MUTED }}>Order Progress</p>
           <div className="hidden sm:grid grid-cols-[1.4fr_repeat(5,1fr)] gap-1 mb-1.5">
             <span />
-            {['Cut', 'Sew', 'Fin', 'QC', 'Ship'].map((h) => (
-              <span key={h} className="text-[8px] uppercase text-center font-inter" style={{ color: MUTED }}>{h}</span>
+            {['Cutting', 'Sewing', 'Finishing', 'QC', 'Shipment'].map((h) => (
+              <span key={h} className="text-[7px] uppercase text-center font-inter" style={{ color: MUTED }}>{h}</span>
             ))}
           </div>
-          <div className="flex flex-col gap-2 mb-6">
+          <div className="flex flex-col gap-2.5 mb-6">
             {orderProgressRows.map((r) => (
               <div key={r.code} className="grid grid-cols-[1.4fr_repeat(5,1fr)] gap-1 items-center">
-                <span className="text-[10px] font-inter truncate" style={{ color: MUTED2 }}>{r.code}</span>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-inter truncate" style={{ color: INK }}>{r.code}</p>
+                  <p className="text-[8px] font-inter" style={{ color: MUTED }}>{r.qty}</p>
+                </div>
                 {r.cols.map((c, i) => (
                   <span key={i} className="text-[9px] text-center font-inter" style={{ color: c === 100 ? GREEN : c === 0 ? MUTED : INK }}>{c}%</span>
                 ))}
@@ -623,9 +638,17 @@ const FactoriesSection = () => (
             <p className="text-[10px] uppercase tracking-[0.1em] font-inter" style={{ color: MUTED }}>Recent Updates</p>
             <span className="text-[10px] font-inter" style={{ color: PURPLE }}>View all</span>
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2.5">
             {recentUpdates.map((u) => (
-              <p key={u} className="text-[10px] font-inter leading-relaxed" style={{ color: MUTED2 }}>{u}</p>
+              <div key={u.text} className="flex items-start gap-2">
+                <span className="w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0 mt-px" style={{ background: PURPLE_BG }}>
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: PURPLE }} />
+                </span>
+                <div className="flex flex-col leading-tight">
+                  <span className="text-[10px] font-inter" style={{ color: INK }}>{u.text}</span>
+                  <span className="text-[9px] font-inter" style={{ color: MUTED }}>{u.meta}</span>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -639,6 +662,29 @@ const FactoriesSection = () => (
 ════════════════════════════════════════════════ */
 const WorkflowStepCard = ({ children }: { children: React.ReactNode }) => (
   <div className="rounded-2xl bg-white p-4 shadow-sm h-full" style={{ border: `1px solid ${BORDER}` }}>{children}</div>
+);
+
+const workflowStepBadges = [
+  { n: '01', label: 'Tech Pack' },
+  { n: '02', label: 'Sampling' },
+  { n: '03', label: 'Production' },
+  { n: '04', label: 'Quality' },
+  { n: '05', label: 'Shipment' },
+];
+
+const productionRows: { label: string; value?: string; color?: string; progress?: number }[] = [
+  { label: 'Cutting', value: 'Complete', color: GREEN },
+  { label: 'Sewing', progress: 72 },
+  { label: 'Finishing', value: 'In progress', color: MUTED2 },
+  { label: 'Packing', value: 'Upcoming', color: MUTED },
+  { label: 'Proving', value: 'Upcoming', color: MUTED },
+];
+
+const StatPair = ({ label, value, color }: { label: string; value: string; color?: string }) => (
+  <div>
+    <p className="text-[9px] font-inter mb-1" style={{ color: MUTED }}>{label}</p>
+    <p className="font-dm-sans font-bold text-[14px]" style={{ color: color ?? INK }}>{value}</p>
+  </div>
 );
 
 const WorkflowSection = () => (
@@ -656,70 +702,110 @@ const WorkflowSection = () => (
         </p>
       </div>
 
-      <div className="reveal grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>01 &nbsp; Tech Pack</p>
+      {/* Step badges — circular numbers linked by a dashed line */}
+      <div className="reveal relative hidden md:flex items-center mb-6">
+        {workflowStepBadges.map((s, i) => (
+          <React.Fragment key={s.n}>
+            <div className="flex items-center gap-2 flex-shrink-0 relative z-10 pr-3" style={{ background: LAVENDER }}>
+              <span className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-inter font-semibold flex-shrink-0" style={{ border: `1.5px solid ${PURPLE}`, color: PURPLE }}>{s.n}</span>
+              <span className="text-[13px] font-inter font-medium whitespace-nowrap" style={{ color: INK }}>{s.label}</span>
+            </div>
+            {i < workflowStepBadges.length - 1 && <div className="flex-1 h-0" style={{ borderTop: `1px dashed ${BORDER}` }} />}
+          </React.Fragment>
+        ))}
+      </div>
+
+      <div className="reveal grid grid-cols-2 md:flex md:items-stretch gap-4">
+        <div className="md:flex-1 md:min-w-0">
+          <p className="md:hidden text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>01 &nbsp; Tech Pack</p>
           <WorkflowStepCard>
             <div className="rounded-lg mb-3 flex items-center justify-center" style={{ background: '#F7F6FB', aspectRatio: '4/3' }}>
-              <FileText className="w-8 h-8" style={{ color: MUTED }} />
+              <Shirt className="w-10 h-10" strokeWidth={1} style={{ color: MUTED }} />
             </div>
             <div className="flex flex-col gap-1.5">
               {['Specs', 'Measurements', 'BOM', 'Construction'].map((t) => (
                 <span key={t} className="text-[10px] font-inter flex items-center gap-1.5" style={{ color: MUTED2 }}>
-                  <Check className="w-2.5 h-2.5" style={{ color: GREEN }} strokeWidth={3} /> {t}
+                  <span className="w-2.5 h-2.5 rounded-[3px] flex-shrink-0" style={{ border: `1.5px solid ${MUTED}` }} /> {t}
                 </span>
               ))}
             </div>
           </WorkflowStepCard>
         </div>
 
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>02 &nbsp; Sampling</p>
+        <div className="hidden md:flex items-center justify-center flex-shrink-0">
+          <ArrowRight className="w-4 h-4" style={{ color: MUTED, opacity: 0.5 }} />
+        </div>
+
+        <div className="md:flex-1 md:min-w-0">
+          <p className="md:hidden text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>02 &nbsp; Sampling</p>
           <WorkflowStepCard>
             <div className="rounded-lg mb-3 overflow-hidden" style={{ background: DARK_PANEL, aspectRatio: '4/3' }}>
               <img src="/mockupHoodieFront.png" alt="Sample" className="w-full h-full object-cover object-top scale-125" loading="lazy" />
             </div>
-            <p className="text-[9px] uppercase tracking-[0.08em] font-inter mb-1.5" style={{ color: MUTED }}>Fit & approvals</p>
-            <span className="text-[10px] font-inter flex items-center gap-1.5" style={{ color: GREEN }}>
-              <Check className="w-2.5 h-2.5" strokeWidth={3} /> Sample approved 08 Jul
-            </span>
-          </WorkflowStepCard>
-        </div>
-
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>03 &nbsp; Production</p>
-          <WorkflowStepCard>
-            <ChecklistRow label="Cutting" state="done" note="Complete" />
-            <ChecklistRow label="Sewing" state="active" note="In progress" progress={55} />
-            <ChecklistRow label="Finishing" note="Upcoming" />
-            <ChecklistRow label="Packing" note="Upcoming" />
-          </WorkflowStepCard>
-        </div>
-
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>04 &nbsp; Quality</p>
-          <WorkflowStepCard>
-            <p className="text-[9px] uppercase tracking-[0.08em] font-inter mb-2" style={{ color: MUTED }}>Inspection · Line 04</p>
-            <div className="flex flex-col gap-2 mt-2">
-              <div>
-                <p className="font-dm-sans font-bold text-[16px]" style={{ color: GREEN }}>352 PCS</p>
-                <p className="text-[9px] font-inter" style={{ color: MUTED }}>Passed</p>
-              </div>
-              <div>
-                <p className="font-dm-sans font-bold text-[16px]" style={{ color: RED }}>12 PCS</p>
-                <p className="text-[9px] font-inter" style={{ color: MUTED }}>Failed</p>
+            <p className="text-[9px] uppercase tracking-[0.08em] font-inter mb-2" style={{ color: MUTED }}>Fit & approvals</p>
+            <div className="flex items-start gap-1.5">
+              <span className="w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0 mt-px" style={{ background: GREEN }}>
+                <Check className="w-2 h-2" style={{ color: '#fff' }} strokeWidth={4} />
+              </span>
+              <div className="flex flex-col leading-tight">
+                <span className="text-[10px] font-inter font-medium" style={{ color: INK }}>Sample approved</span>
+                <span className="text-[9px] font-inter" style={{ color: MUTED }}>08 Jul</span>
               </div>
             </div>
           </WorkflowStepCard>
         </div>
 
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>05 &nbsp; Shipment</p>
+        <div className="hidden md:flex items-center justify-center flex-shrink-0">
+          <ArrowRight className="w-4 h-4" style={{ color: MUTED, opacity: 0.5 }} />
+        </div>
+
+        <div className="md:flex-1 md:min-w-0">
+          <p className="md:hidden text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>03 &nbsp; Production</p>
           <WorkflowStepCard>
-            <p className="text-[9px] uppercase tracking-[0.08em] font-inter mb-1.5" style={{ color: MUTED }}>Ready to ship</p>
-            <p className="font-dm-sans font-bold text-[16px] mb-3" style={{ color: INK }}>600 PCS</p>
-            <TagRow label="ETD" value="10 Sep" />
-            <TagRow label="ETA" value="22 Sep" />
+            <div className="flex flex-col gap-2.5">
+              {productionRows.map((r) => (
+                <div key={r.label} className="flex items-center justify-between">
+                  <span className="text-[11px] font-inter" style={{ color: INK }}>{r.label}</span>
+                  {r.progress !== undefined ? (
+                    <div className="w-16 h-[3px] rounded-full overflow-hidden flex-shrink-0" style={{ background: BORDER }}>
+                      <div className="h-full rounded-full" style={{ width: `${r.progress}%`, background: PURPLE }} />
+                    </div>
+                  ) : (
+                    <span className="text-[10px] font-inter" style={{ color: r.color }}>{r.value}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </WorkflowStepCard>
+        </div>
+
+        <div className="hidden md:flex items-center justify-center flex-shrink-0">
+          <ArrowRight className="w-4 h-4" style={{ color: MUTED, opacity: 0.5 }} />
+        </div>
+
+        <div className="md:flex-1 md:min-w-0">
+          <p className="md:hidden text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>04 &nbsp; Quality</p>
+          <WorkflowStepCard>
+            <div className="flex flex-col gap-3">
+              <StatPair label="Inspection" value="Line 04" />
+              <StatPair label="Passed" value="352 PCS" color={GREEN} />
+              <StatPair label="Failed" value="12 PCS" color={RED} />
+            </div>
+          </WorkflowStepCard>
+        </div>
+
+        <div className="hidden md:flex items-center justify-center flex-shrink-0">
+          <ArrowRight className="w-4 h-4" style={{ color: MUTED, opacity: 0.5 }} />
+        </div>
+
+        <div className="md:flex-1 md:min-w-0">
+          <p className="md:hidden text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>05 &nbsp; Shipment</p>
+          <WorkflowStepCard>
+            <div className="flex flex-col gap-3">
+              <StatPair label="Ready to ship" value="600 PCS" />
+              <StatPair label="ETD" value="10 Sep" />
+              <StatPair label="ETA" value="22 Sep" />
+            </div>
           </WorkflowStepCard>
         </div>
       </div>
