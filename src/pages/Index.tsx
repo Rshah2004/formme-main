@@ -262,7 +262,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
                       backgroundSize: '200.52% 112.28%',
                       backgroundPosition: '50% 16.96%',
                       backgroundRepeat: 'no-repeat',
-                      transform: 'rotate(-3deg)',
+                      transform: 'rotate(0deg)',
                       filter: 'drop-shadow(0 18px 26px rgba(21,19,28,0.16))',
                     }}
                   />
@@ -333,7 +333,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
                       backgroundSize: '200.52% 112.28%',
                       backgroundPosition: '50% 16.96%',
                       backgroundRepeat: 'no-repeat',
-                      transform: 'rotate(-3deg)',
+                      transform: 'rotate(0deg)',
                       filter: 'drop-shadow(0 14px 20px rgba(21,19,28,0.16))',
                     }}
                   />
