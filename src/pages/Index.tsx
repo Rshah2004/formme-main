@@ -705,6 +705,25 @@ const StepArrow = () => (
 
 const WorkflowSection = () => (
   <section id="product" className="py-20 md:py-24 px-6" style={{ background: LAVENDER }}>
+    {/* Turns a solid-fill photo into hollow line art: run edge detection on its luminance
+        (so internal seams/drawstrings/pocket lines show up, not just the outer silhouette),
+        threshold to solid black lines, then clip to the garment's own alpha so the fill
+        itself stays fully transparent and nothing bleeds outside the original silhouette. */}
+    <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
+      <filter id="outline-only" x="-20%" y="-20%" width="140%" height="140%">
+        <feColorMatrix in="SourceGraphic" type="matrix" values="0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0 0 0 1 0" result="gray" />
+        <feConvolveMatrix in="gray" order="3" kernelMatrix="-1 -1 -1 -1 8 -1 -1 -1 -1" divisor="1" bias="0" edgeMode="none" preserveAlpha="true" result="edges" />
+        <feComponentTransfer in="edges" result="edgesBoost">
+          <feFuncR type="discrete" tableValues="0 0 0 1 1 1 1 1" />
+          <feFuncG type="discrete" tableValues="0 0 0 1 1 1 1 1" />
+          <feFuncB type="discrete" tableValues="0 0 0 1 1 1 1 1" />
+        </feComponentTransfer>
+        <feColorMatrix in="edgesBoost" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.33 0.33 0.33 0 0" result="edgeAlpha" />
+        <feFlood floodColor="#15131C" result="black" />
+        <feComposite in="black" in2="edgeAlpha" operator="in" result="blackEdges" />
+        <feComposite in="blackEdges" in2="SourceAlpha" operator="in" />
+      </filter>
+    </svg>
     <div className="mx-auto max-w-[1300px]">
       <div className="reveal flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-14">
         <div>
@@ -741,9 +760,7 @@ const WorkflowSection = () => (
                 alt="Tech pack sketch"
                 className="w-full h-full object-contain"
                 style={{
-                  filter:
-                    'drop-shadow(1px 0 0 rgba(21,19,28,0.75)) drop-shadow(-1px 0 0 rgba(21,19,28,0.75)) ' +
-                    'drop-shadow(0 1px 0 rgba(21,19,28,0.75)) drop-shadow(0 -1px 0 rgba(21,19,28,0.75))',
+                  filter: 'url(#outline-only)',
                 }}
                 loading="lazy"
               />
