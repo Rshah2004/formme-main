@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Check, ArrowRight, ArrowDown, ChevronDown, FileText, Shirt, Factory, ShieldCheck, Package,
-  LayoutGrid, ClipboardList, BarChart3, Settings, Linkedin, CircleDot,
+  LayoutGrid, ClipboardList, BarChart3, Settings, Linkedin, CircleDot, Scissors, Truck,
 } from 'lucide-react';
 import { SEO } from '@/components/SEO';
 import BookDemoModal from '@/components/homePage/BookDemoModal';
@@ -74,12 +74,36 @@ const TagRow = ({ label, value, swatch, image }: { label: string; value: string;
   </div>
 );
 
-const ChecklistRow = ({ label, done, note, progress }: { label: string; done?: boolean; note: string; progress?: number }) => (
+/* Status dot for a checklist row: filled check (done), partial ring (active/in-progress), dashed outline (upcoming) */
+const StatusDot = ({ state, progress }: { state: 'done' | 'active' | 'upcoming'; progress?: number }) => {
+  if (state === 'done') {
+    return (
+      <span className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: GREEN }}>
+        <Check className="w-2.5 h-2.5" style={{ color: '#fff' }} strokeWidth={3.5} />
+      </span>
+    );
+  }
+  if (state === 'active') {
+    const pct = progress ?? 50;
+    const r = 6;
+    const c = 2 * Math.PI * r;
+    return (
+      <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 16 16">
+        <circle cx="8" cy="8" r={r} fill="none" stroke={BORDER} strokeWidth="2" />
+        <circle
+          cx="8" cy="8" r={r} fill="none" stroke={PURPLE} strokeWidth="2" strokeLinecap="round"
+          strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} transform="rotate(-90 8 8)"
+        />
+      </svg>
+    );
+  }
+  return <span className="w-4 h-4 rounded-full flex-shrink-0" style={{ border: `1.5px dashed ${MUTED}` }} />;
+};
+
+const ChecklistRow = ({ label, state = 'upcoming', note, progress }: { label: string; state?: 'done' | 'active' | 'upcoming'; note: string; progress?: number }) => (
   <div className="flex items-center justify-between py-2 border-b last:border-b-0" style={{ borderColor: BORDER }}>
     <div className="flex items-center gap-2">
-      <span className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: done ? GREEN_BG : '#F1F0F4' }}>
-        {done && <Check className="w-2.5 h-2.5" style={{ color: GREEN }} strokeWidth={3.5} />}
-      </span>
+      <StatusDot state={state} progress={progress} />
       <span className="text-[12px] font-inter" style={{ color: INK }}>{label}</span>
     </div>
     {progress !== undefined ? (
@@ -90,7 +114,7 @@ const ChecklistRow = ({ label, done, note, progress }: { label: string; done?: b
         <span className="text-[10px] font-inter" style={{ color: MUTED2 }}>{note}</span>
       </div>
     ) : (
-      <span className="text-[10px] font-inter" style={{ color: done ? GREEN : MUTED }}>{note}</span>
+      <span className="text-[10px] font-inter" style={{ color: state === 'done' ? GREEN : MUTED }}>{note}</span>
     )}
   </div>
 );
@@ -151,19 +175,28 @@ const LandingHeader = ({ onBookDemo }: { onBookDemo: () => void }) => {
    HERO — brand order → formme → factory execution / brand visibility
 ════════════════════════════════════════════════ */
 const workflowSteps = [
-  { icon: ClipboardList, label: 'Tech Packs' },
-  { icon: Settings, label: 'Sampling' },
-  { icon: Factory, label: 'Production' },
+  { icon: FileText, label: 'Tech Pack' },
+  { icon: Scissors, label: 'Sampling' },
+  { icon: Package, label: 'Production' },
   { icon: ShieldCheck, label: 'Quality' },
-  { icon: Package, label: 'Shipment' },
+  { icon: Truck, label: 'Shipment' },
 ];
 
-/* Small circular numbered badge used to mark each step in the hero's product story */
+/* Rounded-chip step number used to mark each step in the hero's product story */
+const NumberChip = ({ children }: { children: React.ReactNode }) => (
+  <span
+    className="inline-flex items-center justify-center rounded-md px-2 py-1 text-[11px] font-inter font-bold leading-none flex-shrink-0"
+    style={{ background: PURPLE_BG, color: PURPLE, border: '1px solid rgba(93,82,214,0.25)' }}
+  >
+    {children}
+  </span>
+);
+
 const StepBadge = ({ n, label, sub }: { n: string; label: string; sub?: string }) => (
   <div className="flex items-center gap-2">
-    <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-dm-sans font-bold text-white flex-shrink-0" style={{ background: PURPLE }}>{n}</span>
+    <NumberChip>{n}</NumberChip>
     <div className="flex flex-col leading-tight">
-      <span className="text-[10px] uppercase tracking-[0.12em] font-inter font-semibold" style={{ color: PURPLE }}>{label}</span>
+      <span className="text-[11px] uppercase tracking-[0.1em] font-inter font-semibold" style={{ color: PURPLE }}>{label}</span>
       {sub && <span className="text-[10px] uppercase tracking-[0.1em] font-inter" style={{ color: MUTED }}>{sub}</span>}
     </div>
   </div>
@@ -171,7 +204,7 @@ const StepBadge = ({ n, label, sub }: { n: string; label: string; sub?: string }
 
 /* Straight labeled arrow connecting two steps — grid-aligned, so it never drifts from the cards it points between */
 const FlowArrow = ({ label, className }: { label: string; className?: string }) => (
-  <div className={`flex flex-col items-center justify-center px-1 ${className ?? ''}`}>
+  <div className={`relative z-30 flex flex-col items-center justify-center px-1 ${className ?? ''}`}>
     <span className="text-[9px] font-inter mb-2 whitespace-nowrap" style={{ color: MUTED }}>{label}</span>
     <ArrowRight className="w-4 h-4" style={{ color: PURPLE, opacity: 0.5 }} />
   </div>
@@ -180,11 +213,30 @@ const FlowArrow = ({ label, className }: { label: string; className?: string }) 
 /* Compact card used for both the Factory Execution and Brand Visibility outputs */
 const OutputCard = ({ step, label, className, children }: { step: string; label: string; className?: string; children: React.ReactNode }) => (
   <div className={`rounded-2xl bg-white p-5 ${className ?? ''}`} style={{ border: `1px solid ${BORDER}`, boxShadow: '0 8px 24px -12px rgba(93,82,214,0.18)' }}>
-    <div className="flex items-center gap-2 mb-3">
-      <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-dm-sans font-bold text-white flex-shrink-0" style={{ background: PURPLE }}>{step}</span>
-      <span className="text-[10px] uppercase tracking-[0.14em] font-inter font-medium" style={{ color: PURPLE }}>{label}</span>
+    <div className="flex items-center gap-2 pb-3 mb-3" style={{ borderBottom: `1px solid ${BORDER}` }}>
+      <NumberChip>{step}</NumberChip>
+      <span className="text-[11px] uppercase tracking-[0.1em] font-inter font-semibold" style={{ color: PURPLE }}>{label}</span>
     </div>
     {children}
+  </div>
+);
+
+/* Callout label pointing at a spot on the hero garment photo — dot, connector tick, label pill */
+const HoodieCallout = ({ x, y, side, label, value }: { x: number; y: number; side: 'left' | 'right'; label: string; value: string }) => (
+  <div
+    className="hero-callout absolute flex items-center gap-2 z-20"
+    style={
+      side === 'right'
+        ? { left: `${x}%`, top: `${y}%`, transform: 'translateY(-50%)' }
+        : { right: `${100 - x}%`, top: `${y}%`, transform: 'translateY(-50%)', flexDirection: 'row-reverse' }
+    }
+  >
+    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: PURPLE }} />
+    <span className="h-px w-4 flex-shrink-0" style={{ background: 'rgba(93,82,214,0.45)' }} />
+    <span className="rounded-md bg-white shadow-sm px-2.5 py-1.5 whitespace-nowrap" style={{ border: `1px solid ${BORDER}` }}>
+      <span className="block text-[8px] uppercase tracking-[0.08em] font-inter font-semibold" style={{ color: MUTED2 }}>{label}</span>
+      <span className="block text-[10px] font-dm-sans font-medium" style={{ color: INK }}>{value}</span>
+    </span>
   </div>
 );
 
@@ -196,13 +248,15 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
     const ctx = gsap.context(() => {
       gsap.set(['.hero-step1', '.hero-step2', '.hero-step3a', '.hero-step3b'], { opacity: 0, y: 14 });
       gsap.set(['.hero-arrow-1', '.hero-arrow-2'], { opacity: 0 });
+      gsap.set('.hero-callout', { opacity: 0 });
       gsap.set('.hero-progress-fill', { width: 0 });
 
       gsap.timeline({ delay: 0.25 })
         .to('.hero-step1', { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' })
         .to('.hero-arrow-1', { opacity: 1, duration: 0.4, ease: 'power1.out' }, '-=0.15')
         .to('.hero-step2', { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, '-=0.1')
-        .to('.hero-arrow-2', { opacity: 1, duration: 0.4, ease: 'power1.out' }, '-=0.15')
+        .to('.hero-callout', { opacity: 1, duration: 0.3, stagger: 0.08, ease: 'power1.out' }, '-=0.2')
+        .to('.hero-arrow-2', { opacity: 1, duration: 0.4, ease: 'power1.out' }, '-=0.1')
         .to('.hero-step3a', { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, '-=0.1')
         .to('.hero-step3b', { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, '-=0.15')
         .to('.hero-progress-fill', { width: '72%', duration: 0.9, ease: 'power2.out' }, '-=0.1');
@@ -219,23 +273,28 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
             <div className="reveal">
               <Eyebrow>Fashion production, connected</Eyebrow>
             </div>
-            <h1 className="reveal font-dm-sans font-semibold leading-[1.1] tracking-[-0.02em]" style={{ color: INK, fontSize: 'clamp(40px, 4.6vw, 60px)' }}>
+            <h1 className="reveal font-cormorant font-medium leading-[1.08] tracking-[-0.01em]" style={{ color: INK, fontSize: 'clamp(40px, 4.6vw, 60px)' }}>
               The operating system for{' '}
-              <span className="font-cormorant italic font-medium" style={{ color: PURPLE }}>fashion production.</span>
+              <span className="italic" style={{ color: PURPLE }}>fashion production.</span>
             </h1>
             <p className="reveal mt-6 max-w-sm font-inter leading-relaxed" style={{ color: MUTED2, fontSize: '15px' }}>
               Formme helps factories run production and gives brands live visibility — from tech pack to shipment.
             </p>
-            <div className="reveal mt-8 flex items-center gap-4">
+            <div className="reveal mt-8 flex items-center gap-6">
               <SolidButton onClick={onBookDemo}>Book a demo</SolidButton>
-              <OutlineButton href="#product">See how it works <ArrowRight className="w-3.5 h-3.5" /></OutlineButton>
+              <a href="#product" className="cta-link text-[13px] font-inter font-medium" style={{ color: PURPLE }}>
+                See how it works <ArrowRight className="w-3.5 h-3.5" />
+              </a>
             </div>
-            <div className="reveal mt-9 flex items-center gap-5 flex-wrap">
-              {workflowSteps.map(({ icon: Icon, label }) => (
-                <span key={label} className="flex items-center gap-1.5 text-[11px] font-inter" style={{ color: MUTED }}>
-                  <Icon className="w-3.5 h-3.5" strokeWidth={1.75} />
-                  {label}
-                </span>
+            <div className="reveal mt-9 flex items-center gap-3 flex-wrap">
+              {workflowSteps.map(({ icon: Icon, label }, i) => (
+                <React.Fragment key={label}>
+                  {i > 0 && <span style={{ color: PURPLE, opacity: 0.5 }}>&middot;</span>}
+                  <span className="flex items-center gap-1.5 text-[12px] font-inter font-medium" style={{ color: PURPLE }}>
+                    <Icon className="w-4 h-4" strokeWidth={1.75} />
+                    {label}
+                  </span>
+                </React.Fragment>
               ))}
             </div>
           </div>
@@ -243,27 +302,40 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
           {/* Right — the product story */}
           <div className="relative">
             {/* Desktop composition */}
-            <div className="hidden xl:grid relative grid-cols-[1fr_auto_0.95fr_auto_1fr] gap-2 items-center w-fit ml-auto">
+            <div className="hidden xl:grid relative grid-cols-[1fr_auto_0.95fr_auto_1fr] gap-3 items-center w-fit ml-auto">
               {/* Step 1 — Brand order */}
               <div className="hero-step1 relative z-10">
                 <div className="mb-4">
-                  <StepBadge n="1" label="Input" sub="Brand order" />
+                  <StepBadge n="01" label="Brand order" />
                 </div>
-                <div className="rounded-2xl bg-white p-6" style={{ border: `1px solid ${BORDER}`, boxShadow: '0 8px 24px -12px rgba(93,82,214,0.18)' }}>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-[18px] h-[18px]" style={{ color: PURPLE }} />
-                      <span className="text-[15px] font-dm-sans font-semibold" style={{ color: INK }}>Tech Pack</span>
-                    </div>
-                    <span className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: PURPLE_BG }}>
-                      <Shirt className="w-[18px] h-[18px]" style={{ color: PURPLE }} />
-                    </span>
-                  </div>
+                <div className="rounded-2xl bg-white p-5 w-[228px]" style={{ border: `1px solid ${BORDER}`, boxShadow: '0 8px 24px -12px rgba(93,82,214,0.18)' }}>
+                  <p className="text-[13px] font-dm-sans font-bold mb-4" style={{ color: PURPLE }}>Tech Pack</p>
                   <TagRow label="Style" value="FM-HOOD-004" />
                   <TagRow label="Order" value="#FM-2841" />
-                  <TagRow label="Quantity" value="600 PCS" />
-                  <TagRow label="Fabric" value="420 GSM Cotton" />
-                  <TagRow label="Color" value="Washed Black" swatch="#1A1A1A" />
+                  <TagRow label="Quantity" value="600 pcs" />
+                  <TagRow label="Fabric" value="420 GSM cotton" />
+                  <TagRow label="Color" value="Washed black" swatch="#1A1A1A" />
+                  <TagRow label="Size run" value="XS–XXL" />
+
+                  <div className="mt-4 rounded-xl flex items-center justify-center gap-3 py-5" style={{ background: LAVENDER }}>
+                    <Shirt className="w-12 h-12" strokeWidth={1} style={{ color: MUTED2 }} />
+                    <Shirt className="w-12 h-12 scale-x-[-1]" strokeWidth={1} style={{ color: MUTED2 }} />
+                  </div>
+
+                  <div className="mt-1">
+                    <TagRow label="Style" value="FM-HOOD-004" />
+                    <TagRow label="Fit" value="Oversized" />
+                    <TagRow label="Hood" value="Double layer" />
+                    <TagRow label="Pocket" value="Kangaroo" />
+                    <TagRow label="Rib" value="2x2" />
+                    <TagRow label="Label" value="Woven" />
+                  </div>
+
+                  <div className="mt-3 flex gap-1">
+                    {['#1A1A1A', '#6B6878', '#D9D6E8', '#1A1A1A'].map((c, i) => (
+                      <span key={i} className="flex-1 h-5 rounded-sm" style={{ background: c }} />
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -271,10 +343,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
 
               {/* Step 2 — Formme */}
               <div className="hero-step2 relative z-10 flex flex-col items-center">
-                <div className="mb-2">
-                  <StepBadge n="2" label="Formme" />
-                </div>
-                <div className="relative w-[300px]" style={{ aspectRatio: '766 / 912', perspective: '900px' }}>
+                <div className="relative w-[268px]" style={{ aspectRatio: '766 / 912', perspective: '900px' }}>
                   <div
                     className="absolute inset-0"
                     style={{
@@ -286,20 +355,31 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
                       filter: 'drop-shadow(0 18px 26px rgba(21,19,28,0.16))',
                     }}
                   />
+                  <HoodieCallout x={40} y={27} side="right" label="Style" value="FM-HOOD-004" />
+                  <HoodieCallout x={51} y={46} side="right" label="Fabric" value="420 GSM cotton" />
+                  <HoodieCallout x={40} y={61} side="left" label="Color" value="Washed black" />
+                  <HoodieCallout x={48} y={70} side="right" label="Quantity" value="600 pcs" />
+                  <HoodieCallout x={39} y={90} side="right" label="Size run" value="XS–XXL" />
                 </div>
-                <div className="relative z-10 mt-3 rounded-full shadow-md px-4 py-2 flex items-center gap-1.5" style={{ background: '#fff', border: `1px solid ${BORDER}` }}>
-                  <span className="w-4 h-4 rounded-md flex items-center justify-center text-[8px] font-dm-sans font-bold text-white flex-shrink-0" style={{ background: PURPLE }}>b</span>
-                  <span className="text-[12px] font-dm-sans font-semibold" style={{ color: INK }}>formme</span>
+                <div className="relative z-10 mt-4 rounded-xl shadow-md px-4 py-3 flex items-center gap-2.5 w-[260px]" style={{ background: '#fff', border: `1px solid ${BORDER}` }}>
+                  <span className="w-8 h-8 rounded-lg flex items-center justify-center text-[14px] font-dm-sans font-bold text-white flex-shrink-0" style={{ background: PURPLE }}>b</span>
+                  <div className="flex flex-col leading-tight">
+                    <span className="text-[13px] font-dm-sans font-bold" style={{ color: INK }}>FORMME</span>
+                    <span className="text-[10px] font-inter" style={{ color: MUTED }}>Connected Order #FM-2841</span>
+                  </div>
                 </div>
               </div>
 
-              <FlowArrow label="Production updated" className="hero-arrow-2" />
+              <div className="flex flex-col justify-between hero-arrow-2" style={{ height: '300px' }}>
+                <FlowArrow label="Production updated" />
+                <FlowArrow label="Status synced" />
+              </div>
 
               {/* Step 3 — outputs */}
               <div className="flex flex-col gap-4">
-                <OutputCard step="3A" label="Factory execution" className="hero-step3a">
-                  <ChecklistRow label="Cutting" done note="Complete" />
-                  <ChecklistRow label="Sewing" done note="72%" progress={72} />
+                <OutputCard step="02A" label="Factory execution" className="hero-step3a">
+                  <ChecklistRow label="Cutting" state="done" note="Complete" />
+                  <ChecklistRow label="Sewing" state="active" note="72%" progress={72} />
                   <ChecklistRow label="Finishing" note="Upcoming" />
                   <ChecklistRow label="Quality" note="Upcoming" />
                   <ChecklistRow label="Packing" note="Upcoming" />
@@ -307,10 +387,10 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
                   <TagRow label="Expected completion" value="08 Sep" />
                 </OutputCard>
 
-                <OutputCard step="3B" label="Brand visibility" className="hero-step3b">
+                <OutputCard step="02B" label="Brand visibility" className="hero-step3b">
                   <TagRow label="Order" value="#FM-2841" />
                   <div className="flex items-center justify-between py-2 border-b" style={{ borderColor: BORDER }}>
-                    <span className="text-[11px] font-inter" style={{ color: MUTED }}>Production</span>
+                    <span className="text-[11px] font-inter" style={{ color: MUTED }}>Production progress</span>
                     <div className="flex items-center gap-2">
                       <div className="w-16 h-[3px] rounded-full overflow-hidden" style={{ background: BORDER }}>
                         <div className="hero-progress-fill h-full rounded-full" style={{ background: PURPLE }} />
@@ -333,18 +413,16 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
             <div className="xl:hidden flex flex-col items-center gap-3">
               <div className="reveal w-full">
                 <div className="mb-3 flex justify-center">
-                  <StepBadge n="1" label="Input" sub="Brand order" />
+                  <StepBadge n="01" label="Brand order" />
                 </div>
                 <div className="rounded-2xl bg-white p-5" style={{ border: `1px solid ${BORDER}` }}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <FileText className="w-4 h-4" style={{ color: PURPLE }} />
-                    <span className="text-[13px] font-dm-sans font-semibold" style={{ color: INK }}>Tech Pack</span>
-                  </div>
+                  <p className="text-[13px] font-dm-sans font-bold mb-3" style={{ color: PURPLE }}>Tech Pack</p>
                   <TagRow label="Style" value="FM-HOOD-004" />
                   <TagRow label="Order" value="#FM-2841" />
-                  <TagRow label="Quantity" value="600 PCS" />
-                  <TagRow label="Fabric" value="420 GSM Cotton" />
-                  <TagRow label="Color" value="Washed Black" swatch="#1A1A1A" />
+                  <TagRow label="Quantity" value="600 pcs" />
+                  <TagRow label="Fabric" value="420 GSM cotton" />
+                  <TagRow label="Color" value="Washed black" swatch="#1A1A1A" />
+                  <TagRow label="Size run" value="XS–XXL" />
                 </div>
               </div>
 
@@ -364,18 +442,21 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
                     }}
                   />
                 </div>
-                <div className="relative z-10 mt-3 rounded-full shadow-md px-4 py-2 flex items-center gap-1.5" style={{ background: '#fff', border: `1px solid ${BORDER}` }}>
-                  <span className="w-4 h-4 rounded-md flex items-center justify-center text-[8px] font-dm-sans font-bold text-white flex-shrink-0" style={{ background: PURPLE }}>b</span>
-                  <span className="text-[12px] font-dm-sans font-semibold" style={{ color: INK }}>formme</span>
+                <div className="relative z-10 mt-4 rounded-xl shadow-md px-4 py-3 flex items-center gap-2.5 w-[240px]" style={{ background: '#fff', border: `1px solid ${BORDER}` }}>
+                  <span className="w-8 h-8 rounded-lg flex items-center justify-center text-[14px] font-dm-sans font-bold text-white flex-shrink-0" style={{ background: PURPLE }}>b</span>
+                  <div className="flex flex-col leading-tight">
+                    <span className="text-[13px] font-dm-sans font-bold" style={{ color: INK }}>FORMME</span>
+                    <span className="text-[10px] font-inter" style={{ color: MUTED }}>Connected Order #FM-2841</span>
+                  </div>
                 </div>
               </div>
 
               <ArrowDown className="reveal w-4 h-4" style={{ color: MUTED }} />
 
               <div className="reveal w-full">
-                <OutputCard step="3A" label="Factory execution">
-                  <ChecklistRow label="Cutting" done note="Complete" />
-                  <ChecklistRow label="Sewing" done note="72%" progress={72} />
+                <OutputCard step="02A" label="Factory execution">
+                  <ChecklistRow label="Cutting" state="done" note="Complete" />
+                  <ChecklistRow label="Sewing" state="active" note="72%" progress={72} />
                   <ChecklistRow label="Finishing" note="Upcoming" />
                   <ChecklistRow label="Quality" note="Upcoming" />
                   <ChecklistRow label="Packing" note="Upcoming" />
@@ -387,9 +468,9 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
               <ArrowDown className="reveal w-4 h-4" style={{ color: MUTED }} />
 
               <div className="reveal w-full">
-                <OutputCard step="3B" label="Brand visibility">
+                <OutputCard step="02B" label="Brand visibility">
                   <TagRow label="Order" value="#FM-2841" />
-                  <TagRow label="Production" value="72%" />
+                  <TagRow label="Production progress" value="72%" />
                   <TagRow label="Current stage" value="Sewing" swatch={PURPLE} />
                   <TagRow label="Factory" value="Supreme Stitch" image="/factory.jpg" />
                   <TagRow label="Expected completion" value="08 Sep" />
@@ -608,8 +689,8 @@ const WorkflowSection = () => (
         <div>
           <p className="text-[10px] uppercase tracking-[0.1em] font-inter font-medium mb-3" style={{ color: PURPLE }}>03 &nbsp; Production</p>
           <WorkflowStepCard>
-            <ChecklistRow label="Cutting" done note="Complete" />
-            <ChecklistRow label="Sewing" done note="In progress" progress={55} />
+            <ChecklistRow label="Cutting" state="done" note="Complete" />
+            <ChecklistRow label="Sewing" state="active" note="In progress" progress={55} />
             <ChecklistRow label="Finishing" note="Upcoming" />
             <ChecklistRow label="Packing" note="Upcoming" />
           </WorkflowStepCard>
