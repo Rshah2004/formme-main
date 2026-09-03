@@ -213,7 +213,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
           {/* Right — the product story */}
           <div className="relative">
             {/* Desktop composition */}
-            <div className="hidden lg:grid relative grid-cols-[0.85fr_0.9fr_1fr] gap-5 items-center">
+            <div className="hidden lg:grid relative grid-cols-[0.98fr_0.9fr_1fr] gap-5 items-center">
               <svg
                 className="absolute inset-0 w-full h-full pointer-events-none"
                 viewBox="0 0 1200 320"
@@ -231,17 +231,17 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
 
               {/* Step 1 — Brand order */}
               <div className="hero-step1 relative z-10">
-                <p className="text-[10px] uppercase tracking-[0.14em] font-inter font-medium mb-3" style={{ color: MUTED }}>
+                <p className="text-[11px] uppercase tracking-[0.14em] font-inter font-medium mb-3" style={{ color: MUTED }}>
                   <span style={{ color: PURPLE }}>01</span> &nbsp; Brand order
                 </p>
-                <div className="rounded-2xl bg-white p-5" style={{ border: `1px solid ${BORDER}`, boxShadow: '0 8px 24px -12px rgba(93,82,214,0.18)' }}>
-                  <div className="flex items-center justify-between mb-3">
+                <div className="rounded-2xl bg-white p-6" style={{ border: `1px solid ${BORDER}`, boxShadow: '0 8px 24px -12px rgba(93,82,214,0.18)' }}>
+                  <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4" style={{ color: PURPLE }} />
-                      <span className="text-[13px] font-dm-sans font-semibold" style={{ color: INK }}>Tech Pack</span>
+                      <FileText className="w-[18px] h-[18px]" style={{ color: PURPLE }} />
+                      <span className="text-[15px] font-dm-sans font-semibold" style={{ color: INK }}>Tech Pack</span>
                     </div>
-                    <span className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: PURPLE_BG }}>
-                      <Shirt className="w-4 h-4" style={{ color: PURPLE }} />
+                    <span className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: PURPLE_BG }}>
+                      <Shirt className="w-[18px] h-[18px]" style={{ color: PURPLE }} />
                     </span>
                   </div>
                   <TagRow label="Style" value="FM-HOOD-004" />
@@ -254,7 +254,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
 
               {/* Step 2 — Formme */}
               <div className="hero-step2 relative z-10 flex flex-col items-center py-4">
-                <div className="relative w-[240px]" style={{ aspectRatio: '766 / 912' }}>
+                <div className="relative w-[280px]" style={{ aspectRatio: '766 / 912' }}>
                   <div
                     className="absolute inset-0"
                     style={{
@@ -262,7 +262,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
                       backgroundSize: '200.52% 112.28%',
                       backgroundPosition: '50% 16.96%',
                       backgroundRepeat: 'no-repeat',
-                      transform: 'rotate(0deg)',
+                      transform: 'rotate(-4deg)',
                       filter: 'drop-shadow(0 18px 26px rgba(21,19,28,0.16))',
                     }}
                   />
