@@ -63,11 +63,12 @@ const OutlineButton = ({ children, href, dark = false }: { children: React.React
   </a>
 );
 
-const TagRow = ({ label, value, swatch }: { label: string; value: string; swatch?: string }) => (
+const TagRow = ({ label, value, swatch, image }: { label: string; value: string; swatch?: string; image?: string }) => (
   <div className="flex items-center justify-between py-2 border-b last:border-b-0" style={{ borderColor: BORDER }}>
     <span className="text-[11px] font-inter" style={{ color: MUTED }}>{label}</span>
     <span className="text-[12px] font-dm-sans flex items-center gap-1.5" style={{ color: INK }}>
       {swatch && <span className="w-3 h-3 rounded-sm flex-shrink-0" style={{ background: swatch }} />}
+      {image && <img src={image} alt="" className="w-5 h-5 rounded-sm object-cover flex-shrink-0" />}
       {value}
     </span>
   </div>
@@ -249,7 +250,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
             <p className="text-[10px] uppercase tracking-[0.14em] font-inter font-medium mb-3" style={{ color: PURPLE }}>3B &nbsp; Brand visibility</p>
             <TagRow label="Order" value="#FM-2841" />
             <TagRow label="Current stage" value="Sewing" swatch={PURPLE} />
-            <TagRow label="Factory" value="Supreme Stitch" />
+            <TagRow label="Factory" value="Supreme Stitch" image="/factory.jpg" />
             <TagRow label="Latest update" value="Line 04 · 2 hours ago" />
           </div>
         </div>
