@@ -668,19 +668,21 @@ const WorkflowStepCard = ({ children }: { children: React.ReactNode }) => (
 const HoodieSketch = ({ className, color }: { className?: string; color: string }) => (
   <svg viewBox="0 0 100 120" className={className} fill="none" stroke={color} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
     {/* hood */}
-    <path d="M35 18 C35 8 42 3 50 3 C58 3 65 8 65 18 L65 23 C58 27 42 27 35 23 Z" />
+    <path d="M36 18 C36 8 42 3 50 3 C58 3 64 8 64 18 L64 23 C58 27 42 27 36 23 Z" />
     {/* drawstrings */}
-    <path d="M44 25 L42 39" />
-    <path d="M56 25 L58 39" />
+    <path d="M45 25 L43 39" />
+    <path d="M55 25 L57 39" />
     {/* torso */}
-    <path d="M35 23 L27 29 L27 107 C27 112 31 115 36 115 L64 115 C69 115 73 112 73 107 L73 29 L65 23" />
+    <path d="M36 23 L30 28 L30 107 C30 112 34 115 39 115 L61 115 C66 115 70 112 70 107 L70 28 L64 23" />
     {/* hem rib */}
-    <path d="M27 105 L73 105" />
-    {/* sleeves */}
-    <path d="M27 29 L9 38 L12 58 L27 52 Z" />
-    <path d="M73 29 L91 38 L88 58 L73 52 Z" />
+    <path d="M30 105 L70 105" />
+    {/* sleeves — hang down close to parallel, slight outward taper, cuff rib at the end */}
+    <path d="M30 28 L18 32 L18 62 L30 58 Z" />
+    <path d="M70 28 L82 32 L82 62 L70 58 Z" />
+    <path d="M18 57 L27 53.5" />
+    <path d="M82 57 L73 53.5" />
     {/* kangaroo pocket */}
-    <path d="M39 76 L61 76 L57 97 L43 97 Z" />
+    <path d="M40 76 L60 76 L57 96 L43 96 Z" />
   </svg>
 );
 
