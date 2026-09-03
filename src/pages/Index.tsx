@@ -664,28 +664,6 @@ const WorkflowStepCard = ({ children }: { children: React.ReactNode }) => (
   <div className="rounded-2xl bg-white p-4 shadow-sm h-full" style={{ border: `1px solid ${BORDER}` }}>{children}</div>
 );
 
-/* Flat technical line-art sketch of a hoodie, used on the Tech Pack step */
-const HoodieSketch = ({ className, color }: { className?: string; color: string }) => (
-  <svg viewBox="0 0 100 120" className={className} fill="none" stroke={color} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-    {/* hood */}
-    <path d="M36 18 C36 8 42 3 50 3 C58 3 64 8 64 18 L64 23 C58 27 42 27 36 23 Z" />
-    {/* drawstrings */}
-    <path d="M45 25 L43 39" />
-    <path d="M55 25 L57 39" />
-    {/* torso */}
-    <path d="M36 23 L30 28 L30 107 C30 112 34 115 39 115 L61 115 C66 115 70 112 70 107 L70 28 L64 23" />
-    {/* hem rib */}
-    <path d="M30 105 L70 105" />
-    {/* sleeves — hang down close to parallel, slight outward taper, cuff rib at the end */}
-    <path d="M30 28 L18 32 L18 62 L30 58 Z" />
-    <path d="M70 28 L82 32 L82 62 L70 58 Z" />
-    <path d="M18 57 L27 53.5" />
-    <path d="M82 57 L73 53.5" />
-    {/* kangaroo pocket */}
-    <path d="M40 76 L60 76 L57 96 L43 96 Z" />
-  </svg>
-);
-
 const workflowStepBadges = [
   { n: '01', label: 'Tech Pack' },
   { n: '02', label: 'Sampling' },
@@ -757,8 +735,18 @@ const WorkflowSection = () => (
         <div className="md:flex-1 md:min-w-0">
           <MobileStepLabel n="01" label="Tech Pack" />
           <WorkflowStepCard>
-            <div className="rounded-lg mb-3 flex items-center justify-center" style={{ background: '#F7F6FB', aspectRatio: '4/3' }}>
-              <HoodieSketch className="w-20 h-20" color={MUTED2} />
+            <div className="rounded-lg mb-3 flex items-center justify-center p-3" style={{ background: '#F7F6FB', aspectRatio: '4/3' }}>
+              <img
+                src="/mockupHoodieWhite.png"
+                alt="Tech pack sketch"
+                className="w-full h-full object-contain"
+                style={{
+                  filter:
+                    'drop-shadow(1px 0 0 rgba(21,19,28,0.75)) drop-shadow(-1px 0 0 rgba(21,19,28,0.75)) ' +
+                    'drop-shadow(0 1px 0 rgba(21,19,28,0.75)) drop-shadow(0 -1px 0 rgba(21,19,28,0.75))',
+                }}
+                loading="lazy"
+              />
             </div>
             <div className="flex flex-col gap-1.5">
               {['Specs', 'Measurements', 'BOM', 'Construction'].map((t) => (
