@@ -219,7 +219,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
             <div className="reveal">
               <Eyebrow>Fashion production, connected</Eyebrow>
             </div>
-            <h1 className="reveal font-dm-sans font-semibold leading-[1.1] tracking-[-0.02em]" style={{ color: INK, fontSize: 'clamp(32px, 3.4vw, 46px)' }}>
+            <h1 className="reveal font-dm-sans font-semibold leading-[1.1] tracking-[-0.02em]" style={{ color: INK, fontSize: 'clamp(36px, 4vw, 54px)' }}>
               The operating system for{' '}
               <span className="font-cormorant italic font-medium" style={{ color: PURPLE }}>fashion production.</span>
             </h1>
@@ -274,7 +274,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
                 <div className="mb-2">
                   <StepBadge n="2" label="Formme" />
                 </div>
-                <div className="relative w-[300px]" style={{ aspectRatio: '766 / 912' }}>
+                <div className="relative w-[300px]" style={{ aspectRatio: '766 / 912', perspective: '900px' }}>
                   <div
                     className="absolute inset-0"
                     style={{
@@ -282,6 +282,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
                       backgroundSize: '200.52% 112.28%',
                       backgroundPosition: '50% 16.96%',
                       backgroundRepeat: 'no-repeat',
+                      transform: 'rotateY(-18deg)',
                       filter: 'drop-shadow(0 18px 26px rgba(21,19,28,0.16))',
                     }}
                   />
@@ -350,7 +351,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
               <ArrowDown className="reveal w-4 h-4" style={{ color: MUTED }} />
 
               <div className="reveal flex flex-col items-center">
-                <div className="relative w-[220px]" style={{ aspectRatio: '766 / 912' }}>
+                <div className="relative w-[220px]" style={{ aspectRatio: '766 / 912', perspective: '700px' }}>
                   <div
                     className="absolute inset-0"
                     style={{
@@ -358,6 +359,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
                       backgroundSize: '200.52% 112.28%',
                       backgroundPosition: '50% 16.96%',
                       backgroundRepeat: 'no-repeat',
+                      transform: 'rotateY(-18deg)',
                       filter: 'drop-shadow(0 14px 20px rgba(21,19,28,0.16))',
                     }}
                   />
