@@ -150,14 +150,40 @@ const LandingHeader = ({ onBookDemo }: { onBookDemo: () => void }) => {
 /* ════════════════════════════════════════════════
    HERO — brand order → formme → factory execution / brand visibility
 ════════════════════════════════════════════════ */
-const workflowSteps = 'Tech Pack · Sampling · Production · Quality · Shipment';
+const workflowSteps = [
+  { icon: ClipboardList, label: 'Tech Packs' },
+  { icon: Settings, label: 'Sampling' },
+  { icon: Factory, label: 'Production' },
+  { icon: ShieldCheck, label: 'Quality' },
+  { icon: Package, label: 'Shipment' },
+];
+
+/* Small circular numbered badge used to mark each step in the hero's product story */
+const StepBadge = ({ n, label, sub }: { n: string; label: string; sub?: string }) => (
+  <div className="flex items-center gap-2">
+    <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-dm-sans font-bold text-white flex-shrink-0" style={{ background: PURPLE }}>{n}</span>
+    <div className="flex flex-col leading-tight">
+      <span className="text-[10px] uppercase tracking-[0.12em] font-inter font-semibold" style={{ color: PURPLE }}>{label}</span>
+      {sub && <span className="text-[10px] uppercase tracking-[0.1em] font-inter" style={{ color: MUTED }}>{sub}</span>}
+    </div>
+  </div>
+);
+
+/* Straight labeled arrow connecting two steps — grid-aligned, so it never drifts from the cards it points between */
+const FlowArrow = ({ label, className }: { label: string; className?: string }) => (
+  <div className={`flex flex-col items-center justify-center px-1 ${className ?? ''}`}>
+    <span className="text-[9px] font-inter mb-2 whitespace-nowrap" style={{ color: MUTED }}>{label}</span>
+    <ArrowRight className="w-4 h-4" style={{ color: PURPLE, opacity: 0.5 }} />
+  </div>
+);
 
 /* Compact card used for both the Factory Execution and Brand Visibility outputs */
 const OutputCard = ({ step, label, className, children }: { step: string; label: string; className?: string; children: React.ReactNode }) => (
   <div className={`rounded-2xl bg-white p-5 ${className ?? ''}`} style={{ border: `1px solid ${BORDER}`, boxShadow: '0 8px 24px -12px rgba(93,82,214,0.18)' }}>
-    <p className="text-[10px] uppercase tracking-[0.14em] font-inter font-medium mb-3" style={{ color: PURPLE }}>
-      {step} &nbsp; {label}
-    </p>
+    <div className="flex items-center gap-2 mb-3">
+      <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-dm-sans font-bold text-white flex-shrink-0" style={{ background: PURPLE }}>{step}</span>
+      <span className="text-[10px] uppercase tracking-[0.14em] font-inter font-medium" style={{ color: PURPLE }}>{label}</span>
+    </div>
     {children}
   </div>
 );
@@ -169,16 +195,15 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
     if (prefersReduced) return;
     const ctx = gsap.context(() => {
       gsap.set(['.hero-step1', '.hero-step2', '.hero-step3a', '.hero-step3b'], { opacity: 0, y: 14 });
-      gsap.set(['.hero-conn-1', '.hero-conn-2', '.hero-conn-3'], { strokeDashoffset: 1 });
+      gsap.set(['.hero-arrow-1', '.hero-arrow-2'], { opacity: 0 });
       gsap.set('.hero-progress-fill', { width: 0 });
 
       gsap.timeline({ delay: 0.25 })
         .to('.hero-step1', { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' })
-        .to('.hero-conn-1', { strokeDashoffset: 0, duration: 0.5, ease: 'power1.inOut' }, '-=0.15')
-        .to('.hero-step2', { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, '-=0.15')
-        .to('.hero-conn-2', { strokeDashoffset: 0, duration: 0.45, ease: 'power1.inOut' }, '-=0.1')
-        .to('.hero-step3a', { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, '-=0.15')
-        .to('.hero-conn-3', { strokeDashoffset: 0, duration: 0.45, ease: 'power1.inOut' }, '-=0.25')
+        .to('.hero-arrow-1', { opacity: 1, duration: 0.4, ease: 'power1.out' }, '-=0.15')
+        .to('.hero-step2', { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, '-=0.1')
+        .to('.hero-arrow-2', { opacity: 1, duration: 0.4, ease: 'power1.out' }, '-=0.15')
+        .to('.hero-step3a', { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, '-=0.1')
         .to('.hero-step3b', { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, '-=0.15')
         .to('.hero-progress-fill', { width: '72%', duration: 0.9, ease: 'power2.out' }, '-=0.1');
     }, heroRef);
@@ -188,7 +213,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
   return (
     <section ref={heroRef} className="hero-sec relative" aria-label="Hero" style={{ background: LAVENDER }}>
       <div className="mx-auto max-w-[1360px] px-6 pt-28 md:pt-36 pb-20 md:pb-24">
-        <div className="grid md:grid-cols-[0.4fr_0.6fr] gap-14 md:gap-8 items-start lg:items-center">
+        <div className="grid md:grid-cols-[0.4fr_0.6fr] gap-14 md:gap-8 items-start xl:items-center">
           {/* Left — positioning */}
           <div>
             <div className="reveal">
@@ -205,35 +230,25 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
               <SolidButton onClick={onBookDemo}>Book a demo</SolidButton>
               <OutlineButton href="#product">See how it works <ArrowRight className="w-3.5 h-3.5" /></OutlineButton>
             </div>
-            <p className="reveal mt-9 text-[11px] font-inter" style={{ color: MUTED }}>
-              {workflowSteps}
-            </p>
+            <div className="reveal mt-9 flex items-center gap-5 flex-wrap">
+              {workflowSteps.map(({ icon: Icon, label }) => (
+                <span key={label} className="flex items-center gap-1.5 text-[11px] font-inter" style={{ color: MUTED }}>
+                  <Icon className="w-3.5 h-3.5" strokeWidth={1.75} />
+                  {label}
+                </span>
+              ))}
+            </div>
           </div>
 
           {/* Right — the product story */}
           <div className="relative">
             {/* Desktop composition */}
-            <div className="hidden lg:grid relative grid-cols-[0.98fr_0.9fr_1fr] gap-5 items-center">
-              <svg
-                className="absolute inset-0 w-full h-full pointer-events-none"
-                viewBox="0 0 1200 320"
-                preserveAspectRatio="none"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path className="hero-conn-1" pathLength={1} d="M 335 165 C 385 165, 400 105, 440 95" stroke={PURPLE} strokeOpacity="0.4" strokeWidth="1.5" strokeDasharray="1" />
-                <path className="hero-conn-2" pathLength={1} d="M 760 100 C 800 95, 815 105, 845 118" stroke={PURPLE} strokeOpacity="0.4" strokeWidth="1.5" strokeDasharray="1" />
-                <path className="hero-conn-3" pathLength={1} d="M 760 200 C 800 220, 815 225, 845 235" stroke={PURPLE} strokeOpacity="0.4" strokeWidth="1.5" strokeDasharray="1" />
-                <circle cx="335" cy="165" r="3" fill={PURPLE} fillOpacity="0.5" />
-                <circle cx="845" cy="118" r="3" fill={PURPLE} fillOpacity="0.5" />
-                <circle cx="845" cy="235" r="3" fill={PURPLE} fillOpacity="0.5" />
-              </svg>
-
+            <div className="hidden xl:grid relative grid-cols-[1fr_auto_0.95fr_auto_1fr] gap-2 items-center">
               {/* Step 1 — Brand order */}
               <div className="hero-step1 relative z-10">
-                <p className="text-[11px] uppercase tracking-[0.14em] font-inter font-medium mb-3" style={{ color: MUTED }}>
-                  <span style={{ color: PURPLE }}>01</span> &nbsp; Brand order
-                </p>
+                <div className="mb-4">
+                  <StepBadge n="1" label="Input" sub="Brand order" />
+                </div>
                 <div className="rounded-2xl bg-white p-6" style={{ border: `1px solid ${BORDER}`, boxShadow: '0 8px 24px -12px rgba(93,82,214,0.18)' }}>
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
@@ -252,9 +267,14 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
                 </div>
               </div>
 
+              <FlowArrow label="Order created" className="hero-arrow-1" />
+
               {/* Step 2 — Formme */}
-              <div className="hero-step2 relative z-10 flex flex-col items-center py-4">
-                <div className="relative w-[280px]" style={{ aspectRatio: '766 / 912' }}>
+              <div className="hero-step2 relative z-10 flex flex-col items-center">
+                <div className="mb-2">
+                  <StepBadge n="2" label="Formme" />
+                </div>
+                <div className="relative w-[300px]" style={{ aspectRatio: '766 / 912' }}>
                   <div
                     className="absolute inset-0"
                     style={{
@@ -262,16 +282,21 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
                       backgroundSize: '200.52% 112.28%',
                       backgroundPosition: '50% 16.96%',
                       backgroundRepeat: 'no-repeat',
-                      transform: 'rotate(-4deg)',
                       filter: 'drop-shadow(0 18px 26px rgba(21,19,28,0.16))',
                     }}
                   />
                 </div>
+                <div className="relative z-10 mt-3 rounded-full shadow-md px-4 py-2 flex items-center gap-1.5" style={{ background: '#fff', border: `1px solid ${BORDER}` }}>
+                  <span className="w-4 h-4 rounded-md flex items-center justify-center text-[8px] font-dm-sans font-bold text-white flex-shrink-0" style={{ background: PURPLE }}>b</span>
+                  <span className="text-[12px] font-dm-sans font-semibold" style={{ color: INK }}>formme</span>
+                </div>
               </div>
+
+              <FlowArrow label="Production updated" className="hero-arrow-2" />
 
               {/* Step 3 — outputs */}
               <div className="flex flex-col gap-4">
-                <OutputCard step="02A" label="Factory execution" className="hero-step3a">
+                <OutputCard step="3A" label="Factory execution" className="hero-step3a">
                   <ChecklistRow label="Cutting" done note="Complete" />
                   <ChecklistRow label="Sewing" done note="72%" progress={72} />
                   <ChecklistRow label="Finishing" note="Upcoming" />
@@ -281,7 +306,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
                   <TagRow label="Expected completion" value="08 Sep" />
                 </OutputCard>
 
-                <OutputCard step="02B" label="Brand visibility" className="hero-step3b">
+                <OutputCard step="3B" label="Brand visibility" className="hero-step3b">
                   <TagRow label="Order" value="#FM-2841" />
                   <div className="flex items-center justify-between py-2 border-b" style={{ borderColor: BORDER }}>
                     <span className="text-[11px] font-inter" style={{ color: MUTED }}>Production</span>
@@ -304,11 +329,11 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
             </div>
 
             {/* Mobile — simple vertical sequence */}
-            <div className="lg:hidden flex flex-col items-center gap-3">
+            <div className="xl:hidden flex flex-col items-center gap-3">
               <div className="reveal w-full">
-                <p className="text-[10px] uppercase tracking-[0.14em] font-inter font-medium mb-3 text-center" style={{ color: MUTED }}>
-                  <span style={{ color: PURPLE }}>01</span> &nbsp; Brand order
-                </p>
+                <div className="mb-3 flex justify-center">
+                  <StepBadge n="1" label="Input" sub="Brand order" />
+                </div>
                 <div className="rounded-2xl bg-white p-5" style={{ border: `1px solid ${BORDER}` }}>
                   <div className="flex items-center gap-2 mb-3">
                     <FileText className="w-4 h-4" style={{ color: PURPLE }} />
@@ -325,7 +350,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
               <ArrowDown className="reveal w-4 h-4" style={{ color: MUTED }} />
 
               <div className="reveal flex flex-col items-center">
-                <div className="relative w-[200px]" style={{ aspectRatio: '766 / 912' }}>
+                <div className="relative w-[220px]" style={{ aspectRatio: '766 / 912' }}>
                   <div
                     className="absolute inset-0"
                     style={{
@@ -333,17 +358,20 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
                       backgroundSize: '200.52% 112.28%',
                       backgroundPosition: '50% 16.96%',
                       backgroundRepeat: 'no-repeat',
-                      transform: 'rotate(0deg)',
                       filter: 'drop-shadow(0 14px 20px rgba(21,19,28,0.16))',
                     }}
                   />
+                </div>
+                <div className="relative z-10 mt-3 rounded-full shadow-md px-4 py-2 flex items-center gap-1.5" style={{ background: '#fff', border: `1px solid ${BORDER}` }}>
+                  <span className="w-4 h-4 rounded-md flex items-center justify-center text-[8px] font-dm-sans font-bold text-white flex-shrink-0" style={{ background: PURPLE }}>b</span>
+                  <span className="text-[12px] font-dm-sans font-semibold" style={{ color: INK }}>formme</span>
                 </div>
               </div>
 
               <ArrowDown className="reveal w-4 h-4" style={{ color: MUTED }} />
 
               <div className="reveal w-full">
-                <OutputCard step="02A" label="Factory execution">
+                <OutputCard step="3A" label="Factory execution">
                   <ChecklistRow label="Cutting" done note="Complete" />
                   <ChecklistRow label="Sewing" done note="72%" progress={72} />
                   <ChecklistRow label="Finishing" note="Upcoming" />
@@ -357,7 +385,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
               <ArrowDown className="reveal w-4 h-4" style={{ color: MUTED }} />
 
               <div className="reveal w-full">
-                <OutputCard step="02B" label="Brand visibility">
+                <OutputCard step="3B" label="Brand visibility">
                   <TagRow label="Order" value="#FM-2841" />
                   <TagRow label="Production" value="72%" />
                   <TagRow label="Current stage" value="Sewing" swatch={PURPLE} />
