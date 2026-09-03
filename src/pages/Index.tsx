@@ -254,7 +254,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
 
               {/* Step 2 — Formme */}
               <div className="hero-step2 relative z-10 flex flex-col items-center py-4">
-                <div className="relative w-[168px] rounded-2xl overflow-hidden" style={{ background: DARK_PANEL, aspectRatio: '3 / 4' }}>
+                <div className="relative w-[220px] rounded-2xl overflow-hidden" style={{ background: DARK_PANEL, aspectRatio: '3 / 4' }}>
                   <div
                     className="absolute -inset-6 rounded-full pointer-events-none"
                     style={{ background: `radial-gradient(closest-side, ${PURPLE_BG}, transparent)` }}
@@ -326,7 +326,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
               <ArrowDown className="reveal w-4 h-4" style={{ color: MUTED }} />
 
               <div className="reveal flex flex-col items-center">
-                <div className="relative w-[150px] rounded-2xl overflow-hidden" style={{ background: DARK_PANEL, aspectRatio: '3 / 4' }}>
+                <div className="relative w-[190px] rounded-2xl overflow-hidden" style={{ background: DARK_PANEL, aspectRatio: '3 / 4' }}>
                   <img src="/mockupHoodieFront.png" alt="Order FM-2841 in production" className="w-full h-full object-cover object-top scale-125" loading="lazy" />
                 </div>
                 <div className="relative z-10 -mt-5 rounded-2xl shadow-lg px-4 py-2.5 flex flex-col items-center gap-0.5" style={{ background: '#fff', border: `1px solid ${BORDER}` }}>
