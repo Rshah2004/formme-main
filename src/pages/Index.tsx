@@ -302,7 +302,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
           {/* Right — the product story */}
           <div className="relative">
             {/* Desktop composition */}
-            <div className="hidden xl:grid relative grid-cols-[1fr_auto_0.95fr_auto_1fr] gap-3 items-center w-fit ml-auto">
+            <div className="hidden xl:grid relative grid-cols-[1fr_auto_0.95fr_auto_1fr] gap-3 items-center w-fit ml-auto translate-x-6">
               {/* Step 1 — Brand order */}
               <div className="hero-step1 relative z-10">
                 <div className="mb-4">
