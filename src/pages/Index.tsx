@@ -1,13 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Check, ArrowRight, ArrowDown, ChevronDown, FileText, Shirt, Factory, ShieldCheck, Package,
   LayoutGrid, ClipboardList, BarChart3, Settings, Linkedin, CircleDot, Scissors, Truck,
 } from 'lucide-react';
 import { SEO } from '@/components/SEO';
-import BookDemoModal from '@/components/homePage/BookDemoModal';
 import { BG, LAVENDER, INK, DARK_PANEL, MUTED, MUTED2, BORDER, BORDER_DARK, PURPLE, PURPLE_BG, GREEN, RED } from '@/components/homePage/theme';
-import { Logo, Eyebrow, SolidButton, OutlineButton, LandingHeader, LandingFooter } from '@/components/homePage/LandingChrome';
+import { Logo, Eyebrow, SolidButton, OutlineButton, LandingHeader, LandingFooter, CONTACT_HREF } from '@/components/homePage/LandingChrome';
 import { useLandingReveal } from '@/components/homePage/useLandingReveal';
 import gsap from 'gsap';
 
@@ -136,7 +135,7 @@ const HoodieCallout = ({ x, y, side, label, value }: { x: number; y: number; sid
   </div>
 );
 
-const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersReduced: boolean }) => {
+const Hero = ({ prefersReduced }: { prefersReduced: boolean }) => {
   const heroRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -162,7 +161,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
 
   return (
     <section ref={heroRef} className="hero-sec relative" aria-label="Hero" style={{ background: LAVENDER }}>
-      <div className="mx-auto max-w-[1600px] px-6 pt-28 md:pt-36 pb-20 md:pb-24">
+      <div className="mx-auto max-w-[1600px] px-6 pt-20 md:pt-24 pb-20 md:pb-24">
         <div className="grid md:grid-cols-[0.4fr_0.6fr] gap-14 md:gap-8 items-start min-[1600px]:items-center">
           {/* Left — positioning */}
           <div className="min-w-0">
@@ -177,7 +176,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
               Formme helps factories run production and gives brands live visibility — from tech pack to shipment.
             </p>
             <div className="reveal mt-8 flex items-center gap-6">
-              <SolidButton onClick={onBookDemo}>Book a demo</SolidButton>
+              <SolidButton href={CONTACT_HREF}>Get in touch</SolidButton>
               <a href="#product" className="cta-link text-[13px] font-inter font-medium" style={{ color: PURPLE }}>
                 See how it works <ArrowRight className="w-3.5 h-3.5" />
               </a>
@@ -889,9 +888,30 @@ const FactoryFloorSection = () => (
 );
 
 /* ════════════════════════════════════════════════
+   MERCH BANNER — quick link into the cost predictor
+════════════════════════════════════════════════ */
+const MerchBanner = () => (
+  <section className="pt-28 md:pt-32 pb-14 px-6" style={{ background: DARK_PANEL }}>
+    <div className="mx-auto max-w-[1300px] flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      <div>
+        <h2 className="reveal font-dm-sans font-semibold leading-[1.15] mb-2" style={{ color: '#fff', fontSize: 'clamp(22px, 2.6vw, 30px)' }}>
+          Looking to produce merch?
+        </h2>
+        <p className="reveal font-inter" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>
+          Get an instant cost estimate for custom T-shirts and hoodies — printing or embroidery, any quantity.
+        </p>
+      </div>
+      <div className="reveal flex-shrink-0">
+        <SolidButton href="/cost-predictor">Estimate your cost <ArrowRight className="w-3.5 h-3.5" /></SolidButton>
+      </div>
+    </div>
+  </section>
+);
+
+/* ════════════════════════════════════════════════
    FINAL CTA
 ════════════════════════════════════════════════ */
-const FinalCTA = ({ onBookDemo }: { onBookDemo: () => void }) => (
+const FinalCTA = () => (
   <section className="py-20 md:py-24 px-6" style={{ background: BG }}>
     <div className="mx-auto max-w-[1300px] flex flex-col md:flex-row md:items-center md:justify-between gap-8">
       <h2 className="reveal font-dm-sans font-semibold leading-[1.15]" style={{ color: INK, fontSize: 'clamp(28px, 4vw, 46px)' }}>
@@ -903,7 +923,7 @@ const FinalCTA = ({ onBookDemo }: { onBookDemo: () => void }) => (
         <p className="font-inter max-w-xs" style={{ color: MUTED2, fontSize: '14px' }}>
           Bring clarity to your production. Delight your customers.
         </p>
-        <SolidButton onClick={onBookDemo}>Book a demo</SolidButton>
+        <SolidButton href={CONTACT_HREF}>Get in touch</SolidButton>
       </div>
     </div>
   </section>
@@ -912,7 +932,6 @@ const FinalCTA = ({ onBookDemo }: { onBookDemo: () => void }) => (
 /* ─── Page ─── */
 const Index = () => {
   const prefersReduced = useLandingReveal();
-  const [showBookDemo, setShowBookDemo] = useState(false);
 
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ background: BG, color: INK }}>
@@ -921,18 +940,17 @@ const Index = () => {
         description="Formme is the operating system for fashion production — connecting factories and brands from tech pack to shipment, with live production tracking, quality control and shipment visibility."
       />
 
-      <LandingHeader onBookDemo={() => setShowBookDemo(true)} />
+      <LandingHeader />
 
-      <Hero onBookDemo={() => setShowBookDemo(true)} prefersReduced={prefersReduced} />
+      <MerchBanner />
+      <Hero prefersReduced={prefersReduced} />
       <FactoriesSection />
       <WorkflowSection />
       <ConnectorSection />
       <FactoryFloorSection />
-      <FinalCTA onBookDemo={() => setShowBookDemo(true)} />
+      <FinalCTA />
 
       <LandingFooter />
-
-      <BookDemoModal open={showBookDemo} onOpenChange={setShowBookDemo} />
     </div>
   );
 };

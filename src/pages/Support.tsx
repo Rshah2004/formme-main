@@ -5,7 +5,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { SEO } from '@/components/SEO';
-import BookDemoModal from '@/components/homePage/BookDemoModal';
 import { BG, LAVENDER, INK, MUTED2 } from '@/components/homePage/theme';
 import { Eyebrow, LandingHeader, LandingFooter } from '@/components/homePage/LandingChrome';
 
@@ -17,7 +16,6 @@ const Support = () => {
   const [orderId, setOrderId] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showBookDemo, setShowBookDemo] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +46,7 @@ const Support = () => {
   return (
     <div className="min-h-screen overflow-x-hidden flex flex-col" style={{ background: BG, color: INK }}>
       <SEO title="Support" canonical="/support" />
-      <LandingHeader onBookDemo={() => setShowBookDemo(true)} />
+      <LandingHeader />
 
       <div className="flex-1 px-6 pt-32 pb-20" style={{ background: LAVENDER }}>
         <main className="mx-auto max-w-2xl">
@@ -74,7 +72,6 @@ const Support = () => {
       </div>
 
       <LandingFooter />
-      <BookDemoModal open={showBookDemo} onOpenChange={setShowBookDemo} />
     </div>
   );
 };
