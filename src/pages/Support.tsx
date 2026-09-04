@@ -1,11 +1,15 @@
 import { useState } from 'react';
-import NavBar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { SEO } from '@/components/SEO';
+import BookDemoModal from '@/components/homePage/BookDemoModal';
+import { BG, LAVENDER, INK, MUTED2 } from '@/components/homePage/theme';
+import { Eyebrow, LandingHeader, LandingFooter } from '@/components/homePage/LandingChrome';
+
+const inputCls = 'border-[#E7E3F5] bg-white focus-visible:ring-[#5D52D6] focus-visible:ring-offset-0';
 
 const Support = () => {
   const [name, setName] = useState('');
@@ -13,6 +17,7 @@ const Support = () => {
   const [orderId, setOrderId] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showBookDemo, setShowBookDemo] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,26 +46,35 @@ const Support = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-[#344C3D]">
-      <NavBar />
-      <main className="container mx-auto px-4 sm:px-6 py-16 max-w-3xl">
-        <h1 className="text-3xl sm:text-4xl font-serif font-semibold mb-4">Support</h1>
-        <p className="text-sm sm:text-base text-[#344C3D]/70 mb-8">
-          If you face any issues with production or payments, reach out here or email
-          <span className="font-medium text-[#344C3D]"> formme.design@gmail.com</span>.
-        </p>
+    <div className="min-h-screen overflow-x-hidden flex flex-col" style={{ background: BG, color: INK }}>
+      <SEO title="Support" canonical="/support" />
+      <LandingHeader onBookDemo={() => setShowBookDemo(true)} />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} />
-          <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <Input placeholder="Order ID (optional)" value={orderId} onChange={(e) => setOrderId(e.target.value)} />
-          <Textarea placeholder="Describe your issue" value={message} onChange={(e) => setMessage(e.target.value)} rows={6} />
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Submitting...' : 'Submit Support Request'}
-          </Button>
-        </form>
-      </main>
-      <Footer />
+      <div className="flex-1 px-6 pt-32 pb-20" style={{ background: LAVENDER }}>
+        <main className="mx-auto max-w-2xl">
+          <Eyebrow>Support</Eyebrow>
+          <h1 className="font-cormorant font-medium leading-[1.08] mb-4" style={{ color: INK, fontSize: 'clamp(32px, 4vw, 48px)' }}>
+            How can we help?
+          </h1>
+          <p className="font-inter mb-8" style={{ color: MUTED2, fontSize: '15px' }}>
+            If you face any issues with production or payments, reach out here or email{' '}
+            <span className="font-medium" style={{ color: INK }}>formme.design@gmail.com</span>.
+          </p>
+
+          <form onSubmit={handleSubmit} className="space-y-4 bg-white rounded-2xl p-6 sm:p-8" style={{ border: '1px solid #E7E3F5' }}>
+            <Input className={inputCls} placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input className={inputCls} type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Input className={inputCls} placeholder="Order ID (optional)" value={orderId} onChange={(e) => setOrderId(e.target.value)} />
+            <Textarea className={inputCls} placeholder="Describe your issue" value={message} onChange={(e) => setMessage(e.target.value)} rows={6} />
+            <Button type="submit" className="w-full h-11 rounded-xl bg-[#5D52D6] hover:bg-[#4a41c4] text-white" disabled={loading}>
+              {loading ? 'Submitting...' : 'Submit Support Request'}
+            </Button>
+          </form>
+        </main>
+      </div>
+
+      <LandingFooter />
+      <BookDemoModal open={showBookDemo} onOpenChange={setShowBookDemo} />
     </div>
   );
 };
