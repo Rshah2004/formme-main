@@ -761,10 +761,23 @@ const WorkflowSection = () => (
                 />
                 <svg viewBox="0 0 1278 1230" preserveAspectRatio="xMidYMid meet" className="absolute inset-0 w-full h-full" aria-hidden="true">
                   <g fill="none" stroke="#15131C" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round">
+                    {/* hood */}
                     <path d="M525 95 C525 195, 565 245, 640 250 C715 245, 755 195, 755 95" />
+                    {/* drawstrings */}
                     <path d="M600 258 C582 340, 576 420, 590 605" />
                     <path d="M680 258 C698 340, 704 420, 690 605" />
+                    {/* raglan shoulder seams */}
+                    <path d="M528 240 C440 280, 300 330, 195 410" />
+                    <path d="M752 240 C840 280, 980 330, 1085 410" />
+                    {/* kangaroo pocket */}
                     <path d="M360 800 L920 800 L858 1020 L422 1020 Z" />
+                    {/* cuff ribs */}
+                    <path d="M115 965 L185 1000" />
+                    <path d="M100 995 L170 1030" />
+                    <path d="M1163 965 L1093 1000" />
+                    <path d="M1178 995 L1108 1030" />
+                    {/* hem rib */}
+                    <path d="M160 1150 C450 1175, 830 1175, 1120 1150" />
                   </g>
                 </svg>
               </div>
