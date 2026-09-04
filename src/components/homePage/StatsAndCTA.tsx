@@ -1,16 +1,13 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Users, TrendingUp, Leaf, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import BookDemoModal from './BookDemoModal';
 import { supabase } from "@/integrations/supabase/client";
 
 
 export default function StatsAndCTA() {
   const navigate = useNavigate();
-  const [showBookDemo, setShowBookDemo] = useState(false);
-  
+
   return (
     <>
       {/*/!* Stats bar *!/*/}
@@ -95,8 +92,6 @@ export default function StatsAndCTA() {
           </motion.div>
         </div>
       </section>
-
-      <BookDemoModal open={showBookDemo} onOpenChange={setShowBookDemo} />
     </>
   );
 }

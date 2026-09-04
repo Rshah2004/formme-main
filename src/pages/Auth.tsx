@@ -9,7 +9,6 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Mail, CheckCircle2, Clock } from "lucide-react";
-import BookDemoModal from "@/components/homePage/BookDemoModal";
 import { BG, LAVENDER, INK, MUTED2, BORDER, PURPLE, PURPLE_BG } from "@/components/homePage/theme";
 import { Eyebrow, Logo, LandingHeader, LandingFooter } from "@/components/homePage/LandingChrome";
 
@@ -28,7 +27,6 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState<AuthMode>("signin");
   const [userRole, setUserRole] = useState<UserRole>("designer");
-  const [showBookDemo, setShowBookDemo] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const prefillEmail = searchParams.get("email") || "";
@@ -345,7 +343,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
   return (
     <div className="min-h-screen overflow-x-hidden flex flex-col" style={{ background: BG, color: INK }}>
       <SEO title="Join the waitlist" canonical="/auth" noindex={true} />
-      <LandingHeader onBookDemo={() => setShowBookDemo(true)} />
+      <LandingHeader />
       <div className="flex-1 flex items-center justify-center p-4 pt-32 pb-16" style={{ background: LAVENDER }}>
         <Card className="w-full max-w-2xl p-8 bg-white text-[#15131C] shadow-lg rounded-2xl" style={{ border: `1px solid ${BORDER}` }}>
 
@@ -868,7 +866,6 @@ const handleResetPassword = async (e: React.FormEvent) => {
         )}
       </Card>
       </div>
-      <BookDemoModal open={showBookDemo} onOpenChange={setShowBookDemo} />
       <LandingFooter />
     </div>
   );

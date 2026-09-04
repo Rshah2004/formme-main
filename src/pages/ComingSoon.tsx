@@ -1,7 +1,5 @@
-import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { SEO } from '@/components/SEO';
-import BookDemoModal from '@/components/homePage/BookDemoModal';
 import { BG, LAVENDER, INK, MUTED2, PURPLE } from '@/components/homePage/theme';
 import { LandingHeader, LandingFooter } from '@/components/homePage/LandingChrome';
 
@@ -10,12 +8,11 @@ const ComingSoon = () => {
   const searchParams = new URLSearchParams(location.search);
   const feature = searchParams.get('feature');
   void feature; // reserved for feature-specific copy later
-  const [showBookDemo, setShowBookDemo] = useState(false);
 
   return (
     <div className="min-h-screen overflow-x-hidden flex flex-col" style={{ background: BG, color: INK }}>
       <SEO title="Coming Soon" noindex={true} />
-      <LandingHeader onBookDemo={() => setShowBookDemo(true)} />
+      <LandingHeader />
 
       <div className="flex-1 flex items-center justify-center px-6 pt-32 pb-20" style={{ background: LAVENDER }}>
         <div className="max-w-2xl mx-auto text-center">
@@ -30,7 +27,6 @@ const ComingSoon = () => {
       </div>
 
       <LandingFooter />
-      <BookDemoModal open={showBookDemo} onOpenChange={setShowBookDemo} />
     </div>
   );
 };

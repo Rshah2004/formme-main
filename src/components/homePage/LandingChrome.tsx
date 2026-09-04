@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronDown, Linkedin } from 'lucide-react';
 import { BG, BORDER, BORDER_DARK, INK, MUTED, MUTED2, PURPLE, PURPLE_BG } from './theme';
 
+export const CONTACT_EMAIL = 'hello@formme.io';
+export const CONTACT_HREF = `mailto:${CONTACT_EMAIL}`;
+
 export const Logo = ({ dark = false }: { dark?: boolean }) => (
   <Link to="/" className="inline-flex items-center" aria-label="formme">
     <img src="/logo-mark.png" alt="" aria-hidden="true" className="h-[34px] w-auto object-contain -mr-1 flex-shrink-0" style={dark ? { filter: 'brightness(0) invert(1)' } : undefined} />
@@ -22,7 +25,11 @@ export const Eyebrow = ({ children, dark = false }: { children: React.ReactNode;
 export const SolidButton = ({ children, onClick, href }: { children: React.ReactNode; onClick?: () => void; href?: string }) => {
   const cls = 'inline-flex items-center gap-1.5 rounded-[10px] px-5 py-3 text-[13px] font-inter font-medium transition-transform duration-300 hover:-translate-y-0.5';
   const style = { background: PURPLE, color: '#fff' };
-  if (href) return <Link to={href} className={cls} style={style}>{children}</Link>;
+  if (href) {
+    const isExternal = /^(mailto:|tel:|https?:)/.test(href);
+    if (isExternal) return <a href={href} className={cls} style={style}>{children}</a>;
+    return <Link to={href} className={cls} style={style}>{children}</Link>;
+  }
   return <button onClick={onClick} className={cls} style={style}>{children}</button>;
 };
 
@@ -40,11 +47,12 @@ const navLinks: { label: string; href: string; route?: boolean; chevron?: boolea
   { label: 'Product', href: '#product', chevron: true },
   { label: 'Factories', href: '#factories' },
   { label: 'Brands', href: '#brands' },
+  { label: 'Cost Predictor', href: '/cost-predictor', route: true },
   { label: 'Resources', href: '/support', route: true, chevron: true },
   { label: 'Company', href: '/about', route: true, chevron: true },
 ];
 
-export const LandingHeader = ({ onBookDemo }: { onBookDemo: () => void }) => {
+export const LandingHeader = () => {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -78,7 +86,7 @@ export const LandingHeader = ({ onBookDemo }: { onBookDemo: () => void }) => {
           <Link to="/auth?mode=signin" className="hidden sm:inline text-[13px] font-inter font-medium" style={{ color: INK }}>
             Sign in
           </Link>
-          <SolidButton onClick={onBookDemo}>Book a demo <ArrowRight className="w-3.5 h-3.5" /></SolidButton>
+          <SolidButton href={CONTACT_HREF}>Get in touch <ArrowRight className="w-3.5 h-3.5" /></SolidButton>
         </div>
       </div>
     </header>
@@ -89,6 +97,7 @@ const footerLinks = [
   { label: 'Product', to: '#product' },
   { label: 'Factories', to: '#factories' },
   { label: 'Brands', to: '#brands' },
+  { label: 'Cost Predictor', to: '/cost-predictor' },
   { label: 'Resources', to: '/support' },
   { label: 'Company', to: '/about' },
 ];

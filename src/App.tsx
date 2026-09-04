@@ -27,6 +27,7 @@ import Manufacturers from "./pages/Manufacturers";
 import Support from "./pages/Support";
 import Test from "./pages/Test";
 import ManufacturerOnboard from "./pages/ManufacturerOnboard";
+import CostPredictor from "./pages/CostPredictor";
 
 function App() {
   return (
@@ -59,6 +60,7 @@ function App() {
           {/*<Route path="/manufacturers" element={<Manufacturers />} />*/}
           {/*<Route path="/manufacturers/:id" element={<Manufacturers />} />*/}
           <Route path="/support" element={<Support />} />
+          <Route path="/cost-predictor" element={<CostPredictor />} />
           <Route path="/test" element={<Test />} />
           <Route path="/admin/add-factory" element={<ManufacturerOnboard />} />
           <Route path="*" element={<NotFound />} />
