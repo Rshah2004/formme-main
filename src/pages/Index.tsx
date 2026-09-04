@@ -705,37 +705,6 @@ const StepArrow = () => (
 
 const WorkflowSection = () => (
   <section id="product" className="py-20 md:py-24 px-6" style={{ background: LAVENDER }}>
-    {/* Turns a solid-fill photo into hollow line art: run edge detection on its luminance for
-        the internal stitch lines (seams/drawstrings/pocket), separately trace a clean solid
-        ring around the garment's own alpha silhouette for the outer border, union the two,
-        dilate slightly to close gaps in weak/broken edges, then clip to the original alpha so
-        the fill stays fully transparent and nothing bleeds past the silhouette. */}
-    <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
-      <filter id="outline-only" x="-20%" y="-20%" width="140%" height="140%">
-        {/* internal stitch-line detail via luminance edge detection */}
-        <feColorMatrix in="SourceGraphic" type="matrix" values="0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0 0 0 1 0" result="gray" />
-        <feGaussianBlur in="gray" stdDeviation="0.5" result="graySmooth" />
-        <feConvolveMatrix in="graySmooth" order="3" kernelMatrix="-1 -1 -1 -1 8 -1 -1 -1 -1" divisor="1" bias="0" edgeMode="none" preserveAlpha="true" result="edges" />
-        <feComponentTransfer in="edges" result="edgesBoost">
-          <feFuncR type="discrete" tableValues="0 0 1 1 1 1 1 1" />
-          <feFuncG type="discrete" tableValues="0 0 1 1 1 1 1 1" />
-          <feFuncB type="discrete" tableValues="0 0 1 1 1 1 1 1" />
-        </feComponentTransfer>
-        <feMorphology in="edgesBoost" operator="dilate" radius="0.4" result="edgesDilated" />
-        <feColorMatrix in="edgesDilated" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.33 0.33 0.33 0 0" result="edgeAlpha" />
-
-        {/* clean solid outer border traced from the garment's own alpha silhouette */}
-        <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="alpha" />
-        <feMorphology in="alpha" operator="erode" radius="1.5" result="eroded" />
-        <feComposite in="alpha" in2="eroded" operator="out" result="ring" />
-
-        {/* union internal lines + outer border, fill black, clip to the original silhouette */}
-        <feComposite in="edgeAlpha" in2="ring" operator="lighter" result="combinedAlpha" />
-        <feFlood floodColor="#15131C" result="black" />
-        <feComposite in="black" in2="combinedAlpha" operator="in" result="blackLines" />
-        <feComposite in="blackLines" in2="SourceAlpha" operator="in" />
-      </filter>
-    </svg>
     <div className="mx-auto max-w-[1300px]">
       <div className="reveal flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-14">
         <div>
@@ -767,15 +736,17 @@ const WorkflowSection = () => (
           <MobileStepLabel n="01" label="Tech Pack" />
           <WorkflowStepCard>
             <div className="rounded-lg mb-3 flex items-center justify-center p-3" style={{ background: '#F7F6FB', aspectRatio: '4/3' }}>
-              <div className="relative w-full h-full">
-                <img
-                  src="/mockupHoodieWhite.png"
-                  alt="Tech pack sketch"
-                  className="absolute inset-0 w-full h-full object-contain"
-                  style={{ filter: 'url(#outline-only)' }}
-                  loading="lazy"
-                />
-              </div>
+              {/* Pre-rendered line art (baked once from the source photo via SVG edge
+                  detection, then exported to a static PNG) instead of a live CSS filter —
+                  the live filter's output changed with device pixel ratio, so mobile and
+                  desktop rendered different amounts of detail from the same source. A
+                  static raster asset scales identically everywhere. */}
+              <img
+                src="/techpackSketch.png"
+                alt="Tech pack sketch"
+                className="w-full h-full object-contain"
+                loading="lazy"
+              />
             </div>
             <div className="flex flex-col gap-1.5">
               {['Specs', 'Measurements', 'BOM', 'Construction'].map((t) => (
