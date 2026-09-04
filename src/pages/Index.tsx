@@ -266,10 +266,10 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
 
   return (
     <section ref={heroRef} className="hero-sec relative" aria-label="Hero" style={{ background: LAVENDER }}>
-      <div className="mx-auto max-w-[1360px] px-6 pt-28 md:pt-36 pb-20 md:pb-24">
-        <div className="grid md:grid-cols-[0.4fr_0.6fr] gap-14 md:gap-8 items-start xl:items-center">
+      <div className="mx-auto max-w-[1600px] px-6 pt-28 md:pt-36 pb-20 md:pb-24">
+        <div className="grid md:grid-cols-[0.4fr_0.6fr] gap-14 md:gap-8 items-start min-[1600px]:items-center">
           {/* Left — positioning */}
-          <div>
+          <div className="min-w-0">
             <div className="reveal">
               <Eyebrow>Fashion production, connected</Eyebrow>
             </div>
@@ -302,7 +302,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
           {/* Right — the product story */}
           <div className="relative">
             {/* Desktop composition */}
-            <div className="hidden xl:grid relative grid-cols-[1fr_auto_0.95fr_auto_1fr] gap-3 items-center w-fit ml-auto">
+            <div className="hidden min-[1600px]:grid relative grid-cols-[1fr_auto_0.95fr_auto_1fr] gap-3 items-center w-fit ml-auto translate-x-6">
               {/* Step 1 — Brand order */}
               <div className="hero-step1 relative z-10">
                 <div className="mb-4">
@@ -410,7 +410,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
             </div>
 
             {/* Mobile — simple vertical sequence */}
-            <div className="xl:hidden flex flex-col items-center gap-3">
+            <div className="min-[1600px]:hidden flex flex-col items-center gap-3">
               <div className="reveal w-full">
                 <div className="mb-3 flex justify-center">
                   <StepBadge n="01" label="Brand order" />
