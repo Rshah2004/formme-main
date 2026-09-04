@@ -4,9 +4,9 @@ import { ArrowRight, ChevronDown, Linkedin } from 'lucide-react';
 import { BG, BORDER, BORDER_DARK, INK, MUTED, MUTED2, PURPLE, PURPLE_BG } from './theme';
 
 export const Logo = ({ dark = false }: { dark?: boolean }) => (
-  <Link to="/" className="inline-flex items-center gap-1.5">
+  <Link to="/" className="inline-flex items-center gap-1">
     <img src="/logo-mark.png" alt="" className="h-8 w-8 object-contain flex-shrink-0" style={dark ? { filter: 'brightness(0) invert(1)' } : undefined} />
-    <span className="text-[17px] font-dm-sans font-semibold" style={{ color: dark ? '#fff' : INK }}>formme</span>
+    <span className="font-cormorant font-medium text-[22px] leading-none" style={{ color: dark ? '#fff' : PURPLE }}>formme</span>
   </Link>
 );
 
