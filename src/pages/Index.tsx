@@ -258,7 +258,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
                   <HoodieCallout x={39} y={90} side="right" label="Size run" value="XS–XXL" />
                 </div>
                 <div className="relative z-10 mt-4 rounded-xl shadow-md px-4 py-3 flex items-center gap-2.5 w-[260px]" style={{ background: '#fff', border: `1px solid ${BORDER}` }}>
-                  <span className="w-8 h-8 rounded-lg flex items-center justify-center text-[14px] font-dm-sans font-bold text-white flex-shrink-0" style={{ background: PURPLE }}>b</span>
+                  <img src="/logo-mark.png" alt="" className="w-8 h-8 object-contain flex-shrink-0" />
                   <div className="flex flex-col leading-tight">
                     <span className="text-[13px] font-dm-sans font-bold" style={{ color: INK }}>FORMME</span>
                     <span className="text-[10px] font-inter" style={{ color: MUTED }}>Connected Order #FM-2841</span>
@@ -344,7 +344,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
                   <HoodieCallout x={39} y={90} side="right" label="Size run" value="XS–XXL" />
                 </div>
                 <div className="relative z-10 mt-4 rounded-xl shadow-md px-4 py-3 flex items-center gap-2.5 w-[240px]" style={{ background: '#fff', border: `1px solid ${BORDER}` }}>
-                  <span className="w-8 h-8 rounded-lg flex items-center justify-center text-[14px] font-dm-sans font-bold text-white flex-shrink-0" style={{ background: PURPLE }}>b</span>
+                  <img src="/logo-mark.png" alt="" className="w-8 h-8 object-contain flex-shrink-0" />
                   <div className="flex flex-col leading-tight">
                     <span className="text-[13px] font-dm-sans font-bold" style={{ color: INK }}>FORMME</span>
                     <span className="text-[10px] font-inter" style={{ color: MUTED }}>Connected Order #FM-2841</span>
@@ -795,7 +795,9 @@ const ConnectorSection = () => (
 
         {/* Connector badge */}
         <div className="hidden md:flex flex-col items-center gap-2">
-          <span className="w-10 h-10 rounded-xl flex items-center justify-center text-[16px] font-dm-sans font-bold text-white shadow-lg" style={{ background: PURPLE }}>b</span>
+          <span className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg" style={{ background: PURPLE }}>
+            <img src="/logo-mark.png" alt="" className="w-6 h-6 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
+          </span>
           <span className="text-[9px] uppercase tracking-[0.1em] font-inter" style={{ color: MUTED }}>Synced</span>
         </div>
 
