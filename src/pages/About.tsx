@@ -1,253 +1,136 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Factory, LayoutGrid, BarChart3, ArrowRight } from 'lucide-react';
 import { SEO } from '@/components/SEO';
-import { Button } from '@/components/ui/button';
-import NavBar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { motion } from 'framer-motion';
-
-// Import images
-import heroBg from '@/assets/about-hero-bg.jpg';
+import BookDemoModal from '@/components/homePage/BookDemoModal';
+import { BG, LAVENDER, INK, DARK_PANEL, MUTED2, BORDER, PURPLE } from '@/components/homePage/theme';
+import { Eyebrow, SolidButton, OutlineButton, LandingHeader, LandingFooter } from '@/components/homePage/LandingChrome';
+import { useLandingReveal } from '@/components/homePage/useLandingReveal';
 import designerImage from '@/assets/about-designer.jpg';
-import valueSustainability from '@/assets/value-sustainability.jpg';
-import valueQuality from '@/assets/value-quality.jpg';
-import valueEthical from '@/assets/value-ethical.jpg';
+
+const pillars = [
+  {
+    icon: Factory,
+    title: 'Built with manufacturers',
+    description: "We're developing formme in close collaboration with manufacturers and designers, so the workflow reflects real production constraints — not a guess at them.",
+  },
+  {
+    icon: LayoutGrid,
+    title: 'One connected workflow',
+    description: 'Tech packs, feasibility checks, sampling, and production tracking in a single system, instead of scattered spreadsheets and email threads.',
+  },
+  {
+    icon: BarChart3,
+    title: 'Live visibility',
+    description: "Brands see what's happening in production without asking. Factories run their floor from one source of truth, instead of chasing updates.",
+  },
+];
 
 const About = () => {
-  const values = [
-    {
-      image: valueSustainability,
-      title: "Sustainability First",
-      description: "We prioritize materials and processes that respect our planet."
-    },
-    {
-      image: valueQuality,
-      title: "Uncompromising Quality",
-      description: "Excellence in craftsmanship is non-negotiable for our partners."
-    },
-    {
-      image: valueEthical,
-      title: "Ethical Production",
-      description: "Fair wages and safe working conditions are the baseline."
-    }
-  ];
+  const prefersReduced = useLandingReveal();
+  const [showBookDemo, setShowBookDemo] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen overflow-x-hidden" style={{ background: BG, color: INK }}>
       <SEO
         title="About"
         canonical="/about"
-        description="Learn how formme was built to help independent fashion brands find and work with reliable clothing manufacturers — from first sketch to final delivery."
+        description="Formme is the operating system for fashion production — built in Vancouver, BC to connect factories and brands from tech pack to shipment."
       />
-      <NavBar />
-      
-      {/* Hero Section with Background Image */}
-      <section 
-        className="relative min-h-[70vh] sm:min-h-[80vh] flex items-center justify-center"
-        style={{
-          backgroundImage: `url(${heroBg})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
-      >
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 text-center">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="max-w-3xl mx-auto"
-          >
-            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-serif text-white mb-4 sm:mb-6">
-              About FormMe
-            </h1>
-            <p className="text-lg sm:text-xl md:text-2xl text-white/90 leading-relaxed max-w-2xl mx-auto">
-              We're bridging the gap between creative vision and sustainable manufacturing, empowering designers to bring their ideas to life.
-            </p>
-          </motion.div>
-        </div>
-      </section>
 
-      {/* Story Section */}
-      <section className="py-16 sm:py-24 lg:py-32 px-4 sm:px-6 bg-[#FAF9F6]">
-        <div className="container mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="order-2 lg:order-1"
-            >
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif text-[#344C3D] mb-6 sm:mb-8">
-                Our Story
-              </h2>
-              <div className="space-y-4 sm:space-y-6 text-muted-foreground text-base sm:text-lg leading-relaxed">
-                <p>
-                  Formme is a fashion-tech platform built to reduce friction between designers and 
-                  manufacturers by streamlining tech packs, feasibility checks, and production workflows.
-                </p>
-                <p>
-                  The platform is being developed in close collaboration with manufacturers and 
-                  designers to reflect real production constraints.
-                </p>
-                <p>
-                  Founded in Vancouver, BC, Formme is part of the <strong>Innovation UBC Venture Founder</strong> program. 
-                  We're committed to simplifying the journey from design concept to finished product, 
-                  with AI-powered tools and a curated network of ethical manufacturers.
-                </p>
-              </div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="order-1 lg:order-2"
-            >
-              <img 
-                src={designerImage} 
-                alt="Fashion designer working with fabric samples" 
-                className="w-full h-auto rounded-lg shadow-lg"
-              />
-            </motion.div>
+      <LandingHeader onBookDemo={() => setShowBookDemo(true)} />
+
+      {/* Hero */}
+      <section className="relative" style={{ background: LAVENDER }}>
+        <div className="mx-auto max-w-[900px] px-6 pt-36 pb-20 md:pt-44 md:pb-24 text-center">
+          <div className="reveal flex justify-center">
+            <Eyebrow>About formme</Eyebrow>
           </div>
+          <h1 className="reveal font-cormorant font-medium leading-[1.08] tracking-[-0.01em]" style={{ color: INK, fontSize: 'clamp(36px, 5vw, 58px)' }}>
+            Built for the realities of{' '}
+            <span className="italic" style={{ color: PURPLE }}>fashion production.</span>
+          </h1>
+          <p className="reveal mt-6 max-w-xl mx-auto font-inter leading-relaxed" style={{ color: MUTED2, fontSize: '15px' }}>
+            Formme is a fashion-tech platform built to reduce friction between designers and manufacturers — streamlining tech packs, feasibility checks, and production workflows into one connected system.
+          </p>
         </div>
       </section>
 
-      {/* Shop All Collections Section - Based on reference image */}
-      <section className="py-16 sm:py-24 lg:py-32 px-4 sm:px-6 bg-white">
-        <div className="container mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left Side - Two Cards */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="flex gap-4 sm:gap-6"
-            >
-              {/* Card 1 - Sustainability */}
-              <div className="flex-1 relative rounded-xl overflow-hidden aspect-[3/4]">
-                <img 
-                  src={valueSustainability} 
-                  alt="Sustainable fashion" 
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#1a365d]/90 via-[#1a365d]/40 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                  <h4 className="text-xs uppercase tracking-wider mb-2 font-medium">SUSTAINABILITY</h4>
-                  <p className="text-sm opacity-90 leading-relaxed">
-                    We prioritize eco-friendly materials and ethical manufacturing processes to create fashion that respects our planet.
-                  </p>
-                  <button className="mt-4 text-sm underline underline-offset-4 hover:no-underline">
-                    Learn more
-                  </button>
-                </div>
-              </div>
-              
-              {/* Card 2 - Quality */}
-              <div className="flex-1 relative rounded-xl overflow-hidden aspect-[3/4]">
-                <img 
-                  src={valueQuality} 
-                  alt="Quality craftsmanship" 
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#1a365d]/90 via-[#1a365d]/40 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                  <h4 className="text-xs uppercase tracking-wider mb-2 font-medium">QUALITY</h4>
-                  <p className="text-sm opacity-90 leading-relaxed">
-                    Excellence in craftsmanship is at the heart of everything we do. Every stitch, every detail matters.
-                  </p>
-                  <button className="mt-4 text-sm underline underline-offset-4 hover:no-underline">
-                    Learn more
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-            
-            {/* Right Side - Text Content */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-right"
-            >
-              <p className="text-sm uppercase tracking-widest text-muted-foreground mb-2">Our</p>
-              <h2 className="text-4xl sm:text-5xl md:text-6xl font-serif text-[#344C3D] mb-6">
-                Core Values
-              </h2>
-              <p className="text-muted-foreground text-lg leading-relaxed mb-8 max-w-md ml-auto">
-                Every decision we make is guided by a commitment to better manufacturing, sustainable practices, and ethical production.
-              </p>
-              <div className="border-t border-[#344C3D] pt-6 max-w-md ml-auto">
-                <Link to="/workflow">
-                  <Button 
-                    variant="outline" 
-                    className="border-[#344C3D] text-[#344C3D] hover:bg-[#344C3D] hover:text-white rounded-none px-8"
-                  >
-                    Explore more
-                  </Button>
-                </Link>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Ethical Production Section */}
-      <section className="py-16 sm:py-24 lg:py-32 px-4 sm:px-6 bg-background">
-        <div className="container mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="max-w-4xl mx-auto text-center"
-          >
-            <div className="aspect-video mb-8 overflow-hidden rounded-lg">
-              <img 
-                src={valueEthical} 
-                alt="Ethical production"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <h3 className="text-2xl sm:text-3xl font-serif text-[#344C3D] mb-4">Ethical Production</h3>
-            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
-              Fair wages and safe working conditions are the baseline. We partner only with manufacturers who share our commitment to treating workers with dignity and respect.
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* CTA Section - Terracotta/Warm Brown */}
-      <section className="py-16 sm:py-24 lg:py-32 px-4 sm:px-6 bg-[#B58C6A]">
-        <div className="container mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif text-white mb-4 sm:mb-6">
-              Ready to create?
+      {/* Story */}
+      <section className="py-20 md:py-24 px-6" style={{ background: BG }}>
+        <div className="mx-auto max-w-[1300px] grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <div className="reveal order-2 lg:order-1">
+            <Eyebrow>Our story</Eyebrow>
+            <h2 className="font-dm-sans font-semibold leading-[1.15] mb-5" style={{ color: INK, fontSize: 'clamp(26px, 3vw, 38px)' }}>
+              From first sketch to finished production.
             </h2>
-            <p className="text-base sm:text-xl text-white/90 mb-8 sm:mb-10 max-w-2xl mx-auto">
-              Join our growing community of designers building the future of fashion with FormMe.
-            </p>
-            <Link to="/auth">
-              <Button 
-                size="lg"
-                className="bg-white text-[#B58C6A] hover:bg-white/90 rounded-full px-8 sm:px-12 py-6 text-base sm:text-lg font-medium"
-              >
-                Start Your Journey
-              </Button>
-            </Link>
-          </motion.div>
+            <div className="flex flex-col gap-4 font-inter leading-relaxed" style={{ color: MUTED2, fontSize: '15px' }}>
+              <p>
+                We're building formme to close the gap between what a designer draws and what a factory can actually produce — reducing the back-and-forth that slows tech packs, sampling, and production down.
+              </p>
+              <p>
+                The platform is being developed in close collaboration with manufacturers and designers, so it reflects real production constraints rather than how software imagines them.
+              </p>
+              <p>
+                Formme is founded in Vancouver, BC, and part of the <strong style={{ color: INK }}>Innovation UBC Venture Founder</strong> program.
+              </p>
+            </div>
+          </div>
+          <div className="reveal order-1 lg:order-2">
+            <img
+              src={designerImage}
+              alt="Designer working with fabric samples"
+              className="w-full h-auto rounded-2xl"
+              style={{ border: `1px solid ${BORDER}` }}
+              loading="lazy"
+            />
+          </div>
         </div>
       </section>
 
-      <Footer />
+      {/* Pillars */}
+      <section className="py-20 md:py-24 px-6" style={{ background: LAVENDER }}>
+        <div className="mx-auto max-w-[1300px]">
+          <div className="reveal max-w-lg mb-14">
+            <Eyebrow>What we're building</Eyebrow>
+            <h2 className="font-dm-sans font-semibold leading-[1.15]" style={{ color: INK, fontSize: 'clamp(26px, 3vw, 38px)' }}>
+              One system for factories and brands.
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-5">
+            {pillars.map(({ icon: Icon, title, description }) => (
+              <div key={title} className="reveal rounded-2xl bg-white p-7" style={{ border: `1px solid ${BORDER}` }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-5" style={{ background: 'rgba(93,82,214,0.1)' }}>
+                  <Icon className="w-5 h-5" strokeWidth={1.75} style={{ color: PURPLE }} />
+                </div>
+                <h3 className="font-dm-sans font-semibold mb-2.5" style={{ color: INK, fontSize: '17px' }}>{title}</h3>
+                <p className="font-inter leading-relaxed" style={{ color: MUTED2, fontSize: '13.5px' }}>{description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-20 md:py-24 px-6" style={{ background: DARK_PANEL }}>
+        <div className="mx-auto max-w-[1300px] flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+          <h2 className="reveal font-dm-sans font-semibold leading-[1.15]" style={{ color: '#fff', fontSize: 'clamp(28px, 4vw, 46px)' }}>
+            Want to build production<br />with us?
+          </h2>
+          <div className="reveal flex flex-col items-start gap-5">
+            <p className="font-inter max-w-xs" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>
+              We're working closely with early manufacturer and brand partners — reach out if you want in.
+            </p>
+            <div className="flex items-center gap-4">
+              <SolidButton onClick={() => setShowBookDemo(true)}>Book a demo</SolidButton>
+              <OutlineButton href="/" dark>See how it works <ArrowRight className="w-3.5 h-3.5" /></OutlineButton>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <LandingFooter />
+
+      <BookDemoModal open={showBookDemo} onOpenChange={setShowBookDemo} />
     </div>
   );
 };
