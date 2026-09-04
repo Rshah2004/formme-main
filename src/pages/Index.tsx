@@ -429,7 +429,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
               <ArrowDown className="reveal w-4 h-4" style={{ color: MUTED }} />
 
               <div className="reveal flex flex-col items-center">
-                <div className="relative w-[220px]" style={{ aspectRatio: '766 / 912', perspective: '700px' }}>
+                <div className="relative w-[220px]" style={{ aspectRatio: '766 / 912' }}>
                   <div
                     className="absolute inset-0"
                     style={{
@@ -437,7 +437,6 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
                       backgroundSize: '200.52% 112.28%',
                       backgroundPosition: '50% 16.96%',
                       backgroundRepeat: 'no-repeat',
-                      transform: 'rotateY(-26deg)',
                       filter: 'drop-shadow(0 14px 20px rgba(21,19,28,0.16))',
                     }}
                   />
