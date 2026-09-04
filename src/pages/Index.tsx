@@ -390,7 +390,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
    FOR MANUFACTURERS / FOR BRANDS
 ════════════════════════════════════════════════ */
 const manufacturerChecklist = ['Real-time production tracking', 'Smarter planning & capacity', 'Quality & inspection in one place', 'On-time shipments, every time'];
-const brandChecklist = ['Live order & production visibility', 'Quality, rework & approvals', 'Shipment tracking & ETAs', 'Fewer follow-ups, more clarity'];
+const brandChecklist = ['Matched with vetted, reliable manufacturers', 'Live order & production visibility', 'Quality, rework & approvals', 'Shipment tracking & ETAs', 'Fewer follow-ups, more clarity'];
 
 const lineProgress = [
   { line: 'Line 01', dots: [1, 1, 1, 1, 1, 0], color: PURPLE },
