@@ -429,7 +429,7 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
               <ArrowDown className="reveal w-4 h-4" style={{ color: MUTED }} />
 
               <div className="reveal flex flex-col items-center">
-                <div className="relative w-[220px]" style={{ aspectRatio: '766 / 912', perspective: '700px' }}>
+                <div className="relative w-[220px] mx-10" style={{ aspectRatio: '766 / 912', perspective: '700px' }}>
                   <div
                     className="absolute inset-0"
                     style={{
@@ -441,6 +441,11 @@ const Hero = ({ onBookDemo, prefersReduced }: { onBookDemo: () => void; prefersR
                       filter: 'drop-shadow(0 14px 20px rgba(21,19,28,0.16))',
                     }}
                   />
+                  <HoodieCallout x={40} y={27} side="right" label="Style" value="FM-HOOD-004" />
+                  <HoodieCallout x={51} y={46} side="right" label="Fabric" value="420 GSM cotton" />
+                  <HoodieCallout x={40} y={61} side="left" label="Color" value="Washed black" />
+                  <HoodieCallout x={48} y={70} side="right" label="Quantity" value="600 pcs" />
+                  <HoodieCallout x={39} y={90} side="right" label="Size run" value="XS–XXL" />
                 </div>
                 <div className="relative z-10 mt-4 rounded-xl shadow-md px-4 py-3 flex items-center gap-2.5 w-[240px]" style={{ background: '#fff', border: `1px solid ${BORDER}` }}>
                   <span className="w-8 h-8 rounded-lg flex items-center justify-center text-[14px] font-dm-sans font-bold text-white flex-shrink-0" style={{ background: PURPLE }}>b</span>
