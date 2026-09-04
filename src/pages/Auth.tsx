@@ -8,14 +8,17 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import Footer from "@/components/Footer";
-import Navbar from "@/components/Navbar";
 import { Mail, CheckCircle2, Clock } from "lucide-react";
 import BookDemoModal from "@/components/homePage/BookDemoModal";
+import { BG, LAVENDER, INK, MUTED2, BORDER, PURPLE, PURPLE_BG } from "@/components/homePage/theme";
+import { Eyebrow, Logo, LandingHeader, LandingFooter } from "@/components/homePage/LandingChrome";
 
 type UserRole = "designer" | "manufacturer";
 type AuthMode = "signin" | "signup" | "verify-email" | "reset-password" | "request-submitted";
 const WAITLIST_URL = "https://docs.google.com/forms/d/e/1FAIpQLScV3VYQ9HgNmI4IYHwFgt2ALaeXy9iSLmB6PYtd2Z-1YWhUpg/viewform?usp=header";
+
+/* Shared field styling — overrides the shadcn defaults to match the new theme */
+const inputCls = "border-[#E7E3F5] bg-white focus-visible:ring-[#5D52D6] focus-visible:ring-offset-0";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -340,30 +343,30 @@ const handleResetPassword = async (e: React.FormEvent) => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen overflow-x-hidden flex flex-col" style={{ background: BG, color: INK }}>
       <SEO title="Join the waitlist" canonical="/auth" noindex={true} />
-      <Navbar />
-      <div className="flex-1 flex items-center justify-center p-4 pt-24">
-        <Card className="w-full max-w-2xl p-8 bg-white/70 backdrop-blur-md border border-border/40 shadow-lg rounded-2xl">
-        
+      <LandingHeader onBookDemo={() => setShowBookDemo(true)} />
+      <div className="flex-1 flex items-center justify-center p-4 pt-32 pb-16" style={{ background: LAVENDER }}>
+        <Card className="w-full max-w-2xl p-8 bg-white text-[#15131C] shadow-lg rounded-2xl" style={{ border: `1px solid ${BORDER}` }}>
+
         {/* Verify Email Screen */}
         {mode === "verify-email" && (
           <div className="text-center py-8">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Mail className="w-8 h-8 text-primary" />
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: PURPLE_BG }}>
+              <Mail className="w-8 h-8" style={{ color: PURPLE }} />
             </div>
-            <h1 className="text-2xl font-bold mb-2">Verify your email</h1>
-            <p className="text-muted-foreground mb-6">
-              We've sent a verification link to <strong>{formData.email}</strong>. 
+            <h1 className="font-dm-sans font-semibold text-2xl mb-2" style={{ color: INK }}>Verify your email</h1>
+            <p className="mb-6 font-inter" style={{ color: MUTED2 }}>
+              We've sent a verification link to <strong style={{ color: INK }}>{formData.email}</strong>.
               Please check your inbox and click the link to verify your account.
             </p>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm mb-4 font-inter" style={{ color: MUTED2 }}>
               Didn't receive the email? Check your spam folder or try again.
             </p>
             <Button
               variant="outline"
               onClick={() => setMode("signin")}
-              className="mr-2"
+              className="mr-2 border-[#E7E3F5] text-[#15131C] hover:bg-[#F2EFFC]"
             >
               Back to Sign In
             </Button>
@@ -373,19 +376,20 @@ const handleResetPassword = async (e: React.FormEvent) => {
         {/* Request Submitted Screen */}
         {mode === "request-submitted" && (
           <div className="text-center py-8">
-            <div className="w-16 h-16 bg-[#C8956C]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Clock className="w-8 h-8 text-[#C8956C]" />
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: PURPLE_BG }}>
+              <Clock className="w-8 h-8" style={{ color: PURPLE }} />
             </div>
-            <h1 className="text-2xl font-bold mb-2">Request Submitted</h1>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Thank you for your interest in joining Formme! Our team will review your request and reach out to <strong>{formData.email}</strong> shortly.
+            <h1 className="font-dm-sans font-semibold text-2xl mb-2" style={{ color: INK }}>Request Submitted</h1>
+            <p className="mb-6 max-w-md mx-auto font-inter" style={{ color: MUTED2 }}>
+              Thank you for your interest in joining Formme! Our team will review your request and reach out to <strong style={{ color: INK }}>{formData.email}</strong> shortly.
             </p>
-            <p className="text-sm text-muted-foreground mb-6">
+            <p className="text-sm mb-6 font-inter" style={{ color: MUTED2 }}>
               We typically respond within 1-2 business days.
             </p>
             <Button
               variant="outline"
               onClick={() => setMode("signin")}
+              className="border-[#E7E3F5] text-[#15131C] hover:bg-[#F2EFFC]"
             >
               Back to Sign In
             </Button>
@@ -396,11 +400,11 @@ const handleResetPassword = async (e: React.FormEvent) => {
         {mode === "reset-password" && (
           <div>
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="w-8 h-8 text-primary" />
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: PURPLE_BG }}>
+                <CheckCircle2 className="w-8 h-8" style={{ color: PURPLE }} />
               </div>
-              <h1 className="text-2xl font-bold mb-2">Set new password</h1>
-              <p className="text-muted-foreground">
+              <h1 className="font-dm-sans font-semibold text-2xl mb-2" style={{ color: INK }}>Set new password</h1>
+              <p className="font-inter" style={{ color: MUTED2 }}>
                 Enter your new password below
               </p>
             </div>
@@ -414,7 +418,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="mt-1"
+                  className={`mt-1 ${inputCls}`}
                 />
               </div>
               <div>
@@ -426,12 +430,12 @@ const handleResetPassword = async (e: React.FormEvent) => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="mt-1"
+                  className={`mt-1 ${inputCls}`}
                 />
               </div>
-              <Button 
-                type="submit" 
-                className="w-full h-11 rounded-xl" 
+              <Button
+                type="submit"
+                className="w-full h-11 rounded-xl bg-[#5D52D6] hover:bg-[#4a41c4] text-white"
                 disabled={isLoading}
               >
                 {isLoading ? "Updating..." : "Update Password"}
@@ -444,38 +448,40 @@ const handleResetPassword = async (e: React.FormEvent) => {
         {(mode === "signin" || mode === "signup") && (
           <>
             <div className="text-center mb-6">
-              <p className="text-[11px] font-semibold tracking-[0.32em] uppercase text-primary/70 mb-3">
-                {isDirectSignupRoute ? "Private access" : mode === "signin" ? "Member portal" : "Early access"}
-              </p>
-              <h1 className="font-inter text-5xl font-semibold tracking-[-0.08em] text-foreground mb-3">
-                formme
-              </h1>
-              <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
+              <div className="flex justify-center">
+                <Eyebrow>{isDirectSignupRoute ? "Private access" : mode === "signin" ? "Member portal" : "Early access"}</Eyebrow>
+              </div>
+              <div className="flex justify-center mb-3">
+                <Logo />
+              </div>
+              <p className="text-sm max-w-sm mx-auto leading-relaxed font-inter" style={{ color: MUTED2 }}>
                 {mode === "signin" ? "Welcome back" : isDirectSignupRoute ? "Create your Formme account" : "Join the Formme waitlist"}
               </p>
             </div>
 
             <Tabs value={mode} onValueChange={(v) => setMode(v as AuthMode)}>
-              <div className="flex justify-center gap-8 mb-6 border-b border-border/30">
+              <div className="flex justify-center gap-8 mb-6" style={{ borderBottom: `1px solid ${BORDER}` }}>
                 <button
                   type="button"
                   onClick={() => setMode("signin")}
-                  className={`pb-3 px-2 transition-all rounded-t-lg ${
+                  className="pb-3 px-2 transition-all rounded-t-lg font-inter text-sm"
+                  style={
                     mode === "signin"
-                      ? "border-b-2 border-primary font-bold text-foreground bg-white/20"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/10"
-                  }`}
+                      ? { borderBottom: `2px solid ${PURPLE}`, fontWeight: 700, color: INK }
+                      : { color: MUTED2 }
+                  }
                 >
                   Sign In
                 </button>
                 <button
                   type="button"
                   onClick={() => setMode("signup")}
-                  className={`pb-3 px-2 transition-all rounded-t-lg ${
+                  className="pb-3 px-2 transition-all rounded-t-lg font-inter text-sm"
+                  style={
                     mode === "signup"
-                      ? "border-b-2 border-primary font-bold text-foreground bg-white/20"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/10"
-                  }`}
+                      ? { borderBottom: `2px solid ${PURPLE}`, fontWeight: 700, color: INK }
+                      : { color: MUTED2 }
+                  }
                 >
                   {isDirectSignupRoute ? "Sign Up" : "Waitlist"}
                 </button>
@@ -486,6 +492,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
               <div>
                 <Label htmlFor="email">Email</Label>
                 <Input
+                  className={inputCls}
                   id="email"
                   type="email"
                   value={formData.email}
@@ -496,6 +503,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
               <div>
                 <Label htmlFor="password">Password</Label>
                 <Input
+                  className={inputCls}
                   id="password"
                   type="password"
                   value={formData.password}
@@ -506,11 +514,16 @@ const handleResetPassword = async (e: React.FormEvent) => {
               <button
                 type="button"
                 onClick={handleForgotPassword}
-                className="text-sm text-primary hover:underline"
+                className="text-sm hover:underline font-inter"
+                style={{ color: PURPLE }}
               >
                 Forgot password?
               </button>
-              <Button type="submit" className="w-full h-11 rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full h-11 rounded-xl bg-[#5D52D6] hover:bg-[#4a41c4] text-white shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all"
+                disabled={isLoading}
+              >
                 {isLoading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
@@ -521,14 +534,14 @@ const handleResetPassword = async (e: React.FormEvent) => {
               <form onSubmit={handleSignUp} className="space-y-5">
                 <div>
                   <Label className="text-sm font-medium mb-2 block">I am a...</Label>
-                  <div className="flex gap-1 bg-muted/30 p-1 rounded-xl">
+                  <div className="flex gap-1 bg-[#F2EFFC] p-1 rounded-xl">
                     <button
                       type="button"
                       onClick={() => setUserRole("designer")}
                       className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all shadow-[0_2px_8px_rgba(0,0,0,0.06)] ${
                         userRole === "designer"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-white text-foreground border border-border/50 hover:bg-primary/5"
+                          ? "bg-[#5D52D6] text-white"
+                          : "bg-white text-[#15131C] border border-[#E7E3F5] hover:bg-[#F2EFFC]"
                       }`}
                     >
                       Brand
@@ -538,8 +551,8 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       onClick={() => setUserRole("manufacturer")}
                       className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all shadow-[0_2px_8px_rgba(0,0,0,0.06)] ${
                         userRole === "manufacturer"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-white text-foreground border border-border/50 hover:bg-primary/5"
+                          ? "bg-[#5D52D6] text-white"
+                          : "bg-white text-[#15131C] border border-[#E7E3F5] hover:bg-[#F2EFFC]"
                       }`}
                     >
                       Manufacturer
@@ -551,6 +564,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                   <div>
                     <Label htmlFor="signup-full-name">Full Name</Label>
                     <Input
+                      className={inputCls}
                       id="signup-full-name"
                       value={formData.fullName}
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
@@ -560,6 +574,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                   <div>
                     <Label htmlFor="signup-company">Company / Brand Name</Label>
                     <Input
+                      className={inputCls}
                       id="signup-company"
                       value={formData.companyName}
                       onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
@@ -568,6 +583,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                   <div>
                     <Label htmlFor="signup-email">Email</Label>
                     <Input
+                      className={inputCls}
                       id="signup-email"
                       type="email"
                       value={formData.email}
@@ -578,6 +594,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                   <div>
                     <Label htmlFor="signup-password">Password</Label>
                     <Input
+                      className={inputCls}
                       id="signup-password"
                       type="password"
                       minLength={6}
@@ -589,6 +606,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                   <div>
                     <Label htmlFor="signup-phone">Phone</Label>
                     <Input
+                      className={inputCls}
                       id="signup-phone"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -597,6 +615,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                   <div>
                     <Label htmlFor="signup-location">Location</Label>
                     <Input
+                      className={inputCls}
                       id="signup-location"
                       value={formData.location}
                       onChange={(e) => setFormData({ ...formData, location: e.target.value })}
@@ -608,7 +627,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                   <Label className="text-sm font-medium mb-2 block">Categories</Label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {categoriesOptions.map((category) => (
-                      <label key={category} className="flex items-center gap-2 rounded-lg border border-border/60 bg-white px-3 py-2 text-sm">
+                      <label key={category} className="flex items-center gap-2 rounded-lg border border-[#E7E3F5] bg-white px-3 py-2 text-sm">
                         <input
                           type="checkbox"
                           checked={formData.categories.includes(category)}
@@ -630,6 +649,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                     <div>
                       <Label htmlFor="brand-description">Brand Description</Label>
                       <Input
+                        className={inputCls}
                         id="brand-description"
                         value={formData.brandDescription}
                         onChange={(e) => setFormData({ ...formData, brandDescription: e.target.value })}
@@ -640,6 +660,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       <div>
                         <Label htmlFor="brand-url">Brand Website / Social</Label>
                         <Input
+                          className={inputCls}
                           id="brand-url"
                           value={formData.brandUrl}
                           onChange={(e) => setFormData({ ...formData, brandUrl: e.target.value })}
@@ -648,6 +669,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       <div>
                         <Label htmlFor="portfolio-urls">Portfolio URLs</Label>
                         <Input
+                          className={inputCls}
                           id="portfolio-urls"
                           value={formData.portfolioUrls}
                           onChange={(e) => setFormData({ ...formData, portfolioUrls: e.target.value })}
@@ -660,7 +682,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                           id="annual-volume"
                           value={formData.annualVolumeRange}
                           onChange={(e) => setFormData({ ...formData, annualVolumeRange: e.target.value })}
-                          className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          className={`mt-1 h-10 w-full rounded-md px-3 py-2 text-sm ${inputCls}`}
                         >
                           <option value="">Select volume</option>
                           {annualVolumeOptions.map((option) => (
@@ -674,7 +696,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                           id="budget-range"
                           value={formData.budgetRange}
                           onChange={(e) => setFormData({ ...formData, budgetRange: e.target.value })}
-                          className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          className={`mt-1 h-10 w-full rounded-md px-3 py-2 text-sm ${inputCls}`}
                         >
                           <option value="">Select budget</option>
                           {budgetRangeOptions.map((option) => (
@@ -687,6 +709,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       <div>
                         <Label htmlFor="shipping-street">Shipping Street</Label>
                         <Input
+                          className={inputCls}
                           id="shipping-street"
                           value={formData.shippingStreet}
                           onChange={(e) => setFormData({ ...formData, shippingStreet: e.target.value })}
@@ -695,6 +718,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       <div>
                         <Label htmlFor="shipping-city">Shipping City</Label>
                         <Input
+                          className={inputCls}
                           id="shipping-city"
                           value={formData.shippingCity}
                           onChange={(e) => setFormData({ ...formData, shippingCity: e.target.value })}
@@ -703,6 +727,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       <div>
                         <Label htmlFor="shipping-state">Shipping State / Province</Label>
                         <Input
+                          className={inputCls}
                           id="shipping-state"
                           value={formData.shippingState}
                           onChange={(e) => setFormData({ ...formData, shippingState: e.target.value })}
@@ -711,6 +736,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       <div>
                         <Label htmlFor="shipping-postal">Shipping Postal Code</Label>
                         <Input
+                          className={inputCls}
                           id="shipping-postal"
                           value={formData.shippingPostal}
                           onChange={(e) => setFormData({ ...formData, shippingPostal: e.target.value })}
@@ -719,6 +745,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       <div>
                         <Label htmlFor="shipping-country">Shipping Country</Label>
                         <Input
+                          className={inputCls}
                           id="shipping-country"
                           value={formData.shippingCountry}
                           onChange={(e) => setFormData({ ...formData, shippingCountry: e.target.value })}
@@ -732,6 +759,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       <div>
                         <Label htmlFor="manufacturer-moq">Minimum Order Quantity</Label>
                         <Input
+                          className={inputCls}
                           id="manufacturer-moq"
                           type="number"
                           min="0"
@@ -742,6 +770,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       <div>
                         <Label htmlFor="manufacturer-lead-time">Lead Time (days)</Label>
                         <Input
+                          className={inputCls}
                           id="manufacturer-lead-time"
                           type="number"
                           min="0"
@@ -754,7 +783,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       <Label className="text-sm font-medium mb-2 block">Capabilities</Label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                         {capabilitiesOptions.map((capability) => (
-                          <label key={capability} className="flex items-center gap-2 rounded-lg border border-border/60 bg-white px-3 py-2 text-sm">
+                          <label key={capability} className="flex items-center gap-2 rounded-lg border border-[#E7E3F5] bg-white px-3 py-2 text-sm">
                             <input
                               type="checkbox"
                               checked={formData.capabilities.includes(capability)}
@@ -773,7 +802,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                   </div>
                 )}
 
-                <Button type="submit" className="w-full h-11 rounded-xl" disabled={isLoading}>
+                <Button type="submit" className="w-full h-11 rounded-xl bg-[#5D52D6] hover:bg-[#4a41c4] text-white" disabled={isLoading}>
                   {isLoading ? "Creating account..." : "Create Account"}
                 </Button>
               </form>
@@ -781,14 +810,14 @@ const handleResetPassword = async (e: React.FormEvent) => {
             <div className="space-y-6">
               <div>
                 <Label className="text-sm font-medium mb-2 block">I am a...</Label>
-                <div className="flex gap-1 bg-muted/30 p-1 rounded-xl">
+                <div className="flex gap-1 bg-[#F2EFFC] p-1 rounded-xl">
                   <button
                     type="button"
                     onClick={() => setUserRole("designer")}
                     className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all shadow-[0_2px_8px_rgba(0,0,0,0.06)] ${
                       userRole === "designer"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-white text-foreground border border-border/50 hover:bg-primary/5"
+                        ? "bg-[#5D52D6] text-white"
+                        : "bg-white text-[#15131C] border border-[#E7E3F5] hover:bg-[#F2EFFC]"
                     }`}
                   >
                     Brand
@@ -798,24 +827,24 @@ const handleResetPassword = async (e: React.FormEvent) => {
                     onClick={() => setUserRole("manufacturer")}
                     className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all shadow-[0_2px_8px_rgba(0,0,0,0.06)] ${
                       userRole === "manufacturer"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-white text-foreground border border-border/50 hover:bg-primary/5"
+                        ? "bg-[#5D52D6] text-white"
+                        : "bg-white text-[#15131C] border border-[#E7E3F5] hover:bg-[#F2EFFC]"
                     }`}
                   >
                     Manufacturer
                   </button>
                 </div>
               </div>
-              <div className="rounded-2xl border border-border/50 bg-background/70 p-6">
-                <h2 className="text-xl font-semibold mb-2">
+              <div className="rounded-2xl p-6" style={{ border: `1px solid ${BORDER}`, background: LAVENDER }}>
+                <h2 className="font-dm-sans font-semibold text-xl mb-2" style={{ color: INK }}>
                   {userRole === "designer" ? "Join the waitlist for your brand" : "Join the waitlist for your manufacturing team"}
                 </h2>
-                <p className="text-sm text-muted-foreground mb-5">
+                <p className="text-sm mb-5 font-inter" style={{ color: MUTED2 }}>
                   Share your details and we&apos;ll reach out when we&apos;re ready to onboard you.
                 </p>
                 {prefillEmail && (
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Joining as <span className="font-medium text-foreground">{prefillEmail}</span>
+                  <p className="text-sm mb-3 font-inter" style={{ color: MUTED2 }}>
+                    Joining as <span className="font-medium" style={{ color: INK }}>{prefillEmail}</span>
                   </p>
                 )}
                 <Button
@@ -826,7 +855,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       : WAITLIST_URL;
                     window.open(url, "_blank", "noopener,noreferrer");
                   }}
-                  className="w-full mt-3 h-11 rounded-xl"
+                  className="w-full mt-3 h-11 rounded-xl bg-[#5D52D6] hover:bg-[#4a41c4] text-white"
                 >
                   Join Waitlist
                 </Button>
@@ -840,7 +869,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
       </Card>
       </div>
       <BookDemoModal open={showBookDemo} onOpenChange={setShowBookDemo} />
-      <Footer />
+      <LandingFooter />
     </div>
   );
 };
