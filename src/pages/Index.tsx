@@ -586,10 +586,30 @@ const StagePanel = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
+/* Field-level stagger used inside every stage visual — each block fades/slides in one
+   after another instead of the whole panel appearing at once. Collapses to a plain
+   instant fade when the visitor prefers reduced motion. */
+const stageContainer = { hidden: {}, show: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } } };
+const stageItem = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } } };
+const stageContainerReduced = { hidden: {}, show: { transition: { staggerChildren: 0 } } };
+const stageItemReduced = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { duration: 0.15 } } };
+
+const StageMotion = ({ children, reduced, className }: { children: React.ReactNode; reduced?: boolean; className?: string }) => (
+  <motion.div variants={reduced ? stageContainerReduced : stageContainer} initial="hidden" animate="show" className={className}>
+    {children}
+  </motion.div>
+);
+
+const StageItem = ({ children, reduced, className, style }: { children: React.ReactNode; reduced?: boolean; className?: string; style?: React.CSSProperties }) => (
+  <motion.div variants={reduced ? stageItemReduced : stageItem} className={className} style={style}>
+    {children}
+  </motion.div>
+);
+
 /* ─── For brands: stage visuals ─── */
-const BrandStage1Visual = () => (
-  <div>
-    <div className="rounded-xl p-4 flex items-center gap-4 mb-5" style={{ background: '#F7F6FB' }}>
+const BrandStage1Visual = ({ reduced }: { reduced?: boolean }) => (
+  <StageMotion reduced={reduced}>
+    <StageItem reduced={reduced} className="rounded-xl p-4 flex items-center gap-4 mb-5" style={{ background: '#F7F6FB' }}>
       <img src="/techpackSketch.png" alt="" className="w-16 h-16 object-contain flex-shrink-0" />
       <div>
         <p className="font-dm-sans font-bold text-[16px]" style={{ color: INK }}>Oversized Hoodie</p>
@@ -598,12 +618,14 @@ const BrandStage1Visual = () => (
           <span className="text-[11px] font-inter" style={{ color: MUTED2 }}>Washed black</span>
         </div>
       </div>
-    </div>
-    <Row label="Tech pack" value={<DoneValue>Uploaded</DoneValue>} />
-    <Row label="Quantity" value="600 pcs" />
-    <Row label="Target delivery" value="28 Sep" />
-    <Row label="Fabric" value="420 GSM cotton" />
-  </div>
+    </StageItem>
+    <StageItem reduced={reduced}>
+      <Row label="Tech pack" value={<DoneValue>Uploaded</DoneValue>} />
+      <Row label="Quantity" value="600 pcs" />
+      <Row label="Target delivery" value="28 Sep" />
+      <Row label="Fabric" value="420 GSM cotton" />
+    </StageItem>
+  </StageMotion>
 );
 
 const brandMatchCandidates = [
@@ -612,10 +634,10 @@ const brandMatchCandidates = [
   { name: 'Moda Works', location: 'Portugal', capabilities: ['Knitwear', 'Fleece'], capacity: 'Available', selected: false },
 ];
 
-const BrandStage2Visual = () => (
-  <div className="grid sm:grid-cols-3 gap-3">
+const BrandStage2Visual = ({ reduced }: { reduced?: boolean }) => (
+  <StageMotion reduced={reduced} className="grid sm:grid-cols-3 gap-3">
     {brandMatchCandidates.map((m) => (
-      <div key={m.name} className="rounded-xl p-4" style={m.selected ? { border: `1.5px solid ${PURPLE}`, background: PURPLE_BG } : { border: `1px solid ${BORDER}`, background: '#fff' }}>
+      <StageItem key={m.name} reduced={reduced} className="rounded-xl p-4" style={m.selected ? { border: `1.5px solid ${PURPLE}`, background: PURPLE_BG } : { border: `1px solid ${BORDER}`, background: '#fff' }}>
         <p className="font-dm-sans font-bold text-[13px] mb-0.5" style={{ color: INK }}>{m.name}</p>
         <p className="text-[11px] font-inter mb-3" style={{ color: MUTED }}>{m.location}</p>
         <p className="text-[9px] uppercase tracking-[0.08em] font-inter mb-1.5" style={{ color: MUTED }}>Capabilities</p>
@@ -635,14 +657,14 @@ const BrandStage2Visual = () => (
             <Check className="w-3.5 h-3.5" strokeWidth={3} /> Connected to order
           </div>
         )}
-      </div>
+      </StageItem>
     ))}
-  </div>
+  </StageMotion>
 );
 
-const BrandStage3Visual = () => (
-  <div>
-    <div className="grid sm:grid-cols-2 gap-3 mb-5">
+const BrandStage3Visual = ({ reduced }: { reduced?: boolean }) => (
+  <StageMotion reduced={reduced}>
+    <StageItem reduced={reduced} className="grid sm:grid-cols-2 gap-3 mb-5">
       <div className="rounded-xl p-4" style={{ border: `1px solid ${BORDER}` }}>
         <p className="text-[9px] uppercase tracking-[0.08em] font-inter mb-1" style={{ color: MUTED }}>Sample #01</p>
         <p className="font-dm-sans font-semibold text-[13px] mb-2" style={{ color: INK }}>Fit sample</p>
@@ -655,61 +677,69 @@ const BrandStage3Visual = () => (
           <Check className="w-3 h-3" strokeWidth={3} /> Approved
         </span>
       </div>
-    </div>
-    <Row label="Price" value={<DoneValue>Agreed</DoneValue>} />
-    <Row label="Fabric" value={<DoneValue>Approved</DoneValue>} />
-    <div className="flex flex-col gap-2 mt-4">
+    </StageItem>
+    <StageItem reduced={reduced}>
+      <Row label="Price" value={<DoneValue>Agreed</DoneValue>} />
+      <Row label="Fabric" value={<DoneValue>Approved</DoneValue>} />
+    </StageItem>
+    <StageItem reduced={reduced} className="flex flex-col gap-2 mt-4">
       {['Factory submitted sample', 'Brand requested revision', 'New sample uploaded', 'Sample approved'].map((t) => (
         <div key={t} className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: PURPLE }} />
           <span className="text-[11px] font-inter" style={{ color: MUTED2 }}>{t}</span>
         </div>
       ))}
-    </div>
-  </div>
+    </StageItem>
+  </StageMotion>
 );
 
-const BrandStage4Visual = () => (
-  <div>
-    <div className="flex items-center justify-between mb-4">
+const BrandStage4Visual = ({ reduced }: { reduced?: boolean }) => (
+  <StageMotion reduced={reduced}>
+    <StageItem reduced={reduced} className="flex items-center justify-between mb-4">
       <div>
         <p className="text-[10px] uppercase tracking-[0.08em] font-inter mb-1" style={{ color: MUTED }}>Order #FM-2841</p>
         <p className="font-dm-sans font-bold text-[16px]" style={{ color: INK }}>Oversized Hoodie</p>
       </div>
       <span className="text-[10px] font-inter font-medium px-2.5 py-1 rounded-full" style={{ background: PURPLE_BG, color: PURPLE }}>In production</span>
-    </div>
-    <Row label="Quantity" value="600 pcs" />
-    <Row label="Factory" value="Supreme Stitch" />
-    <Row label="Status" value="In production" />
-    <Row label="Expected completion" value="08 Sep" />
-  </div>
+    </StageItem>
+    <StageItem reduced={reduced}>
+      <Row label="Quantity" value="600 pcs" />
+      <Row label="Factory" value="Supreme Stitch" />
+      <Row label="Status" value="In production" />
+      <Row label="Expected completion" value="08 Sep" />
+    </StageItem>
+  </StageMotion>
 );
 
 const brandStageTimeline = ['Fabric', 'Cutting', 'Sewing', 'Finishing', 'QC', 'Packing', 'Shipment'];
 
-const BrandStage5Visual = () => (
-  <div>
-    <GroupLabel>Materials</GroupLabel>
-    <ChecklistRow label="Fabric sourced" state="done" note="Complete" />
-    <ChecklistRow label="Fabric received at factory" state="done" note="Complete" />
-    <GroupLabel>Production</GroupLabel>
-    <ChecklistRow label="Cutting" state="done" note="Complete" />
-    <ChecklistRow label="Sewing" state="active" progress={72} note="72%" />
-    <ChecklistRow label="Finishing" note="Upcoming" />
-    <div className="mt-1">
-      <Row label="Quality" value="Upcoming" />
-      <Row label="Packing" value="Upcoming" />
-      <Row label="Shipment" value="Upcoming" />
-    </div>
+const BrandStage5Visual = ({ reduced }: { reduced?: boolean }) => (
+  <StageMotion reduced={reduced}>
+    <StageItem reduced={reduced}>
+      <GroupLabel>Materials</GroupLabel>
+      <ChecklistRow label="Fabric sourced" state="done" note="Complete" />
+      <ChecklistRow label="Fabric received at factory" state="done" note="Complete" />
+    </StageItem>
+    <StageItem reduced={reduced}>
+      <GroupLabel>Production</GroupLabel>
+      <ChecklistRow label="Cutting" state="done" note="Complete" />
+      <ChecklistRow label="Sewing" state="active" progress={72} note="72%" />
+      <ChecklistRow label="Finishing" note="Upcoming" />
+      <div className="mt-1">
+        <Row label="Quality" value="Upcoming" />
+        <Row label="Packing" value="Upcoming" />
+        <Row label="Shipment" value="Upcoming" />
+      </div>
+    </StageItem>
 
-    <div className="grid sm:grid-cols-2 gap-x-6 mt-5 pt-5" style={{ borderTop: `1px solid ${BORDER}` }}>
+    <StageItem reduced={reduced} className="grid sm:grid-cols-2 gap-x-6 mt-5 pt-5" style={{ borderTop: `1px solid ${BORDER}` }}>
       <Row label="Factory" value="Supreme Stitch" />
       <Row label="Current stage" value="Sewing — Line 04" />
       <Row label="Last update" value="2 hours ago" />
       <Row label="Expected completion" value="08 Sep" />
-    </div>
+    </StageItem>
 
-    <div className="flex items-center gap-1.5 mt-6 overflow-x-auto pb-1">
+    <StageItem reduced={reduced} className="flex items-center gap-1.5 mt-6 overflow-x-auto pb-1">
       {brandStageTimeline.map((s, i) => {
         const isCurrent = s === 'Sewing';
         return (
@@ -724,8 +754,8 @@ const BrandStage5Visual = () => (
           </React.Fragment>
         );
       })}
-    </div>
-  </div>
+    </StageItem>
+  </StageMotion>
 );
 
 const brandStages = [
@@ -742,15 +772,20 @@ const mfgOrders = [
   { id: 'FM-2839', style: 'T-Shirt', qty: '1,200 pcs', stage: 'Cutting', progress: 35, due: '12 Sep' },
 ];
 
-const ManufacturerStage1Visual = () => (
-  <div>
-    <div className="hidden sm:grid grid-cols-[1fr_1fr_0.7fr_0.9fr_0.9fr_0.7fr] gap-2 pb-2 mb-1" style={{ borderBottom: `1px solid ${BORDER}` }}>
+const ManufacturerStage1Visual = ({ reduced }: { reduced?: boolean }) => (
+  <StageMotion reduced={reduced}>
+    <StageItem reduced={reduced} className="hidden sm:grid grid-cols-[1fr_1fr_0.7fr_0.9fr_0.9fr_0.7fr] gap-2 pb-2 mb-1" style={{ borderBottom: `1px solid ${BORDER}` }}>
       {['Order', 'Style', 'Qty', 'Stage', 'Progress', 'Due'].map((h) => (
         <span key={h} className="text-[9px] uppercase tracking-[0.08em] font-inter" style={{ color: MUTED }}>{h}</span>
       ))}
-    </div>
-    {mfgOrders.map((o) => (
-      <div key={o.id} className="grid grid-cols-2 sm:grid-cols-[1fr_1fr_0.7fr_0.9fr_0.9fr_0.7fr] gap-2 py-3 border-b last:border-b-0 items-center" style={{ borderColor: BORDER }}>
+    </StageItem>
+    {mfgOrders.map((o, i) => (
+      <StageItem
+        key={o.id}
+        reduced={reduced}
+        className={`grid grid-cols-2 sm:grid-cols-[1fr_1fr_0.7fr_0.9fr_0.9fr_0.7fr] gap-2 py-3 items-center ${i < mfgOrders.length - 1 ? 'border-b' : ''}`}
+        style={{ borderColor: BORDER }}
+      >
         <span className="font-dm-sans font-semibold text-[12px]" style={{ color: INK }}>{o.id}</span>
         <span className="text-[12px] font-inter" style={{ color: MUTED2 }}>{o.style}</span>
         <span className="text-[11px] font-inter hidden sm:block" style={{ color: MUTED2 }}>{o.qty}</span>
@@ -762,14 +797,14 @@ const ManufacturerStage1Visual = () => (
           <span className="text-[10px] font-inter" style={{ color: MUTED2 }}>{o.progress}%</span>
         </div>
         <span className="text-[11px] font-inter hidden sm:block" style={{ color: MUTED2 }}>{o.due}</span>
-      </div>
+      </StageItem>
     ))}
-  </div>
+  </StageMotion>
 );
 
-const ManufacturerStage2Visual = () => (
-  <div>
-    <div className="grid sm:grid-cols-2 gap-3 mb-5">
+const ManufacturerStage2Visual = ({ reduced }: { reduced?: boolean }) => (
+  <StageMotion reduced={reduced}>
+    <StageItem reduced={reduced} className="grid sm:grid-cols-2 gap-3 mb-5">
       <div className="rounded-xl p-4" style={{ border: `1px solid ${BORDER}` }}>
         <p className="text-[9px] uppercase tracking-[0.08em] font-inter mb-1" style={{ color: MUTED }}>Line 01</p>
         <p className="font-dm-sans font-semibold text-[13px] mb-2" style={{ color: INK }}>Hoodie · 600 pcs</p>
@@ -790,58 +825,64 @@ const ManufacturerStage2Visual = () => (
           <span className="text-[11px] font-inter" style={{ color: MUTED2 }}>45%</span>
         </div>
       </div>
-    </div>
-    <Row label="Capacity" value="83%" />
-    <Row label="Upcoming deadline" value="08 Sep" />
-  </div>
+    </StageItem>
+    <StageItem reduced={reduced}>
+      <Row label="Capacity" value="83%" />
+      <Row label="Upcoming deadline" value="08 Sep" />
+    </StageItem>
+  </StageMotion>
 );
 
-const ManufacturerStage3Visual = () => (
-  <div>
-    <ChecklistRow label="Cutting" state="done" note="Complete" />
-    <ChecklistRow label="Sewing" state="active" progress={70} note="420 / 600 pcs" />
-    <ChecklistRow label="Finishing" note="Upcoming" />
-    <ChecklistRow label="QC" note="Upcoming" />
-    <ChecklistRow label="Packing" note="Upcoming" />
-  </div>
+const ManufacturerStage3Visual = ({ reduced }: { reduced?: boolean }) => (
+  <StageMotion reduced={reduced}>
+    <StageItem reduced={reduced}>
+      <ChecklistRow label="Cutting" state="done" note="Complete" />
+      <ChecklistRow label="Sewing" state="active" progress={70} note="420 / 600 pcs" />
+      <ChecklistRow label="Finishing" note="Upcoming" />
+      <ChecklistRow label="QC" note="Upcoming" />
+      <ChecklistRow label="Packing" note="Upcoming" />
+    </StageItem>
+  </StageMotion>
 );
 
-const ManufacturerStage4Visual = () => (
-  <div>
-    <GroupLabel>Inline QC</GroupLabel>
-    <Row label="Passed" value={<span style={{ color: GREEN, fontWeight: 600 }}>587 pcs</span>} />
-    <Row label="Rework" value={<span style={{ color: RED, fontWeight: 600 }}>13 pcs</span>} />
-    <div className="mt-4">
+const ManufacturerStage4Visual = ({ reduced }: { reduced?: boolean }) => (
+  <StageMotion reduced={reduced}>
+    <StageItem reduced={reduced}>
+      <GroupLabel>Inline QC</GroupLabel>
+      <Row label="Passed" value={<span style={{ color: GREEN, fontWeight: 600 }}>587 pcs</span>} />
+      <Row label="Rework" value={<span style={{ color: RED, fontWeight: 600 }}>13 pcs</span>} />
+    </StageItem>
+    <StageItem reduced={reduced} className="mt-4">
       <Row label="Packing" value="Ready" />
       <Row label="Shipment" value="Preparing" />
-    </div>
-  </div>
+    </StageItem>
+  </StageMotion>
 );
 
-const ManufacturerStage5Visual = () => (
-  <div>
+const ManufacturerStage5Visual = ({ reduced }: { reduced?: boolean }) => (
+  <StageMotion reduced={reduced}>
     <div className="flex flex-col items-center gap-2 py-2">
-      <div className="rounded-xl px-4 py-2.5 text-center w-full sm:w-auto" style={{ border: `1px solid ${BORDER}`, background: '#F7F6FB' }}>
+      <StageItem reduced={reduced} className="rounded-xl px-4 py-2.5 text-center w-full sm:w-auto" style={{ border: `1px solid ${BORDER}`, background: '#F7F6FB' }}>
         <p className="text-[10px] uppercase tracking-[0.08em] font-inter" style={{ color: MUTED }}>Factory ERP</p>
         <p className="text-[12px] font-dm-sans font-medium mt-0.5" style={{ color: INK }}>Production updated: Sewing 72%</p>
-      </div>
-      <ArrowDown className="w-4 h-4" style={{ color: MUTED, opacity: 0.6 }} />
-      <div className="rounded-xl px-6 py-2.5" style={{ background: PURPLE }}>
+      </StageItem>
+      <StageItem reduced={reduced}><ArrowDown className="w-4 h-4" style={{ color: MUTED, opacity: 0.6 }} /></StageItem>
+      <StageItem reduced={reduced} className="rounded-xl px-6 py-2.5" style={{ background: PURPLE }}>
         <p className="text-[14px] font-cormorant font-medium text-white">Formme</p>
-      </div>
-      <ArrowDown className="w-4 h-4" style={{ color: MUTED, opacity: 0.6 }} />
-      <div className="rounded-xl px-4 py-2.5 text-center w-full sm:w-auto" style={{ border: `1.5px solid ${PURPLE}`, background: PURPLE_BG }}>
+      </StageItem>
+      <StageItem reduced={reduced}><ArrowDown className="w-4 h-4" style={{ color: MUTED, opacity: 0.6 }} /></StageItem>
+      <StageItem reduced={reduced} className="rounded-xl px-4 py-2.5 text-center w-full sm:w-auto" style={{ border: `1.5px solid ${PURPLE}`, background: PURPLE_BG }}>
         <p className="text-[10px] uppercase tracking-[0.08em] font-inter" style={{ color: PURPLE }}>Brand portal</p>
         <p className="text-[12px] font-dm-sans font-medium mt-0.5" style={{ color: INK }}>Current stage: Sewing</p>
-      </div>
+      </StageItem>
     </div>
-    <div className="mt-4">
+    <StageItem reduced={reduced} className="mt-4">
       <Row label="Latest update" value="2 hours ago" />
-    </div>
-    <div className="mt-4 pt-4 text-center" style={{ borderTop: `1px solid ${BORDER}` }}>
+    </StageItem>
+    <StageItem reduced={reduced} className="mt-4 pt-4 text-center" style={{ borderTop: `1px solid ${BORDER}` }}>
       <p className="text-[12px] font-inter" style={{ color: MUTED2 }}>Access new brand opportunities through the Formme network.</p>
-    </div>
-  </div>
+    </StageItem>
+  </StageMotion>
 );
 
 const manufacturerStages = [
@@ -853,7 +894,7 @@ const manufacturerStages = [
 ];
 
 type WorkflowTab = 'brands' | 'manufacturers';
-type WorkflowStage = { n: string; label: string; heading: string; Visual: () => React.ReactElement };
+type WorkflowStage = { n: string; label: string; heading: string; Visual: (props: { reduced?: boolean }) => React.ReactElement };
 
 /* Accessible tablist — roving tabindex, arrow-key navigation, one panel id shared by both tabs */
 const WorkflowTabs = ({ active, onChange }: { active: WorkflowTab; onChange: (t: WorkflowTab) => void }) => {
@@ -934,7 +975,7 @@ const panelVariantsReduced = {
 };
 
 /* Mobile: every stage stacked vertically, no interactivity needed — reveals on scroll like the rest of the page */
-const WorkflowMobileList = ({ stages }: { stages: WorkflowStage[] }) => (
+const WorkflowMobileList = ({ stages, reduced }: { stages: WorkflowStage[]; reduced?: boolean }) => (
   <div className="flex lg:hidden flex-col gap-6 min-w-0">
     {stages.map((s) => (
       <div key={s.n} className="reveal">
@@ -944,7 +985,7 @@ const WorkflowMobileList = ({ stages }: { stages: WorkflowStage[] }) => (
         </div>
         <p className="font-dm-sans font-semibold text-[15px] mb-3" style={{ color: INK }}>{s.heading}</p>
         <div className="rounded-2xl bg-white p-5" style={{ border: `1px solid ${BORDER}` }}>
-          <s.Visual />
+          <s.Visual reduced={reduced} />
         </div>
       </div>
     ))}
@@ -1012,13 +1053,13 @@ const WorkflowSection = ({ prefersReduced }: { prefersReduced: boolean }) => {
                   <p className="font-dm-sans font-semibold mb-6" style={{ color: INK, fontSize: 'clamp(18px, 1.8vw, 22px)' }}>
                     {stages[activeIndex].heading}
                   </p>
-                  <ActiveVisual />
+                  <ActiveVisual reduced={prefersReduced} />
                 </StagePanel>
               </motion.div>
             </AnimatePresence>
           </div>
 
-          <WorkflowMobileList stages={stages} />
+          <WorkflowMobileList stages={stages} reduced={prefersReduced} />
         </div>
 
         <WorkflowSharedEnding />
