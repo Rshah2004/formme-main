@@ -9,8 +9,12 @@ gsap.registerPlugin(ScrollTrigger);
  * Smooth-scroll (desktop) + fade/slide-in for every `.reveal` element on the page.
  * Shared across the landing pages (home, about) so their scroll feel matches.
  * Returns whether the visitor prefers reduced motion, for callers with their own timelines.
+ *
+ * `resetKey` lets a caller re-scan for `.reveal` elements after swapping out its whole
+ * subtree (e.g. the audience gate being replaced by the personalized homepage content) —
+ * elements mounted after the initial render would otherwise never get wired up.
  */
-export const useLandingReveal = () => {
+export const useLandingReveal = (resetKey?: unknown) => {
   const [prefersReduced, setPrefersReduced] = useState(false);
 
   useEffect(() => {
@@ -53,7 +57,7 @@ export const useLandingReveal = () => {
         if (rafFn) gsap.ticker.remove(rafFn);
       }
     };
-  }, []);
+  }, [resetKey]);
 
   return prefersReduced;
 };

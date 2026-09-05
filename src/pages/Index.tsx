@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Check, ArrowRight, ArrowDown, ChevronDown, FileText, Shirt, Factory, ShieldCheck, Package,
@@ -8,8 +8,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { SEO } from '@/components/SEO';
 import BookDemoModal from '@/components/homePage/BookDemoModal';
 import { BG, LAVENDER, INK, DARK_PANEL, MUTED, MUTED2, BORDER, BORDER_DARK, PURPLE, PURPLE_BG, GREEN, GREEN_BG, RED } from '@/components/homePage/theme';
+import type { Audience } from '@/components/homePage/theme';
 import { Logo, Eyebrow, SolidButton, OutlineButton, LandingHeader, LandingFooter, CONTACT_HREF } from '@/components/homePage/LandingChrome';
-
+import { AudienceGate } from '@/components/homePage/AudienceGate';
 import { useLandingReveal } from '@/components/homePage/useLandingReveal';
 import gsap from 'gsap';
 
@@ -1265,9 +1266,52 @@ const FinalCTA = () => (
   </section>
 );
 
+/* ════════════════════════════════════════════════
+   PERSONALIZED EXPERIENCE — placeholder brand/manufacturer variants
+   Both currently render the same shared homepage content. Split out now so each
+   side's landing experience can be redesigned independently afterward without
+   touching the audience gate that routes visitors here.
+════════════════════════════════════════════════ */
+const HomeContent = ({ prefersReduced }: { prefersReduced: boolean }) => (
+  <>
+    <MerchBanner />
+    <Hero prefersReduced={prefersReduced} />
+    <FactoriesSection />
+    <WorkflowSection prefersReduced={prefersReduced} />
+    <ConnectorSection />
+    <FactoryFloorSection />
+    <FinalCTA />
+  </>
+);
+
+const BrandLandingExperience = (props: { prefersReduced: boolean }) => <HomeContent {...props} />;
+const ManufacturerLandingExperience = (props: { prefersReduced: boolean }) => <HomeContent {...props} />;
+
+const AUDIENCE_STORAGE_KEY = 'formmeAudience';
+
+const readStoredAudience = (): Audience | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const stored = window.localStorage.getItem(AUDIENCE_STORAGE_KEY);
+    return stored === 'brand' || stored === 'manufacturer' ? stored : null;
+  } catch {
+    return null;
+  }
+};
+
 /* ─── Page ─── */
 const Index = () => {
-  const prefersReduced = useLandingReveal();
+  const [audience, setAudienceState] = useState<Audience | null>(readStoredAudience);
+  const prefersReduced = useLandingReveal(audience);
+
+  const setAudience = (a: Audience) => {
+    try {
+      window.localStorage.setItem(AUDIENCE_STORAGE_KEY, a);
+    } catch {
+      /* ignore storage errors, e.g. private browsing */
+    }
+    setAudienceState(a);
+  };
 
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ background: BG, color: INK }}>
@@ -1276,15 +1320,32 @@ const Index = () => {
         description="Formme is the operating system for fashion production — connecting factories and brands from tech pack to shipment, with live production tracking, quality control and shipment visibility."
       />
 
-      <LandingHeader />
+      <LandingHeader audience={audience} onSwitchAudience={setAudience} />
 
-      <MerchBanner />
-      <Hero prefersReduced={prefersReduced} />
-      <FactoriesSection />
-      <WorkflowSection prefersReduced={prefersReduced} />
-      <ConnectorSection />
-      <FactoryFloorSection />
-      <FinalCTA />
+      <AnimatePresence mode="wait">
+        {!audience ? (
+          <motion.div
+            key="gate"
+            initial={false}
+            exit={prefersReduced ? { opacity: 0, transition: { duration: 0.12 } } : { opacity: 0, y: -12, transition: { duration: 0.3, ease: 'easeIn' } }}
+          >
+            <AudienceGate onSelect={setAudience} prefersReduced={prefersReduced} />
+          </motion.div>
+        ) : (
+          <motion.div
+            key={audience}
+            initial={prefersReduced ? { opacity: 0 } : { opacity: 0, y: 12 }}
+            animate={prefersReduced ? { opacity: 1, transition: { duration: 0.15 } } : { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } }}
+            exit={{ opacity: 0, transition: { duration: prefersReduced ? 0.1 : 0.2 } }}
+          >
+            {audience === 'brand' ? (
+              <BrandLandingExperience prefersReduced={prefersReduced} />
+            ) : (
+              <ManufacturerLandingExperience prefersReduced={prefersReduced} />
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <LandingFooter />
     </div>

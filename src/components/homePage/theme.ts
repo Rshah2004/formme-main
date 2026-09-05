@@ -1,4 +1,6 @@
 /* Shared palette for the redesigned landing pages (home, about). */
+export type Audience = 'brand' | 'manufacturer';
+
 export const BG = '#FFFFFF';
 export const LAVENDER = '#F2EFFC';
 export const INK = '#15131C';
