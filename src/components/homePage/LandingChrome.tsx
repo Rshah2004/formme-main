@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronDown, Linkedin } from 'lucide-react';
 import { BG, BORDER, BORDER_DARK, INK, MUTED, MUTED2, PURPLE, PURPLE_BG } from './theme';
+import type { Audience } from './theme';
 
 export const CONTACT_EMAIL = 'hello@formme.io';
 export const CONTACT_HREF = `mailto:${CONTACT_EMAIL}`;
@@ -52,7 +53,10 @@ const navLinks: { label: string; href: string; route?: boolean; chevron?: boolea
   { label: 'Company', href: '/about', route: true, chevron: true },
 ];
 
-export const LandingHeader = () => {
+export const LandingHeader = ({
+  audience,
+  onSwitchAudience,
+}: { audience?: Audience | null; onSwitchAudience?: (a: Audience) => void } = {}) => {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -83,6 +87,27 @@ export const LandingHeader = () => {
         </nav>
 
         <div className="flex items-center gap-5">
+          {audience && onSwitchAudience && (
+            <div className="hidden lg:flex items-center gap-1 text-[12px] font-inter mr-1">
+              <button
+                onClick={() => onSwitchAudience('brand')}
+                aria-pressed={audience === 'brand'}
+                className="rounded-full px-2.5 py-1 transition-colors"
+                style={{ color: audience === 'brand' ? PURPLE : MUTED2, background: audience === 'brand' ? PURPLE_BG : 'transparent' }}
+              >
+                For Brands
+              </button>
+              <span style={{ color: BORDER }}>|</span>
+              <button
+                onClick={() => onSwitchAudience('manufacturer')}
+                aria-pressed={audience === 'manufacturer'}
+                className="rounded-full px-2.5 py-1 transition-colors"
+                style={{ color: audience === 'manufacturer' ? PURPLE : MUTED2, background: audience === 'manufacturer' ? PURPLE_BG : 'transparent' }}
+              >
+                For Manufacturers
+              </button>
+            </div>
+          )}
           <Link to="/auth?mode=signin" className="hidden sm:inline text-[13px] font-inter font-medium" style={{ color: INK }}>
             Sign in
           </Link>
