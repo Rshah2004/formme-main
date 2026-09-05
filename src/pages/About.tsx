@@ -1,9 +1,7 @@
-import { useState } from 'react';
 import { Factory, LayoutGrid, BarChart3, ArrowRight } from 'lucide-react';
 import { SEO } from '@/components/SEO';
-import BookDemoModal from '@/components/homePage/BookDemoModal';
 import { BG, LAVENDER, INK, DARK_PANEL, MUTED2, BORDER, PURPLE } from '@/components/homePage/theme';
-import { Eyebrow, SolidButton, OutlineButton, LandingHeader, LandingFooter } from '@/components/homePage/LandingChrome';
+import { Eyebrow, SolidButton, OutlineButton, LandingHeader, LandingFooter, CONTACT_HREF } from '@/components/homePage/LandingChrome';
 import { useLandingReveal } from '@/components/homePage/useLandingReveal';
 import designerImage from '@/assets/about-designer.jpg';
 
@@ -27,7 +25,6 @@ const pillars = [
 
 const About = () => {
   const prefersReduced = useLandingReveal();
-  const [showBookDemo, setShowBookDemo] = useState(false);
 
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ background: BG, color: INK }}>
@@ -37,7 +34,7 @@ const About = () => {
         description="Formme is the operating system for fashion production — built in Vancouver, BC to connect factories and brands from tech pack to shipment."
       />
 
-      <LandingHeader onBookDemo={() => setShowBookDemo(true)} />
+      <LandingHeader />
 
       {/* Hero */}
       <section className="relative" style={{ background: LAVENDER }}>
@@ -121,7 +118,7 @@ const About = () => {
               We're working closely with early manufacturer and brand partners — reach out if you want in.
             </p>
             <div className="flex items-center gap-4">
-              <SolidButton onClick={() => setShowBookDemo(true)}>Book a demo</SolidButton>
+              <SolidButton href={CONTACT_HREF}>Get in touch</SolidButton>
               <OutlineButton href="/" dark>See how it works <ArrowRight className="w-3.5 h-3.5" /></OutlineButton>
             </div>
           </div>
@@ -129,8 +126,6 @@ const About = () => {
       </section>
 
       <LandingFooter />
-
-      <BookDemoModal open={showBookDemo} onOpenChange={setShowBookDemo} />
     </div>
   );
 };

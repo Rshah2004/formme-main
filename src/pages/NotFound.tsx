@@ -1,13 +1,11 @@
 import { useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { SEO } from "@/components/SEO";
-import BookDemoModal from "@/components/homePage/BookDemoModal";
 import { BG, LAVENDER, INK, MUTED2, PURPLE } from "@/components/homePage/theme";
 import { SolidButton, LandingHeader, LandingFooter } from "@/components/homePage/LandingChrome";
 
 const NotFound = () => {
   const location = useLocation();
-  const [showBookDemo, setShowBookDemo] = useState(false);
 
   useEffect(() => {
     console.error(
@@ -19,7 +17,7 @@ const NotFound = () => {
   return (
     <div className="min-h-screen overflow-x-hidden flex flex-col" style={{ background: BG, color: INK }}>
       <SEO title="Page not found" noindex={true} />
-      <LandingHeader onBookDemo={() => setShowBookDemo(true)} />
+      <LandingHeader />
 
       <div className="flex-1 flex items-center justify-center px-6 pt-32 pb-20" style={{ background: LAVENDER }}>
         <div className="text-center max-w-md p-10 bg-white rounded-2xl" style={{ border: '1px solid #E7E3F5' }}>
@@ -34,7 +32,6 @@ const NotFound = () => {
       </div>
 
       <LandingFooter />
-      <BookDemoModal open={showBookDemo} onOpenChange={setShowBookDemo} />
     </div>
   );
 };
