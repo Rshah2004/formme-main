@@ -4,9 +4,12 @@ import {
   Check, ArrowRight, ArrowDown, ChevronDown, FileText, Shirt, Factory, ShieldCheck, Package,
   LayoutGrid, ClipboardList, BarChart3, Settings, Linkedin, CircleDot, Scissors, Truck,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SEO } from '@/components/SEO';
-import { BG, LAVENDER, INK, DARK_PANEL, MUTED, MUTED2, BORDER, BORDER_DARK, PURPLE, PURPLE_BG, GREEN, RED } from '@/components/homePage/theme';
+import BookDemoModal from '@/components/homePage/BookDemoModal';
+import { BG, LAVENDER, INK, DARK_PANEL, MUTED, MUTED2, BORDER, BORDER_DARK, PURPLE, PURPLE_BG, GREEN, GREEN_BG, RED } from '@/components/homePage/theme';
 import { Logo, Eyebrow, SolidButton, OutlineButton, LandingHeader, LandingFooter, CONTACT_HREF } from '@/components/homePage/LandingChrome';
+
 import { useLandingReveal } from '@/components/homePage/useLandingReveal';
 import gsap from 'gsap';
 
@@ -560,178 +563,511 @@ const FactoriesSection = () => (
 /* ════════════════════════════════════════════════
    WORKFLOW — tech pack to shipment
 ════════════════════════════════════════════════ */
-const WorkflowStepCard = ({ children }: { children: React.ReactNode }) => (
-  <div className="rounded-2xl bg-white p-4 shadow-sm h-full" style={{ border: `1px solid ${BORDER}` }}>{children}</div>
-);
-
-const workflowStepBadges = [
-  { n: '01', label: 'Tech Pack' },
-  { n: '02', label: 'Sampling' },
-  { n: '03', label: 'Production' },
-  { n: '04', label: 'Quality' },
-  { n: '05', label: 'Shipment' },
-];
-
-const productionRows: { label: string; value?: string; color?: string; progress?: number }[] = [
-  { label: 'Cutting', value: 'Complete', color: GREEN },
-  { label: 'Sewing', progress: 72 },
-  { label: 'Finishing', value: 'In progress', color: MUTED2 },
-  { label: 'Packing', value: 'Upcoming', color: MUTED },
-  { label: 'Proving', value: 'Upcoming', color: MUTED },
-];
-
-const StatPair = ({ label, value, color }: { label: string; value: string; color?: string }) => (
-  <div>
-    <p className="text-[9px] font-inter mb-1" style={{ color: MUTED }}>{label}</p>
-    <p className="font-dm-sans font-bold text-[14px]" style={{ color: color ?? INK }}>{value}</p>
+/* Shared small building blocks for the workflow stage visuals */
+const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
+  <div className="flex items-center justify-between py-2.5 border-b last:border-b-0" style={{ borderColor: BORDER }}>
+    <span className="text-[12px] font-inter" style={{ color: MUTED }}>{label}</span>
+    <span className="text-[13px] font-dm-sans font-medium" style={{ color: INK }}>{value}</span>
   </div>
 );
 
-/* Per-card step badge shown only below md, where the shared dashed header row is hidden */
-const MobileStepLabel = ({ n, label }: { n: string; label: string }) => (
-  <div className="flex md:hidden items-center gap-2 mb-3">
-    <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-inter font-semibold flex-shrink-0" style={{ border: `1.5px solid ${PURPLE}`, color: PURPLE }}>{n}</span>
-    <span className="text-[12px] font-inter font-medium" style={{ color: INK }}>{label}</span>
+const GroupLabel = ({ children }: { children: React.ReactNode }) => (
+  <p className="text-[10px] uppercase tracking-[0.1em] font-inter font-semibold mb-2 mt-4 first:mt-0" style={{ color: MUTED }}>{children}</p>
+);
+
+const DoneValue = ({ children }: { children: React.ReactNode }) => (
+  <span className="inline-flex items-center gap-1" style={{ color: GREEN }}>
+    <Check className="w-3 h-3" strokeWidth={3} /> {children}
+  </span>
+);
+
+const StagePanel = ({ children }: { children: React.ReactNode }) => (
+  <div className="rounded-2xl bg-white p-6 md:p-8" style={{ border: `1px solid ${BORDER}`, boxShadow: '0 8px 30px -18px rgba(93,82,214,0.25)', minHeight: 460 }}>
+    {children}
   </div>
 );
 
-/* Connector between workflow cards — a down arrow stacked on mobile, a right arrow inline on desktop */
-const StepArrow = () => (
-  <div className="flex items-center justify-center flex-shrink-0 py-1 md:py-0">
-    <ArrowDown className="w-4 h-4 md:hidden" style={{ color: MUTED, opacity: 0.5 }} />
-    <ArrowRight className="w-4 h-4 hidden md:block" style={{ color: MUTED, opacity: 0.5 }} />
-  </div>
+/* Field-level stagger used inside every stage visual — each block fades/slides in one
+   after another instead of the whole panel appearing at once. Collapses to a plain
+   instant fade when the visitor prefers reduced motion. */
+const stageContainer = { hidden: {}, show: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } } };
+const stageItem = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } } };
+const stageContainerReduced = { hidden: {}, show: { transition: { staggerChildren: 0 } } };
+const stageItemReduced = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { duration: 0.15 } } };
+
+const StageMotion = ({ children, reduced, className }: { children: React.ReactNode; reduced?: boolean; className?: string }) => (
+  <motion.div variants={reduced ? stageContainerReduced : stageContainer} initial="hidden" animate="show" className={className}>
+    {children}
+  </motion.div>
 );
 
-const WorkflowSection = () => (
-  <section id="product" className="py-20 md:py-24 px-6" style={{ background: LAVENDER }}>
-    <div className="mx-auto max-w-[1300px]">
-      <div className="reveal flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-14">
-        <div>
-          <Eyebrow>Powered workflow</Eyebrow>
-          <h2 className="font-dm-sans font-semibold leading-[1.15]" style={{ color: INK, fontSize: 'clamp(26px, 3vw, 38px)' }}>
-            From tech pack to shipment.
-          </h2>
+const StageItem = ({ children, reduced, className, style }: { children: React.ReactNode; reduced?: boolean; className?: string; style?: React.CSSProperties }) => (
+  <motion.div variants={reduced ? stageItemReduced : stageItem} className={className} style={style}>
+    {children}
+  </motion.div>
+);
+
+/* ─── For brands: stage visuals ─── */
+const BrandStage1Visual = ({ reduced }: { reduced?: boolean }) => (
+  <StageMotion reduced={reduced}>
+    <StageItem reduced={reduced} className="rounded-xl p-4 flex items-center gap-4 mb-5" style={{ background: '#F7F6FB' }}>
+      <img src="/techpackSketch.png" alt="" className="w-16 h-16 object-contain flex-shrink-0" />
+      <div>
+        <p className="font-dm-sans font-bold text-[16px]" style={{ color: INK }}>Oversized Hoodie</p>
+        <div className="flex items-center gap-1.5 mt-1.5">
+          <span className="w-3 h-3 rounded-sm flex-shrink-0" style={{ background: '#1A1A1A' }} />
+          <span className="text-[11px] font-inter" style={{ color: MUTED2 }}>Washed black</span>
         </div>
-        <p className="font-inter text-[13px] max-w-xs" style={{ color: MUTED2 }}>
-          One connected flow. Shared data. Fewer handoffs.
-        </p>
       </div>
+    </StageItem>
+    <StageItem reduced={reduced}>
+      <Row label="Tech pack" value={<DoneValue>Uploaded</DoneValue>} />
+      <Row label="Quantity" value="600 pcs" />
+      <Row label="Target delivery" value="28 Sep" />
+      <Row label="Fabric" value="420 GSM cotton" />
+    </StageItem>
+  </StageMotion>
+);
 
-      {/* Step badges — circular numbers linked by a dashed line */}
-      <div className="reveal relative hidden md:flex items-center mb-6">
-        {workflowStepBadges.map((s, i) => (
-          <React.Fragment key={s.n}>
-            <div className="flex items-center gap-2 flex-shrink-0 relative z-10 pr-3" style={{ background: LAVENDER }}>
-              <span className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-inter font-semibold flex-shrink-0" style={{ border: `1.5px solid ${PURPLE}`, color: PURPLE }}>{s.n}</span>
-              <span className="text-[13px] font-inter font-medium whitespace-nowrap" style={{ color: INK }}>{s.label}</span>
-            </div>
-            {i < workflowStepBadges.length - 1 && <div className="flex-1 h-0" style={{ borderTop: `1px dashed ${BORDER}` }} />}
+const brandMatchCandidates = [
+  { name: 'Supreme Stitch', location: 'Bangladesh', capabilities: ['Heavyweight knits', 'Hoodies', 'Sweatshirts'], capacity: 'Available', selected: true },
+  { name: 'Ace Garments', location: 'Vietnam', capabilities: ['Wovens', 'Outerwear'], capacity: 'Limited', selected: false },
+  { name: 'Moda Works', location: 'Portugal', capabilities: ['Knitwear', 'Fleece'], capacity: 'Available', selected: false },
+];
+
+const BrandStage2Visual = ({ reduced }: { reduced?: boolean }) => (
+  <StageMotion reduced={reduced} className="grid sm:grid-cols-3 gap-3">
+    {brandMatchCandidates.map((m) => (
+      <StageItem key={m.name} reduced={reduced} className="rounded-xl p-4" style={m.selected ? { border: `1.5px solid ${PURPLE}`, background: PURPLE_BG } : { border: `1px solid ${BORDER}`, background: '#fff' }}>
+        <p className="font-dm-sans font-bold text-[13px] mb-0.5" style={{ color: INK }}>{m.name}</p>
+        <p className="text-[11px] font-inter mb-3" style={{ color: MUTED }}>{m.location}</p>
+        <p className="text-[9px] uppercase tracking-[0.08em] font-inter mb-1.5" style={{ color: MUTED }}>Capabilities</p>
+        <div className="flex flex-col gap-0.5 mb-3">
+          {m.capabilities.map((c) => (
+            <span key={c} className="text-[11px] font-inter" style={{ color: MUTED2 }}>{c}</span>
+          ))}
+        </div>
+        <span
+          className="text-[10px] font-inter font-medium px-2 py-1 rounded-full inline-block"
+          style={{ background: m.capacity === 'Available' ? GREEN_BG : PURPLE_BG, color: m.capacity === 'Available' ? GREEN : PURPLE }}
+        >
+          {m.capacity}
+        </span>
+        {m.selected && (
+          <div className="mt-3 pt-3 flex items-center gap-1.5 text-[11px] font-inter font-medium" style={{ borderTop: '1px solid rgba(93,82,214,0.25)', color: PURPLE }}>
+            <Check className="w-3.5 h-3.5" strokeWidth={3} /> Connected to order
+          </div>
+        )}
+      </StageItem>
+    ))}
+  </StageMotion>
+);
+
+const BrandStage3Visual = ({ reduced }: { reduced?: boolean }) => (
+  <StageMotion reduced={reduced}>
+    <StageItem reduced={reduced} className="grid sm:grid-cols-2 gap-3 mb-5">
+      <div className="rounded-xl p-4" style={{ border: `1px solid ${BORDER}` }}>
+        <p className="text-[9px] uppercase tracking-[0.08em] font-inter mb-1" style={{ color: MUTED }}>Sample #01</p>
+        <p className="font-dm-sans font-semibold text-[13px] mb-2" style={{ color: INK }}>Fit sample</p>
+        <span className="text-[11px] font-inter font-medium" style={{ color: RED }}>Needs revision</span>
+      </div>
+      <div className="rounded-xl p-4" style={{ border: `1.5px solid ${PURPLE}`, background: PURPLE_BG }}>
+        <p className="text-[9px] uppercase tracking-[0.08em] font-inter mb-1" style={{ color: MUTED }}>Sample #02</p>
+        <p className="font-dm-sans font-semibold text-[13px] mb-2" style={{ color: INK }}>Fit sample</p>
+        <span className="inline-flex items-center gap-1 text-[11px] font-inter font-medium" style={{ color: GREEN }}>
+          <Check className="w-3 h-3" strokeWidth={3} /> Approved
+        </span>
+      </div>
+    </StageItem>
+    <StageItem reduced={reduced}>
+      <Row label="Price" value={<DoneValue>Agreed</DoneValue>} />
+      <Row label="Fabric" value={<DoneValue>Approved</DoneValue>} />
+    </StageItem>
+    <StageItem reduced={reduced} className="flex flex-col gap-2 mt-4">
+      {['Factory submitted sample', 'Brand requested revision', 'New sample uploaded', 'Sample approved'].map((t) => (
+        <div key={t} className="flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: PURPLE }} />
+          <span className="text-[11px] font-inter" style={{ color: MUTED2 }}>{t}</span>
+        </div>
+      ))}
+    </StageItem>
+  </StageMotion>
+);
+
+const BrandStage4Visual = ({ reduced }: { reduced?: boolean }) => (
+  <StageMotion reduced={reduced}>
+    <StageItem reduced={reduced} className="flex items-center justify-between mb-4">
+      <div>
+        <p className="text-[10px] uppercase tracking-[0.08em] font-inter mb-1" style={{ color: MUTED }}>Order #FM-2841</p>
+        <p className="font-dm-sans font-bold text-[16px]" style={{ color: INK }}>Oversized Hoodie</p>
+      </div>
+      <span className="text-[10px] font-inter font-medium px-2.5 py-1 rounded-full" style={{ background: PURPLE_BG, color: PURPLE }}>In production</span>
+    </StageItem>
+    <StageItem reduced={reduced}>
+      <Row label="Quantity" value="600 pcs" />
+      <Row label="Factory" value="Supreme Stitch" />
+      <Row label="Status" value="In production" />
+      <Row label="Expected completion" value="08 Sep" />
+    </StageItem>
+  </StageMotion>
+);
+
+const brandStageTimeline = ['Fabric', 'Cutting', 'Sewing', 'Finishing', 'QC', 'Packing', 'Shipment'];
+
+const BrandStage5Visual = ({ reduced }: { reduced?: boolean }) => (
+  <StageMotion reduced={reduced}>
+    <StageItem reduced={reduced}>
+      <GroupLabel>Materials</GroupLabel>
+      <ChecklistRow label="Fabric sourced" state="done" note="Complete" />
+      <ChecklistRow label="Fabric received at factory" state="done" note="Complete" />
+    </StageItem>
+    <StageItem reduced={reduced}>
+      <GroupLabel>Production</GroupLabel>
+      <ChecklistRow label="Cutting" state="done" note="Complete" />
+      <ChecklistRow label="Sewing" state="active" progress={72} note="72%" />
+      <ChecklistRow label="Finishing" note="Upcoming" />
+      <div className="mt-1">
+        <Row label="Quality" value="Upcoming" />
+        <Row label="Packing" value="Upcoming" />
+        <Row label="Shipment" value="Upcoming" />
+      </div>
+    </StageItem>
+
+    <StageItem reduced={reduced} className="grid sm:grid-cols-2 gap-x-6 mt-5 pt-5" style={{ borderTop: `1px solid ${BORDER}` }}>
+      <Row label="Factory" value="Supreme Stitch" />
+      <Row label="Current stage" value="Sewing — Line 04" />
+      <Row label="Last update" value="2 hours ago" />
+      <Row label="Expected completion" value="08 Sep" />
+    </StageItem>
+
+    <StageItem reduced={reduced} className="flex items-center gap-1.5 mt-6 overflow-x-auto pb-1">
+      {brandStageTimeline.map((s, i) => {
+        const isCurrent = s === 'Sewing';
+        return (
+          <React.Fragment key={s}>
+            <span
+              className="text-[10px] font-inter font-medium whitespace-nowrap px-2.5 py-1.5 rounded-full flex-shrink-0"
+              style={isCurrent ? { background: PURPLE, color: '#fff' } : { color: MUTED }}
+            >
+              {s}
+            </span>
+            {i < brandStageTimeline.length - 1 && <span className="w-3 h-px flex-shrink-0" style={{ background: BORDER }} />}
           </React.Fragment>
-        ))}
-      </div>
-
-      <div className="reveal flex flex-col md:flex-row md:items-stretch gap-4">
-        <div className="md:flex-1 md:min-w-0">
-          <MobileStepLabel n="01" label="Tech Pack" />
-          <WorkflowStepCard>
-            <div className="rounded-lg mb-3 flex items-center justify-center p-3" style={{ background: '#F7F6FB', aspectRatio: '4/3' }}>
-              {/* Pre-rendered line art (baked once from the source photo via SVG edge
-                  detection, then exported to a static PNG) instead of a live CSS filter —
-                  the live filter's output changed with device pixel ratio, so mobile and
-                  desktop rendered different amounts of detail from the same source. A
-                  static raster asset scales identically everywhere. */}
-              <img
-                src="/techpackSketch.png"
-                alt="Tech pack sketch"
-                className="w-full h-full object-contain"
-                loading="lazy"
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              {['Specs', 'Measurements', 'BOM', 'Construction'].map((t) => (
-                <span key={t} className="text-[10px] font-inter flex items-center gap-1.5" style={{ color: MUTED2 }}>
-                  <span className="w-2.5 h-2.5 rounded-[3px] flex items-center justify-center flex-shrink-0" style={{ border: `1.5px solid ${MUTED}` }}>
-                    <Check className="w-2 h-2" style={{ color: MUTED }} strokeWidth={4} />
-                  </span> {t}
-                </span>
-              ))}
-            </div>
-          </WorkflowStepCard>
-        </div>
-
-        <StepArrow />
-
-        <div className="md:flex-1 md:min-w-0">
-          <MobileStepLabel n="02" label="Sampling" />
-          <WorkflowStepCard>
-            <div className="rounded-lg mb-3 overflow-hidden" style={{ aspectRatio: '4/3' }}>
-              <img src="/mockupHoodieFront.png" alt="Sample" className="w-full h-full object-cover object-top scale-125" loading="lazy" />
-            </div>
-            <p className="text-[9px] uppercase tracking-[0.08em] font-inter mb-2" style={{ color: MUTED }}>Fit & approvals</p>
-            <div className="flex items-start gap-1.5">
-              <span className="w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0 mt-px" style={{ background: GREEN }}>
-                <Check className="w-2 h-2" style={{ color: '#fff' }} strokeWidth={4} />
-              </span>
-              <div className="flex flex-col leading-tight">
-                <span className="text-[10px] font-inter font-medium" style={{ color: INK }}>Sample approved</span>
-                <span className="text-[9px] font-inter" style={{ color: MUTED }}>08 Jul</span>
-              </div>
-            </div>
-          </WorkflowStepCard>
-        </div>
-
-        <StepArrow />
-
-        <div className="md:flex-1 md:min-w-0">
-          <MobileStepLabel n="03" label="Production" />
-          <WorkflowStepCard>
-            <div className="flex flex-col gap-2.5">
-              {productionRows.map((r) => (
-                <div key={r.label} className="flex items-center justify-between">
-                  <span className="text-[11px] font-inter" style={{ color: INK }}>{r.label}</span>
-                  {r.progress !== undefined ? (
-                    <div className="w-16 h-[3px] rounded-full overflow-hidden flex-shrink-0" style={{ background: BORDER }}>
-                      <div className="h-full rounded-full" style={{ width: `${r.progress}%`, background: PURPLE }} />
-                    </div>
-                  ) : (
-                    <span className="text-[10px] font-inter" style={{ color: r.color }}>{r.value}</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </WorkflowStepCard>
-        </div>
-
-        <StepArrow />
-
-        <div className="md:flex-1 md:min-w-0">
-          <MobileStepLabel n="04" label="Quality" />
-          <WorkflowStepCard>
-            <div className="flex flex-col gap-3">
-              <StatPair label="Inspection" value="Line 04" />
-              <StatPair label="Passed" value="352 PCS" color={GREEN} />
-              <StatPair label="Failed" value="12 PCS" color={RED} />
-            </div>
-          </WorkflowStepCard>
-        </div>
-
-        <StepArrow />
-
-        <div className="md:flex-1 md:min-w-0">
-          <MobileStepLabel n="05" label="Shipment" />
-          <WorkflowStepCard>
-            <div className="flex flex-col gap-3">
-              <StatPair label="Ready to ship" value="600 PCS" />
-              <StatPair label="ETD" value="10 Sep" />
-              <StatPair label="ETA" value="22 Sep" />
-            </div>
-          </WorkflowStepCard>
-        </div>
-      </div>
-    </div>
-  </section>
+        );
+      })}
+    </StageItem>
+  </StageMotion>
 );
+
+const brandStages = [
+  { n: '01', label: 'Start your order', heading: 'Tell us what you’re making.', Visual: BrandStage1Visual },
+  { n: '02', label: 'Factory match', heading: 'Get connected with the right manufacturer.', Visual: BrandStage2Visual },
+  { n: '03', label: 'Develop & agree', heading: 'Work through samples, pricing and approvals.', Visual: BrandStage3Visual },
+  { n: '04', label: 'Place production order', heading: 'Move the approved product into production.', Visual: BrandStage4Visual },
+  { n: '05', label: 'Live production visibility', heading: 'Know where your order is without chasing updates.', Visual: BrandStage5Visual },
+];
+
+/* ─── For manufacturers: stage visuals ─── */
+const mfgOrders = [
+  { id: 'FM-2841', style: 'Oversized Hoodie', qty: '600 pcs', stage: 'Sewing', progress: 72, due: '08 Sep' },
+  { id: 'FM-2839', style: 'T-Shirt', qty: '1,200 pcs', stage: 'Cutting', progress: 35, due: '12 Sep' },
+];
+
+const ManufacturerStage1Visual = ({ reduced }: { reduced?: boolean }) => (
+  <StageMotion reduced={reduced}>
+    <StageItem reduced={reduced} className="hidden sm:grid grid-cols-[1fr_1fr_0.7fr_0.9fr_0.9fr_0.7fr] gap-2 pb-2 mb-1" style={{ borderBottom: `1px solid ${BORDER}` }}>
+      {['Order', 'Style', 'Qty', 'Stage', 'Progress', 'Due'].map((h) => (
+        <span key={h} className="text-[9px] uppercase tracking-[0.08em] font-inter" style={{ color: MUTED }}>{h}</span>
+      ))}
+    </StageItem>
+    {mfgOrders.map((o, i) => (
+      <StageItem
+        key={o.id}
+        reduced={reduced}
+        className={`grid grid-cols-2 sm:grid-cols-[1fr_1fr_0.7fr_0.9fr_0.9fr_0.7fr] gap-2 py-3 items-center ${i < mfgOrders.length - 1 ? 'border-b' : ''}`}
+        style={{ borderColor: BORDER }}
+      >
+        <span className="font-dm-sans font-semibold text-[12px]" style={{ color: INK }}>{o.id}</span>
+        <span className="text-[12px] font-inter" style={{ color: MUTED2 }}>{o.style}</span>
+        <span className="text-[11px] font-inter hidden sm:block" style={{ color: MUTED2 }}>{o.qty}</span>
+        <span className="text-[11px] font-inter hidden sm:block" style={{ color: INK }}>{o.stage}</span>
+        <div className="hidden sm:flex items-center gap-1.5">
+          <div className="w-12 h-[3px] rounded-full overflow-hidden flex-shrink-0" style={{ background: BORDER }}>
+            <div className="h-full rounded-full" style={{ width: `${o.progress}%`, background: PURPLE }} />
+          </div>
+          <span className="text-[10px] font-inter" style={{ color: MUTED2 }}>{o.progress}%</span>
+        </div>
+        <span className="text-[11px] font-inter hidden sm:block" style={{ color: MUTED2 }}>{o.due}</span>
+      </StageItem>
+    ))}
+  </StageMotion>
+);
+
+const ManufacturerStage2Visual = ({ reduced }: { reduced?: boolean }) => (
+  <StageMotion reduced={reduced}>
+    <StageItem reduced={reduced} className="grid sm:grid-cols-2 gap-3 mb-5">
+      <div className="rounded-xl p-4" style={{ border: `1px solid ${BORDER}` }}>
+        <p className="text-[9px] uppercase tracking-[0.08em] font-inter mb-1" style={{ color: MUTED }}>Line 01</p>
+        <p className="font-dm-sans font-semibold text-[13px] mb-2" style={{ color: INK }}>Hoodie · 600 pcs</p>
+        <div className="flex items-center gap-2">
+          <div className="flex-1 h-[3px] rounded-full overflow-hidden" style={{ background: BORDER }}>
+            <div className="h-full rounded-full" style={{ width: '72%', background: PURPLE }} />
+          </div>
+          <span className="text-[11px] font-inter" style={{ color: MUTED2 }}>72%</span>
+        </div>
+      </div>
+      <div className="rounded-xl p-4" style={{ border: `1px solid ${BORDER}` }}>
+        <p className="text-[9px] uppercase tracking-[0.08em] font-inter mb-1" style={{ color: MUTED }}>Line 02</p>
+        <p className="font-dm-sans font-semibold text-[13px] mb-2" style={{ color: INK }}>T-Shirt · 1,200 pcs</p>
+        <div className="flex items-center gap-2">
+          <div className="flex-1 h-[3px] rounded-full overflow-hidden" style={{ background: BORDER }}>
+            <div className="h-full rounded-full" style={{ width: '45%', background: PURPLE }} />
+          </div>
+          <span className="text-[11px] font-inter" style={{ color: MUTED2 }}>45%</span>
+        </div>
+      </div>
+    </StageItem>
+    <StageItem reduced={reduced}>
+      <Row label="Capacity" value="83%" />
+      <Row label="Upcoming deadline" value="08 Sep" />
+    </StageItem>
+  </StageMotion>
+);
+
+const ManufacturerStage3Visual = ({ reduced }: { reduced?: boolean }) => (
+  <StageMotion reduced={reduced}>
+    <StageItem reduced={reduced}>
+      <ChecklistRow label="Cutting" state="done" note="Complete" />
+      <ChecklistRow label="Sewing" state="active" progress={70} note="420 / 600 pcs" />
+      <ChecklistRow label="Finishing" note="Upcoming" />
+      <ChecklistRow label="QC" note="Upcoming" />
+      <ChecklistRow label="Packing" note="Upcoming" />
+    </StageItem>
+  </StageMotion>
+);
+
+const ManufacturerStage4Visual = ({ reduced }: { reduced?: boolean }) => (
+  <StageMotion reduced={reduced}>
+    <StageItem reduced={reduced}>
+      <GroupLabel>Inline QC</GroupLabel>
+      <Row label="Passed" value={<span style={{ color: GREEN, fontWeight: 600 }}>587 pcs</span>} />
+      <Row label="Rework" value={<span style={{ color: RED, fontWeight: 600 }}>13 pcs</span>} />
+    </StageItem>
+    <StageItem reduced={reduced} className="mt-4">
+      <Row label="Packing" value="Ready" />
+      <Row label="Shipment" value="Preparing" />
+    </StageItem>
+  </StageMotion>
+);
+
+const ManufacturerStage5Visual = ({ reduced }: { reduced?: boolean }) => (
+  <StageMotion reduced={reduced}>
+    <div className="flex flex-col items-center gap-2 py-2">
+      <StageItem reduced={reduced} className="rounded-xl px-4 py-2.5 text-center w-full sm:w-auto" style={{ border: `1px solid ${BORDER}`, background: '#F7F6FB' }}>
+        <p className="text-[10px] uppercase tracking-[0.08em] font-inter" style={{ color: MUTED }}>Factory ERP</p>
+        <p className="text-[12px] font-dm-sans font-medium mt-0.5" style={{ color: INK }}>Production updated: Sewing 72%</p>
+      </StageItem>
+      <StageItem reduced={reduced}><ArrowDown className="w-4 h-4" style={{ color: MUTED, opacity: 0.6 }} /></StageItem>
+      <StageItem reduced={reduced} className="rounded-xl px-6 py-2.5" style={{ background: PURPLE }}>
+        <p className="text-[14px] font-cormorant font-medium text-white">Formme</p>
+      </StageItem>
+      <StageItem reduced={reduced}><ArrowDown className="w-4 h-4" style={{ color: MUTED, opacity: 0.6 }} /></StageItem>
+      <StageItem reduced={reduced} className="rounded-xl px-4 py-2.5 text-center w-full sm:w-auto" style={{ border: `1.5px solid ${PURPLE}`, background: PURPLE_BG }}>
+        <p className="text-[10px] uppercase tracking-[0.08em] font-inter" style={{ color: PURPLE }}>Brand portal</p>
+        <p className="text-[12px] font-dm-sans font-medium mt-0.5" style={{ color: INK }}>Current stage: Sewing</p>
+      </StageItem>
+    </div>
+    <StageItem reduced={reduced} className="mt-4">
+      <Row label="Latest update" value="2 hours ago" />
+    </StageItem>
+    <StageItem reduced={reduced} className="mt-4 pt-4 text-center" style={{ borderTop: `1px solid ${BORDER}` }}>
+      <p className="text-[12px] font-inter" style={{ color: MUTED2 }}>Access new brand opportunities through the Formme network.</p>
+    </StageItem>
+  </StageMotion>
+);
+
+const manufacturerStages = [
+  { n: '01', label: 'Orders', heading: 'Manage every order in one place.', Visual: ManufacturerStage1Visual },
+  { n: '02', label: 'Plan production', heading: 'Plan capacity, lines and deadlines.', Visual: ManufacturerStage2Visual },
+  { n: '03', label: 'Run production', heading: 'Keep each production stage connected.', Visual: ManufacturerStage3Visual },
+  { n: '04', label: 'Quality & shipment', heading: 'Track quality before the order leaves the factory.', Visual: ManufacturerStage4Visual },
+  { n: '05', label: 'Connected visibility', heading: 'Update once. Keep your customer informed.', Visual: ManufacturerStage5Visual },
+];
+
+type WorkflowTab = 'brands' | 'manufacturers';
+type WorkflowStage = { n: string; label: string; heading: string; Visual: (props: { reduced?: boolean }) => React.ReactElement };
+
+/* Accessible tablist — roving tabindex, arrow-key navigation, one panel id shared by both tabs */
+const WorkflowTabs = ({ active, onChange }: { active: WorkflowTab; onChange: (t: WorkflowTab) => void }) => {
+  const tabs: { id: WorkflowTab; label: string }[] = [
+    { id: 'brands', label: 'For Brands' },
+    { id: 'manufacturers', label: 'For Manufacturers' },
+  ];
+  const btnRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  const onKeyDown = (e: React.KeyboardEvent, i: number) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    e.preventDefault();
+    const next = e.key === 'ArrowRight' ? (i + 1) % tabs.length : (i - 1 + tabs.length) % tabs.length;
+    const nextId = tabs[next].id;
+    onChange(nextId);
+    btnRefs.current[nextId]?.focus();
+  };
+
+  return (
+    <div role="tablist" aria-label="Formme workflow by audience" className="inline-flex items-center gap-1 rounded-full p-1" style={{ background: '#fff', border: `1px solid ${BORDER}` }}>
+      {tabs.map((t, i) => {
+        const selected = active === t.id;
+        return (
+          <button
+            key={t.id}
+            ref={(el) => { btnRefs.current[t.id] = el; }}
+            role="tab"
+            id={`workflow-tab-${t.id}`}
+            aria-selected={selected}
+            aria-controls="workflow-tabpanel"
+            tabIndex={selected ? 0 : -1}
+            onClick={() => onChange(t.id)}
+            onKeyDown={(e) => onKeyDown(e, i)}
+            className="relative rounded-full px-5 py-2.5 text-[13px] font-inter font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5D52D6] focus-visible:ring-offset-2"
+            style={{ color: selected ? PURPLE : MUTED2, background: selected ? PURPLE_BG : 'transparent' }}
+          >
+            {t.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
+const WorkflowStepNav = ({ stages, active, onSelect }: { stages: WorkflowStage[]; active: number; onSelect: (i: number) => void }) => (
+  <div className="hidden lg:flex flex-col gap-1">
+    {stages.map((s, i) => {
+      const isActive = i === active;
+      return (
+        <button
+          key={s.n}
+          onClick={() => onSelect(i)}
+          aria-current={isActive || undefined}
+          aria-controls="workflow-tabpanel"
+          className="text-left rounded-xl px-4 py-3.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5D52D6]"
+          style={isActive ? { background: '#fff', border: `1px solid ${PURPLE}` } : { border: '1px solid transparent' }}
+        >
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[11px] font-inter font-semibold" style={{ color: isActive ? PURPLE : MUTED }}>{s.n}</span>
+            <span className="text-[10px] uppercase tracking-[0.08em] font-inter font-semibold" style={{ color: isActive ? PURPLE : MUTED }}>{s.label}</span>
+          </div>
+          <p className="text-[13px] font-inter leading-snug" style={{ color: isActive ? INK : MUTED2 }}>{s.heading}</p>
+        </button>
+      );
+    })}
+  </div>
+);
+
+const panelVariants = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
+  exit: { opacity: 0, y: -8, transition: { duration: 0.2, ease: 'easeIn' } },
+};
+const panelVariantsReduced = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0.15 } },
+  exit: { opacity: 0, transition: { duration: 0.1 } },
+};
+
+/* Mobile: every stage stacked vertically, no interactivity needed — reveals on scroll like the rest of the page */
+const WorkflowMobileList = ({ stages, reduced }: { stages: WorkflowStage[]; reduced?: boolean }) => (
+  <div className="flex lg:hidden flex-col gap-6 min-w-0">
+    {stages.map((s) => (
+      <div key={s.n} className="reveal">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-inter font-semibold flex-shrink-0" style={{ border: `1.5px solid ${PURPLE}`, color: PURPLE }}>{s.n}</span>
+          <span className="text-[11px] uppercase tracking-[0.08em] font-inter font-semibold" style={{ color: PURPLE }}>{s.label}</span>
+        </div>
+        <p className="font-dm-sans font-semibold text-[15px] mb-3" style={{ color: INK }}>{s.heading}</p>
+        <div className="rounded-2xl bg-white p-5" style={{ border: `1px solid ${BORDER}` }}>
+          <s.Visual reduced={reduced} />
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
+const WorkflowSharedEnding = () => (
+  <div className="reveal mt-14 pt-12 text-center" style={{ borderTop: `1px solid ${BORDER}` }}>
+    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
+      <span className="text-[11px] uppercase tracking-[0.1em] font-inter font-semibold px-4 py-2 rounded-full" style={{ background: DARK_PANEL, color: '#fff' }}>Factory operations</span>
+      <span className="w-8 h-px hidden sm:block flex-shrink-0" style={{ background: PURPLE }} />
+      <span className="text-[14px] font-cormorant font-medium px-5 py-2 rounded-full flex-shrink-0" style={{ background: PURPLE, color: '#fff' }}>Formme</span>
+      <span className="w-8 h-px hidden sm:block flex-shrink-0" style={{ background: PURPLE }} />
+      <span className="text-[11px] uppercase tracking-[0.1em] font-inter font-semibold px-4 py-2 rounded-full" style={{ background: PURPLE_BG, color: PURPLE }}>Brand visibility</span>
+    </div>
+    <p className="font-dm-sans font-semibold" style={{ color: INK, fontSize: 'clamp(18px, 2vw, 24px)' }}>
+      One order. One source of information.
+    </p>
+    <p className="font-inter text-[13px] mt-1.5" style={{ color: MUTED2 }}>Shared from factory floor to brand.</p>
+  </div>
+);
+
+const WorkflowSection = ({ prefersReduced }: { prefersReduced: boolean }) => {
+  const [tab, setTab] = useState<WorkflowTab>('brands');
+  const [brandStep, setBrandStep] = useState(0);
+  const [mfgStep, setMfgStep] = useState(0);
+
+  const activeIndex = tab === 'brands' ? brandStep : mfgStep;
+  const setActiveIndex = tab === 'brands' ? setBrandStep : setMfgStep;
+  const stages = tab === 'brands' ? brandStages : manufacturerStages;
+  const ActiveVisual = stages[activeIndex].Visual;
+
+  return (
+    <section id="product" className="py-20 md:py-24 px-6" style={{ background: LAVENDER }}>
+      <div className="mx-auto max-w-[1300px]">
+        <div className="reveal flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+          <div>
+            <Eyebrow>How Formme works</Eyebrow>
+            <h2 className="font-dm-sans font-semibold leading-[1.15]" style={{ color: INK, fontSize: 'clamp(26px, 3vw, 38px)' }}>
+              One production network.<br />Two connected sides.
+            </h2>
+          </div>
+          <p className="font-inter text-[13px] max-w-xs" style={{ color: MUTED2 }}>
+            Brands get clearer production visibility. Manufacturers get the tools to run production.
+          </p>
+        </div>
+
+        <div className="reveal mb-10">
+          <WorkflowTabs active={tab} onChange={setTab} />
+        </div>
+
+        <div className="reveal grid lg:grid-cols-[260px_1fr] gap-6 lg:gap-8 min-w-0">
+          <WorkflowStepNav stages={stages} active={activeIndex} onSelect={setActiveIndex} />
+
+          <div className="hidden lg:block" id="workflow-tabpanel" role="tabpanel" aria-labelledby={`workflow-tab-${tab}`}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${tab}-${activeIndex}`}
+                variants={prefersReduced ? panelVariantsReduced : panelVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <StagePanel>
+                  <p className="font-dm-sans font-semibold mb-6" style={{ color: INK, fontSize: 'clamp(18px, 1.8vw, 22px)' }}>
+                    {stages[activeIndex].heading}
+                  </p>
+                  <ActiveVisual reduced={prefersReduced} />
+                </StagePanel>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          <WorkflowMobileList stages={stages} reduced={prefersReduced} />
+        </div>
+
+        <WorkflowSharedEnding />
+      </div>
+    </section>
+  );
+};
 
 /* ════════════════════════════════════════════════
    CONNECTOR — factory operations ↔ brand visibility
@@ -945,7 +1281,7 @@ const Index = () => {
       <MerchBanner />
       <Hero prefersReduced={prefersReduced} />
       <FactoriesSection />
-      <WorkflowSection />
+      <WorkflowSection prefersReduced={prefersReduced} />
       <ConnectorSection />
       <FactoryFloorSection />
       <FinalCTA />
