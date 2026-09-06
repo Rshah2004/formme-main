@@ -496,6 +496,9 @@
   .production-hero h1 { font-size: clamp(43px, 10vw, 59px); }
   .production-hero-copy > p { font-size: 13px; line-height: 1.85; margin-top: 20px; }
   .production-hero-note { font-size: 8px; }
+  /* The interactive hero preview is decorative supporting detail — on phones, the
+     headline/copy/CTA on their own tell the story without the extra scroll. */
+  .brand-journey, .manufacturer-hero-preview { display: none; }
   .production-actions { gap: 19px; margin-top: 25px; }
   .production-button { font-size: 11px; padding: 12px 15px; }
   .production-text-link { font-size: 11px; }
@@ -751,6 +754,27 @@
 @media (max-width: 639px) {
   .gate-card { padding: 24px; }
   .gate-card-top { margin-bottom: 22px; }
+}
+/* Scale the whole gate down for phones — the desktop sizing (large serif
+   headline, roomy cards) reads as oversized on a small screen. */
+@media (max-width: 639px) {
+  .gate-section { padding-block: 40px 24px; }
+  .gate-intro h1 { font-size: 22px; letter-spacing: -.02em; margin-top: 8px; }
+  .gate-intro > p { font-size: 12px; margin-top: 8px; }
+  .gate-cards { gap: 10px; margin-top: 14px; }
+  .gate-card { padding: 14px; border-radius: 12px; }
+  .gate-card-top { margin-bottom: 8px; gap: 6px; }
+  .gate-card-icon { width: 26px; height: 26px; border-radius: 8px; }
+  .gate-card-icon svg { width: 14px; height: 14px; }
+  .gate-card-top .production-eyebrow { font-size: 8px; }
+  .gate-card h2 { font-size: 16px; }
+  .gate-card-desc { font-size: 11px; margin-top: 2px; }
+  .gate-card-summary { font-size: 10.5px; line-height: 1.45; margin: 8px 0 10px; }
+  .gate-capabilities { gap: 4px; margin-bottom: 10px; }
+  .gate-capabilities > span { font-size: 8px; padding: 3px 6px; }
+  .gate-card-cta { font-size: 11px; padding-top: 10px; }
+  .gate-footnote { margin-top: 12px; font-size: 9.5px; }
+  .gate-footnote > span { font-size: 8.5px; }
 }
 
 .production-story-simple .story-explanation { font-size: 11px; line-height: 1.65; color: var(--production-muted); margin-block: 12px; }
