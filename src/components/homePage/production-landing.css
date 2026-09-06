@@ -755,6 +755,27 @@
   .gate-card { padding: 24px; }
   .gate-card-top { margin-bottom: 22px; }
 }
+/* Scale the whole gate down for phones — the desktop sizing (large serif
+   headline, roomy cards) reads as oversized on a small screen. */
+@media (max-width: 639px) {
+  .gate-section { padding-block: 56px 32px; }
+  .gate-intro h1 { font-size: 27px; letter-spacing: -.02em; margin-top: 10px; }
+  .gate-intro > p { font-size: 12.5px; margin-top: 12px; }
+  .gate-cards { gap: 12px; margin-top: 20px; }
+  .gate-card { padding: 18px; border-radius: 14px; }
+  .gate-card-top { margin-bottom: 12px; gap: 8px; }
+  .gate-card-icon { width: 32px; height: 32px; border-radius: 9px; }
+  .gate-card-icon svg { width: 16px; height: 16px; }
+  .gate-card-top .production-eyebrow { font-size: 9px; }
+  .gate-card h2 { font-size: 19px; }
+  .gate-card-desc { font-size: 12px; margin-top: 4px; }
+  .gate-card-summary { font-size: 11.5px; line-height: 1.55; margin: 10px 0 14px; }
+  .gate-capabilities { gap: 5px; margin-bottom: 16px; }
+  .gate-capabilities > span { font-size: 9px; padding: 4px 7px; }
+  .gate-card-cta { font-size: 12px; padding-top: 14px; }
+  .gate-footnote { margin-top: 18px; font-size: 10px; }
+  .gate-footnote > span { font-size: 9px; }
+}
 
 .production-story-simple .story-explanation { font-size: 11px; line-height: 1.65; color: var(--production-muted); margin-block: 12px; }
 .production-story-simple .story-step { font-size: 9px; letter-spacing: .025em; }
