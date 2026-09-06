@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowDown, ArrowRight, Check, CheckCheck, Factory, FileText, LayoutGrid, Package, ShieldCheck, Shirt, Truck } from 'lucide-react';
 import { CONTACT_HREF } from './LandingChrome';
-import { ProductionStory } from './ProductionStory';
 import { ManufacturerHeroPreview } from './ManufacturerHeroPreview';
+import { ProofStrip } from './ProofStrip';
 import { WorkflowShowcase } from './WorkflowShowcase';
 import { Badge, Progress } from './ProductionUI';
 import { previewOrders } from './productionPreviewData';
@@ -108,7 +108,7 @@ export function ProductionLandingExperience({ audience }: AudienceProps) {
   return (
     <main className={`production-landing production-landing-${audience}`}>
       <section className="production-hero" aria-labelledby="production-hero-title">
-        <div className="production-container production-hero-grid">
+        <div className={`production-container production-hero-grid${isBrand ? ' production-hero-centered' : ''}`}>
           <div className="production-hero-copy">
             <span className="production-eyebrow"><span className="production-dot" /> {isBrand ? 'FOR BRANDS · FROM IDEA TO DELIVERY' : 'FOR MANUFACTURERS · FROM ORDER TO SHIPMENT'}</span>
             <h1 id="production-hero-title">{isBrand ? 'Your production.' : 'Your factory floor.'}<em>{isBrand ? 'Finally connected.' : 'In full view.'}</em></h1>
@@ -116,9 +116,16 @@ export function ProductionLandingExperience({ audience }: AudienceProps) {
             <div className="production-actions"><a className="production-button" href={CONTACT_HREF}>{isBrand ? 'Talk about your collection' : 'Talk about your factory'} <ArrowRight size={16} /></a><a className="production-text-link" href="#product">{isBrand ? 'See how it works' : 'Explore factory operations'} <ArrowDown size={15} /></a></div>
             <div className="production-hero-note"><Check size={14} /> {isBrand ? 'Manufacturer matching. Managed production. Clear updates.' : 'Your orders. Your production. One clear view.'}</div>
           </div>
-          {isBrand ? <ProductionStory /> : <ManufacturerHeroPreview />}
+          {!isBrand && <ManufacturerHeroPreview />}
         </div>
-        <div className="production-container"><div className="production-capabilities"><span>EVERY DETAIL, CONNECTED.</span><div><span><FileText /> {isBrand ? 'Clear tech packs' : 'Order review'}</span><span><Factory /> {isBrand ? 'Connected factories' : 'Line planning'}</span><span><ShieldCheck /> {isBrand ? 'Sample approvals' : 'Quality control'}</span><span><Truck /> {isBrand ? 'Shipment visibility' : 'Shipment coordination'}</span></div></div></div>
+        <div className="production-container"><ProofStrip /></div>
+        {isBrand ? (
+          <div className="production-hero-band">
+            <img src="/factory.jpg" alt="Garment workshop with sewing machines, fabric, and production equipment" />
+          </div>
+        ) : (
+          <div className="production-container"><div className="production-capabilities"><span>EVERY DETAIL, CONNECTED.</span><div><span><FileText /> Order review</span><span><Factory /> Line planning</span><span><ShieldCheck /> Quality control</span><span><Truck /> Shipment coordination</span></div></div></div>
+        )}
       </section>
 
       <AudiencePanel audience={audience} />
@@ -135,6 +142,10 @@ export function ProductionLandingExperience({ audience }: AudienceProps) {
       </section>
 
       <section className="production-section production-final" aria-label="Get in touch"><div className="production-container"><h2>{isBrand ? 'What are you' : 'Plan. Produce.'}<br />{isBrand ? 'planning to' : 'Inspect. Ship.'} <em>{isBrand ? 'make?' : 'Connected.'}</em></h2><div><p>{isBrand ? 'Email us what you’re making, your target quantity, and where you are in the process. Let’s discuss how Formme fits your production needs.' : <>Bring clarity to your factory operations.<br />Let’s build what’s next, together.</>}</p><a className="production-button" href={CONTACT_HREF}>{isBrand ? 'Email us about your collection' : 'Let’s talk about your factory'} <ArrowRight size={16} /></a></div></div></section>
+
+      <div className="production-sticky-cta">
+        <a className="production-button" href={CONTACT_HREF}>{isBrand ? 'Talk about your collection' : 'Talk about your factory'} <ArrowRight size={16} /></a>
+      </div>
     </main>
   );
 }
