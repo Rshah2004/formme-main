@@ -118,6 +118,7 @@ export function ProductionLandingExperience({ audience }: AudienceProps) {
           </div>
           {!isBrand && <ManufacturerHeroPreview />}
         </div>
+        {isBrand && <div className="production-container production-hero-visual"><ProductionStory /></div>}
         <div className="production-container"><div className="production-capabilities"><span>EVERY DETAIL, CONNECTED.</span><div><span><FileText /> {isBrand ? 'Clear tech packs' : 'Order review'}</span><span><Factory /> {isBrand ? 'Connected factories' : 'Line planning'}</span><span><ShieldCheck /> {isBrand ? 'Sample approvals' : 'Quality control'}</span><span><Truck /> {isBrand ? 'Shipment visibility' : 'Shipment coordination'}</span></div></div></div>
       </section>
 

@@ -68,7 +68,9 @@
 .production-hero-note { display: flex; gap: 6px; align-items: center; margin-top: 22px; color: var(--production-muted); font-size: 10px; }
 .production-hero-note svg { color: var(--production-accent-text); }
 /* Copy-only hero (brands): one centred column instead of copy + visual. */
-.production-hero-centered { grid-template-columns: minmax(0, 1fr); text-align: center; padding-block: 108px 76px; }
+.production-hero-centered { grid-template-columns: minmax(0, 1fr); text-align: center; padding-block: 104px 0; }
+/* The product story sits full-width under the centred copy rather than beside it. */
+.production-hero-visual { padding-block: 48px 64px; }
 .production-hero-centered .production-hero-copy { max-width: 980px; margin-inline: auto; }
 .production-hero-centered .production-hero-copy > p { max-width: 720px; margin-inline: auto; }
 .production-hero-centered .production-actions,
@@ -820,7 +822,7 @@
 .brand-journey-delivery { display: flex; align-items: center; gap: 6px; padding: 10px 8px; background: #fff; border-radius: 8px; font-size: 8px; color: var(--production-muted); }
 .brand-journey-delivery svg, .brand-journey-delivery strong { color: #6d45cc; flex-shrink: 0; }
 .brand-journey-delivery strong { margin-left: auto; font-size: 10px; }
-.brand-journey-example { text-align: center; font-size: 9px; color: var(--production-muted); margin-top: 18px; }
+.brand-journey-example { text-align: center; font-size: 9px; color: var(--production-muted); margin-top: 42px; }
 @media (max-width: 639px) {
   .brand-journey-steps { gap: 6px; margin-bottom: 20px; }
   .brand-journey-step > strong { font-size: 9px; padding: 5px; }

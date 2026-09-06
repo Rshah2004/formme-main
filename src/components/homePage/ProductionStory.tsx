@@ -5,13 +5,6 @@ import { Logo } from './LandingChrome';
 export function ProductionStory() {
   return (
     <div className="brand-journey" aria-label="Example order: manufacturer matching and managed production">
-      <div className="brand-journey-steps">
-        {[
-          { icon: FileText, title: '1. Submit your product', text: 'Tell us what you want to make' },
-          { icon: Factory, title: '2. We find the right factory', text: 'We match your needs and coordinate production' },
-          { icon: Truck, title: '3. Track production', text: 'Follow progress from sample to delivery' },
-        ].map(({ icon: Icon, title, text }, index) => <div className="brand-journey-step" key={title}><span className="brand-journey-icon"><Icon size={25} /></span><strong>{title}</strong><p>{text}</p>{index < 2 && <svg className="brand-journey-arrow" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path d="M 2 32 Q 50 0 97 31" /><path className="brand-journey-arrowhead" d="M 94 26 L 97 31 L 92 31.5" /></svg>}</div>)}
-      </div>
       <div className="brand-journey-body">
         <div className="brand-journey-card brand-journey-brief">
           <div className="brand-journey-card-title"><FileText size={18} /><strong>Tech pack</strong></div>
