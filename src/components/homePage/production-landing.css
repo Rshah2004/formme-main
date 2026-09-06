@@ -119,6 +119,16 @@
 .story-live { display: flex; align-items: center; gap: 4px; font-size: 7px; color: var(--production-muted); }
 .story-live i { height: 4px; width: 4px; border-radius: 50%; background: #72b68d; }
 .story-caption { position: absolute; bottom: 0; width: 100%; text-align: center; font-size: 8px; color: var(--production-muted); }
+/* Brands lead with the claim itself rather than a product panel: one centred
+   column, then proof, then a full-bleed photograph of the real factory floor. */
+.production-hero-centered { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; padding-block: 84px 46px; }
+.production-hero-centered .production-hero-copy { max-width: 760px; }
+.production-hero-centered .production-hero-copy > p { max-width: 540px; margin-inline: auto; }
+.production-hero-centered .production-actions,
+.production-hero-centered .production-hero-note { justify-content: center; }
+.production-hero-band { margin-top: 34px; width: 100%; height: 360px; overflow: hidden; }
+.production-hero-band img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
 /* Proof before polish — who our partner factories already make clothes for. */
 .proof-strip { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 28px 48px; border-top: 1px solid #e8def3; padding-block: 30px; }
 .proof-label { display: block; color: var(--production-muted); font-size: 9px; letter-spacing: .1em; margin-bottom: 14px; }
@@ -549,6 +559,8 @@
   .story-visibility .story-live { font-size: 6px; }
   .story-arrow { display: none; }
   .story-caption { font-size: 6px; }
+  .production-hero-centered { padding-block: 42px 26px; }
+  .production-hero-band { margin-top: 24px; height: 200px; }
   .proof-strip { flex-direction: column; align-items: flex-start; gap: 22px; padding-block: 24px; }
   .proof-label { font-size: 8px; margin-bottom: 11px; }
   .proof-brand-row { gap: 9px 20px; }
