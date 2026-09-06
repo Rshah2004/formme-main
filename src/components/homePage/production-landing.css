@@ -496,6 +496,9 @@
   .production-hero h1 { font-size: clamp(43px, 10vw, 59px); }
   .production-hero-copy > p { font-size: 13px; line-height: 1.85; margin-top: 20px; }
   .production-hero-note { font-size: 8px; }
+  /* The interactive hero preview is decorative supporting detail — on phones, the
+     headline/copy/CTA on their own tell the story without the extra scroll. */
+  .brand-journey, .manufacturer-hero-preview { display: none; }
   .production-actions { gap: 19px; margin-top: 25px; }
   .production-button { font-size: 11px; padding: 12px 15px; }
   .production-text-link { font-size: 11px; }
