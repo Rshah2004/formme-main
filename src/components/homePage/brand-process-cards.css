@@ -8,10 +8,10 @@
 .process-product-reference figcaption > strong { display: block; color: #71667f; font-size: 9px; font-weight: 650; letter-spacing: .055em; }
 .process-product-reference figcaption > span { display: block; color: #776d84; font-size: 10px; line-height: 1.5; margin-top: 6px; }
 .process-request-specs { margin: 0; }
-.process-request-specs > div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #e8e3ee; font-size: 12px; line-height: 1.4; }
+.process-request-specs > div { display: grid; grid-template-columns: 84px minmax(0, 1fr); align-items: baseline; gap: 16px; padding: 9px 0; border-bottom: 1px solid #e8e3ee; font-size: 12px; line-height: 1.45; }
 .process-request-specs > div:first-child { padding-top: 2px; }
 .process-request-specs dt { color: #7b7088; }
-.process-request-specs dd { margin: 0; color: #292331; font-weight: 650; text-align: right; }
+.process-request-specs dd { margin: 0; color: #292331; font-weight: 650; }
 .process-attachment-open { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; padding: 10px 0 10px 10px; text-align: left; border-radius: 8px; }
 .process-attachment-open > span:last-child { min-width: 0; }
 .process-attachment-open strong { display: block; font-size: 10px; font-weight: 600; overflow-wrap: anywhere; }
@@ -54,7 +54,7 @@
   .process-product-reference figcaption { padding: 10px 12px; }
   .process-product-reference figcaption > strong { font-size: 8px; }
   .process-product-reference figcaption > span { font-size: 9px; }
-  .process-request-specs > div { font-size: 11px; gap: 8px; }
+  .process-request-specs > div { font-size: 11px; grid-template-columns: 72px minmax(0, 1fr); gap: 10px; }
   .process-attachment-open { gap: 6px; padding-left: 8px; }
   .process-attachment-open strong { font-size: 9px; }
   .process-attachment-remove { width: 26px; }
@@ -93,14 +93,15 @@
    each: a continuous spine reads as sequence, where the vertical dividers it
    replaces read as separation. Stops pad inward and the timeline pulls back
    out, so the segments meet edge to edge. */
-.process-timeline { --stop-pad: 30px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; list-style: none; margin: 0 calc(-1 * var(--stop-pad)); padding: 0; }
+.process-timeline { --stop-pad: 30px; --stop-measure: 300px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; list-style: none; margin: 0 calc(-1 * var(--stop-pad)); padding: 0; }
 .process-stop { display: flex; flex-direction: column; padding-inline: var(--stop-pad); }
 .process-stop-head { display: flex; align-items: baseline; gap: 13px; }
 .process-stop-number { font-size: 13px; font-weight: 650; letter-spacing: -.02em; color: var(--brand-accent); font-variant-numeric: tabular-nums; }
 .production-page .brand-site .process-stop h3 { font-size: 25px; line-height: 1.15; letter-spacing: -.035em; font-weight: 550; margin: 0; }
 
 
-.process-stop-line { margin: 14px 0 0; font-size: 14px; line-height: 1.65; min-height: 46px; max-width: 340px; }
+.process-stop-line { margin: 14px 0 0; font-size: 14px; line-height: 1.65; min-height: 46px; max-width: var(--stop-measure); }
+.process-timeline .process-request-specs, .process-timeline .process-product-reference { max-width: var(--stop-measure); }
 .process-evidence { position: relative; flex: 1; margin-top: 26px; margin-inline: calc(-1 * var(--stop-pad)); padding: 24px var(--stop-pad) 0; border-top: 1px solid var(--brand-line); }
 .process-evidence::before { content: ''; position: absolute; left: var(--stop-pad); top: -4px; width: 7px; height: 7px; border-radius: 50%; background: var(--brand-accent); }
 
@@ -123,5 +124,5 @@
 .process-timeline .process-progress-ring strong > span { font-size: 21px; }
 /* Capped so stop 01 does not tower over the other two — each column should
    carry a comparable amount of evidence. */
-.process-timeline .process-product-reference > .process-reference-image { width: 100%; max-width: 232px; }
+.process-timeline .process-product-reference > .process-reference-image { width: 100%; max-width: var(--stop-measure); }
 .production-page .brand-site .process-example-note { margin-top: 30px; font-size: 11px; color: #7b7088; }
