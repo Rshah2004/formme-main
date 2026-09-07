@@ -31,15 +31,8 @@ export function BrandWorkspacePreview() {
           <div className="brand-workspace-panel" id="workspace-panel" role="tabpanel" aria-labelledby={`workspace-tab-${view}`} tabIndex={0}>
             <div className={`workspace-view workspace-view-${view}`} key={view}>
             {view === 'approval' && <>
-              <div className="workspace-review-heading"><span>Sample 02</span></div>
               <div className="workspace-sample-card"><figure className="is-photo"><span className="workspace-sketch-label">SAMPLE 02</span><img src="/images/blue-shirt-editorial.jpg" alt="Sky-blue everyday shirt, photographed on a rail" /><figcaption>Illustrative sample</figcaption></figure><div><span className="workspace-sample-eyebrow">YOUR FEEDBACK, MADE REAL</span><h3>The everyday shirt</h3><p>You asked for a narrower cuff.<br />Here’s the revision.</p><div className="workspace-cuff-comparison" aria-label="Example cuff revision from 10.5 centimetres to 9 centimetres"><div><span>Previous cuff</span><del>10.5<small> cm</small></del></div><ArrowRight size={17} aria-hidden="true" /><div><span>Revised cuff</span><strong>9.0<small> cm</small><Check size={13} aria-hidden="true" /></strong></div></div></div></div>
               <details className="workspace-measurement-details"><summary>Compare sample measurements<span>3 checked</span></summary><table className="workspace-measurements"><caption className="sr-only">Example sample measurements against your specification</caption><thead><tr><th scope="col">Measurement</th><th scope="col">Your spec</th><th scope="col">Sample 02</th></tr></thead><tbody><tr><th scope="row">Chest (½)</th><td>56.0 cm</td><td>56.2 cm</td></tr><tr><th scope="row">Body length</th><td>74.0 cm</td><td>74.0 cm</td></tr><tr className="is-revised"><th scope="row">Cuff width</th><td>9.0 cm</td><td>9.0 cm <span>revised</span></td></tr></tbody></table></details>
-              {/* Measurements are the part that tabulates cleanly, but a sample review is
-                  not only fit — fabric, colour, construction and trims all get signed
-                  off too, and the card read as fit-only without them. */}
-              <ul className="workspace-also-checked" aria-label="Also reviewed on this sample">
-                {['Fabric hand & weight', 'Colour against your swatch', 'Stitching & construction', 'Trims, labels & packaging'].map(item => <li key={item}>{item}</li>)}
-              </ul>
               <div className="workspace-change-note"><div><strong>Your sample. Your call.</strong><p>Measurements are within your ±1 cm tolerance. Approve when the fabric, colour and construction are right too — your approval is what the factory produces against.</p></div></div>
               {decision === 'pending' && !editing && <><div className="workspace-actions"><button type="button" onClick={() => setDecision('approved')}>Approve sample <Check size={15} /></button><button type="button" className="workspace-secondary" onClick={() => setEditing(true)}>Request a revision</button></div>
               {/* Photos and measurements are how most rounds get reviewed, but the
