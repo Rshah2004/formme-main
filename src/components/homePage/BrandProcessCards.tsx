@@ -33,6 +33,15 @@ function ReferenceImage({ kind, className = '' }: { kind: 'tee' | 'factory'; cla
   </div>;
 }
 
+/* A hand-drawn arc rather than a rule: the section is about a sequence, and the
+ * sketch language already belongs to the page through the tech-pack drawings. */
+function StepArrow() {
+  return <svg className="process-arrow" viewBox="0 0 120 34" fill="none" aria-hidden="true">
+    <path d="M3 24C22 7 58 2 92 13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    <path d="M80 6.5 93 13.4 84 22" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>;
+}
+
 const steps = [
   { id: 'brief', title: 'Bring your idea.', line: 'You send the design. We shape it into a factory-ready brief.' },
   { id: 'partner', title: 'Find your people.', line: 'We match you from our network. You meet the factory.' },
@@ -61,6 +70,7 @@ export function BrandProcessCards() {
           <p className="process-stop-line">{step.line}</p>
 
           <div className="process-evidence">
+            {index < steps.length - 1 && <StepArrow />}
             {step.id === 'brief' && <>
               <figure className="process-product-reference">
                 <ReferenceImage kind="tee" />
