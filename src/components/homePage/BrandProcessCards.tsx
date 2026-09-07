@@ -34,9 +34,9 @@ function ReferenceImage({ kind, className = '' }: { kind: 'tee' | 'factory'; cla
 }
 
 const steps = [
-  { id: 'brief', eyebrow: 'THE BRIEF', title: 'Bring your idea.', description: 'Share your design, references and quantity. We turn the details into a brief a factory can act on.' },
-  { id: 'partner', eyebrow: 'THE MATCH', title: 'Find your people.', description: 'We match you with a manufacturer from the network we’ve built, then coordinate the next steps.' },
-  { id: 'production', eyebrow: 'THE MAKING', title: 'Make it happen.', description: 'Approve the sample, then follow quality checks and shipment updates in your workspace.' },
+  { id: 'brief', eyebrow: 'THE BRIEF', title: 'Bring your idea.', description: 'Share your design, references and quantity. We turn the details into a brief a factory can act on.', you: 'You share the idea.', us: 'We shape the brief.' },
+  { id: 'partner', eyebrow: 'THE MATCH', title: 'Find your people.', description: 'We match you with a manufacturer from the network we’ve built, then coordinate the next steps.', you: 'You meet your factory.', us: 'We make the introduction.' },
+  { id: 'production', eyebrow: 'THE MAKING', title: 'Make it happen.', description: 'Approve the sample, then follow quality checks and shipment updates in your workspace.', you: 'You approve the product.', us: 'We coordinate production.' },
 ] as const;
 
 /**
@@ -97,6 +97,11 @@ export function BrandProcessCards() {
               </div>
             </>}
           </div>
+
+          <dl className="process-split">
+            <div><dt>You</dt><dd>{step.you}</dd></div>
+            <div><dt>Formme</dt><dd>{step.us}</dd></div>
+          </dl>
         </li>
       ))}
     </ol>

@@ -95,24 +95,33 @@
   }
 
 /* Timeline. Three stops shown at once rather than a picker with a swapping
-   panel — that shape already belongs to the workspace section below. The rule
-   between stops carries the sequence the old progress bar only hinted at. */
-.process-timeline { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; list-style: none; margin: 0; padding: 0; }
-.process-stop { position: relative; display: flex; flex-direction: column; padding: 0 30px; }
-.process-stop:first-child { padding-left: 0; }
-.process-stop:last-child { padding-right: 0; }
-.process-stop + .process-stop { border-left: 1px solid var(--brand-line); }
+   panel — that shape already belongs to the workspace section below.
+   The rule under the copy runs unbroken across all three stops with a node at
+   each: a continuous spine reads as sequence, where the vertical dividers it
+   replaces read as separation. Stops pad inward and the timeline pulls back
+   out, so the segments meet edge to edge. */
+.process-timeline { --stop-pad: 30px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; list-style: none; margin: 0 calc(-1 * var(--stop-pad)); padding: 0; }
+.process-stop { display: flex; flex-direction: column; padding-inline: var(--stop-pad); }
 .process-stop-head { display: flex; align-items: baseline; gap: 11px; }
 .process-stop-number { font-size: 13px; font-weight: 650; letter-spacing: -.02em; color: var(--brand-accent); font-variant-numeric: tabular-nums; }
 .production-page .brand-site .process-stop h3 { font-size: 25px; line-height: 1.15; letter-spacing: -.035em; font-weight: 550; margin-top: 14px; }
-.production-page .brand-site .process-stop-copy { font-size: 14px; line-height: 1.7; margin-top: 10px; max-width: 320px; }
-.process-evidence { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--brand-line); }
+.production-page .brand-site .process-stop-copy { font-size: 14px; line-height: 1.7; margin-top: 10px; min-height: 72px; max-width: 320px; }
+
+.process-evidence { position: relative; flex: 1; margin-top: 26px; margin-inline: calc(-1 * var(--stop-pad)); padding: 24px var(--stop-pad) 0; border-top: 1px solid var(--brand-line); }
+.process-evidence::before { content: ''; position: absolute; left: var(--stop-pad); top: -4px; width: 7px; height: 7px; border-radius: 50%; background: var(--brand-accent); }
+
+/* The division of labour is the pitch. Stating it per stop also settles the
+   uneven bottoms — stops 02 and 03 were carrying 145px and 105px of dead
+   space while 01 filled its column. */
+.process-split { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 28px 0 0; padding-top: 18px; border-top: 1px solid var(--brand-line); }
+.process-split dt { font-size: 9px; font-weight: 650; letter-spacing: .09em; text-transform: uppercase; color: var(--brand-accent); }
+.production-page .brand-site .process-split dd { margin: 6px 0 0; font-size: 12px; line-height: 1.5; color: #5c5169; }
 
 @media (max-width: 900px) {
-  .process-timeline { grid-template-columns: 1fr; }
-  .process-stop { padding: 0; }
-  .process-stop + .process-stop { border-left: 0; border-top: 1px solid var(--brand-line); margin-top: 34px; padding-top: 34px; }
-  .production-page .brand-site .process-stop-copy { max-width: none; }
+  .process-timeline { grid-template-columns: 1fr; margin-inline: 0; --stop-pad: 0px; }
+  .process-stop + .process-stop { margin-top: 34px; }
+  .production-page .brand-site .process-stop-copy { max-width: none; min-height: 0; }
+  .process-evidence::before { display: none; }
 }
 
 /* Stage list for the third stop — replaces the old horizontal stage path,
