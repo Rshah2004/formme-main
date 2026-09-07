@@ -31,7 +31,9 @@
 .process-partner-identity p > svg { flex-shrink: 0; }
 .process-partner-link { display: inline-flex; align-items: center; align-self: flex-start; gap: 12px; margin-top: 22px; min-height: 30px; color: #4e3e6a; font-size: 12px; font-weight: 600; border-bottom: 1px solid #c7bbda; }
 .process-partner-link:hover { color: #7354c0; border-color: currentColor; }
-.production-page .brand-site .process-timeline .process-progress-ring { position: relative; width: 174px; flex-shrink: 0; aspect-ratio: 1; }
+/* Pulled up: the ring is the tallest of the three visuals, so its spec rows
+   landed 85px below the other two columns' and the row broke its line. */
+.production-page .brand-site .process-timeline .process-progress-ring { position: relative; width: 174px; flex-shrink: 0; aspect-ratio: 1; margin-top: -26px; }
 .process-progress-ring > svg { display: block; width: 100%; height: 100%; transform: rotate(-90deg); fill: none; stroke-width: 9; }
 .process-ring-track { stroke: #eeeaf4; }
 .process-ring-value { stroke: #8b73d7; stroke-linecap: round; }
