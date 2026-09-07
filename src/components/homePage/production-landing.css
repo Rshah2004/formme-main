@@ -362,16 +362,6 @@
 .connector-brand-row strong { margin-left: auto; color: var(--production-muted); font-weight: 500; }
 .connector-brand-row .production-dot { height: 4px; width: 4px; background: var(--c-ok-soft); }
 .connector-shared { display: flex; align-items: center; gap: 5px; margin-top: 16px; font-size: 7px; color: var(--production-muted); }
-.production-factory-story { background: var(--c-purple-wash); border-block: 1px solid var(--c-purple-50); }
-.factory-story-layout { display: grid; grid-template-columns: 1fr 1.05fr; gap: 80px; align-items: center; }
-.factory-story-layout p { max-width: 425px; margin-block: 23px 24px; font-size: 13px; }
-.factory-story-location { display: block; font-size: 8px; letter-spacing: .1em; color: var(--production-muted); margin-top: 30px; }
-.factory-story-photo { position: relative; padding-bottom: 22px; }
-.factory-story-photo > img { width: 100%; height: 340px; object-fit: cover; border-radius: 13px; }
-.factory-story-caption { position: absolute; left: 18px; right: 18px; bottom: 0; border: 1px solid var(--c-purple-100); background: #06031af5; border-radius: 10px; padding: 18px; display: flex; align-items: center; gap: 12px; box-shadow: 0 6px 14px #06031a15; }
-.factory-story-caption strong { display: block; font-size: 12px; font-weight: 500; color: var(--production-muted); }
-.factory-story-caption > div > span { display: block; font-size: 9px; color: var(--production-muted); margin-top: 4px; }
-.factory-story-caption > svg { color: var(--production-muted); margin-left: auto; flex-shrink: 0; }
 .production-merch { background: var(--c-dark); padding-block: 34px; color: var(--c-on-accent); }
 .production-merch > div { display: flex; justify-content: space-between; align-items: center; gap: 25px; }
 .production-merch > div > div { display: flex; align-items: center; gap: 18px; }
@@ -499,8 +489,7 @@
   .connector-copy p { margin-top: 0; grid-column: 2; grid-row: 2 / 4; }
   .connector-copy .production-text-link { margin-top: 22px; }
   .connector-visual { width: 100%; max-width: 800px; margin-inline: auto; }
-  .factory-story-layout { gap: 42px; }
-}
+  }
 @media (max-width: 850px) {
   .production-landing-brand .workflow-step-list strong { font-size: 10px; }
   .audience-panels-single .audience-panel { grid-template-columns: minmax(0, 1fr); gap: 30px; padding: 30px; }
@@ -522,9 +511,6 @@
   .workflow-step-list strong { font-size: 8px; line-height: 1.5; }
   .workflow-step-list small, .workflow-step-list button > svg { display: none; }
   .workflow-preview-content { min-height: 420px; }
-  .factory-story-layout { grid-template-columns: 1fr; gap: 35px; }
-  .factory-story-layout p { max-width: 570px; }
-  .factory-story-photo > img { height: 350px; }
   .production-final > div { align-items: flex-start; }
 }
 @media (max-width: 639px) {
@@ -697,13 +683,6 @@
   .connector-brand { padding: 23px; }
   .connector-brand-row { font-size: 10px; }
   .connector-shared { font-size: 9px; }
-  .factory-story-layout p { font-size: 12px; }
-  .factory-story-location { font-size: 7px; line-height: 1.8; margin-top: 24px; }
-  .factory-story-photo > img { height: 260px; }
-  .factory-story-caption { left: 10px; right: 10px; padding: 13px; gap: 9px; }
-  .factory-story-caption strong { font-size: 10px; }
-  .factory-story-caption > div > span { font-size: 7px; }
-  .factory-story-caption > svg { width: 16px; }
   .production-merch > div { align-items: flex-start; flex-direction: column; gap: 20px; }
   .production-merch > div > div { align-items: flex-start; gap: 12px; }
   .production-merch h2 { font-size: 23px; }
@@ -1039,11 +1018,7 @@
 .production-page .workflow-preview-content > p { font-size: 14px; }
 .production-page .workflow-playback { border-radius: 5px; background: var(--c-paper); }
 .production-page .workflow-connection { opacity: .8; }
-.production-page .production-factory-story { background: var(--c-surface-1); }
-.production-page .factory-story-layout p { font-size: 16px; }
-.production-page .factory-story-photo > img { height: 390px; border-radius: 6px; }
-.production-page .factory-story-caption { border-radius: 5px; box-shadow: none; background: var(--c-paper); border-color: var(--c-line); }
-.production-page .production-merch { background: var(--c-surface-3); color: var(--c-ink); --production-ink: var(--c-ink); --production-muted: var(--c-muted); --production-border: var(--c-line-2); }
+.production-page .production-page .production-page .production-page .production-page .production-merch { background: var(--c-surface-3); color: var(--c-ink); --production-ink: var(--c-ink); --production-muted: var(--c-muted); --production-border: var(--c-line-2); }
 .production-page .production-merch p { font-size: 13px; }
 .production-page .production-final { background: var(--c-dark-2); color: var(--c-on-accent); }
 .production-page .production-final p { color: var(--c-panel-muted); font-size: 15px; max-width: 460px; }
@@ -1100,7 +1075,6 @@
   .production-page .gate-section { padding-block: 102px 48px; }
   .production-page .gate-card { padding: 24px; }
   .production-page .gate-intro > p { font-size: 14px; }
-  .production-page .factory-story-photo > img { height: 280px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .production-page .gate-card:hover { transform: none; }
