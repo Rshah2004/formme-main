@@ -6,7 +6,7 @@ type AudienceProps = { audience: Audience };
 
 const steps: Record<Audience, { title: string; text: string }[]> = {
   brand: [
-    { title: 'Tell us what you’re making', text: 'Send your designs, references, or a finished tech pack — whatever stage you’re at. We turn it into something a factory can quote.' },
+    { title: 'Bring your tech pack', text: 'Send your tech pack, target quantity and timeline. The tech pack is what a factory quotes and produces against, so bring yours along — we take it from there.' },
     { title: 'We match and coordinate', text: 'We put your order with a partner factory suited to your product and quantity, then handle the back-and-forth on your behalf.' },
     { title: 'You approve and track', text: 'Review samples, approve the details, and follow production through quality checks to shipment in one workspace.' },
   ],
@@ -89,7 +89,7 @@ const faqs: Record<Audience, { q: string; a: string }[]> = {
   brand: [
     { q: 'What’s the minimum order quantity?', a: 'It depends on the factory and the garment. Our low-MOQ partners start from around 30 pieces per style, which is enough to test a product before committing to a full run. Larger factories in the network are better suited to bulk orders.' },
     { q: 'How long does production take?', a: 'Bulk production typically runs three to four weeks once your samples are approved. Sampling happens before that and varies with how many rounds of revision a product needs.' },
-    { q: 'Do I need a finished tech pack?', a: 'No. Send whatever you have — sketches, reference garments, measurements, or a complete tech pack. We work out what’s missing and turn it into something a factory can quote against.' },
+    { q: 'Do I need a tech pack?', a: 'Yes. The tech pack is what a factory quotes and produces against, so you’ll need one to get started, along with your target quantity and timeline.' },
     { q: 'Where are the factories?', a: 'Our current partners are in Bangladesh and China, all export-ready for the USA, Canada, the UK, Europe, and Australia.' },
     { q: 'Are the factories audited?', a: 'Our partners hold certifications including BSCI, SEDEX, OEKO-TEX, WRAP, and ACCORD, and run structured quality control across both sampling and bulk production.' },
     { q: 'What does it cost?', a: 'Cost depends on the garment, fabric, decoration, and quantity. Our cost predictor gives instant estimates for custom T-shirts and hoodies; for anything else, send us your details and we’ll come back with a quote.' },
