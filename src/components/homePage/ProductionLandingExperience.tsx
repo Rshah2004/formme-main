@@ -4,6 +4,7 @@ import { ArrowDown, ArrowRight, Check, CheckCheck, Factory, FileText, LayoutGrid
 import { CONTACT_HREF } from './LandingChrome';
 import { ManufacturerHeroPreview } from './ManufacturerHeroPreview';
 import { ProofStrip } from './ProofStrip';
+import { HowItWorks, LandingFaq, ProductionSpecs } from './LandingSections';
 import { WorkflowShowcase } from './WorkflowShowcase';
 import { Badge, Progress } from './ProductionUI';
 import { previewOrders } from './productionPreviewData';
@@ -124,8 +125,10 @@ export function ProductionLandingExperience({ audience }: AudienceProps) {
         )}
       </section>
 
+      <HowItWorks audience={audience} />
       <AudiencePanel audience={audience} />
       <WorkflowShowcase audience={audience} />
+      {isBrand && <ProductionSpecs />}
       {!isBrand && <ConnectedWorkspaces audience={audience} />}
 
       {isBrand && <aside className="production-merch" aria-label="Merch production estimates"><div className="production-container"><div><span className="merch-icon"><Shirt size={23} /></span><div><h2>Planning your budget?</h2><p>Explore production cost estimates for custom T-shirts and hoodies.</p></div></div><Link className="production-button production-button-outline" to="/cost-predictor">Estimate your cost <ArrowRight size={15} /></Link></div></aside>}
@@ -136,6 +139,8 @@ export function ProductionLandingExperience({ audience }: AudienceProps) {
           <div className="factory-story-photo"><img src="/factory.jpg" alt="Garment workshop with sewing machines, fabric, and production equipment" loading="lazy" /><div className="factory-story-caption"><span className="factory-story-icon"><Factory size={20} /></span><div><strong>Built with manufacturers.</strong><span>Made for the realities of apparel production.</span></div><CheckCheck size={19} /></div></div>
         </div>
       </section>
+
+      <LandingFaq audience={audience} />
 
       <section className="production-section production-final" aria-label="Get in touch"><div className="production-container"><h2>{isBrand ? 'What are you' : 'Plan. Produce.'}<br />{isBrand ? 'planning to' : 'Inspect. Ship.'} <em>{isBrand ? 'make?' : 'Connected.'}</em></h2><div><p>{isBrand ? 'Email us what you’re making, your target quantity, and where you are in the process. Let’s discuss how Formme fits your production needs.' : <>Bring clarity to your factory operations.<br />Let’s build what’s next, together.</>}</p><a className="production-button" href={CONTACT_HREF}>{isBrand ? 'Email us about your collection' : 'Let’s talk about your factory'} <ArrowRight size={16} /></a></div></div></section>
 
