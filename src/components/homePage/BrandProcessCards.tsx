@@ -36,9 +36,10 @@ function ReferenceImage({ kind, className = '' }: { kind: 'tee' | 'factory'; cla
 /* A hand-drawn arc rather than a rule: the section is about a sequence, and the
  * sketch language already belongs to the page through the tech-pack drawings. */
 function StepArrow() {
-  return <svg className="process-arrow" viewBox="0 0 120 34" fill="none" aria-hidden="true">
-    <path d="M3 24C22 7 58 2 92 13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-    <path d="M80 6.5 93 13.4 84 22" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+  return <svg className="process-arrow" viewBox="0 0 130 34" fill="none" aria-hidden="true">
+    {/* Dashes on the arc only — a dashed head reads as broken rather than drawn. */}
+    <path className="process-arrow-arc" d="M4 28Q65 0 124 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="1.5 6" />
+    <path d="M117.1 9.8 124 17 114.3 19.4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
   </svg>;
 }
 
