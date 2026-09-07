@@ -243,24 +243,18 @@
 }
 
 /* ─── Cost predictor ─── */
-/* Tinted so it separates the workspace preview above from the company story
-   below, both of which sit on the page ground. */
-.brand-estimate { background: #efecf9; border-block: 1px solid #e2ddf0; padding-block: 76px; }
-.brand-estimate-layout { display: grid; grid-template-columns: 1fr .9fr; gap: 80px; align-items: center; }
-.brand-estimate-layout .brand-kicker { margin-bottom: 16px; }
-.production-page .brand-site .brand-estimate p { margin-block: 18px 30px; max-width: 400px; font-size: 15px; }
-
-/* Same anatomy as the timeline's spec lists — a fixed label column, so the
-   labels and values stay in two readable edges rather than drifting apart. */
-.brand-estimate-inputs { display: grid; background: #fff; border: 1px solid #e2ddf0; border-radius: 10px; padding: 6px 22px; }
-.brand-estimate-inputs > div { display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: baseline; gap: 16px; padding: 15px 0; border-bottom: 1px solid #efecf9; font-size: 13px; }
-.brand-estimate-inputs > div:last-child { border-bottom: 0; }
-.brand-estimate-inputs dt { color: #77737f; letter-spacing: .01em; }
-.brand-estimate-inputs dd { margin: 0; color: #292331; font-weight: 650; }
-.brand-estimate-result dt, .brand-estimate-result dd { color: var(--brand-accent) !important; }
+/* A slim band, not a section — the tool is a useful aside next to the main
+   production story, and it was reachable only from the nav before this. The
+   inputs are named in the line rather than tabulated, which is what let the
+   full-height version justify its space. */
+.brand-estimate { background: #efecf9; border-block: 1px solid #e2ddf0; padding-block: 30px; }
+.brand-estimate-layout { display: flex; align-items: center; justify-content: space-between; gap: 44px; }
+.production-page .brand-site .brand-estimate h2 { font-size: 23px; letter-spacing: -.03em; line-height: 1.2; }
+.production-page .brand-site .brand-estimate p { margin-top: 7px; max-width: 560px; font-size: 14px; line-height: 1.6; }
+.brand-estimate .brand-cta { flex: none; min-height: 46px; padding: 13px 20px; gap: 14px; }
 
 @media(max-width: 850px) {
-  .brand-estimate { padding-block: 56px; }
-  .brand-estimate-layout { grid-template-columns: 1fr; gap: 34px; }
-  .brand-estimate-inputs > div { grid-template-columns: 88px minmax(0, 1fr); font-size: 12.5px; padding: 13px 0; }
+  .brand-estimate { padding-block: 26px; }
+  .brand-estimate-layout { flex-direction: column; align-items: flex-start; gap: 20px; }
+  .production-page .brand-site .brand-estimate p { font-size: 13.5px; }
 }

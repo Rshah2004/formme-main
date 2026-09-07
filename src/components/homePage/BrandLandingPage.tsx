@@ -42,17 +42,10 @@ function EstimateSection() {
   return <section className="brand-estimate" aria-labelledby="brand-estimate-title">
     <div className="brand-container brand-estimate-layout reveal">
       <div>
-        <span className="brand-kicker">BEFORE YOU COMMIT</span>
-        <h2 id="brand-estimate-title">Know what<br /><span>it costs.</span></h2>
-        <p>Pick a garment, a decoration method and a quantity. The cost predictor gives you a per-unit and total estimate in seconds — no conversation required.</p>
-        <Link className="brand-cta" to="/cost-predictor">Estimate your cost <ArrowUpRight size={18} /></Link>
+        <h2 id="brand-estimate-title">Know what it costs.</h2>
+        <p>Pick a garment, a decoration and a quantity — get a per-unit and total estimate in seconds. T-shirts and hoodies, from 20 pieces.</p>
       </div>
-      <dl className="brand-estimate-inputs" aria-label="What the cost predictor asks for">
-        <div><dt>Garment</dt><dd>T-shirt or hoodie</dd></div>
-        <div><dt>Decoration</dt><dd>Printing, or with embroidery</dd></div>
-        <div><dt>Quantity</dt><dd>From 20 pieces</dd></div>
-        <div className="brand-estimate-result"><dt>You get</dt><dd>Cost per unit &amp; total</dd></div>
-      </dl>
+      <Link className="brand-cta" to="/cost-predictor">Estimate your cost <ArrowUpRight size={18} /></Link>
     </div>
   </section>;
 }
