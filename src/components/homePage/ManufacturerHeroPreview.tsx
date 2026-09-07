@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowUpRight, CheckCheck, ClipboardList, Factory, Layers3, Package, Truck } from 'lucide-react';
+import { ArrowUpRight, CheckCheck, Factory } from 'lucide-react';
 import { Badge, Progress } from './ProductionUI';
 import { previewOrders } from './productionPreviewData';
 
@@ -12,13 +12,13 @@ export function ManufacturerHeroPreview() {
     <div className="manufacturer-hero-preview" aria-label="Interactive factory production overview">
       <div className="factory-hero-window">
         <div className="factory-hero-titlebar">
-          <span><Factory size={17} /> Factory operations</span>
+          <span>Factory operations</span>
           <span className="factory-hero-example">Example workspace</span>
         </div>
         <div className="factory-hero-body">
           <div className="factory-hero-heading">
             <div><span>THE PRODUCTION FLOOR</span><h2>Every line. One clear view.</h2></div>
-            <span className="factory-hero-icon"><Layers3 size={22} /></span>
+            
           </div>
           <div className="factory-hero-stats">
             <div><span>Active orders</span><strong>03</strong></div>
@@ -36,13 +36,13 @@ export function ManufacturerHeroPreview() {
             ))}
           </div>
           <div className="factory-hero-selection" aria-live="polite">
-            <span><ClipboardList size={16} /><strong>{selected.id}</strong></span>
+            <span><strong>{selected.id}</strong></span>
             <span>{selected.quantity} pieces · Target {selected.due}</span>
           </div>
         </div>
       </div>
       <div className="factory-hero-bottom">
-        <div className="factory-hero-dispatch"><span className="factory-hero-bottom-icon"><Truck size={19} /></span><div><span>UP NEXT</span><strong>Plan dispatch with confidence.</strong><small>Production and shipment details, together.</small></div><Package size={17} /></div>
+        <div className="factory-hero-dispatch"><div><span>UP NEXT</span><strong>Plan dispatch with confidence.</strong><small>Production and shipment details, together.</small></div></div>
         <div className="factory-hero-sync"><CheckCheck size={18} /><span><strong>Brand kept in the loop</strong><small>The same order. The latest progress.</small></span><ArrowUpRight size={15} /></div>
       </div>
     </div>

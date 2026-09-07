@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useInView, useReducedMotion } from 'framer-motion';
-import { ArrowRight, Check, CheckCheck, Factory, FileCheck2, FileText, Package, Pause, Play, ShieldCheck, Truck } from 'lucide-react';
+import { ArrowRight, Check, CheckCheck, Factory, Pause, Play } from 'lucide-react';
 import type { Audience } from './theme';
 import { Badge, DetailRows, Progress, SectionHeading } from './ProductionUI';
 import { previewOrders } from './productionPreviewData';
@@ -35,11 +35,11 @@ function GarmentSummary() {
 function QualityPreview({ manufacturer = false }: { manufacturer?: boolean }) {
   return (
     <div className="workflow-quality">
-      <div className="workflow-quality-header"><ShieldCheck size={20} /><div><strong>{manufacturer ? 'Pre-shipment inspection' : 'Sample review · Round 02'}</strong><span>{manufacturer ? 'Inspection report / FM-HOOD-004' : 'Comments and approvals, kept with the order'}</span></div><Badge tone="green">{manufacturer ? 'Passed' : 'Approved'}</Badge></div>
+      <div className="workflow-quality-header"><div><strong>{manufacturer ? 'Pre-shipment inspection' : 'Sample review · Round 02'}</strong><span>{manufacturer ? 'Inspection report / FM-HOOD-004' : 'Comments and approvals, kept with the order'}</span></div><Badge tone="green">{manufacturer ? 'Passed' : 'Approved'}</Badge></div>
       {['Measurements within tolerance', 'Fabric and finish confirmed', manufacturer ? 'Stitching and construction checked' : 'Revised cuff approved'].map(item => (
         <div className="workflow-check" key={item}><Check size={15} /><span>{item}</span><span>Confirmed</span></div>
       ))}
-      <div className="workflow-note"><FileCheck2 size={16} /><span>{manufacturer ? 'Inspection photos and report shared with the brand.' : '“The revised fit looks great. Ready for production.”'}</span></div>
+      <div className="workflow-note"><span>{manufacturer ? 'Inspection photos and report shared with the brand.' : '“The revised fit looks great. Ready for production.”'}</span></div>
     </div>
   );
 }
@@ -55,7 +55,7 @@ function LinePlan() {
           <div className="production-progress-label"><Progress value={order.progress} label={`${order.line} progress`} /><span>{order.progress}%</span></div>
         </div>
       ))}
-      <div className="workflow-note"><Factory size={16} /> Three active lines. Every order connected to its brand.</div>
+      <div className="workflow-note">Three active lines. Every order connected to its brand.</div>
     </div>
   );
 }
@@ -83,11 +83,11 @@ function WorkflowPreview({ audience, step }: { audience: Audience; step: number 
     if (step === 4) return <><GarmentSummary /><DetailRows rows={[
       ['Quality check', <Badge tone="green" key="qc"><Check size={12} /> Passed</Badge>],
       ['Packing list', '600 pieces / 30 cartons'], ['Shipment status', 'Ready for dispatch'], ['Delivery details', 'Shared with brand'],
-    ]} /><div className="workflow-note"><Truck size={16} /> Dispatch details stay with the production order.</div></>;
+    ]} /><div className="workflow-note">Dispatch details stay with the production order.</div></>;
     return <><GarmentSummary /><DetailRows rows={[
-      ['Tech pack', <span className="production-confirmed" key="pack"><FileText size={14} /> Available for review</span>],
+      ['Tech pack', <span className="production-confirmed" key="pack">Available for review</span>],
       ['Requested quantity', '600 pieces'], ['Fabric', '420 GSM cotton'], ['Target delivery', '18 Sep'],
-    ]} /><div className="workflow-note"><FileCheck2 size={16} /> Confirm feasibility and clarify production requirements.</div></>;
+    ]} /><div className="workflow-note">Confirm feasibility and clarify production requirements.</div></>;
   }
   if (step === 1) return (
     <div className="workflow-factory-match">
@@ -99,12 +99,12 @@ function WorkflowPreview({ audience, step }: { audience: Audience; step: number 
   if (step === 3) return <><GarmentSummary /><DetailRows rows={[
     ['Sample', <Badge tone="green" key="approved"><Check size={12} /> Approved</Badge>],
     ['Production quantity', '600 pieces'], ['Size run', 'XS – XXL'], ['Production parameters', 'Agreed with factory'],
-  ]} /><div className="workflow-note"><Package size={16} /> The approved product and production plan stay connected.</div></>;
+  ]} /><div className="workflow-note">The approved product and production plan stay connected.</div></>;
   if (step === 4) return <StageProgress />;
   return <><GarmentSummary /><DetailRows rows={[
     ['Tech pack', <span className="production-confirmed" key="upload"><Check size={14} /> Uploaded</span>],
     ['Quantity', '600 pieces'], ['Target delivery', '18 Sep'], ['Fabric', '420 GSM cotton'],
-  ]} /><div className="workflow-note"><FileText size={16} /> One brief for your brand and manufacturing partner.</div></>;
+  ]} /><div className="workflow-note">One brief for your brand and manufacturing partner.</div></>;
 }
 
 function WorkflowSteps({ audience }: { audience: Audience }) {

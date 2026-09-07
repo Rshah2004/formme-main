@@ -158,3 +158,17 @@
     transform: translateY(-1px);
   }
 }
+
+/* Product dropdown: labels underline on hover instead of the row tinting, and
+   the items carry no icons — the label is the whole affordance. */
+.product-menu-item .product-menu-label {
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color .18s ease;
+}
+.product-menu-item:hover .product-menu-label,
+.product-menu-item:focus-visible .product-menu-label {
+  text-decoration-color: currentColor;
+}

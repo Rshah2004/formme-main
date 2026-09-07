@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Mail, CheckCircle2, Clock } from "lucide-react";
-import { BG, LAVENDER, INK, MUTED2, BORDER, PURPLE, PURPLE_BG } from "@/components/homePage/theme";
+import { BG, LAVENDER, INK, MUTED2, BORDER, PURPLE, PURPLE_TEXT, PURPLE_BG } from "@/components/homePage/theme";
 import { Eyebrow, Logo, LandingHeader, LandingFooter } from "@/components/homePage/LandingChrome";
 
 type UserRole = "designer" | "manufacturer";
@@ -17,7 +17,7 @@ type AuthMode = "signin" | "signup" | "verify-email" | "reset-password" | "reque
 const WAITLIST_URL = "https://docs.google.com/forms/d/e/1FAIpQLScV3VYQ9HgNmI4IYHwFgt2ALaeXy9iSLmB6PYtd2Z-1YWhUpg/viewform?usp=header";
 
 /* Shared field styling — overrides the shadcn defaults to match the new theme */
-const inputCls = "border-[#E7E3F5] bg-white focus-visible:ring-[#5D52D6] focus-visible:ring-offset-0";
+const inputCls = "border-[#E4E0F0] bg-white focus-visible:ring-[#5D52D6] focus-visible:ring-offset-0";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -345,13 +345,13 @@ const handleResetPassword = async (e: React.FormEvent) => {
       <SEO title="Join the waitlist" canonical="/auth" noindex={true} />
       <LandingHeader />
       <div className="flex-1 flex items-center justify-center p-4 pt-32 pb-16" style={{ background: LAVENDER }}>
-        <Card className="w-full max-w-2xl p-8 bg-white text-[#15131C] shadow-lg rounded-2xl" style={{ border: `1px solid ${BORDER}` }}>
+        <Card className="w-full max-w-2xl p-8 bg-white text-[#17141F] shadow-lg rounded-2xl" style={{ border: `1px solid ${BORDER}` }}>
 
         {/* Verify Email Screen */}
         {mode === "verify-email" && (
           <div className="text-center py-8">
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: PURPLE_BG }}>
-              <Mail className="w-8 h-8" style={{ color: PURPLE }} />
+              <Mail className="w-8 h-8" style={{ color: PURPLE_TEXT }} />
             </div>
             <h1 className="font-dm-sans font-semibold text-2xl mb-2" style={{ color: INK }}>Verify your email</h1>
             <p className="mb-6 font-inter" style={{ color: MUTED2 }}>
@@ -364,7 +364,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
             <Button
               variant="outline"
               onClick={() => setMode("signin")}
-              className="mr-2 border-[#E7E3F5] text-[#15131C] hover:bg-[#F2EFFC]"
+              className="mr-2 border-[#E4E0F0] text-[#17141F] hover:bg-[#F6F3FD]"
             >
               Back to Sign In
             </Button>
@@ -375,7 +375,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
         {mode === "request-submitted" && (
           <div className="text-center py-8">
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: PURPLE_BG }}>
-              <Clock className="w-8 h-8" style={{ color: PURPLE }} />
+              <Clock className="w-8 h-8" style={{ color: PURPLE_TEXT }} />
             </div>
             <h1 className="font-dm-sans font-semibold text-2xl mb-2" style={{ color: INK }}>Request Submitted</h1>
             <p className="mb-6 max-w-md mx-auto font-inter" style={{ color: MUTED2 }}>
@@ -387,7 +387,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
             <Button
               variant="outline"
               onClick={() => setMode("signin")}
-              className="border-[#E7E3F5] text-[#15131C] hover:bg-[#F2EFFC]"
+              className="border-[#E4E0F0] text-[#17141F] hover:bg-[#F6F3FD]"
             >
               Back to Sign In
             </Button>
@@ -399,7 +399,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
           <div>
             <div className="text-center mb-6">
               <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: PURPLE_BG }}>
-                <CheckCircle2 className="w-8 h-8" style={{ color: PURPLE }} />
+                <CheckCircle2 className="w-8 h-8" style={{ color: PURPLE_TEXT }} />
               </div>
               <h1 className="font-dm-sans font-semibold text-2xl mb-2" style={{ color: INK }}>Set new password</h1>
               <p className="font-inter" style={{ color: MUTED2 }}>
@@ -433,7 +433,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
               </div>
               <Button
                 type="submit"
-                className="w-full h-11 rounded-xl bg-[#5D52D6] hover:bg-[#4a41c4] text-white"
+                className="w-full h-11 rounded-xl bg-[#5D52D6] hover:bg-[#4A3FBF] text-white"
                 disabled={isLoading}
               >
                 {isLoading ? "Updating..." : "Update Password"}
@@ -513,13 +513,13 @@ const handleResetPassword = async (e: React.FormEvent) => {
                 type="button"
                 onClick={handleForgotPassword}
                 className="text-sm hover:underline font-inter"
-                style={{ color: PURPLE }}
+                style={{ color: PURPLE_TEXT }}
               >
                 Forgot password?
               </button>
               <Button
                 type="submit"
-                className="w-full h-11 rounded-xl bg-[#5D52D6] hover:bg-[#4a41c4] text-white shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all"
+                className="w-full h-11 rounded-xl bg-[#5D52D6] hover:bg-[#4A3FBF] text-white shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all"
                 disabled={isLoading}
               >
                 {isLoading ? "Signing in..." : "Sign In"}
@@ -532,14 +532,14 @@ const handleResetPassword = async (e: React.FormEvent) => {
               <form onSubmit={handleSignUp} className="space-y-5">
                 <div>
                   <Label className="text-sm font-medium mb-2 block">I am a...</Label>
-                  <div className="flex gap-1 bg-[#F2EFFC] p-1 rounded-xl">
+                  <div className="flex gap-1 bg-[#F6F3FD] p-1 rounded-xl">
                     <button
                       type="button"
                       onClick={() => setUserRole("designer")}
                       className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all shadow-[0_2px_8px_rgba(0,0,0,0.06)] ${
                         userRole === "designer"
                           ? "bg-[#5D52D6] text-white"
-                          : "bg-white text-[#15131C] border border-[#E7E3F5] hover:bg-[#F2EFFC]"
+                          : "bg-white text-[#17141F] border border-[#E4E0F0] hover:bg-[#F6F3FD]"
                       }`}
                     >
                       Brand
@@ -550,7 +550,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all shadow-[0_2px_8px_rgba(0,0,0,0.06)] ${
                         userRole === "manufacturer"
                           ? "bg-[#5D52D6] text-white"
-                          : "bg-white text-[#15131C] border border-[#E7E3F5] hover:bg-[#F2EFFC]"
+                          : "bg-white text-[#17141F] border border-[#E4E0F0] hover:bg-[#F6F3FD]"
                       }`}
                     >
                       Manufacturer
@@ -625,7 +625,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                   <Label className="text-sm font-medium mb-2 block">Categories</Label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {categoriesOptions.map((category) => (
-                      <label key={category} className="flex items-center gap-2 rounded-lg border border-[#E7E3F5] bg-white px-3 py-2 text-sm">
+                      <label key={category} className="flex items-center gap-2 rounded-lg border border-[#E4E0F0] bg-white px-3 py-2 text-sm">
                         <input
                           type="checkbox"
                           checked={formData.categories.includes(category)}
@@ -781,7 +781,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       <Label className="text-sm font-medium mb-2 block">Capabilities</Label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                         {capabilitiesOptions.map((capability) => (
-                          <label key={capability} className="flex items-center gap-2 rounded-lg border border-[#E7E3F5] bg-white px-3 py-2 text-sm">
+                          <label key={capability} className="flex items-center gap-2 rounded-lg border border-[#E4E0F0] bg-white px-3 py-2 text-sm">
                             <input
                               type="checkbox"
                               checked={formData.capabilities.includes(capability)}
@@ -800,7 +800,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                   </div>
                 )}
 
-                <Button type="submit" className="w-full h-11 rounded-xl bg-[#5D52D6] hover:bg-[#4a41c4] text-white" disabled={isLoading}>
+                <Button type="submit" className="w-full h-11 rounded-xl bg-[#5D52D6] hover:bg-[#4A3FBF] text-white" disabled={isLoading}>
                   {isLoading ? "Creating account..." : "Create Account"}
                 </Button>
               </form>
@@ -808,14 +808,14 @@ const handleResetPassword = async (e: React.FormEvent) => {
             <div className="space-y-6">
               <div>
                 <Label className="text-sm font-medium mb-2 block">I am a...</Label>
-                <div className="flex gap-1 bg-[#F2EFFC] p-1 rounded-xl">
+                <div className="flex gap-1 bg-[#F6F3FD] p-1 rounded-xl">
                   <button
                     type="button"
                     onClick={() => setUserRole("designer")}
                     className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all shadow-[0_2px_8px_rgba(0,0,0,0.06)] ${
                       userRole === "designer"
                         ? "bg-[#5D52D6] text-white"
-                        : "bg-white text-[#15131C] border border-[#E7E3F5] hover:bg-[#F2EFFC]"
+                        : "bg-white text-[#17141F] border border-[#E4E0F0] hover:bg-[#F6F3FD]"
                     }`}
                   >
                     Brand
@@ -826,7 +826,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                     className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all shadow-[0_2px_8px_rgba(0,0,0,0.06)] ${
                       userRole === "manufacturer"
                         ? "bg-[#5D52D6] text-white"
-                        : "bg-white text-[#15131C] border border-[#E7E3F5] hover:bg-[#F2EFFC]"
+                        : "bg-white text-[#17141F] border border-[#E4E0F0] hover:bg-[#F6F3FD]"
                     }`}
                   >
                     Manufacturer
@@ -853,7 +853,7 @@ const handleResetPassword = async (e: React.FormEvent) => {
                       : WAITLIST_URL;
                     window.open(url, "_blank", "noopener,noreferrer");
                   }}
-                  className="w-full mt-3 h-11 rounded-xl bg-[#5D52D6] hover:bg-[#4a41c4] text-white"
+                  className="w-full mt-3 h-11 rounded-xl bg-[#5D52D6] hover:bg-[#4A3FBF] text-white"
                 >
                   Join Waitlist
                 </Button>

@@ -16,7 +16,7 @@ export function VisibilityPreview() {
       <section className="visibility-hero" aria-labelledby="visibility-title">
         <div className="visibility-copy">
           <span className="production-eyebrow">COMING SOON</span>
-          <h1 id="visibility-title">See beyond<br />production.<em>A clearer view of<br />what goes into every order.</em></h1>
+          <h1 id="visibility-title">Know what goes<br />into your order.</h1>
           <p>We’re building deeper visibility into the materials, partners and processes behind every Formme order.</p>
           <a className="production-button" href={`${CONTACT_HREF}?subject=${encodeURIComponent('Supply Chain Visibility — Early Access')}`}>Join early access <ArrowRight size={17} /></a>
           <span className="visibility-contact-note">Email us to register your interest.</span>

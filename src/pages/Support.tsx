@@ -5,10 +5,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { SEO } from '@/components/SEO';
-import { BG, LAVENDER, INK, MUTED2 } from '@/components/homePage/theme';
+import { BG, LAVENDER, INK, MUTED2, BORDER, SURFACE, PURPLE } from '@/components/homePage/theme';
 import { Eyebrow, LandingHeader, LandingFooter } from '@/components/homePage/LandingChrome';
 
-const inputCls = 'border-[#E7E3F5] bg-white focus-visible:ring-[#5D52D6] focus-visible:ring-offset-0';
+const inputCls = 'border-[#E4E0F0] bg-white focus-visible:ring-[#5D52D6] focus-visible:ring-offset-0';
 
 const Support = () => {
   const [name, setName] = useState('');
@@ -59,12 +59,12 @@ const Support = () => {
             <span className="font-medium" style={{ color: INK }}>formme.design@gmail.com</span>.
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4 bg-white rounded-2xl p-6 sm:p-8" style={{ border: '1px solid #E7E3F5' }}>
+          <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl p-6 sm:p-8" style={{ background: SURFACE, border: `1px solid ${BORDER}` }}>
             <Input className={inputCls} placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} />
             <Input className={inputCls} type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
             <Input className={inputCls} placeholder="Order ID (optional)" value={orderId} onChange={(e) => setOrderId(e.target.value)} />
             <Textarea className={inputCls} placeholder="Describe your issue" value={message} onChange={(e) => setMessage(e.target.value)} rows={6} />
-            <Button type="submit" className="w-full h-11 rounded-xl bg-[#5D52D6] hover:bg-[#4a41c4] text-white" disabled={loading}>
+            <Button type="submit" className="w-full h-11 rounded-xl bg-[#5D52D6] hover:bg-[#4A3FBF] text-white" disabled={loading}>
               {loading ? 'Submitting...' : 'Submit Support Request'}
             </Button>
           </form>
