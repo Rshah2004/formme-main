@@ -57,7 +57,7 @@ function StepArrow() {
 }
 
 const steps = [
-  { id: 'brief', title: 'Bring your tech pack.', line: 'You send your tech pack and quantity. We take it from there.' },
+  { id: 'brief', title: 'Bring your design.', line: 'You send your tech pack and quantity. We take it from there.' },
   { id: 'partner', title: 'Find your people.', line: 'We match you from our network. You meet the factory.' },
   { id: 'production', title: 'Make it happen.', line: 'You approve the sample. We run production.' },
 ] as const;
