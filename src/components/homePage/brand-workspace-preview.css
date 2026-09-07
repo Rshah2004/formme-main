@@ -120,3 +120,8 @@
  .workspace-measurement-details summary { font-size: 11px; gap: 6px; }
  .workspace-measurement-details summary > span { font-size: 9px; }
 }
+
+/* The other things a sample gets signed off on. Deliberately a plain list —
+   these are judged by eye and by hand, not tabulated like measurements. */
+.workspace-also-checked { display: flex; flex-wrap: wrap; gap: 8px 10px; list-style: none; margin: 16px 0 0; padding: 0; }
+.workspace-also-checked li { padding: 7px 12px; border: 1px solid #e2dced; border-radius: 20px; background: #fbfafd; font-size: 11px; color: #5c5169; }

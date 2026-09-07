@@ -66,7 +66,7 @@
 }
 
 
-.production-page.about-page { background: var(--c-paper); }
+
 
 .production-page {
   --production-surface: var(--c-surface-2);
@@ -905,7 +905,7 @@
 }
 
 /* About page — the founder story, told with the same visual system as the rest of the site. */
-.about-hero { padding-block: 96px 40px; background: var(--c-surface-1); text-align: center; }
+.about-hero { padding-block: 96px 40px; background: var(--c-paper); text-align: center; }
 .about-hero-inner { max-width: 720px; margin-inline: auto; }
 .about-hero h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: clamp(38px, 4.8vw, 58px); line-height: 1.1; letter-spacing: -.02em; margin-top: 8px; }
 .about-hero h1 em { font-style: italic; color: var(--production-purple); }
