@@ -232,3 +232,12 @@
 /* 02 — partner */
 .production-page .making-partner > p { display: flex; align-items: center; gap: 5px; margin-top: 11px; font-size: 13px; color: #5c536b; }
 .production-page .making-partner-note { margin-top: 18px; font-size: 12px; line-height: 1.65; color: #685c77; max-width: 470px; }
+
+/* Touch targets. These links are 18px tall because they are a line of 12px
+   text — correct visually, but under half the 44px a finger needs. The hit
+   area is grown with a pseudo-element rather than padding so the type stays
+   where it was laid out and nothing reflows. */
+@media(max-width: 850px) {
+  .brand-link, .process-partner-link { position: relative; }
+  .brand-link::after, .process-partner-link::after { content: ''; position: absolute; inset: -13px 0; }
+}

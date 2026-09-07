@@ -1183,3 +1183,15 @@
 .production-page .factory-erp-cta p { max-width: 540px; margin-top: 20px; font-size: 16px; line-height: 1.75; }
 .factory-erp-cta .production-button { margin-top: 30px; }
 @media (max-width: 860px) { .factory-erp-grid { grid-template-columns: 1fr; gap: 26px; } .factory-erp { padding-block: 112px 66px; } }
+
+/* Touch targets below the tablet breakpoint. These are all single lines of
+   small type — 15-29px boxes, correct on a pointer, under half what a finger
+   needs. Grown with a pseudo-element so nothing reflows, except the toggle
+   buttons which have room to take real padding. */
+@media (max-width: 850px) {
+  .production-page .production-text-link,
+  .production-page .workflow-preview-footer button { position: relative; }
+  .production-page .production-text-link::after,
+  .production-page .workflow-preview-footer button::after { content: ''; position: absolute; inset: -13px 0; }
+  .production-page .overview-switch button { min-height: 44px; }
+}

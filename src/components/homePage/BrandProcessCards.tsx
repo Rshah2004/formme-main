@@ -35,15 +35,25 @@ function ReferenceImage({ kind, className = '' }: { kind: 'tee' | 'factory'; cla
 
 /* A hand-drawn arc rather than a rule: the section is about a sequence, and the
  * sketch language already belongs to the page through the tech-pack drawings. */
+/* Two drawings rather than one rotated. The wave reads as a wave only across a
+ * wide gap; turned on its side into a single-column stack it became a 130px
+ * squiggle that wandered rather than pointed. Narrow screens get a short
+ * straight drop instead — same dashed language, a third of the height. */
 function StepArrow() {
-  return <svg className="process-arrow" viewBox="0 0 130 28" fill="none" aria-hidden="true">
-    {/* Dashes on the arc only — a dashed head reads as broken rather than drawn. */}
-    {/* Two cubics forming a wave: dips to y23, rises to y6, settles at y10.
-        The head is angled to the final tangent (14 degrees), so it points along
-        the path where it lands rather than across it. */}
-    <path className="process-arrow-arc" d="M4 13C22 26 44 26 62 15C82 5 100 4 124 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="1.5 6" />
-    <path d="M116.8 3 124 10 114.4 12.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>;
+  return <>
+    <svg className="process-arrow process-arrow-wide" viewBox="0 0 130 28" fill="none" aria-hidden="true">
+      {/* Dashes on the arc only — a dashed head reads as broken rather than drawn. */}
+      {/* Two cubics forming a wave: dips to y23, rises to y6, settles at y10.
+          The head is angled to the final tangent (14 degrees), so it points along
+          the path where it lands rather than across it. */}
+      <path className="process-arrow-arc" d="M4 13C22 26 44 26 62 15C82 5 100 4 124 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="1.5 6" />
+      <path d="M116.8 3 124 10 114.4 12.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+    <svg className="process-arrow process-arrow-narrow" viewBox="0 0 12 38" fill="none" aria-hidden="true">
+      <path className="process-arrow-arc" d="M6 2V28" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="1.5 6" />
+      <path d="M1.8 26.4 6 32 10.2 26.4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  </>;
 }
 
 const steps = [
