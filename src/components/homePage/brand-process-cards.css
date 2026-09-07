@@ -20,7 +20,10 @@
 .process-attachment-open:hover, .process-attachment-remove:hover { background: #f2eef9; }
 .production-page .brand-site .process-timeline /* The later steps show the outcome, with one focal point per card. */
 .process-stop-partner, .process-stop-production { display: flex; flex-direction: column; }
-.process-stop-partner .process-partner-identity { display: flex; align-items: center; gap: 20px; margin-top: 20px; }
+/* No top margin: the other two stops start their visual at the top of the
+   evidence box, and this one was sitting 20px lower than both. The bottom
+   margin keeps the location line off the spec rows. */
+.process-stop-partner .process-partner-identity { display: flex; align-items: center; gap: 20px; margin-bottom: 16px; }
 .process-partner-identity > .process-reference-image { width: 110px; flex-shrink: 0; border-radius: 7px; }
 .process-partner-identity > div:last-child { min-width: 0; }
 .process-partner-identity h4 { max-width: 260px; font-size: clamp(20px, 3.7cqi, 26px); font-weight: 600; line-height: 1.15; letter-spacing: -.035em; }
