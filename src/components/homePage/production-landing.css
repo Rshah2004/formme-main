@@ -218,13 +218,7 @@
 .production-hero-centered .production-hero-note { justify-content: center; }
 
 /* ─── How it works ─── */
-.landing-steps { background: #fff; }
-.landing-step-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin: 0; padding: 0; list-style: none; counter-reset: none; }
-.landing-step-grid > li { padding: 30px 26px 32px; border: 1px solid var(--production-border); border-radius: 16px; background: #fbfaff; }
 /* The step number carries the card on its own, in place of a decorative icon. */
-.landing-step-number { display: block; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: .02em; color: var(--production-purple); line-height: 1; padding-bottom: 18px; margin-bottom: 18px; border-bottom: 1px solid var(--production-border); }
-.landing-step-grid h3 { font-family: 'DM Sans', sans-serif; font-size: 19px; font-weight: 600; letter-spacing: -.03em; margin-bottom: 9px; max-width: 15ch; }
-.landing-step-grid p { font-size: 13px; line-height: 1.75; }
 
 /* ─── What you can make ─── */
 .landing-specs { background: var(--production-lavender); }
@@ -552,8 +546,6 @@
   .connector-visual { width: 100%; max-width: 800px; margin-inline: auto; }
   }
 @media (max-width: 850px) {
-  .landing-step-grid { grid-template-columns: 1fr; gap: 14px; }
-  .landing-step-grid > li { padding: 24px 22px 26px; }
   .landing-spec-grid { grid-template-columns: 1fr 1fr; }
   .production-landing-brand .workflow-step-list strong { font-size: 10px; }
   .audience-panels-single .audience-panel { grid-template-columns: minmax(0, 1fr); gap: 30px; padding: 30px; }
@@ -578,10 +570,6 @@
   .production-final > div { align-items: flex-start; }
 }
 @media (max-width: 639px) {
-  .landing-step-grid > li { padding: 20px 18px 22px; border-radius: 13px; }
-  .landing-step-number { font-size: 13px; padding-bottom: 14px; margin-bottom: 14px; }
-  .landing-step-grid h3 { font-size: 16px; max-width: none; }
-  .landing-step-grid p { font-size: 12px; }
   .landing-spec-grid { grid-template-columns: 1fr; gap: 10px; }
   .landing-spec-grid > div { padding: 18px; }
   .landing-spec-grid strong { font-size: 16px; }

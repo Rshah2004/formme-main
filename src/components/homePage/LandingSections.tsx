@@ -4,56 +4,6 @@ import type { Audience } from './theme';
 
 type AudienceProps = { audience: Audience };
 
-const steps: Record<Audience, { title: string; text: string }[]> = {
-  brand: [
-    { title: 'Bring your tech pack', text: 'Send your tech pack, target quantity and timeline. The tech pack is what a factory quotes and produces against, so bring yours along — we take it from there.' },
-    { title: 'We match and coordinate', text: 'We put your order with a partner factory suited to your product and quantity, then handle the back-and-forth on your behalf.' },
-    { title: 'You approve and track', text: 'Review samples, approve the details, and follow production through quality checks to shipment in one workspace.' },
-  ],
-  manufacturer: [
-    { title: 'Receive order requirements', text: 'Tech packs, quantities, and delivery dates arrive in one place, so your team reviews feasibility without chasing email threads.' },
-    { title: 'Plan and run production', text: 'Assign lines, record progress against each stage, and keep cutting through packing on a single order record.' },
-    { title: 'Update once, everyone sees it', text: 'Progress you record on the floor reaches the brand automatically — fewer status calls, less time spent reporting.' },
-  ],
-};
-
-export function HowItWorks({ audience }: AudienceProps) {
-  return (
-    <section className="production-section landing-steps" aria-labelledby="how-it-works-title">
-      <div className="production-container">
-        <div className="production-section-heading">
-          <div>
-            <span className="production-eyebrow">HOW IT WORKS</span>
-            <h2 id="how-it-works-title">Three steps, start to shipment.</h2>
-          </div>
-          <p>{audience === 'brand'
-            ? 'You stay close to the decisions that matter. We carry the coordination.'
-            : 'One record per order, shared between your floor and your customer.'}</p>
-        </div>
-        <ol className="landing-step-grid">
-          {steps[audience].map(({ title, text }, index) => (
-            <li key={title}>
-              <span className="landing-step-number">{String(index + 1).padStart(2, '0')}</span>
-              <h3>{title}</h3>
-              <p>{text}</p>
-            </li>
-          ))}
-        </ol>
-      </div>
-    </section>
-  );
-}
-
-/* Every figure below comes from the partner factory records in ManufacturerShowcase. */
-const specs = [
-  { label: 'Minimum order', value: 'From 30 pieces', note: 'Per style, at our low-MOQ partners' },
-  { label: 'Bulk lead time', value: '3–4 weeks', note: 'After samples are approved' },
-  { label: 'Where we produce', value: 'Bangladesh & China', note: 'Export-ready for USA, Canada, UK, Europe, Australia' },
-  { label: 'Factory certifications', value: 'BSCI · SEDEX · OEKO-TEX', note: 'WRAP and ACCORD certified partners' },
-];
-
-const productTypes = ['Hoodies & sweatshirts', 'T-shirts & knits', 'Fleece', 'Wovens', 'Outerwear', 'Sportswear', 'Intimates'];
-
 export function ProductionSpecs() {
   return (
     <section className="production-section landing-specs" aria-labelledby="specs-title">

@@ -4,7 +4,7 @@ import { ArrowDown, ArrowRight, Check, CheckCheck, Factory, FileText, LayoutGrid
 import { CONTACT_HREF } from './LandingChrome';
 import { ManufacturerHeroPreview } from './ManufacturerHeroPreview';
 import { ProofStrip } from './ProofStrip';
-import { HowItWorks, LandingFaq, ProductionSpecs } from './LandingSections';
+import { LandingFaq, ProductionSpecs } from './LandingSections';
 import { WorkflowShowcase } from './WorkflowShowcase';
 import { Badge, Progress } from './ProductionUI';
 import { previewOrders } from './productionPreviewData';
@@ -125,7 +125,6 @@ export function ProductionLandingExperience({ audience }: AudienceProps) {
         )}
       </section>
 
-      <HowItWorks audience={audience} />
       <AudiencePanel audience={audience} />
       <WorkflowShowcase audience={audience} />
       {isBrand && <ProductionSpecs />}
