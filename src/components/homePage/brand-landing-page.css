@@ -99,7 +99,7 @@
 .brand-site .workspace-benefits { margin-block: 28px 35px; list-style: none; padding: 0; }.brand-site .workspace-benefits > li { display: flex; align-items: flex-start; gap: 10px; font-size: 12px; line-height: 1.6; margin-block: 14px; color: #eeeaf4; }.brand-site .workspace-benefits svg { color: #c4b2ee; margin-top: 2px; flex-shrink: 0; }
 .brand-site .workspace-preview-hint { display: flex; align-items: center; gap: 10px; color: #c4b2ee; font-size: 10px; }
 .brand-site .brand-workspace-demo { grid-column: 1; grid-row: 1; color: #232129; box-shadow: 0 18px 50px #0003; border: 1px solid #ffffff66; border-radius: 11px; }
-.brand-site .brand-workspace-panel { min-height: 530px; }
+.brand-site .brand-workspace-panel { min-height: 665px; }
 .production-page .brand-site .brand-workspace-panel h3 { font-size: 29px; font-weight: 650; }
 .production-page .brand-site .brand-workspace-panel p { font-size: 13px; line-height: 1.65; color: #5a5265; }
 .production-page .brand-site .workspace-sample-card h3 { font-size: 34px; color: #fff; line-height: 1.07; }
@@ -139,7 +139,7 @@
  .brand-hero-bottom { padding-block: 20px; }.brand-hero-bottom > div { justify-content: center; font-size: 9px; gap: 8px 12px; }
  .brand-making { padding-block: 52px; }.brand-making-heading { display: block; margin-bottom: 30px; }.brand-making-heading > .brand-kicker { max-width: none; margin: 0 0 17px; }.brand-making-heading h2 { width: auto; }.production-page .brand-site h2 { font-size: 35px; }.brand-making-layout { grid-template-columns: 1fr; gap: 28px; }.brand-making-steps button > strong { font-size: 24px; }.brand-making-steps button { padding-block: 20px; }.production-page .brand-making-steps p { font-size: 13px; margin-bottom: 20px; }.brand-making-steps > .brand-link { margin-top: 24px; }
  .brand-making-preview { min-height: 500px; padding: 20px 17px; }.making-brief { grid-template-columns: .95fr 1fr; gap: 18px; padding-top: 17px; }.making-brief-materials { display: block; }.making-brief-drawing { padding: 12px 8px; }.making-brief-drawing > img { height: 174px; }.making-brief-drawing > span { font-size: 7px; }.making-sheet-heading { font-size: 8px; gap: 5px; }.making-sheet-heading > svg { width: 10px; }.making-fabric-note { padding: 7px; gap: 6px; right: -4px; }.making-fabric-note > i { width: 24px; height: 29px; }.making-fabric-note strong { font-size: 10px; }.making-brief-details { padding: 0; }.making-label { font-size: 9px; }.production-page .making-brief h3 { font-size: 29px; }.making-brief dl { font-size: 11px; margin-top: 15px; }.making-brief dl > div { gap: 7px; }.making-received { font-size: 10px; line-height: 1.5; margin-top: 16px; }.production-page .making-partner h3 { font-size: 30px; }.making-partner-icon { width: 42px; height: 42px; }.making-match { font-size: 10px; }.making-partner-file { padding-top: 18px; }.making-partner-header { margin-bottom: 17px; }.making-partner-note { margin-top: 13px; }.making-production-ticket { padding-top: 20px; }.production-page .making-production-title h3 { font-size: 26px; }.making-production-title > strong { font-size: 46px; }.making-production-title small { font-size: 16px; }.making-production li { font-size: 12px; }.making-shipment { font-size: 11px; }.making-shipment > strong { font-size: 11px; }
- .brand-site .brand-workspace-section { padding-block: 52px; }.production-page .brand-site .brand-workspace-section h2 { font-size: 36px; }.brand-site .brand-workspace-panel { min-height: 580px; }.production-page .brand-site .brand-workspace-panel h3 { font-size: 26px; }.production-page .brand-site .workspace-sample-card h3 { font-size: 27px; }
+ .brand-site .brand-workspace-section { padding-block: 52px; }.production-page .brand-site .brand-workspace-section h2 { font-size: 36px; }.brand-site .brand-workspace-panel { min-height: 670px; }.production-page .brand-site .brand-workspace-panel h3 { font-size: 26px; }.production-page .brand-site .workspace-sample-card h3 { font-size: 27px; }
  .brand-company { padding-block: 54px; }.brand-company-layout { grid-template-columns: 1fr; gap: 35px; }.brand-company figure img { height: 350px; }.brand-company figure { transform: rotate(1deg); }.brand-company-facts { gap: 40px; }.brand-company-facts strong { font-size: 28px; }
  .brand-faq { padding-block: 50px; }.brand-faq > div { grid-template-columns: 1fr; gap: 30px; }.brand-faq .brand-link { margin-top: 24px; }
  .brand-close { padding-block: 48px; }.production-page .brand-close h2 { font-size: 76px; margin-block: 23px 28px; }.brand-close h2 > svg { width: 65px; height: 65px; left: auto; right: 0; top: 25px; }.brand-close > div > div { align-items: flex-start; flex-direction: column; gap: 25px; }.production-page .brand-close p { font-size: 12px; }
@@ -154,7 +154,7 @@
  * Every step renders the same white card — head (icon + status), body, tinted
  * footer strip — so moving between them updates one artifact instead of
  * swapping three different layouts in and out. Only .making-doc-body varies. */
-.making-doc { display: flex; flex-direction: column; min-height: 470px; background: #fff; color: #25202e; border-radius: 9px; box-shadow: 0 12px 30px -20px #24174570; overflow: hidden; }
+.making-doc { display: flex; flex-direction: column; min-height: 490px; background: #fff; color: #25202e; border-radius: 9px; box-shadow: 0 12px 30px -20px #24174570; overflow: hidden; }
 .making-doc-head { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 20px 24px 0; }
 /* The step number, not a category icon: it ties the card to the stepper and
    actually carries information. */
@@ -171,6 +171,65 @@
 /* 01 — brief */
 .making-brief { display: grid; grid-template-columns: .92fr 1fr; gap: 26px; align-items: center; }
 .making-brief-materials { min-width: 0; padding: 7px 11px; }
+.making-doc .making-sheet-heading > span:last-child { margin-left: auto; color: #8a8098; }
+.making-doc .making-brief-drawing > img { height: 215px; filter: none; }
+.making-collection-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 17px; }
+.making-collection-tags > span { padding: 5px 8px; border: 1px solid #e2dbe9; border-radius: 4px; color: #645472; font-size: 11px; font-weight: 550; }
+.making-doc .making-brief dl { margin-top: 15px; }
+.making-doc .making-brief dl > div { padding-block: 10px; }
+.making-brief-ready { display: flex; align-items: flex-start; gap: 6px; margin-top: 16px; font-size: 10px; line-height: 1.5; color: #41614e; }
+.making-brief-ready > svg { flex-shrink: 0; margin-top: 1px; }
+.making-order-context { display: flex; align-items: center; gap: 13px; margin-top: 24px; padding: 15px; background: #f7f5fa; border: 1px solid #e7e1ed; border-radius: 6px; }
+.making-order-context > img { width: 43px; height: 51px; object-fit: contain; flex-shrink: 0; }
+.making-order-context strong { display: block; font-size: 15px; font-weight: 600; }
+.making-order-context > div > span { display: block; margin-top: 5px; font-size: 11px; color: #685c77; }
+.making-order-context > span { margin-left: auto; font-size: 10px; color: #41614e; }
+.making-team-plan { margin-top: 23px; }
+.production-page .making-team-plan p { font-size: 13px; line-height: 1.7; margin-top: 9px; color: #685c77; }
+.making-production-count { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; margin-top: 11px; font-size: 11px; line-height: 1.5; }
+.making-production-count strong { font-weight: 600; color: #574568; }
+.making-production-count > span { color: #766980; font-size: 10px; text-align: right; }
+.brand-making-preview { container-type: inline-size; }
+
+@container (max-width: 460px) {
+ .making-doc-head { padding: 18px 18px 0; gap: 10px; }
+ .making-doc-status { font-size: 10px; padding-inline: 9px; }
+ .making-doc-body { padding: 18px; }
+ .making-doc .making-brief { grid-template-columns: .85fr 1fr; gap: 15px; }
+ .making-doc .making-brief-materials { display: block; margin: 0; padding: 4px; align-self: center; }
+ .making-doc .making-brief-details { padding: 0; }
+ .making-doc .making-brief-drawing { padding: 12px 8px; }
+ .making-doc .making-brief-drawing > img { height: 170px; }
+ .making-doc .making-sheet-heading { font-size: 8px; }
+ .making-doc .making-brief-drawing > span { font-size: 7px; }
+ .production-page .making-doc .making-brief h3 { font-size: 30px; }
+ .making-doc .making-brief dl { font-size: 11px; }
+ .making-doc .making-brief dl > div { gap: 8px; }
+ .making-collection-tags > span { font-size: 10px; padding: 4px 6px; }
+ .making-doc-foot { padding: 14px 18px; }
+ .making-order-context { padding: 12px; gap: 10px; flex-wrap: wrap; }
+ .making-order-context > span { margin-left: 53px; }
+ .making-production-count { flex-direction: column; gap: 4px; }
+ .making-production-count > span { text-align: left; }
+}
+@container (max-width: 280px) {
+ .making-doc { min-height: 620px; }
+ .making-doc .making-brief { grid-template-columns: 1fr; }
+ .making-doc .making-brief-materials { width: 140px; margin-inline: auto; }
+ .making-doc .making-brief-drawing > img { height: 130px; }
+ .making-doc .making-brief-details > .making-label { display: block; text-align: center; }
+ .production-page .making-doc .making-brief h3 { text-align: center; font-size: 27px; margin-top: 9px; }
+ .making-doc .making-brief h3 > br { display: none; }
+ .making-collection-tags { justify-content: center; margin-top: 12px; }
+ .making-doc .making-brief dl > div { flex-direction: row; }
+ .making-doc .making-brief dd { text-align: right; }
+ .making-doc-step { font-size: 21px; }
+ .making-doc-status { font-size: 9px; }
+ .making-doc .making-production-title { align-items: flex-start; }
+ .production-page .making-doc .making-production-title h3 { font-size: 25px; }
+ .making-doc .making-production-title > strong { font-size: 36px; }
+ .making-doc .making-production li { gap: 7px; font-size: 11px; }
+}
 
 /* 02 — partner */
 .production-page .making-partner > p { display: flex; align-items: center; gap: 5px; margin-top: 11px; font-size: 13px; color: #5c536b; }

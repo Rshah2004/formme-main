@@ -19,3 +19,9 @@
 - Downloaded at 1000px width; displayed with CSS object-fit. No image edits.
 
 blue-shirt-sketch.svg is an original illustrative line drawing for this example, not a manufacturing specification.
+
+## process-reference-brief.png and process-reference-factories.png
+
+- Screenshots supplied by the user on 2026-09-07 with instructions to use these exact product and factory images.
+- Copied without modification. `BrandProcessCards` displays only the relevant photo regions using CSS clipping, retaining the supplied pixels rather than generating replacements.
+- The surrounding interface is implemented in React and CSS. Factory details, certifications, fit scores, costs, and dates are illustrative example data supplied in the references, not verified factory claims.

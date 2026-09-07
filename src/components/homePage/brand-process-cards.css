@@ -1,0 +1,201 @@
+.brand-making-preview.process-preview {
+  container-type: inline-size;
+  display: block;
+  min-height: 0;
+  padding: 24px;
+  background: #f4f2f9;
+  border: 1px solid #e1dcea;
+  border-radius: 13px;
+  box-shadow: 0 14px 38px -28px #40334e30;
+  color: #292430;
+}
+.process-preview-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; color: #716980; font-size: 11px; font-weight: 650; letter-spacing: .04em; }
+.process-preview-heading > span:last-child { letter-spacing: 0; }
+.process-preview-progress { display: flex; gap: 6px; margin-block: 15px 25px; }
+.process-preview-progress > span { flex: 1; height: 3px; background: #e2dce9; }
+.process-preview-progress > .is-complete { background: #9b86e5; }
+.process-preview-production .process-preview-progress > .is-complete:last-child { background: #7156dc; }
+.process-card { min-width: 0; min-height: 580px; padding: 24px; background: #fff; border-radius: 11px; box-shadow: 0 10px 30px -22px #45375430; }
+.process-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
+.process-card-top > div { display: flex; flex-direction: column; gap: 6px; }
+.process-step-number { font-size: 29px; line-height: 1; font-weight: 650; color: #b6afc0; letter-spacing: -.04em; }
+.process-eyebrow { display: block; color: #756b84; font-size: 10px; line-height: 1.5; letter-spacing: .05em; font-weight: 650; }
+.process-status { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 7px 12px; border-radius: 25px; background: #e4f4eb; color: #277653; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.process-status > svg { flex-shrink: 0; }
+.production-page .brand-site .process-card h3 { margin: 0; font-size: clamp(22px, 4.2cqi, 29px); font-weight: 650; line-height: 1.18; letter-spacing: -.045em; color: #24202b; }
+.production-page .brand-site .process-preview p { font-size: 12px; line-height: 1.5; color: #756b84; }
+.production-page .brand-site .process-preview .process-card-intro { margin-top: 7px; font-size: 13px; line-height: 1.6; }
+.process-reference-image { position: relative; overflow: hidden; min-width: 0; border-radius: 5px; isolation: isolate; }
+.process-reference-image > img { position: absolute; display: block; max-width: none; height: auto; margin: 0; pointer-events: none; }
+.process-request-layout { display: grid; grid-template-columns: 1fr 1.65fr; gap: 26px; margin-top: 26px; }
+.process-product-reference { margin: 0; align-self: stretch; min-width: 0; overflow: hidden; background: #f7f7f9; border-radius: 8px; }
+.process-product-reference > .process-reference-image { width: 100%; border-radius: 0; }
+.process-product-reference figcaption { padding: 12px 18px 20px; }
+.process-product-reference figcaption > strong { display: block; color: #71667f; font-size: 9px; font-weight: 650; letter-spacing: .055em; }
+.process-product-reference figcaption > span { display: block; color: #776d84; font-size: 10px; line-height: 1.5; margin-top: 6px; }
+.process-request-details { min-width: 0; }
+.process-request-specs { margin: 0; }
+.process-request-specs > div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #e8e3ee; font-size: 12px; line-height: 1.4; }
+.process-request-specs > div:first-child { padding-top: 2px; }
+.process-request-specs dt { color: #81768d; }
+.process-request-specs dd { margin: 0; color: #292331; font-weight: 650; text-align: right; }
+.process-attachments-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 20px; }
+.process-attachments-heading > button { font-size: 9px; color: #6752aa; text-decoration: underline; text-underline-offset: 3px; }
+.process-attachments { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.process-attachment { display: flex; align-items: center; min-width: 0; border: 1px solid #e2dced; border-radius: 8px; background: #fdfcfe; }
+.process-attachment-open { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; padding: 10px 0 10px 10px; text-align: left; border-radius: 8px; }
+.process-file-icon { display: grid; place-items: center; flex-shrink: 0; width: 23px; height: 29px; color: #fff; background: #aaa7b3; border-radius: 3px; font-size: 10px; font-weight: 650; letter-spacing: .01em; }
+.process-file-icon.is-artwork { background: #fa891a; color: #fff4d6; font-size: 17px; font-weight: 550; }
+.process-attachment-open > span:last-child { min-width: 0; }
+.process-attachment-open strong { display: block; font-size: 10px; font-weight: 600; overflow-wrap: anywhere; }
+.process-attachment-open small { display: block; margin-top: 3px; font-size: 9px; color: #8b8199; }
+.process-attachment-remove { display: grid; place-items: center; flex-shrink: 0; width: 30px; min-height: 40px; color: #756b84; border-radius: 5px; }
+.process-attachment-open:hover, .process-attachment-remove:hover { background: #f2eef9; }
+.production-page .brand-site .process-preview .process-empty-files { font-size: 11px; margin-top: 12px; }
+.process-colourways { display: flex; align-items: center; gap: 20px; padding-top: 20px; margin-top: 24px; border-top: 1px solid #e8e3ee; }
+.process-colourways > div { display: flex; gap: 12px; }
+.process-colourways > div > span { display: block; width: 25px; height: 25px; border-radius: 50%; background: #f5f2e7; border: 1px solid #e7e4df; }
+.process-colourways > div > .is-selected { outline: 1px solid #8b8790; outline-offset: 2px; }
+.process-colourways > div > span:nth-child(2) { background: #3d3941; border-color: #3d3941; }
+.process-colourways > div > span:nth-child(3) { background: #dedede; border-color: #dedede; }
+.process-colourways > div > span:nth-child(4) { background: #b9cdd1; border-color: #b9cdd1; }
+/* The later steps show the outcome, with one focal point per card. */
+.process-card-partner, .process-card-production { display: flex; flex-direction: column; }
+.process-card-partner .process-card-top, .process-card-production .process-card-top { margin-bottom: 22px; }
+.process-partner-spotlight { margin-block: 28px; padding: 23px; border: 1px solid #e6e0ee; border-radius: 10px; background: #fdfcfe; }
+.process-partner-identity { display: flex; align-items: center; gap: 20px; margin-top: 20px; }
+.process-partner-identity > .process-reference-image { width: 110px; flex-shrink: 0; border-radius: 7px; }
+.process-partner-identity > div:last-child { min-width: 0; }
+.process-partner-identity h4 { max-width: 260px; font-size: clamp(20px, 3.7cqi, 26px); font-weight: 600; line-height: 1.15; letter-spacing: -.035em; }
+.production-page .brand-site .process-preview .process-partner-identity p { display: flex; align-items: center; gap: 5px; margin-top: 10px; font-size: 11px; }
+.process-partner-identity p > svg { flex-shrink: 0; }
+.process-partner-fit { margin-top: 24px; padding-top: 18px; border-top: 1px solid #e9e3ef; }
+.process-partner-fit ul { display: flex; flex-wrap: wrap; gap: 10px 22px; list-style: none; padding: 0; margin: 9px 0 0; }
+.process-partner-fit li { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #453c50; }
+.process-partner-fit li > svg { color: #398160; }
+.process-partner-link { display: inline-flex; align-items: center; align-self: flex-start; gap: 12px; margin-top: 22px; min-height: 30px; color: #4e3e6a; font-size: 12px; font-weight: 600; border-bottom: 1px solid #c7bbda; }
+.process-partner-link:hover { color: #7354c0; border-color: currentColor; }
+.process-next-sample { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: auto; padding: 18px 0 0; border-top: 1px solid #e9e3ef; }
+.process-next-sample strong { display: block; margin-top: 5px; color: #302738; font-size: 20px; font-weight: 600; line-height: 1.3; letter-spacing: -.025em; }
+.production-page .brand-site .process-preview .process-next-sample p { margin-top: 4px; }
+.process-next-sample > svg { flex-shrink: 0; color: #8d7daa; }
+.process-production-focus { display: flex; align-items: center; justify-content: center; gap: 34px; margin-block: 32px; }
+.process-progress-ring { position: relative; width: 174px; flex-shrink: 0; aspect-ratio: 1; }
+.process-progress-ring > svg { display: block; width: 100%; height: 100%; transform: rotate(-90deg); fill: none; stroke-width: 9; }
+.process-ring-track { stroke: #eeeaf4; }
+.process-ring-value { stroke: #8b73d7; stroke-linecap: round; }
+.process-progress-ring > div { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.process-progress-ring strong { color: #2d2536; font-size: 51px; font-weight: 600; line-height: 1; letter-spacing: -.06em; }
+.process-progress-ring strong > span { font-size: 27px; letter-spacing: -.04em; }
+.process-progress-ring > div > span { margin-top: 7px; color: #81738f; font-size: 12px; }
+.process-current-stage { min-width: 0; }
+.process-current-stage .process-eyebrow { display: flex; align-items: center; gap: 7px; }
+.process-current-stage .process-eyebrow > i { width: 6px; height: 6px; border-radius: 50%; background: #8b73d7; }
+.process-current-stage h4 { margin-top: 12px; color: #302738; font-size: clamp(24px, 4.6cqi, 32px); line-height: 1.12; letter-spacing: -.04em; font-weight: 600; }
+.production-page .brand-site .process-preview .process-current-stage p { margin-top: 12px; line-height: 1.6; }
+.process-stage-path { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0 0 30px; padding: 0; list-style: none; }
+.process-stage-path li { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.process-stage-path li::before { content: ''; position: absolute; height: 1px; background: #e4ddeb; left: calc(-50% + 13px); right: calc(50% + 13px); top: 10px; }
+.process-stage-path .is-current::before { background: #a694cf; }
+.process-stage-path li:first-child::before { display: none; }
+.process-stage-path li > span { display: grid; place-items: center; width: 21px; height: 21px; border-radius: 50%; border: 1px solid #d9d1e3; background: #fff; }
+.process-stage-path li.is-done > span { background: #e4f4eb; border-color: #e4f4eb; color: #398160; }
+.process-stage-path li.is-current > span { background: #8b73d7; border: 5px solid #f0ebfa; box-shadow: 0 0 0 1px #f0ebfa; }
+.process-stage-path li > strong { max-width: 95px; color: #8b7f97; font-size: 11px; font-weight: 500; line-height: 1.4; }
+.process-stage-path li.is-done > strong { color: #5c5169; }
+.process-stage-path li.is-current > strong { color: #5e458d; font-weight: 650; }
+.process-shipment-summary { display: flex; align-items: center; gap: 13px; padding: 18px; margin-top: auto; background: #f5f2fa; border-radius: 8px; }
+.process-shipment-summary > svg { flex-shrink: 0; color: #8b73b4; }
+.process-shipment-summary strong { display: block; margin-top: 4px; color: #392d46; font-size: 21px; font-weight: 600; letter-spacing: -.025em; }
+.process-shipment-summary > span { margin-left: auto; max-width: 115px; color: #81728f; font-size: 11px; line-height: 1.5; }
+.production-page .brand-site .process-preview .process-example-note { color: #83798f; font-size: 9px; line-height: 1.5; margin: 13px 2px 0; }
+.process-preview > :last-child { animation: none; }
+.process-preview :is(button, a):focus-visible { outline: 2px solid #6550bc; outline-offset: 3px; }
+.process-preview-dialog { width: calc(100% - 32px); max-width: 520px; max-height: calc(100dvh - 48px); overflow-y: auto; border-radius: 12px; border-color: #e3deec; background: #fff; color: #302638; font-family: 'DM Sans', sans-serif; }
+.process-preview-dialog > div:first-child { text-align: left; }
+.process-preview-dialog h2 { font-family: 'DM Sans', sans-serif; font-size: 21px; font-weight: 650; letter-spacing: -.03em; color: #302638; line-height: 1.25; padding-right: 15px; }
+.process-preview-dialog > div:first-child p { color: #81728e; font-size: 12px; line-height: 1.6; }
+.process-preview-dialog > .process-reference-image { width: 130px; }
+.process-dialog-location { display: flex; align-items: center; gap: 6px; color: #81728e; font-size: 12px; }
+.process-dialog-capabilities { color: #675775; font-size: 13px; }
+.process-attachment-preview { width: 180px; margin-inline: auto; }
+
+@container (max-width: 590px) {
+  .process-card { padding: 20px; }
+  .process-attachments { grid-template-columns: 1fr; }
+}
+@container (max-width: 430px) {
+  .process-card { padding: 17px; min-height: 0; }
+  .process-card-top { gap: 10px; }
+  .process-step-number { font-size: 26px; }
+  .process-status { font-size: 10px; padding: 6px 9px; gap: 5px; }
+  .process-eyebrow { font-size: 9px; }
+  .production-page .brand-site .process-card h3 { font-size: 24px; }
+  .production-page .brand-site .process-preview .process-card-intro { font-size: 12px; }
+  .process-request-layout { grid-template-columns: 1fr; gap: 15px; margin-top: 20px; }
+  .process-product-reference { display: grid; grid-template-columns: 1fr 1fr; align-items: center; }
+  .process-attachments { grid-template-columns: 1fr 1fr; }
+  .process-product-reference figcaption { padding: 10px 12px; }
+  .process-product-reference figcaption > strong { font-size: 8px; }
+  .process-product-reference figcaption > span { font-size: 9px; }
+  .process-request-specs > div { font-size: 11px; gap: 8px; }
+  .process-attachment-open { gap: 6px; padding-left: 8px; }
+  .process-attachment-open strong { font-size: 9px; }
+  .process-file-icon { width: 19px; height: 25px; }
+  .process-attachment-remove { width: 26px; }
+  .process-colourways { gap: 15px; }
+  .process-colourways > div { gap: 10px; }
+}
+@container (max-width: 300px) {
+  .process-card { padding: 15px; }
+  .process-preview-heading { font-size: 10px; }
+  .process-card-top .process-status { font-size: 9px; padding: 6px 7px; }
+  .process-card-top .process-status svg { width: 12px; }
+  .process-request-layout { grid-template-columns: 1fr; }
+  .process-product-reference { display: grid; grid-template-columns: 1fr 1fr; align-items: center; }
+  .process-product-reference figcaption { padding-left: 4px; }
+  .process-attachments { grid-template-columns: 1fr 1fr; gap: 7px; }
+  .process-attachment { position: relative; }
+  .process-attachment-open { align-items: flex-start; padding: 9px 7px; gap: 6px; flex-direction: column; }
+  .process-attachment-remove { position: absolute; top: 2px; right: 2px; min-height: 30px; }
+  .process-colourways > div > span { width: 20px; height: 20px; }
+}
+@media (max-width: 540px) { .brand-making-preview.process-preview { padding: 16px; } }
+@media (prefers-reduced-motion: no-preference) {
+  .process-card { animation: process-card-in .25s ease-out; }
+  @keyframes process-card-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+  .process-ring-value { animation: process-ring-in .7s ease-out; }
+  @keyframes process-ring-in { from { stroke-dasharray: 0 100; } to { stroke-dasharray: 72 100; } }
+}
+
+@container (max-width: 430px) {
+  .process-partner-spotlight { padding: 18px; margin-block: 24px; }
+  .process-partner-identity { gap: 14px; }
+  .process-partner-identity > .process-reference-image { width: 78px; }
+  .process-partner-identity h4 { font-size: 20px; }
+  .production-page .brand-site .process-preview .process-partner-identity p { font-size: 10px; align-items: flex-start; }
+  .process-partner-fit ul { gap: 9px 14px; }
+  .process-partner-fit li { font-size: 11px; }
+  .process-production-focus { gap: 18px; margin-block: 30px; }
+  .process-progress-ring { width: 138px; }
+  .process-progress-ring strong { font-size: 42px; }
+  .process-progress-ring strong > span { font-size: 23px; }
+  .process-current-stage h4 { font-size: 25px; }
+  .production-page .brand-site .process-preview .process-current-stage p { font-size: 11px; }
+  .process-stage-path li { gap: 10px; }
+  .process-stage-path li > strong { font-size: 10px; max-width: 75px; }
+  .process-shipment-summary { flex-wrap: wrap; padding: 15px; }
+  .process-shipment-summary > span { flex-basis: 100%; max-width: none; margin-left: 35px; }
+}
+@container (max-width: 300px) {
+  .process-partner-spotlight { padding: 15px; }
+  .process-partner-identity { flex-direction: column; align-items: flex-start; }
+  .process-partner-identity > .process-reference-image { width: 95px; }
+  .process-partner-fit ul { gap: 10px; }
+  .process-production-focus { gap: 16px; flex-direction: column; text-align: center; margin-block: 22px; }
+  .process-progress-ring { width: 156px; }
+  .process-current-stage .process-eyebrow { justify-content: center; }
+  .process-current-stage h4 { margin-top: 8px; }
+  .process-current-stage h4 > br { display: none; }
+  .process-stage-path { margin-block: 4px 24px; }
+}

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowDown, ArrowRight, ArrowUpRight, Check, Plus } from 'lucide-react';
 import { CONTACT_HREF } from './LandingChrome';
 import { BrandWorkspacePreview } from './BrandWorkspacePreview';
+import { BrandProcessCards } from './BrandProcessCards';
 import companyImage from '@/assets/about-formme-feature.jpg';
 import './brand-landing-page.css';
 
@@ -25,65 +26,12 @@ const makingSteps = [
 
 function MakingSection() {
   const [step, setStep] = useState<(typeof makingSteps)[number]['id']>('brief');
-  const currentIndex = makingSteps.findIndex(item => item.id === step);
   return <section className="brand-making" id="how-formme-works" aria-labelledby="brand-making-title">
     <div className="brand-container">
       <div className="brand-making-heading reveal"><span className="brand-kicker">LESS BACK-AND-FORTH. MORE MOVING FORWARD.</span><h2 id="brand-making-title">Your vision.<br />Our production <span>know-how.</span></h2></div>
       <div className="brand-making-layout reveal">
         <div className="brand-making-steps">{makingSteps.map((item, index) => <div className={step === item.id ? 'is-selected' : ''} key={item.id}><button type="button" id={`making-step-${item.id}`} aria-expanded={step === item.id} aria-controls="making-preview" onClick={() => setStep(item.id)}><span>0{index + 1}</span><strong>{item.title}</strong><ArrowUpRight size={20} /></button>{step === item.id && <p>{item.description}</p>}</div>)}<a className="brand-link" href={CONTACT_HREF}>Tell us what you’re making <ArrowRight size={16} /></a></div>
-        <div className={`brand-making-preview making-preview-${step}`} id="making-preview" role="region" aria-labelledby={`making-step-${step}`}>
-          <div className="making-preview-top"><span>THE FORMME PROCESS</span><span>0{currentIndex + 1} / 03 · Example</span></div>
-          <div className="making-preview-sequence" aria-hidden="true">{makingSteps.map((item, index) => <span key={item.id} className={index <= currentIndex ? 'is-complete' : ''} />)}</div>
-          {/* One document, three states. Each step fills the same card anatomy —
-              head (icon + status), body, tinted footer strip — so clicking
-              through reads as a single artifact progressing rather than three
-              separate layouts swapping places. */}
-          <div className="making-preview-scene" key={step}>
-            <div className="making-doc">
-              <div className="making-doc-head">
-                <span className="making-doc-step">0{currentIndex + 1}</span>
-                <span className="making-doc-status">
-                  <Check size={12} />
-                  {step === 'brief' && 'Brief shared with Formme'}
-                  {step === 'partner' && 'Matched by Formme'}
-                  {step === 'production' && 'Managed by Formme'}
-                </span>
-              </div>
-
-              {step === 'brief' && <>
-                <div className="making-doc-body making-brief">
-                  <div className="making-brief-materials">
-                    <div className="making-brief-drawing"><div className="making-sheet-heading"><span>YOUR DESIGN</span></div><img src="/images/essential-tee-sketch.svg" alt="Technical drawing of an oversized T-shirt" /><span>OVERSIZED T-SHIRT</span></div>
-                  </div>
-                  {/* The sketch caption already names the garment and the footer
-                      swatch already gives the colour, so the spec list carries only
-                      what they don't: what a factory actually quotes against. */}
-                  <div className="making-brief-details"><span className="making-label">YOUR PRODUCTION BRIEF</span><h3>The details<br />a factory needs.</h3><dl><div><dt>Fabric</dt><dd>240 GSM combed cotton</dd></div><div><dt>Sizes</dt><dd>XS–XXL</dd></div><div><dt>Quantity</dt><dd>600 pieces</dd></div><div><dt>Finish</dt><dd>Screen print, front</dd></div></dl></div>
-                </div>
-                <div className="making-doc-foot"><i className="making-swatch" aria-hidden="true" /><span>Colourway</span><strong>Off-white</strong></div>
-              </>}
-
-              {step === 'partner' && <>
-                <div className="making-doc-body making-partner">
-                  <span className="making-label">YOUR MANUFACTURING PARTNER</span><h3>Supreme Stitch</h3><p>Bangladesh</p>
-                  <div className="making-partner-connection"><span>Your brand</span><i aria-hidden="true" /><span className="making-connection-logo"><img src="/logo-mark.png" alt="Formme" /></span><i aria-hidden="true" /><span>Your factory</span></div>
-                  <p className="making-partner-note">Matched from the manufacturing network we’ve built — not a cold introduction. Your Formme team handles the handover and the first sample.</p>
-                </div>
-                <div className="making-doc-foot"><span>Next step</span><strong>Sampling</strong></div>
-              </>}
-
-              {step === 'production' && <>
-                <div className="making-doc-body making-production">
-                  <span className="making-label">YOUR COLLECTION, IN PRODUCTION</span>
-                  <div className="making-production-title"><h3>Coming<br />to life.</h3><strong>72<small>%</small></strong></div>
-                  <div className="making-progress" role="progressbar" aria-label="Example collection production" aria-valuenow={72} aria-valuemin={0} aria-valuemax={100}><span /></div>
-                  <ol><li><span className="making-stage-icon"><Check size={13} /></span><span>Sample approved by you</span><small>Done</small></li><li className="is-current"><span className="making-stage-icon"><i /></span><span>Sewing in progress</span><small>Now</small></li><li><span className="making-stage-icon" /><span>Quality check &amp; shipment</span><small>Next</small></li></ol>
-                </div>
-                <div className="making-doc-foot"><span>Estimated shipment</span><strong>18 September</strong></div>
-              </>}
-            </div>
-          </div>
-        </div>
+        <BrandProcessCards step={step} />
       </div>
     </div>
   </section>;
