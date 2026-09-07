@@ -1,26 +1,26 @@
-.visibility-preview { padding-top: 120px; background: #fff; }
+.visibility-preview { padding-top: 120px; background: var(--c-paper); }
 .visibility-hero { display: grid; grid-template-columns: 1fr 1.1fr; gap: 38px; align-items: center; padding-block: 25px 65px; }
 .visibility-copy h1 { font-family: 'DM Sans', sans-serif; font-size: clamp(38px, 4.5vw, 62px); font-weight: 600; line-height: 1.08; letter-spacing: -.04em; margin-top: 18px; }
-.visibility-copy h1 em { display: block; font-family: 'Cormorant Garamond', Georgia, serif; font-size: .92em; line-height: 1.14; font-weight: 500; color: #6344c9; margin-top: 22px; letter-spacing: -.025em; }
-.visibility-copy > p { font-size: 16px; line-height: 1.75; color: #62556f; max-width: 480px; margin-block: 28px 24px; }
-.visibility-contact-note { display: block; margin-top: 12px; font-size: 11px; color: #746580; }
+.visibility-copy h1 em { display: block; font-family: 'Cormorant Garamond', Georgia, serif; font-size: .92em; line-height: 1.14; font-weight: 500; color: var(--production-purple); margin-top: 22px; letter-spacing: -.025em; }
+.visibility-copy > p { font-size: 16px; line-height: 1.75; color: var(--c-muted); max-width: 480px; margin-block: 28px 24px; }
+.visibility-contact-note { display: block; margin-top: 12px; font-size: 11px; color: var(--c-muted); }
 .visibility-orbit { width: 100%; aspect-ratio: 600 / 560; position: relative; min-width: 0; }
-.visibility-connections { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; fill: none; stroke: #dacbf9; stroke-width: 1.6; stroke-dasharray: 4 5; }
-.visibility-connections circle { fill: #9875ec; stroke: #e3d7fc; stroke-width: 8px; stroke-dasharray: none; }
-.visibility-hub { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 31%; aspect-ratio: 1; display: grid; place-items: center; border: 1px solid #e2d6fb; border-radius: 50%; background: radial-gradient(circle, #dfd2ff, #f5f0ff); box-shadow: 0 15px 40px #7854cf14, 0 0 0 17px #f5f0ff65; }
+.visibility-connections { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; fill: none; stroke: var(--c-purple-100); stroke-width: 1.6; stroke-dasharray: 4 5; }
+.visibility-connections circle { fill: var(--c-purple-soft); stroke: var(--c-purple-100); stroke-width: 8px; stroke-dasharray: none; }
+.visibility-hub { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 31%; aspect-ratio: 1; display: grid; place-items: center; border: 1px solid var(--c-purple-100); border-radius: 50%; background: radial-gradient(circle, var(--c-purple-100), var(--c-purple-wash)); box-shadow: 0 15px 40px #06031a14, 0 0 0 17px #06031a65; }
 .visibility-hub img { height: 46%; width: auto; object-fit: contain; }
-.visibility-node { position: absolute; transform: translate(-50%, -50%); width: 29%; min-height: 112px; padding: 18px 9px; text-align: center; background: #f5f2fc; border: 1px solid #e2d8f2; border-radius: 18px; box-shadow: 0 12px 28px -18px #7854cf35; }
-.visibility-node > svg { color: #6747d2; margin: 0 auto 9px; }
+.visibility-node { position: absolute; transform: translate(-50%, -50%); width: 29%; min-height: 112px; padding: 18px 9px; text-align: center; background: var(--c-purple-wash); border: 1px solid var(--c-purple-100); border-radius: 18px; box-shadow: 0 12px 28px -18px #06031a35; }
+.visibility-node > svg { color: var(--production-purple); margin: 0 auto 9px; }
 .visibility-node h2 { font-size: 16px; font-weight: 600; letter-spacing: -.025em; }
-.visibility-node p { font-size: 12px; color: #62556f; margin-top: 4px; }
+.visibility-node p { font-size: 12px; color: var(--c-muted); margin-top: 4px; }
 .visibility-node-0 { left: 50%; top: 12%; }
 .visibility-node-1 { left: 85%; top: 37%; }
 .visibility-node-2 { left: 73%; top: 80%; }
 .visibility-node-3 { left: 27%; top: 85%; }
 .visibility-node-4 { left: 15%; top: 40%; }
-.visibility-next { display: grid; grid-template-columns: 1.1fr 1fr; gap: 80px; border-top: 1px solid #e6dcf7; padding-block: 48px 65px; align-items: center; }
+.visibility-next { display: grid; grid-template-columns: 1.1fr 1fr; gap: 80px; border-top: 1px solid var(--c-purple-100); padding-block: 48px 65px; align-items: center; }
 .visibility-next h2 { font-size: clamp(25px, 3vw, 38px); line-height: 1.2; font-weight: 600; letter-spacing: -.035em; margin-top: 15px; }
-.visibility-next > p { color: #62556f; font-size: 16px; line-height: 1.8; }
+.visibility-next > p { color: var(--c-muted); font-size: 16px; line-height: 1.8; }
 @media (max-width: 900px) {
   .visibility-hero { grid-template-columns: 1fr; gap: 30px; }
   .visibility-copy { max-width: 600px; }

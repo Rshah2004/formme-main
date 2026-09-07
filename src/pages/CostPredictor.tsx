@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { SEO } from '@/components/SEO';
-import { BG, LAVENDER, INK, MUTED2, BORDER, PURPLE, PURPLE_BG } from '@/components/homePage/theme';
+import { BG, LAVENDER, INK, MUTED2, BORDER, SURFACE, PURPLE, PURPLE_TEXT, PURPLE_BG } from '@/components/homePage/theme';
 import { Eyebrow, SolidButton, LandingHeader, LandingFooter, CONTACT_HREF } from '@/components/homePage/LandingChrome';
 import { useLandingReveal } from '@/components/homePage/useLandingReveal';
 import {
@@ -33,7 +33,7 @@ const OptionPill = ({
     style={
       active
         ? { background: PURPLE, color: '#fff', border: `1px solid ${PURPLE}` }
-        : { background: '#fff', color: INK, border: `1px solid ${BORDER}` }
+        : { background: BG, color: INK, border: `1px solid ${BORDER}` }
     }
   >
     {children}
@@ -67,7 +67,7 @@ const CostPredictor = () => {
           </div>
           <h1 className="reveal font-dm-sans font-semibold leading-[1.1] tracking-[-0.02em]" style={{ color: INK, fontSize: 'clamp(36px, 4.2vw, 54px)' }}>
             Know your cost<br />
-            <span className="font-cormorant italic font-medium" style={{ color: PURPLE }}>before you commit.</span>
+            <span className="font-cormorant italic font-medium" style={{ color: PURPLE_TEXT }}>before you commit.</span>
           </h1>
           <p className="reveal mt-6 max-w-xl mx-auto font-inter leading-relaxed" style={{ color: MUTED2, fontSize: '15px' }}>
             Pick a garment, a decoration method, and a quantity to get an instant estimate of production cost and total price.
@@ -79,7 +79,7 @@ const CostPredictor = () => {
       <section className="py-16 md:py-20 px-6" style={{ background: BG }}>
         <div className="reveal mx-auto max-w-[900px] grid md:grid-cols-2 gap-6 md:gap-8 items-start">
           {/* Inputs */}
-          <div className="rounded-2xl bg-white p-6 md:p-7 flex flex-col gap-6" style={{ border: `1px solid ${BORDER}` }}>
+          <div className="rounded-2xl p-6 md:p-7 flex flex-col gap-6" style={{ background: SURFACE, border: `1px solid ${BORDER}` }}>
             <div>
               <label className="block font-inter font-medium mb-3" style={{ color: INK, fontSize: '13px' }}>
                 Garment
@@ -118,7 +118,7 @@ const CostPredictor = () => {
                 value={quantityInput}
                 onChange={(e) => setQuantityInput(e.target.value)}
                 className="w-full rounded-xl px-4 py-3 text-[15px] font-inter focus:outline-none"
-                style={{ border: `1px solid ${BORDER}`, color: INK }}
+                style={{ background: BG, border: `1px solid ${BORDER}`, color: INK }}
               />
               <p className="mt-2 font-inter" style={{ color: MUTED2, fontSize: '12px' }}>
                 Minimum order is {MIN_QUANTITY} units.
@@ -129,7 +129,7 @@ const CostPredictor = () => {
           {/* Results */}
           <div
             className="rounded-2xl p-6 md:p-7 flex flex-col gap-5 min-h-[280px]"
-            style={{ background: result.status === 'ok' ? LAVENDER : '#F7F6FB', border: `1px solid ${BORDER}` }}
+            style={{ background: result.status === 'ok' ? LAVENDER : SURFACE, border: `1px solid ${BORDER}` }}
           >
             {result.status === 'below-minimum' && (
               <div className="flex-1 flex flex-col justify-center">
@@ -181,10 +181,10 @@ const CostPredictor = () => {
 
       {/* CTA */}
       <section className="py-20 md:py-24 px-6" style={{ background: LAVENDER }}>
-        <div className="reveal mx-auto max-w-[900px] rounded-2xl bg-white p-8 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6" style={{ border: `1px solid ${BORDER}` }}>
+        <div className="reveal mx-auto max-w-[900px] rounded-2xl p-8 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6" style={{ background: SURFACE, border: `1px solid ` }}>
           <div>
             <div className="inline-flex mb-3">
-              <span className="inline-flex items-center rounded-full px-3.5 py-1.5 text-[10px] uppercase tracking-[0.1em] font-inter font-medium" style={{ background: PURPLE_BG, color: PURPLE }}>
+              <span className="inline-flex items-center rounded-full px-3.5 py-1.5 text-[10px] uppercase tracking-[0.1em] font-inter font-medium" style={{ background: PURPLE_BG, color: PURPLE_TEXT }}>
                 Ready to move forward?
               </span>
             </div>
