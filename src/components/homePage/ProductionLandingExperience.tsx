@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDown, ArrowRight, Check, CheckCheck, Factory } from 'lucide-react';
+import { ArrowDown, ArrowRight, Check, CheckCheck } from 'lucide-react';
 import { CONTACT_HREF } from './LandingChrome';
 import { BrandProductionOverview } from './BrandProductionOverview';
 import { BrandWorkspacePreview } from './BrandWorkspacePreview';
@@ -98,17 +98,11 @@ export function ProductionLandingExperience({ audience }: AudienceProps) {
       {isBrand && <section className="brand-experience-strip" aria-label="The experience behind Formme"><div className="production-container"><div><span className="production-eyebrow">BUILT FROM EXPERIENCE</span><p>Fashion people.<br /><strong>Production people.</strong></p></div><div><strong>40+ years</strong><p>Combined manufacturing experience</p></div><div><strong>Both sides of the process</strong><p>A team that has built an apparel brand</p></div><Link to="/about" className="production-text-link">Meet Formme <ArrowRight size={16} /></Link></div></section>}
 
       {!isBrand && <AudiencePanel audience={audience} />}
+
       {isBrand ? <BrandWorkspacePreview /> : <WorkflowShowcase audience={audience} />}
       {!isBrand && <ConnectedWorkspaces audience={audience} />}
 
       {isBrand && <aside className="production-merch" aria-label="Merch production estimates"><div className="production-container"><div><div><h2>Planning your budget?</h2><p>Explore production cost estimates for custom T-shirts and hoodies.</p></div></div><Link className="production-button production-button-outline" to="/cost-predictor">Estimate your cost <ArrowRight size={15} /></Link></div></aside>}
-
-      <section className="production-section production-factory-story" aria-label="Built with manufacturers">
-        <div className="production-container factory-story-layout reveal">
-          <div><span className="production-eyebrow">PEOPLE BEHIND THE PRODUCTION</span><h2>{isBrand ? <>Your collection deserves<br />a team behind it.</> : <>Software designed<br />with the factory floor.</>}</h2><p>{isBrand ? 'Finding a factory is the start. We help turn your requirements into a production brief, coordinate with your manufacturing partner, and keep the next steps moving.' : 'Great software starts with understanding how the work gets done. We’re building Formme alongside manufacturers and designers, grounded in the realities of making clothes.'}</p><Link to="/about" className="production-text-link">The story behind Formme <ArrowRight size={15} /></Link><span className="factory-story-location">FOUNDED IN VANCOUVER · CONNECTING FASHION PRODUCTION</span></div>
-          <div className="factory-story-photo"><img src="/factory.jpg" alt="Garment workshop with sewing machines, fabric, and production equipment" loading="lazy" /><div className="factory-story-caption"><div><strong>Built with manufacturers.</strong><span>Made for the realities of apparel production.</span></div><CheckCheck size={19} /></div></div>
-        </div>
-      </section>
 
       <section className="production-section production-final" aria-label="Get in touch"><div className="production-container reveal"><h2>{isBrand ? 'Let’s make your' : 'Plan. Produce.'}<br />{isBrand ? 'next collection' : 'Inspect. Ship.'} <em>{isBrand ? 'happen.' : 'Connected.'}</em></h2><div><p>{isBrand ? 'Tell us what you’re making, your target quantity, and where you are in the process. We’ll discuss the right next step for your brand.' : <>Bring clarity to your factory operations.<br />Let’s build what’s next, together.</>}</p><a className="production-button" href={CONTACT_HREF}>{isBrand ? 'Discuss your collection' : 'Let’s talk about your factory'} <ArrowRight size={16} /></a></div></div></section>
     </main>

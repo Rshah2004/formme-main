@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 280" fill="none">
+  <g stroke="#3c3544" stroke-width="1.5" stroke-linejoin="round">
+    <path d="M97 39 62 53 18 91 46 130 74 109 70 239Q130 250 190 239L186 109 214 130 242 91 198 53 163 39" fill="#f5f2eb"/>
+    <path d="M97 39Q130 52 163 39Q159 77 130 77Q101 77 97 39Z" fill="#ded9cf"/>
+    <path d="M98 45Q105 83 130 83Q155 83 162 45M62 53Q73 70 74 109M198 53Q187 70 186 109M24 86 52 125M208 125 236 86M71 229Q130 241 189 229"/>
+    <path d="M72 234Q130 246 188 234M27 84 54 122M206 122 233 84" stroke-dasharray="2 3" stroke-width=".8"/>
+    <path d="M85 21H175M85 18v6M175 18v6M12 151V225M9 151h6M9 225h6" stroke="#ada4bc" stroke-width=".8"/>
+  </g>
+  <g fill="#4f4265" text-anchor="middle" font-family="Arial, sans-serif">
+    <text x="130" y="119" font-size="14" font-weight="700" letter-spacing="1">STUDIO</text>
+    <text x="130" y="134" font-size="8" letter-spacing="3">EDITION 01</text>
+  </g>
+  <path d="M100 143H160" stroke="#4f4265" stroke-width=".8"/>
+</svg>

@@ -37,8 +37,6 @@
 .fashion-studio-number { color: #a69bb7; font-size: 26px; letter-spacing: -.04em; font-weight: 400; border-right: 1px solid #ffffff25; padding-right: 14px; }
 .fashion-studio-production > div > span { display: block; color: #c0b5cc; letter-spacing: .1em; font-size: 7px; }.fashion-studio-production strong { display: block; font-size: 17px; letter-spacing: -.02em; font-weight: 500; margin-top: 5px; }.fashion-studio-production small { display: block; font-size: 9px; color: #c0b5cc; margin-top: 5px; }.fashion-studio-production > svg { margin-left: auto; color: #cbbce6; flex-shrink: 0; }
 .fashion-studio-footnote { position: absolute; bottom: -7px; right: 0; font-size: 8px; color: #88818e; }
-.brand-hero-bottom { display: flex; align-items: center; justify-content: space-between; gap: 25px; padding-block: 24px; border-top: 1px solid var(--brand-line); }
-.brand-hero-bottom > span { font-size: 8px; letter-spacing: .11em; color: #7b7582; }.brand-hero-bottom > div { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; font-size: 11px; color: #5e5768; }.brand-hero-bottom svg { color: #aca0be; }
 /* Capability strip under the hero. Set in type rather than logos: naming a
    factory's customers is a statement about the factory, and logos would imply
    an endorsement of Formme that these brands have not given. */
@@ -51,10 +49,11 @@
 @media(max-width: 700px) { .brand-proof-layout { gap: 18px; } .brand-proof-names { gap: 6px 22px; } }
 
 .brand-making { padding-block: 90px; background: #fff; }
-.brand-making-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 48px; margin-bottom: 44px; }
-.brand-making-heading > .brand-kicker { margin-top: 12px; max-width: 230px; }.brand-making-heading h2 { width: 58%; }
+.brand-making-heading { margin-bottom: 44px; }
+.brand-making-heading > .brand-kicker { display: block; margin: 0 0 16px; max-width: none; }.brand-making-heading h2 { width: auto; max-width: 760px; }
 .brand-making-heading h2 > span { white-space: nowrap; }
-.brand-making-layout { display: grid; grid-template-columns: .82fr 1.18fr; gap: 82px; align-items: center; }
+.brand-making-layout { display: block; }
+.brand-making-cta { margin-top: 42px; }
 .brand-making-steps > div { border-top: 1px solid #e2dee7; }.brand-making-steps > div:last-of-type { border-bottom: 1px solid #e2dee7; }
 .brand-making-steps button { display: flex; align-items: center; gap: 17px; width: 100%; padding: 23px 0; text-align: left; color: #76707f; }.brand-making-steps button > span { font-size: 10px; font-weight: 500; }.brand-making-steps button > strong { font-size: 24px; line-height: 1.2; font-weight: 500; letter-spacing: -.035em; }.brand-making-steps button > svg { margin-left: auto; width: 18px; }
 .brand-making-steps .is-selected button { color: var(--brand-ink); }.brand-making-steps .is-selected button > span { color: var(--brand-accent); }
@@ -99,7 +98,7 @@
 .brand-site .workspace-benefits { margin-block: 28px 35px; list-style: none; padding: 0; }.brand-site .workspace-benefits > li { display: flex; align-items: flex-start; gap: 10px; font-size: 12px; line-height: 1.6; margin-block: 14px; color: #eeeaf4; }.brand-site .workspace-benefits svg { color: #c4b2ee; margin-top: 2px; flex-shrink: 0; }
 .brand-site .workspace-preview-hint { display: flex; align-items: center; gap: 10px; color: #c4b2ee; font-size: 10px; }
 .brand-site .brand-workspace-demo { grid-column: 1; grid-row: 1; color: #232129; box-shadow: 0 18px 50px #0003; border: 1px solid #ffffff66; border-radius: 11px; }
-.brand-site .brand-workspace-panel { min-height: 530px; }
+.brand-site .brand-workspace-panel { min-height: 665px; }
 .production-page .brand-site .brand-workspace-panel h3 { font-size: 29px; font-weight: 650; }
 .production-page .brand-site .brand-workspace-panel p { font-size: 13px; line-height: 1.65; color: #5a5265; }
 .production-page .brand-site .workspace-sample-card h3 { font-size: 34px; color: #fff; line-height: 1.07; }
@@ -121,13 +120,13 @@
 .brand-close > div > div { display: flex; align-items: center; justify-content: space-between; gap: 30px; }.production-page .brand-close p { color: #71647f; font-size: 14px; }
 @media(max-width: 1100px) {
  .brand-hero-layout { gap: 25px; min-height: 580px; }.production-page .brand-hero-copy h1 { font-size: 59px; }.brand-title-break { display: block; }.fashion-studio { height: 540px; }.fashion-studio-photo { left: 74px; right: 13px; height: 444px; }.fashion-studio-backdrop { left: 87px; right: 4px; height: 415px; }.fashion-studio-sketch { width: 132px; padding: 12px; top: 83px; }.fashion-studio-sketch > img { height: 109px; }.fashion-studio-production { left: 20px; padding: 17px; }.fashion-studio-production small { font-size: 8px; }.fashion-studio-production strong { font-size: 15px; }.fashion-studio-number { font-size: 22px; }
- .brand-hero-bottom > span { display: none; }.brand-hero-bottom { justify-content: center; }.brand-making-layout { gap: 45px; }.brand-making-preview { padding: 22px; }.making-brief { gap: 20px; }.production-page .making-brief h3 { font-size: 31px; }.making-brief-drawing > img { height: 211px; }.making-brief dl { font-size: 11px; }.making-sheet-heading { font-size: 9px; }.brand-making-steps button > strong { font-size: 22px; }
+ .brand-making-preview { padding: 22px; }.making-brief { gap: 20px; }.production-page .making-brief h3 { font-size: 31px; }.making-brief-drawing > img { height: 211px; }.making-brief dl { font-size: 11px; }.making-sheet-heading { font-size: 9px; }.brand-making-steps button > strong { font-size: 22px; }
  .brand-site .brand-workspace-section > div { gap: 45px; grid-template-columns: 1.1fr .9fr; }.production-page .brand-site .brand-workspace-section h2 { font-size: 41px; }.brand-company-layout, .brand-faq > div { gap: 65px; }
 }
 @media(max-width: 850px) {
  .brand-container, .brand-site .production-container, .brand-site-shell > header > div, .brand-site-shell > footer > div { width: calc(100% - 48px); }
  .brand-hero-layout { grid-template-columns: 1fr; gap: 20px; padding-bottom: 34px; }.brand-hero-copy { max-width: 620px; }.production-page .brand-hero-copy h1 { font-size: 68px; }.brand-title-break { display: none; }.production-page .brand-hero-copy > p { max-width: 520px; }.fashion-studio { max-width: 580px; width: 100%; margin-inline: auto; height: 595px; }.fashion-studio-photo { left: 105px; right: 30px; height: 503px; }.fashion-studio-backdrop { left: 118px; right: 15px; height: 473px; }.fashion-studio-sketch { width: 162px; padding: 15px; top: 69px; }.fashion-studio-sketch > img { height: 135px; }.fashion-studio-production { left: 50px; padding: 20px; }
- .brand-making-heading { gap: 30px; }.brand-making-heading h2 { width: 62%; }.brand-making-layout { gap: 30px; grid-template-columns: .8fr 1.2fr; }.brand-making-steps button > strong { font-size: 20px; }.brand-making-steps button { gap: 12px; }.production-page .brand-making-steps p { margin-left: 26px; font-size: 12px; }.brand-making-preview { padding: 20px; }.making-brief { grid-template-columns: 1fr; gap: 18px; }.making-brief-materials { display: none; }.making-brief-details { padding-inline: 8px; }.making-preview-top { font-size: 9px; }.production-page .making-partner h3 { font-size: 31px; }.making-partner-file { padding-inline: 18px; }.making-partner-connection { gap: 10px; }.making-production-ticket { padding-inline: 18px; }.making-shipment { margin-inline: -18px; padding-inline: 18px; }.making-production-title { gap: 12px; }.making-production-title > strong { font-size: 44px; }
+ .brand-making-steps button > strong { font-size: 20px; }.brand-making-steps button { gap: 12px; }.production-page .brand-making-steps p { margin-left: 26px; font-size: 12px; }.brand-making-preview { padding: 20px; }.making-brief { grid-template-columns: 1fr; gap: 18px; }.making-brief-materials { display: none; }.making-brief-details { padding-inline: 8px; }.making-preview-top { font-size: 9px; }.production-page .making-partner h3 { font-size: 31px; }.making-partner-file { padding-inline: 18px; }.making-partner-connection { gap: 10px; }.making-production-ticket { padding-inline: 18px; }.making-shipment { margin-inline: -18px; padding-inline: 18px; }.making-production-title { gap: 12px; }.making-production-title > strong { font-size: 44px; }
  .brand-site .brand-workspace-section > div { grid-template-columns: 1fr; gap: 35px; }.brand-site .brand-workspace-section .production-section-heading { grid-column: 1; grid-row: 1; }.brand-site .brand-workspace-demo { grid-row: 2; }.brand-site .brand-workspace-section .production-section-heading > p { max-width: 520px; }.brand-site .workspace-benefits { margin-bottom: 0; }.brand-site .workspace-preview-hint { display: none; }
  .brand-company-layout { gap: 40px; }.brand-company-facts { gap: 25px; }.brand-company-facts strong { font-size: 25px; }.brand-company figure img { height: 430px; }.brand-company figcaption > strong { font-size: 24px; }.brand-faq > div { gap: 45px; }
 }
@@ -136,10 +135,9 @@
  .brand-kicker { font-size: 8px; }.brand-hero-copy { padding-top: 10px; }.production-page .brand-hero-copy h1 { font-size: clamp(43px,12vw,62px); line-height: 1.02; margin-block: 21px; }.production-page .brand-hero-copy > p { font-size: 15px; }.brand-hero-actions { gap: 20px; margin-top: 25px; }.brand-cta { font-size: 12px; min-height: 48px; gap: 15px; padding-inline: 18px; }.brand-hero-note { gap: 10px; font-size: 7px; margin-top: 24px; }
  .fashion-studio { height: 452px; margin-top: 8px; }.fashion-studio-photo { left: 55px; right: 13px; top: 29px; height: 365px; border-width: 4px; }.fashion-studio-backdrop { left: 66px; right: 8px; top: 43px; height: 346px; }.fashion-studio-sketch { width: 105px; top: 57px; left: 0; padding: 9px; }.fashion-studio-sketch > img { height: 89px; margin-block: 5px; }.fashion-studio-sketch > div:first-child { font-size: 5px; }.fashion-studio-sketch > div:first-child svg { width: 9px; }.fashion-studio-sketch > span { font-size: 8px; }.fashion-studio-swatches { gap: 4px; margin-top: 8px; }.fashion-studio-swatches i { width: 18px; height: 16px; }
  .fashion-studio-signoff { top: 10px; padding: 9px 11px; right: 0; }.fashion-studio-signoff > span { font-size: 8px; gap: 4px; }.fashion-studio-signoff small { font-size: 7px; }.fashion-studio-production { left: 18px; right: 0; bottom: 18px; padding: 15px; gap: 10px; }.fashion-studio-production > div > span { font-size: 6px; }.fashion-studio-production strong { font-size: 14px; }.fashion-studio-production small { font-size: 7px; }.fashion-studio-production > svg { width: 17px; }.fashion-studio-number { font-size: 19px; padding-right: 10px; }.fashion-studio-footnote { font-size: 7px; bottom: -2px; }.fashion-studio-photo figcaption { font-size: 6px; padding: 8px; }
- .brand-hero-bottom { padding-block: 20px; }.brand-hero-bottom > div { justify-content: center; font-size: 9px; gap: 8px 12px; }
- .brand-making { padding-block: 52px; }.brand-making-heading { display: block; margin-bottom: 30px; }.brand-making-heading > .brand-kicker { max-width: none; margin: 0 0 17px; }.brand-making-heading h2 { width: auto; }.production-page .brand-site h2 { font-size: 35px; }.brand-making-layout { grid-template-columns: 1fr; gap: 28px; }.brand-making-steps button > strong { font-size: 24px; }.brand-making-steps button { padding-block: 20px; }.production-page .brand-making-steps p { font-size: 13px; margin-bottom: 20px; }.brand-making-steps > .brand-link { margin-top: 24px; }
+ .brand-making { padding-block: 52px; }.brand-making-heading { margin-bottom: 30px; }.production-page .brand-site h2 { font-size: 35px; }.brand-making-layout { grid-template-columns: 1fr; gap: 28px; }.brand-making-steps button > strong { font-size: 24px; }.brand-making-steps button { padding-block: 20px; }.production-page .brand-making-steps p { font-size: 13px; margin-bottom: 20px; }.brand-making-steps > .brand-link { margin-top: 24px; }
  .brand-making-preview { min-height: 500px; padding: 20px 17px; }.making-brief { grid-template-columns: .95fr 1fr; gap: 18px; padding-top: 17px; }.making-brief-materials { display: block; }.making-brief-drawing { padding: 12px 8px; }.making-brief-drawing > img { height: 174px; }.making-brief-drawing > span { font-size: 7px; }.making-sheet-heading { font-size: 8px; gap: 5px; }.making-sheet-heading > svg { width: 10px; }.making-fabric-note { padding: 7px; gap: 6px; right: -4px; }.making-fabric-note > i { width: 24px; height: 29px; }.making-fabric-note strong { font-size: 10px; }.making-brief-details { padding: 0; }.making-label { font-size: 9px; }.production-page .making-brief h3 { font-size: 29px; }.making-brief dl { font-size: 11px; margin-top: 15px; }.making-brief dl > div { gap: 7px; }.making-received { font-size: 10px; line-height: 1.5; margin-top: 16px; }.production-page .making-partner h3 { font-size: 30px; }.making-partner-icon { width: 42px; height: 42px; }.making-match { font-size: 10px; }.making-partner-file { padding-top: 18px; }.making-partner-header { margin-bottom: 17px; }.making-partner-note { margin-top: 13px; }.making-production-ticket { padding-top: 20px; }.production-page .making-production-title h3 { font-size: 26px; }.making-production-title > strong { font-size: 46px; }.making-production-title small { font-size: 16px; }.making-production li { font-size: 12px; }.making-shipment { font-size: 11px; }.making-shipment > strong { font-size: 11px; }
- .brand-site .brand-workspace-section { padding-block: 52px; }.production-page .brand-site .brand-workspace-section h2 { font-size: 36px; }.brand-site .brand-workspace-panel { min-height: 580px; }.production-page .brand-site .brand-workspace-panel h3 { font-size: 26px; }.production-page .brand-site .workspace-sample-card h3 { font-size: 27px; }
+ .brand-site .brand-workspace-section { padding-block: 52px; }.production-page .brand-site .brand-workspace-section h2 { font-size: 36px; }.brand-site .brand-workspace-panel { min-height: 670px; }.production-page .brand-site .brand-workspace-panel h3 { font-size: 26px; }.production-page .brand-site .workspace-sample-card h3 { font-size: 27px; }
  .brand-company { padding-block: 54px; }.brand-company-layout { grid-template-columns: 1fr; gap: 35px; }.brand-company figure img { height: 350px; }.brand-company figure { transform: rotate(1deg); }.brand-company-facts { gap: 40px; }.brand-company-facts strong { font-size: 28px; }
  .brand-faq { padding-block: 50px; }.brand-faq > div { grid-template-columns: 1fr; gap: 30px; }.brand-faq .brand-link { margin-top: 24px; }
  .brand-close { padding-block: 48px; }.production-page .brand-close h2 { font-size: 76px; margin-block: 23px 28px; }.brand-close h2 > svg { width: 65px; height: 65px; left: auto; right: 0; top: 25px; }.brand-close > div > div { align-items: flex-start; flex-direction: column; gap: 25px; }.production-page .brand-close p { font-size: 12px; }
@@ -154,7 +152,7 @@
  * Every step renders the same white card — head (icon + status), body, tinted
  * footer strip — so moving between them updates one artifact instead of
  * swapping three different layouts in and out. Only .making-doc-body varies. */
-.making-doc { display: flex; flex-direction: column; min-height: 470px; background: #fff; color: #25202e; border-radius: 9px; box-shadow: 0 12px 30px -20px #24174570; overflow: hidden; }
+.making-doc { display: flex; flex-direction: column; min-height: 490px; background: #fff; color: #25202e; border-radius: 9px; box-shadow: 0 12px 30px -20px #24174570; overflow: hidden; }
 .making-doc-head { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 20px 24px 0; }
 /* The step number, not a category icon: it ties the card to the stepper and
    actually carries information. */
@@ -171,6 +169,65 @@
 /* 01 — brief */
 .making-brief { display: grid; grid-template-columns: .92fr 1fr; gap: 26px; align-items: center; }
 .making-brief-materials { min-width: 0; padding: 7px 11px; }
+.making-doc .making-sheet-heading > span:last-child { margin-left: auto; color: #8a8098; }
+.making-doc .making-brief-drawing > img { height: 215px; filter: none; }
+.making-collection-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 17px; }
+.making-collection-tags > span { padding: 5px 8px; border: 1px solid #e2dbe9; border-radius: 4px; color: #645472; font-size: 11px; font-weight: 550; }
+.making-doc .making-brief dl { margin-top: 15px; }
+.making-doc .making-brief dl > div { padding-block: 10px; }
+.making-brief-ready { display: flex; align-items: flex-start; gap: 6px; margin-top: 16px; font-size: 10px; line-height: 1.5; color: #41614e; }
+.making-brief-ready > svg { flex-shrink: 0; margin-top: 1px; }
+.making-order-context { display: flex; align-items: center; gap: 13px; margin-top: 24px; padding: 15px; background: #f7f5fa; border: 1px solid #e7e1ed; border-radius: 6px; }
+.making-order-context > img { width: 43px; height: 51px; object-fit: contain; flex-shrink: 0; }
+.making-order-context strong { display: block; font-size: 15px; font-weight: 600; }
+.making-order-context > div > span { display: block; margin-top: 5px; font-size: 11px; color: #685c77; }
+.making-order-context > span { margin-left: auto; font-size: 10px; color: #41614e; }
+.making-team-plan { margin-top: 23px; }
+.production-page .making-team-plan p { font-size: 13px; line-height: 1.7; margin-top: 9px; color: #685c77; }
+.making-production-count { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; margin-top: 11px; font-size: 11px; line-height: 1.5; }
+.making-production-count strong { font-weight: 600; color: #574568; }
+.making-production-count > span { color: #766980; font-size: 10px; text-align: right; }
+.brand-making-preview { container-type: inline-size; }
+
+@container (max-width: 460px) {
+ .making-doc-head { padding: 18px 18px 0; gap: 10px; }
+ .making-doc-status { font-size: 10px; padding-inline: 9px; }
+ .making-doc-body { padding: 18px; }
+ .making-doc .making-brief { grid-template-columns: .85fr 1fr; gap: 15px; }
+ .making-doc .making-brief-materials { display: block; margin: 0; padding: 4px; align-self: center; }
+ .making-doc .making-brief-details { padding: 0; }
+ .making-doc .making-brief-drawing { padding: 12px 8px; }
+ .making-doc .making-brief-drawing > img { height: 170px; }
+ .making-doc .making-sheet-heading { font-size: 8px; }
+ .making-doc .making-brief-drawing > span { font-size: 7px; }
+ .production-page .making-doc .making-brief h3 { font-size: 30px; }
+ .making-doc .making-brief dl { font-size: 11px; }
+ .making-doc .making-brief dl > div { gap: 8px; }
+ .making-collection-tags > span { font-size: 10px; padding: 4px 6px; }
+ .making-doc-foot { padding: 14px 18px; }
+ .making-order-context { padding: 12px; gap: 10px; flex-wrap: wrap; }
+ .making-order-context > span { margin-left: 53px; }
+ .making-production-count { flex-direction: column; gap: 4px; }
+ .making-production-count > span { text-align: left; }
+}
+@container (max-width: 280px) {
+ .making-doc { min-height: 620px; }
+ .making-doc .making-brief { grid-template-columns: 1fr; }
+ .making-doc .making-brief-materials { width: 140px; margin-inline: auto; }
+ .making-doc .making-brief-drawing > img { height: 130px; }
+ .making-doc .making-brief-details > .making-label { display: block; text-align: center; }
+ .production-page .making-doc .making-brief h3 { text-align: center; font-size: 27px; margin-top: 9px; }
+ .making-doc .making-brief h3 > br { display: none; }
+ .making-collection-tags { justify-content: center; margin-top: 12px; }
+ .making-doc .making-brief dl > div { flex-direction: row; }
+ .making-doc .making-brief dd { text-align: right; }
+ .making-doc-step { font-size: 21px; }
+ .making-doc-status { font-size: 9px; }
+ .making-doc .making-production-title { align-items: flex-start; }
+ .production-page .making-doc .making-production-title h3 { font-size: 25px; }
+ .making-doc .making-production-title > strong { font-size: 36px; }
+ .making-doc .making-production li { gap: 7px; font-size: 11px; }
+}
 
 /* 02 — partner */
 .production-page .making-partner > p { display: flex; align-items: center; gap: 5px; margin-top: 11px; font-size: 13px; color: #5c536b; }
