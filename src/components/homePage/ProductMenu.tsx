@@ -11,13 +11,12 @@ type ProductItem = {
 
 const forBrands: ProductItem[] = [
   { label: 'Production Workspace', description: 'Manage samples, orders and production.', to: '/brands' },
-  { label: 'Factory Matching', description: 'Find the right manufacturing partner.', to: '/brands#product' },
   { label: 'Cost Predictor', description: 'Estimate apparel production costs.', to: '/cost-predictor' },
 ];
 
 const forManufacturers: ProductItem[] = [
   { label: 'Factory Operations', description: 'Manage orders and apparel production.', to: '/manufacturers' },
-  { label: 'Buyer Visibility', description: 'Keep brands updated from the same production workflow.', to: '/manufacturers' },
+  { label: 'Factory ERP', description: 'Cutting, knitting, sewing and finishing — tracked in one place.', to: '/manufacturers#factory-erp' },
 ];
 
 const MenuLink = ({ item, tabIndex, onNavigate }: { item: ProductItem; tabIndex: number; onNavigate: () => void }) => (

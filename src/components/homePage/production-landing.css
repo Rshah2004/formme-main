@@ -1177,3 +1177,14 @@
   filter: invert(1);
   opacity: .82;
 }
+
+/* Factory ERP teaser. Names the stages it covers and the problem it replaces;
+   deliberately shows no interface. */
+.factory-erp { background: var(--c-surface-2); border-block: 1px solid var(--c-line); }
+.production-page .factory-erp h2 { font-size: clamp(30px, 3.4vw, 44px); line-height: 1.12; letter-spacing: -.04em; }
+.production-page .factory-erp h2 em { font-style: normal; color: var(--production-purple); }
+.production-page .factory-erp-lead { max-width: 620px; margin-top: 20px; font-size: 16px; line-height: 1.75; }
+.factory-erp-stages { display: flex; flex-wrap: wrap; gap: 10px; list-style: none; margin: 34px 0 0; padding: 0; }
+.factory-erp-stages li { padding: 9px 16px; border: 1px solid var(--c-purple-100); border-radius: 30px; background: var(--c-paper); font-size: 13px; font-weight: 500; }
+.production-page .factory-erp-note { margin-top: 26px; font-size: 13px; color: var(--production-muted); }
+@media (max-width: 600px) { .factory-erp-stages { gap: 8px; } .factory-erp-stages li { padding: 8px 13px; font-size: 12px; } }

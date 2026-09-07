@@ -98,6 +98,20 @@ export function ProductionLandingExperience({ audience }: AudienceProps) {
       {isBrand && <section className="brand-experience-strip" aria-label="The experience behind Formme"><div className="production-container"><div><span className="production-eyebrow">BUILT FROM EXPERIENCE</span><p>Fashion people.<br /><strong>Production people.</strong></p></div><div><strong>40+ years</strong><p>Combined manufacturing experience</p></div><div><strong>Both sides of the process</strong><p>A team that has built an apparel brand</p></div><Link to="/about" className="production-text-link">Meet Formme <ArrowRight size={16} /></Link></div></section>}
 
       {!isBrand && <AudiencePanel audience={audience} />}
+
+      {/* Shows the shape of the ERP — the stages it covers and the problem it
+          replaces — without laying out how any of it works. */}
+      {!isBrand && <section className="production-section factory-erp" id="factory-erp" aria-labelledby="factory-erp-title">
+        <div className="production-container reveal">
+          <span className="production-eyebrow">NOW IN BUILD</span>
+          <h2 id="factory-erp-title">The whole floor.<br /><em>One system.</em></h2>
+          <p className="factory-erp-lead">Every stage of an order recorded where the work happens — what went to cutting and when, which fabric arrived from where, what is on the line right now. One record for the floor, instead of spreadsheets, chat threads and paper that never quite agree.</p>
+          <ol className="factory-erp-stages" aria-label="Production stages covered">
+            {['Fabric in', 'Cutting', 'Knitting', 'Sewing', 'Finishing', 'Dispatch'].map(stage => <li key={stage}>{stage}</li>)}
+          </ol>
+          <p className="factory-erp-note">We are building this now, alongside manufacturers in Bangladesh.</p>
+        </div>
+      </section>}
       {isBrand ? <BrandWorkspacePreview /> : <WorkflowShowcase audience={audience} />}
       {!isBrand && <ConnectedWorkspaces audience={audience} />}
 
