@@ -31,7 +31,9 @@
 .process-partner-identity p > svg { flex-shrink: 0; }
 .process-partner-link { display: inline-flex; align-items: center; align-self: flex-start; gap: 12px; margin-top: 22px; min-height: 30px; color: #4e3e6a; font-size: 12px; font-weight: 600; border-bottom: 1px solid #c7bbda; }
 .process-partner-link:hover { color: #7354c0; border-color: currentColor; }
-.production-page .brand-site .process-timeline .process-progress-ring { position: relative; width: 174px; flex-shrink: 0; aspect-ratio: 1; }
+/* Pulled up: the ring is the tallest of the three visuals, so its spec rows
+   landed 85px below the other two columns' and the row broke its line. */
+.production-page .brand-site .process-timeline .process-progress-ring { position: relative; width: 174px; flex-shrink: 0; aspect-ratio: 1; margin-top: -26px; }
 .process-progress-ring > svg { display: block; width: 100%; height: 100%; transform: rotate(-90deg); fill: none; stroke-width: 9; }
 .process-ring-track { stroke: #eeeaf4; }
 .process-ring-value { stroke: #8b73d7; stroke-linecap: round; }
@@ -112,6 +114,7 @@
    the evidence box is inset by --stop-pad, so -90px carries the arrow's tip
    60px past the column edge. */
 .process-arrow { position: absolute; top: -18px; right: -66px; width: 130px; height: 28px; color: #9e91bd; pointer-events: none; }
+.process-arrow-narrow { display: none; }
 
 @media (prefers-reduced-motion: no-preference) {
   .process-arrow-arc { stroke-dashoffset: 0; animation: process-arrow-draw 1.1s ease-out both; }
@@ -123,8 +126,12 @@
    space while 01 filled its column. */
 @media (max-width: 900px) {
   .process-timeline { grid-template-columns: 1fr; margin-inline: 0; --stop-pad: 0px; }
-  .process-stop + .process-stop { margin-top: 76px; }
-  .process-arrow { top: auto; bottom: -54px; right: auto; left: 50%; transform: translateX(-50%) rotate(90deg); }
+  .process-stop + .process-stop { margin-top: 64px; }
+  /* The wide wave is a horizontal drawing; stacked, it is replaced rather
+     than rotated. 38px centred in the 64px gap, so it sits between the two
+     stops instead of overlapping the specs above it. */
+  .process-arrow-wide { display: none; }
+  .process-arrow-narrow { display: block; top: auto; bottom: -51px; right: auto; left: 50%; transform: translateX(-50%); width: 12px; height: 38px; }
   .process-evidence::before { display: none; }
 }
 

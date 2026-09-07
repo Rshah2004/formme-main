@@ -14,8 +14,6 @@
 .brand-workspace-tabs small { font-size: 10px; padding: 1px 5px; border-radius: 4px; background: #ddd4ed; color: #453450; }
 .brand-workspace-tabs > button[aria-selected='true'] small { background: #fff; color: #4a3fbf; }
 .brand-workspace-panel { padding: 25px; min-height: 400px; min-width: 0; }
-.workspace-review-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 17px; }
-.workspace-review-heading > span:last-child { font-size: 12px; font-weight: 600; color: #53445f; }
 .workspace-status { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 650; color: #fff; background: #5d52d6; padding: 6px 10px; border-radius: 20px; }
 .workspace-status-pending::before, .workspace-status-approved::before, .workspace-status-revision::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
 .workspace-status-approved, .workspace-status-revision { color: #2f6f4e; background: #e9f3ed; }
@@ -82,7 +80,7 @@
  .production-page .brand-workspace-panel h3 { font-size: 22px; }.workspace-review-details { flex-direction: column; gap: 8px; margin-top: 13px; padding-top: 10px; }.workspace-review-details dt { margin-bottom: 4px; font-size: 10px; }.workspace-review-details dd { font-size: 13px; }.workspace-sample-card figure { padding-inline: 6px; }.workspace-sample-eyebrow { font-size: 9px; }.workspace-sketch-label { font-size: 8px; }
  .workspace-actions button { flex: 1; padding-inline: 10px; font-size: 12px; }.workspace-milestone { padding: 18px 16px; gap: 12px; }.workspace-milestone-icon { width: 35px; height: 35px; }.workspace-milestone-icon > svg { width: 20px; }.workspace-delivery { padding: 16px; gap: 9px; }.workspace-delivery > svg { display: none; }.workspace-delivery > span { font-size: 12px; }.workspace-update { gap: 10px; }.workspace-update.is-latest > div { padding: 14px; }
 }
-@media(max-width: 359px) { .workspace-sample-card { grid-template-columns: 76px minmax(0,1fr); gap: 13px; padding-inline: 10px; }.workspace-sample-card figure img { height: 126px; }.workspace-review-heading { gap: 6px; }.workspace-review-heading > span:last-child { font-size: 10px; }.workspace-status { font-size: 10px; }.workspace-update.is-latest > div { padding: 12px; } }
+@media(max-width: 359px) { .workspace-sample-card { grid-template-columns: 76px minmax(0,1fr); gap: 13px; padding-inline: 10px; }.workspace-sample-card figure img { height: 126px; }.workspace-status { font-size: 10px; }.workspace-update.is-latest > div { padding: 12px; } }
 @media(prefers-reduced-motion: no-preference) { .workspace-view { animation: workspace-appear .3s cubic-bezier(.2,.7,.3,1); } @keyframes workspace-appear { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } } }
 @media(prefers-reduced-motion: reduce) { .brand-workspace-tabs > button, .workspace-actions button { transition: none; } }
 .brand-workspace-demo { container-type: inline-size; }
@@ -123,5 +121,3 @@
 
 /* The other things a sample gets signed off on. Deliberately a plain list —
    these are judged by eye and by hand, not tabulated like measurements. */
-.workspace-also-checked { display: flex; flex-wrap: wrap; gap: 8px 10px; list-style: none; margin: 16px 0 0; padding: 0; }
-.workspace-also-checked li { padding: 7px 12px; border: 1px solid #e2dced; border-radius: 20px; background: #fbfafd; font-size: 11px; color: #5c5169; }

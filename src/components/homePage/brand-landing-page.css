@@ -20,23 +20,23 @@
 .brand-hero-copy h1 > span { color: var(--brand-accent); }.brand-title-break { display: none; }
 .production-page .brand-hero-copy > p { max-width: 435px; font-size: 16px; line-height: 1.8; }
 .brand-hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 25px; margin-top: 29px; }
-.brand-hero-note { display: flex; flex-wrap: wrap; gap: 16px; color: #7b7582; font-size: 8px; letter-spacing: .08em; margin-top: 27px; }
+.brand-hero-note { display: flex; flex-wrap: wrap; gap: 16px; color: #635d6b; font-size: 8px; letter-spacing: .08em; margin-top: 27px; }
 .fashion-studio { height: 595px; position: relative; min-width: 0; isolation: isolate; }
 .fashion-studio-backdrop { position: absolute; top: 55px; left: 118px; right: 15px; height: 473px; transform: rotate(5deg); background: #e3dff1; border-radius: 4px; z-index: -1; }
 .fashion-studio-photo { position: absolute; top: 35px; left: 105px; right: 30px; height: 503px; margin: 0; overflow: hidden; border: 6px solid white; border-radius: 4px; box-shadow: 0 15px 35px -20px #27242e55; transform: rotate(1deg); }
 .fashion-studio-photo > img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 28% center; }
 .fashion-studio-photo figcaption { position: absolute; bottom: 0; left: 0; right: 0; background: #ffffffe8; padding: 11px 13px; color: #504954; font-size: 7px; letter-spacing: .11em; }
 .fashion-studio-sketch { position: absolute; top: 69px; left: 0; width: 162px; padding: 15px; background: #fff; transform: rotate(-8deg); box-shadow: 0 8px 30px #27242e13; border: 1px solid #eeebef; border-radius: 3px; }
-.fashion-studio-sketch > div:first-child { display: flex; align-items: center; justify-content: space-between; color: #827c88; font-size: 7px; letter-spacing: .08em; }
+.fashion-studio-sketch > div:first-child { display: flex; align-items: center; justify-content: space-between; color: #635d6b; font-size: 7px; letter-spacing: .08em; }
 .fashion-studio-sketch > img { display: block; width: 100%; height: 135px; object-fit: contain; margin-block: 9px; }
 .fashion-studio-sketch > span { font-size: 11px; font-weight: 500; }
 .fashion-studio-swatches { display: flex; gap: 6px; margin-top: 12px; }.fashion-studio-swatches i { width: 24px; height: 22px; background: #f4f2ec; border: 1px solid #0000000d; }.fashion-studio-swatches i:nth-child(2) { background: #393640; }.fashion-studio-swatches i:nth-child(3) { background: #b8c9d3; }
 .fashion-studio-signoff { position: absolute; top: 15px; right: 0; padding: 12px 15px; background: #ffffffed; border: 1px solid #e8e3ed; border-radius: 6px; box-shadow: 0 7px 20px #27242e09; }
-.fashion-studio-signoff > span { display: flex; align-items: center; gap: 6px; font-size: 10px; color: #39694e; font-weight: 550; }.fashion-studio-signoff small { display: block; color: #827c88; font-size: 9px; margin-top: 5px; }
+.fashion-studio-signoff > span { display: flex; align-items: center; gap: 6px; font-size: 10px; color: #39694e; font-weight: 550; }.fashion-studio-signoff small { display: block; color: #635d6b; font-size: 9px; margin-top: 5px; }
 .fashion-studio-production { display: flex; align-items: center; gap: 14px; position: absolute; bottom: 16px; left: 50px; right: 0; padding: 20px; color: #fff; background: #302938; border-radius: 5px; box-shadow: 0 12px 25px #27242e18; }
 .fashion-studio-number { color: #a69bb7; font-size: 26px; letter-spacing: -.04em; font-weight: 400; border-right: 1px solid #ffffff25; padding-right: 14px; }
 .fashion-studio-production > div > span { display: block; color: #c0b5cc; letter-spacing: .1em; font-size: 7px; }.fashion-studio-production strong { display: block; font-size: 17px; letter-spacing: -.02em; font-weight: 500; margin-top: 5px; }.fashion-studio-production small { display: block; font-size: 9px; color: #c0b5cc; margin-top: 5px; }.fashion-studio-production > svg { margin-left: auto; color: #cbbce6; flex-shrink: 0; }
-.fashion-studio-footnote { position: absolute; bottom: -7px; right: 0; font-size: 8px; color: #88818e; }
+.fashion-studio-footnote { position: absolute; bottom: -7px; right: 0; font-size: 8px; color: #635d6b; }
 /* Capability strip under the hero. Set in type rather than logos: naming a
    factory's customers is a statement about the factory, and logos would imply
    an endorsement of Formme that these brands have not given. */
@@ -109,15 +109,15 @@
 .brand-company { padding-block: 95px; }
 .brand-company-layout { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 110px; }
 .brand-company h2 { margin-top: 20px; }.brand-company h2 > span { color: var(--brand-accent); }.production-page .brand-company-copy > p { max-width: 420px; font-size: 15px; margin-top: 24px; }
-.brand-company-facts { display: flex; align-items: flex-start; gap: 46px; margin-block: 30px; }.brand-company-facts strong { display: block; font-size: 31px; font-weight: 450; letter-spacing: -.04em; }.brand-company-facts span { display: block; margin-top: 6px; font-size: 10px; color: #81798e; line-height: 1.6; }
+.brand-company-facts { display: flex; align-items: flex-start; gap: 46px; margin-block: 30px; }.brand-company-facts strong { display: block; font-size: 31px; font-weight: 450; letter-spacing: -.04em; }.brand-company-facts span { display: block; margin-top: 6px; font-size: 10px; color: #605a6b; line-height: 1.6; }
 .brand-company figure { margin: 0; position: relative; overflow: hidden; border-radius: 4px; transform: rotate(2deg); border: 7px solid white; box-shadow: 0 10px 35px -20px #30293840; }.brand-company figure img { width: 100%; height: 465px; object-fit: cover; object-position: center 70%; display: block; }
 .brand-company figcaption { position: absolute; bottom: 0; left: 0; right: 0; padding: 60px 25px 25px; background: linear-gradient(transparent,#17151dd9); color: white; }.brand-company figcaption > span { font-size: 7px; letter-spacing: .1em; color: #d2cbdc; }.brand-company figcaption > strong { display: block; font-size: 29px; font-weight: 450; line-height: 1.1; letter-spacing: -.03em; margin-top: 10px; }
 .brand-faq { background: #fff; padding-block: 70px; }.brand-faq > div { display: grid; grid-template-columns: 1fr 1fr; gap: 110px; }.brand-faq h2 { margin-top: 18px; }.brand-faq .brand-link { margin-top: 28px; }
-.brand-faq-list details { border-bottom: 1px solid #e2dee7; }.brand-faq-list details:first-child { border-top: 1px solid #e2dee7; }.brand-faq-list summary { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding-block: 23px; font-size: 14px; font-weight: 500; list-style: none; cursor: pointer; }.brand-faq-list summary::-webkit-details-marker { display: none; }.brand-faq-list summary::after { content: '+'; font-size: 22px; color: #81798e; }.brand-faq-list details[open] summary::after { content: '−'; }.production-page .brand-faq-list p { font-size: 13px; margin-bottom: 20px; max-width: 450px; }
+.brand-faq-list details { border-bottom: 1px solid #e2dee7; }.brand-faq-list details:first-child { border-top: 1px solid #e2dee7; }.brand-faq-list summary { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding-block: 23px; font-size: 14px; font-weight: 500; list-style: none; cursor: pointer; }.brand-faq-list summary::-webkit-details-marker { display: none; }.brand-faq-list summary::after { content: '+'; font-size: 22px; color: #605a6b; }.brand-faq-list details[open] summary::after { content: '−'; }.production-page .brand-faq-list p { font-size: 13px; margin-bottom: 20px; max-width: 450px; }
 .brand-close { padding-block: 66px; background: #ded8ef; }
-.brand-close > div { position: relative; }.brand-close .brand-kicker { color: #71647f; }
+.brand-close > div { position: relative; }.brand-close .brand-kicker { color: #5c5168; }
 .production-page .brand-close h2 { position: relative; font-size: clamp(64px,8.5vw,122px); font-weight: 500; line-height: .91; letter-spacing: -.065em; margin: 26px 0 32px; }.brand-close h2 > span { color: #5b4b72; }.brand-close h2 > svg { position: absolute; height: 130px; width: 130px; stroke-width: 1; left: 57%; top: 35px; color: #796791; }
-.brand-close > div > div { display: flex; align-items: center; justify-content: space-between; gap: 30px; }.production-page .brand-close p { color: #71647f; font-size: 14px; }
+.brand-close > div > div { display: flex; align-items: center; justify-content: space-between; gap: 30px; }.production-page .brand-close p { color: #5c5168; font-size: 14px; }
 @media(max-width: 1100px) {
  .brand-hero-layout { gap: 25px; min-height: 580px; }.production-page .brand-hero-copy h1 { font-size: 59px; }.brand-title-break { display: block; }.fashion-studio { height: 540px; }.fashion-studio-photo { left: 74px; right: 13px; height: 444px; }.fashion-studio-backdrop { left: 87px; right: 4px; height: 415px; }.fashion-studio-sketch { width: 132px; padding: 12px; top: 83px; }.fashion-studio-sketch > img { height: 109px; }.fashion-studio-production { left: 20px; padding: 17px; }.fashion-studio-production small { font-size: 8px; }.fashion-studio-production strong { font-size: 15px; }.fashion-studio-number { font-size: 22px; }
  .brand-making-preview { padding: 22px; }.making-brief { gap: 20px; }.production-page .making-brief h3 { font-size: 31px; }.making-brief-drawing > img { height: 211px; }.making-brief dl { font-size: 11px; }.making-sheet-heading { font-size: 9px; }.brand-making-steps button > strong { font-size: 22px; }
@@ -232,3 +232,29 @@
 /* 02 — partner */
 .production-page .making-partner > p { display: flex; align-items: center; gap: 5px; margin-top: 11px; font-size: 13px; color: #5c536b; }
 .production-page .making-partner-note { margin-top: 18px; font-size: 12px; line-height: 1.65; color: #685c77; max-width: 470px; }
+
+/* Touch targets. These links are 18px tall because they are a line of 12px
+   text — correct visually, but under half the 44px a finger needs. The hit
+   area is grown with a pseudo-element rather than padding so the type stays
+   where it was laid out and nothing reflows. */
+@media(max-width: 850px) {
+  .brand-link, .process-partner-link { position: relative; }
+  .brand-link::after, .process-partner-link::after { content: ''; position: absolute; inset: -13px 0; }
+}
+
+/* ─── Cost predictor ─── */
+/* A slim band, not a section — the tool is a useful aside next to the main
+   production story, and it was reachable only from the nav before this. The
+   inputs are named in the line rather than tabulated, which is what let the
+   full-height version justify its space. */
+.brand-estimate { background: #efecf9; border-block: 1px solid #e2ddf0; padding-block: 30px; }
+.brand-estimate-layout { display: flex; align-items: center; justify-content: space-between; gap: 44px; }
+.production-page .brand-site .brand-estimate h2 { font-size: 23px; letter-spacing: -.03em; line-height: 1.2; }
+.production-page .brand-site .brand-estimate p { margin-top: 7px; max-width: 560px; font-size: 14px; line-height: 1.6; }
+.brand-estimate .brand-cta { flex: none; min-height: 46px; padding: 13px 20px; gap: 14px; }
+
+@media(max-width: 850px) {
+  .brand-estimate { padding-block: 26px; }
+  .brand-estimate-layout { flex-direction: column; align-items: flex-start; gap: 20px; }
+  .production-page .brand-site .brand-estimate p { font-size: 13.5px; }
+}

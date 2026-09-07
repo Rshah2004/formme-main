@@ -24,7 +24,7 @@ export const Eyebrow = ({ children, dark = false }: { children: React.ReactNode;
 );
 
 export const SolidButton = ({ children, onClick, href }: { children: React.ReactNode; onClick?: () => void; href?: string }) => {
-  const cls = 'inline-flex items-center gap-1.5 rounded-[10px] px-5 py-3 text-[13px] font-inter font-medium transition-transform duration-300 hover:-translate-y-0.5';
+  const cls = 'inline-flex items-center gap-1.5 rounded-[10px] px-5 min-h-[44px] md:min-h-0 py-3 text-[13px] font-inter font-medium transition-transform duration-300 hover:-translate-y-0.5';
   const style = { background: PURPLE, color: '#fff' };
   if (href) {
     const isExternal = /^(mailto:|tel:|https?:)/.test(href);
@@ -37,7 +37,7 @@ export const SolidButton = ({ children, onClick, href }: { children: React.React
 export const OutlineButton = ({ children, href, dark = false }: { children: React.ReactNode; href: string; dark?: boolean }) => (
   <a
     href={href}
-    className="inline-flex items-center gap-1.5 rounded-[10px] px-5 py-3 text-[13px] font-inter font-medium transition-transform duration-300 hover:-translate-y-0.5"
+    className="inline-flex items-center gap-1.5 rounded-[10px] px-5 min-h-[44px] md:min-h-0 py-3 text-[13px] font-inter font-medium transition-transform duration-300 hover:-translate-y-0.5"
     style={dark ? { border: `1px solid ${BORDER_DARK}`, color: '#fff' } : { border: `1px solid ${BORDER}`, color: INK, background: '#fff' }}
   >
     {children}
@@ -117,7 +117,7 @@ export const LandingHeader = () => {
             aria-expanded={menuOpen}
             aria-controls="landing-mobile-navigation"
             onClick={() => setMenuOpen(!menuOpen)}
-            className="xl:hidden flex items-center justify-center w-8 h-9 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+            className="xl:hidden flex items-center justify-center w-11 h-11 -mr-1.5 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
             style={{ color: PURPLE_TEXT }}
           >
             {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -158,11 +158,11 @@ export const LandingFooter = () => (
       <Logo />
       <nav className="flex flex-wrap items-center gap-x-8 gap-y-2">
         {footerLinks.map((l) => (
-          <Link key={l.label} to={l.to} className="text-[13px] font-inter" style={{ color: MUTED2 }}>{l.label}</Link>
+          <Link key={l.label} to={l.to} className="text-[13px] font-inter inline-flex items-center min-h-[44px] md:min-h-0" style={{ color: MUTED2 }}>{l.label}</Link>
         ))}
       </nav>
       <div className="flex items-center gap-5">
-        <a href="https://www.linkedin.com/company/formmedesign" target="_blank" rel="noopener noreferrer" aria-label="Formme on LinkedIn" style={{ color: MUTED2 }}>
+        <a href="https://www.linkedin.com/company/formmedesign" target="_blank" rel="noopener noreferrer" aria-label="Formme on LinkedIn" className="inline-flex items-center justify-center p-3 -m-3 md:p-0 md:m-0" style={{ color: MUTED2 }}>
           <Linkedin className="h-4 w-4" />
         </a>
         <span className="text-[12px] font-inter" style={{ color: MUTED2 }}>© {new Date().getFullYear()} Formme. All rights reserved.</span>

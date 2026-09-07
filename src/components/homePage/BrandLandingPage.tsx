@@ -33,6 +33,23 @@ function MakingSection() {
 }
 
 
+/* The cost predictor was reachable only from the nav and one text link in the
+ * FAQ, so nobody browsing the page learned it existed. This shows what the
+ * tool asks for rather than announcing it — a dismissible strip reads as an
+ * ad and gets skipped. No figure is quoted: the estimate carries its caveats
+ * on its own page, and a number here would anchor a price without them. */
+function EstimateSection() {
+  return <section className="brand-estimate" aria-labelledby="brand-estimate-title">
+    <div className="brand-container brand-estimate-layout reveal">
+      <div>
+        <h2 id="brand-estimate-title">Know what it costs.</h2>
+        <p>Pick a garment, a decoration and a quantity — get a per-unit and total estimate in seconds. T-shirts and hoodies, from 20 pieces.</p>
+      </div>
+      <Link className="brand-cta" to="/cost-predictor">Estimate your cost <ArrowUpRight size={18} /></Link>
+    </div>
+  </section>;
+}
+
 export function BrandLandingPage() {
   return <main className="brand-site">
     <section className="brand-hero" aria-labelledby="brand-hero-title">
@@ -60,6 +77,7 @@ export function BrandLandingPage() {
 
     <MakingSection />
     <BrandWorkspacePreview />
+    <EstimateSection />
 
     <section className="brand-company" aria-labelledby="brand-company-title"><div className="brand-container brand-company-layout reveal"><div className="brand-company-copy"><span className="brand-kicker">BUILT BY PEOPLE WHO’VE BEEN THERE</span><h2 id="brand-company-title">Fashion people.<br />Factory people.<br /><span>Your people.</span></h2><p>We’ve run factory floors and built a clothing brand. Formme brings that experience together, so your ideas have the support to become something real.</p><div className="brand-company-facts"><div><strong>40+</strong><span>Years of combined<br />manufacturing experience</span></div><div><strong>Vancouver</strong><span>Where Formme<br />is being built</span></div></div><Link className="brand-link" to="/about">Meet the people behind Formme <ArrowUpRight size={17} /></Link></div><figure><img src={companyImage} alt="Formme presented as the fashion stream organiser at a Vancouver startup event" loading="lazy" /><figcaption><span>PART OF THE FASHION COMMUNITY</span><strong>Building something,<br />together.</strong></figcaption></figure></div></section>
 

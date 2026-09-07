@@ -104,7 +104,9 @@
 .production-page > header > div, .production-page > footer > div { width: min(1320px, calc(100% - 96px)); max-width: none; padding-inline: 0; }
 .production-page h1, .production-page h2, .production-page h3, .production-page h4 { font-family: 'DM Sans', sans-serif; letter-spacing: -.035em; }
 .production-page h2 { font-size: clamp(32px, 3.1vw, 44px); line-height: 1.13; font-weight: 600; }
-.production-page em { color: var(--production-purple); font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; }
+/* Emphasis stays in the headline's own typeface — a second family inside one
+   headline is the thing that reads as a template rather than a brand. */
+.production-page em { color: var(--production-purple); font-style: normal; font-weight: inherit; }
 .production-page p { color: var(--production-muted); font-size: 14px; line-height: 1.8; }
 .production-page button, .production-page a { -webkit-tap-highlight-color: transparent; }
 .production-page :is(button, a):focus-visible { outline: 2px solid var(--production-purple); outline-offset: 4px; }
@@ -207,6 +209,59 @@
 .story-live i { height: 4px; width: 4px; border-radius: 50%; background: var(--c-ok-soft); }
 .story-caption { position: absolute; bottom: 0; width: 100%; text-align: center; font-size: 8px; color: var(--production-muted); }
 .production-capabilities { display: flex; align-items: center; justify-content: space-between; gap: 30px; border-top: 1px solid var(--c-purple-100); padding-block: 25px; }
+/* Brands lead with the claim itself rather than a product panel: one centred
+   column, then proof. */
+.production-hero-centered { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; padding-block: 84px 46px; }
+.production-hero-centered .production-hero-copy { max-width: 760px; }
+.production-hero-centered .production-hero-copy > p { max-width: 540px; margin-inline: auto; }
+.production-hero-centered .production-actions,
+.production-hero-centered .production-hero-note { justify-content: center; }
+
+/* ─── How it works ─── */
+/* The step number carries the card on its own, in place of a decorative icon. */
+
+/* ─── What you can make ─── */
+.landing-specs { background: var(--production-lavender); }
+.landing-spec-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.landing-spec-grid > div { padding: 24px 22px 26px; border-radius: 14px; background: #fff; border: 1px solid #e5ddf2; }
+.landing-spec-label { display: block; font-size: 9px; letter-spacing: .1em; color: var(--production-muted); margin-bottom: 8px; }
+.landing-spec-grid strong { display: block; font-family: 'DM Sans', sans-serif; font-size: 19px; font-weight: 600; letter-spacing: -.03em; color: var(--production-ink); }
+.landing-spec-grid p { font-size: 11px; line-height: 1.65; margin-top: 8px; }
+.landing-types { display: flex; align-items: baseline; flex-wrap: wrap; gap: 14px 22px; margin-top: 30px; padding-top: 26px; border-top: 1px solid #ddd2ee; }
+.landing-types-label { font-size: 9px; letter-spacing: .1em; color: var(--production-muted); }
+.landing-types > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.landing-types > div > span { padding: 7px 12px; border-radius: 30px; background: #fff; border: 1px solid #e2d9ef; font-size: 11px; color: var(--production-ink); }
+
+/* ─── Questions ─── */
+.landing-faq { background: #fff; }
+.landing-faq .production-section-heading > p { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.landing-faq-list { border-top: 1px solid var(--production-border); }
+.landing-faq-list details { border-bottom: 1px solid var(--production-border); }
+.landing-faq-list summary { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-block: 22px; cursor: pointer; list-style: none; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 500; letter-spacing: -.02em; color: var(--production-ink); }
+.landing-faq-list summary::-webkit-details-marker { display: none; }
+.landing-faq-list summary:focus-visible { outline: 2px solid var(--production-purple); outline-offset: 3px; }
+/* Plus sign that becomes a minus once the answer is open. */
+.landing-faq-list summary > span { position: relative; flex-shrink: 0; width: 15px; height: 15px; }
+.landing-faq-list summary > span::before,
+.landing-faq-list summary > span::after { content: ''; position: absolute; inset: 50% 0 auto; height: 1.5px; background: var(--production-purple); transition: transform .2s; }
+.landing-faq-list summary > span::after { transform: rotate(90deg); }
+.landing-faq-list details[open] summary > span::after { transform: rotate(0deg); }
+.landing-faq-list details > p { max-width: 70ch; padding-bottom: 24px; margin-top: -4px; font-size: 13px; line-height: 1.85; }
+
+/* Proof before polish — who our partner factories already make clothes for. */
+.proof-strip { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 28px 48px; border-top: 1px solid #e8def3; padding-block: 30px; }
+.proof-label { display: block; color: var(--production-muted); font-size: 9px; letter-spacing: .1em; margin-bottom: 14px; }
+.proof-brand-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 30px; }
+.proof-brand-row > span { font-family: 'DM Sans', sans-serif; font-size: 17px; font-weight: 600; letter-spacing: -.02em; color: #6f6683; }
+.proof-stats { display: flex; gap: 40px; margin: 0; }
+.proof-stats dt { font-family: 'DM Sans', sans-serif; font-size: 25px; font-weight: 600; letter-spacing: -.035em; color: var(--production-ink); line-height: 1.1; }
+.proof-stats dd { margin: 4px 0 0; font-size: 10px; color: var(--production-muted); }
+
+/* Persistent action on phones, where the hero CTA scrolls away fast. */
+.production-sticky-cta { display: none; }
+
+.production-capabilities { display: flex; align-items: center; justify-content: space-between; gap: 30px; border-top: 1px solid #e8def3; padding-block: 25px; }
+
 .production-capabilities > span { color: var(--production-muted); letter-spacing: .09em; font-size: 9px; }
 .production-capabilities > div { display: flex; align-items: center; flex-wrap: wrap; gap: 36px; }
 .production-capabilities > div > span { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--production-muted); }
@@ -491,6 +546,7 @@
   .connector-visual { width: 100%; max-width: 800px; margin-inline: auto; }
   }
 @media (max-width: 850px) {
+  .landing-spec-grid { grid-template-columns: 1fr 1fr; }
   .production-landing-brand .workflow-step-list strong { font-size: 10px; }
   .audience-panels-single .audience-panel { grid-template-columns: minmax(0, 1fr); gap: 30px; padding: 30px; }
   .production-section { padding-block: 64px; }
@@ -514,6 +570,13 @@
   .production-final > div { align-items: flex-start; }
 }
 @media (max-width: 639px) {
+  .landing-spec-grid { grid-template-columns: 1fr; gap: 10px; }
+  .landing-spec-grid > div { padding: 18px; }
+  .landing-spec-grid strong { font-size: 16px; }
+  .landing-types { margin-top: 22px; padding-top: 20px; gap: 11px 16px; }
+  .landing-types > div > span { font-size: 10px; padding: 6px 10px; }
+  .landing-faq-list summary { font-size: 14px; gap: 16px; padding-block: 18px; }
+  .landing-faq-list details > p { font-size: 12px; padding-bottom: 20px; }
   .workflow-tour-brand .workflow-preview-content { min-height: 510px; }
   .production-landing-brand .workflow-step-list strong { font-size: 10px; line-height: 1.4; }
   .workflow-playback { gap: 10px; }
@@ -598,6 +661,20 @@
   .story-visibility .story-live { font-size: 6px; }
   .story-arrow { display: none; }
   .story-caption { font-size: 6px; }
+  .production-hero-centered { padding-block: 42px 26px; }
+  .proof-strip { flex-direction: column; align-items: flex-start; gap: 22px; padding-block: 24px; }
+  .proof-label { font-size: 8px; margin-bottom: 11px; }
+  .proof-brand-row { gap: 9px 20px; }
+  .proof-brand-row > span { font-size: 14px; }
+  .proof-stats { gap: 0; width: 100%; justify-content: space-between; }
+  .proof-stats dt { font-size: 21px; }
+  .proof-stats dd { font-size: 9px; }
+  .production-sticky-cta {
+    display: block; position: sticky; bottom: 0; z-index: 40; margin-top: -1px;
+    padding: 11px 20px calc(11px + env(safe-area-inset-bottom));
+    background: #ffffffee; backdrop-filter: blur(8px); border-top: 1px solid #e8def3;
+  }
+  .production-sticky-cta .production-button { width: 100%; }
   .production-capabilities { align-items: flex-start; gap: 15px; padding-block: 22px; }
   .production-capabilities > span { font-size: 8px; }
   .production-capabilities > div { display: grid; grid-template-columns: 1fr 1fr; width: 100%; gap: 14px; }
@@ -686,6 +763,7 @@
   .connector-brand { padding: 23px; }
   .connector-brand-row { font-size: 10px; }
   .connector-shared { font-size: 9px; }
+
   .production-merch > div { align-items: flex-start; flex-direction: column; gap: 20px; }
   .production-merch > div > div { align-items: flex-start; gap: 12px; }
   .production-merch h2 { font-size: 23px; }
@@ -707,7 +785,7 @@
 .gate-section { padding-block: 96px 90px; background: var(--c-surface-1); }
 .gate-intro { max-width: 640px; margin-inline: auto; text-align: center; }
 .gate-intro h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: clamp(34px, 4.4vw, 52px); line-height: 1.14; letter-spacing: -.02em; margin-top: 6px; }
-.gate-intro h1 em { font-style: italic; }
+.gate-intro h1 em { font-style: normal; }
 .gate-intro > p { margin-top: 18px; font-size: 15px; line-height: 1.8; color: var(--production-muted); }
 .gate-features { display: flex; justify-content: center; flex-wrap: wrap; gap: 28px; margin-top: 30px; padding-top: 28px; border-top: 1px solid var(--c-purple-100); }
 .gate-features span { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--production-muted); }
@@ -744,7 +822,7 @@
 .gate-section { padding-block: 110px 48px; }
 .gate-intro { max-width: 720px; }
 .gate-intro h1 { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: clamp(36px, 4.5vw, 58px); letter-spacing: -.045em; line-height: 1.08; margin-top: 18px; }
-.gate-intro h1 em { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: 1.13em; letter-spacing: -.035em; color: var(--production-purple); }
+.gate-intro h1 em { font-weight: inherit; font-size: 1em; letter-spacing: inherit; color: var(--production-purple); }
 .gate-intro > p { max-width: 490px; margin: 20px auto 0; font-size: 14px; line-height: 1.7; }
 .gate-cards { max-width: 960px; margin-top: 36px; gap: 24px; }
 .gate-card { padding: 26px; height: 100%; border-radius: 20px; overflow: hidden; }
@@ -794,7 +872,7 @@
 .gate-card { padding: 32px; border-top: 3px solid var(--c-purple-soft); }
 .gate-card-manufacturer { border-top-color: var(--c-line-2); background: linear-gradient(145deg, var(--c-paper), var(--c-purple-wash)); }
 .gate-card-top { margin-bottom: 28px; gap: 12px; }
-.gate-card-manufacturer .gate-card-manufacturer .gate-card-top .production-eyebrow { background: var(--c-purple-50); color: var(--c-ink-2); }
+.gate-card-manufacturer .gate-card-top .production-eyebrow { background: var(--c-purple-50); color: var(--c-ink-2); }
 .gate-card h2 { font-size: clamp(25px, 2.4vw, 30px); }
 .gate-card-desc { margin: 8px 0 0; font-size: 14px; color: var(--c-ink-2); }
 .gate-card-summary { margin: 16px 0 22px; font-size: 13px; max-width: 330px; }
@@ -809,13 +887,13 @@
    headline, roomy cards) reads as oversized on a small screen. */
 @media (max-width: 639px) {
   .gate-section { padding-block: 40px 24px; }
-  .gate-intro h1 { font-size: 22px; letter-spacing: -.02em; margin-top: 8px; }
-  .gate-intro > p { font-size: 12px; margin-top: 8px; }
+  /* Confident headline, compact everything else — the size cut belongs to the
+     supporting copy and the cards, not to the one line that carries the brand. */
+  .gate-intro h1 { font-size: 36px; line-height: 1.05; letter-spacing: -.035em; margin-top: 8px; }
+  .gate-intro > p { font-size: 12px; margin-top: 12px; }
   .gate-cards { gap: 10px; margin-top: 14px; }
   .gate-card { padding: 14px; border-radius: 12px; }
   .gate-card-top { margin-bottom: 8px; gap: 6px; }
-  .gate-card-icon { width: 26px; height: 26px; border-radius: 8px; }
-  .gate-card-icon svg { width: 14px; height: 14px; }
   .gate-card-top .production-eyebrow { font-size: 8px; }
   .gate-card h2 { font-size: 16px; }
   .gate-card-desc { font-size: 11px; margin-top: 2px; }
@@ -915,7 +993,14 @@
 .about-hero > .production-container > p { margin-top: 18px; font-size: 15px; line-height: 1.8; max-width: 560px; margin-inline: auto; color: var(--production-muted); }
 .about-story-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 64px; align-items: start; }
 .about-story-copy h2 { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: clamp(28px, 3vw, 38px); line-height: 1.15; margin-bottom: 20px; }
-.about-story-points { display: grid; gap: 11px; margin-bottom: 24px; padding: 20px 22px; border-radius: 14px; background: var(--c-paper); border: 1px solid var(--c-purple-100); }
+.about-story-points { display: grid; gap: 11px; margin-bottom: 24px; padding: 20px 22px; border-radius: 14px; background: var(--c-paper); border: 1px solid var(--c-purple-100); box-shadow: 0 12px 30px -24px rgba(23,20,31,.3); }
+
+/* The hero, this band and the cards had all drifted to within 3% of white,
+   so the page ran white-slab into dark-slab with no step between and the
+   cards read as faint outlines rather than objects. The tint moves to the
+   ground rather than back onto the cards: the cards stay white, as asked,
+   and get something to be white against. */
+.about-story { background: var(--c-purple-50); border-block: 1px solid var(--c-purple-100); }
 .about-story-points li { display: flex; align-items: flex-start; gap: 9px; font-size: 13px; line-height: 1.6; color: var(--production-ink); font-weight: 500; }
 .about-story-points li svg { flex-shrink: 0; color: var(--production-accent-text); margin-top: 2px; }
 .about-story-copy > p { margin-block: 16px; font-size: 14px; }
@@ -936,7 +1021,7 @@
 .about-pillar-icon { display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 12px; background: var(--c-purple-50); color: var(--production-purple); margin-bottom: 18px; }
 .about-pillar h3 { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 16px; margin-bottom: 8px; }
 .about-pillar p { font-size: 13px; line-height: 1.7; }
-.about-cta { padding-block: 88px; }
+.about-cta { padding-block: 88px; border-top: 1px solid var(--c-panel-line); }
 .about-cta-inner { display: flex; justify-content: space-between; align-items: center; gap: 45px; }
 .about-cta-inner h2 { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: clamp(28px, 3.6vw, 44px); line-height: 1.15; }
 .about-cta-inner p { max-width: 320px; margin-bottom: 20px; font-size: 13px; }
@@ -1200,3 +1285,15 @@
 .production-page .factory-erp-cta p { max-width: 540px; margin-top: 20px; font-size: 16px; line-height: 1.75; }
 .factory-erp-cta .production-button { margin-top: 30px; }
 @media (max-width: 860px) { .factory-erp-grid { grid-template-columns: 1fr; gap: 26px; } .factory-erp { padding-block: 112px 66px; } }
+
+/* Touch targets below the tablet breakpoint. These are all single lines of
+   small type — 15-29px boxes, correct on a pointer, under half what a finger
+   needs. Grown with a pseudo-element so nothing reflows, except the toggle
+   buttons which have room to take real padding. */
+@media (max-width: 850px) {
+  .production-page .production-text-link,
+  .production-page .workflow-preview-footer button { position: relative; }
+  .production-page .production-text-link::after,
+  .production-page .workflow-preview-footer button::after { content: ''; position: absolute; inset: -13px 0; }
+  .production-page .overview-switch button { min-height: 44px; }
+}
