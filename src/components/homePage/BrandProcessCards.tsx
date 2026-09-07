@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { ArrowRight, Check } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import './brand-process-cards.css';
 
@@ -76,10 +76,11 @@ export function BrandProcessCards() {
                 <ReferenceImage kind="factory" />
                 <div><h4>{factory.name}</h4><p>{factory.location}</p></div>
               </div>
-              <div className="process-partner-fit">
-                <span className="process-eyebrow">A MATCH FOR YOUR</span>
-                <ul>{['Product', 'Quantity', 'Timeline'].map(item => <li key={item}><Check size={14} />{item}</li>)}</ul>
-              </div>
+              <dl className="process-request-specs">
+                <div><dt>Speciality</dt><dd>{factory.product}</dd></div>
+                <div><dt>Matched on</dt><dd>Product, quantity, timeline</dd></div>
+                <div><dt>Next step</dt><dd>Your first sample</dd></div>
+              </dl>
               <button type="button" className="process-partner-link" onClick={event => { factoryTrigger.current = event.currentTarget; setShowFactory(true); }}>
                 Meet your partner <ArrowRight size={15} />
               </button>
@@ -90,11 +91,11 @@ export function BrandProcessCards() {
                 <svg viewBox="0 0 160 160" aria-hidden="true"><circle className="process-ring-track" cx="80" cy="80" r="66" /><circle className="process-ring-value" cx="80" cy="80" r="66" pathLength="100" strokeDasharray="72 100" /></svg>
                 <div><strong>72<span>%</span></strong><span>complete</span></div>
               </div>
-              <div className="process-stage-list">
-                <span className="is-done"><Check size={13} />Sample approved</span>
-                <span className="is-current">Sewing in progress</span>
-                <span>Quality check &amp; shipment</span>
-              </div>
+              <dl className="process-request-specs">
+                <div><dt>Sample</dt><dd>Approved by you</dd></div>
+                <div><dt>Now</dt><dd>Sewing in progress</dd></div>
+                <div><dt>Next</dt><dd>Quality &amp; shipment</dd></div>
+              </dl>
             </>}
           </div>
         </li>
