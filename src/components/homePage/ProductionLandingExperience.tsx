@@ -119,11 +119,7 @@ export function ProductionLandingExperience({ audience }: AudienceProps) {
           {!isBrand && <ManufacturerHeroPreview />}
         </div>
         <div className="production-container"><ProofStrip /></div>
-        {isBrand ? (
-          <div className="production-hero-band">
-            <img src="/factory.jpg" alt="Garment workshop with sewing machines, fabric, and production equipment" />
-          </div>
-        ) : (
+        {!isBrand && (
           <div className="production-container"><div className="production-capabilities"><span>EVERY DETAIL, CONNECTED.</span><div><span><FileText /> Order review</span><span><Factory /> Line planning</span><span><ShieldCheck /> Quality control</span><span><Truck /> Shipment coordination</span></div></div></div>
         )}
       </section>
