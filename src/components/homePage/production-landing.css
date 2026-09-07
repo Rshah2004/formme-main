@@ -258,7 +258,7 @@
 .proof-strip { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 28px 48px; border-top: 1px solid #e8def3; padding-block: 30px; }
 .proof-label { display: block; color: var(--production-muted); font-size: 9px; letter-spacing: .1em; margin-bottom: 14px; }
 .proof-brand-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 30px; }
-.proof-brand-row > span { font-family: 'DM Sans', sans-serif; font-size: 17px; font-weight: 600; letter-spacing: -.02em; color: #9d94ab; }
+.proof-brand-row > span { font-family: 'DM Sans', sans-serif; font-size: 17px; font-weight: 600; letter-spacing: -.02em; color: #6f6683; }
 .proof-stats { display: flex; gap: 40px; margin: 0; }
 .proof-stats dt { font-family: 'DM Sans', sans-serif; font-size: 25px; font-weight: 600; letter-spacing: -.035em; color: var(--production-ink); line-height: 1.1; }
 .proof-stats dd { margin: 4px 0 0; font-size: 10px; color: var(--production-muted); }
