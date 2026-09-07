@@ -1,70 +1,85 @@
-import { ArrowRight } from 'lucide-react';
+import { ArrowDown, ArrowRight, ArrowUpRight } from 'lucide-react';
 import { SEO } from '@/components/SEO';
 import { LandingHeader, LandingFooter, CONTACT_HREF } from '@/components/homePage/LandingChrome';
-import { useLandingReveal } from '@/components/homePage/useLandingReveal';
 import '@/components/homePage/production-landing.css';
+import './factory-erp.css';
 
-/* Names the stages the system covers and the problem it replaces. It shows no
- * interface and describes no mechanism — enough to make the work legible to a
- * manufacturer without setting out how any of it is built. */
 const stages = ['Fabric in', 'Cutting', 'Knitting', 'Sewing', 'Finishing', 'Dispatch'];
 
-const replaces = [
-  { title: 'One record, not five.', body: 'Where an order stands lives in one place, rather than in a spreadsheet, a chat thread, a register and someone’s memory.' },
-  { title: 'Recorded where the work happens.', body: 'Each stage is logged on the floor as it moves, so the status is what the floor actually did — not what was remembered at the end of the day.' },
-  { title: 'The whole order, end to end.', body: 'From fabric arriving to goods leaving, the same order carries its own history instead of being rebuilt from fragments.' },
+const benefits = [
+  { title: 'Know where the work stands.', body: 'A shared view of each order, so your team knows what’s moving and what needs attention.', label: 'PRODUCTION CLARITY' },
+  { title: 'Keep the details together.', body: 'Materials, stage updates and order history connected to the work they belong to.', label: 'ONE SHARED RECORD' },
+  { title: 'Make every handoff clearer.', body: 'From fabric arriving to goods leaving, keep the next team informed as an order moves forward.', label: 'CONNECTED TEAMS' },
 ];
 
-const FactoryErp = () => {
-  useLandingReveal();
-  return (
-    <div className="production-page factory-erp-page">
-      <SEO
-        title="Factory ERP"
-        canonical="/factory-erp"
-        description="Formme is building a production system for apparel factories — fabric in, cutting, knitting, sewing, finishing and dispatch, tracked in one place."
-      />
-      <LandingHeader />
+const FactoryErp = () => (
+  <div className="production-page factory-erp-page">
+    <SEO
+      title="Factory ERP"
+      canonical="/factory-erp"
+      description="Formme Factory ERP is in development with apparel manufacturers. A connected system for materials, production stages and dispatch, built around the factory floor."
+    />
+    <LandingHeader />
 
-      <main>
-        <section className="production-section factory-erp" aria-labelledby="factory-erp-title">
-          <div className="production-container reveal">
-            <span className="production-eyebrow">NOW IN BUILD</span>
-            <h1 id="factory-erp-title">The whole floor.<br /><em>One system.</em></h1>
-            <p className="factory-erp-lead">Every stage of an order recorded where the work happens — what went to cutting and when, which fabric arrived from where, what is on the line right now.</p>
-            <ol className="factory-erp-stages" aria-label="Production stages covered">
-              {stages.map(stage => <li key={stage}>{stage}</li>)}
-            </ol>
-            <p className="factory-erp-note">We are building this now, alongside manufacturers in Bangladesh.</p>
-          </div>
-        </section>
-
-        <section className="production-section factory-erp-replaces" aria-labelledby="factory-erp-replaces-title">
-          <div className="production-container reveal">
-            <h2 id="factory-erp-replaces-title">Instead of tools<br />that never quite agree.</h2>
-            <div className="factory-erp-grid">
-              {replaces.map(item => (
-                <article key={item.title}>
-                  <h3>{item.title}</h3>
-                  <p>{item.body}</p>
-                </article>
-              ))}
+    <main className="erp-main">
+      <section className="erp-hero" aria-labelledby="erp-title">
+        <div className="production-container erp-hero-layout">
+          <div className="erp-hero-copy">
+            <div className="erp-product-label"><span>FORMME FACTORY ERP</span><span className="erp-build-badge"><i aria-hidden="true" />In development</span></div>
+            <h1 id="erp-title">Your factory.<br /><span>Working as one.</span></h1>
+            <p className="erp-lead">Materials, production and dispatch, connected. We’re building one system to help apparel manufacturers keep every order moving.</p>
+            <div className="erp-hero-actions">
+              <a className="erp-button" href={CONTACT_HREF}>Help shape Factory ERP <ArrowUpRight size={17} /></a>
+              <a className="erp-explore" href="#erp-overview">Explore what’s coming <ArrowDown size={15} /></a>
             </div>
+            <p className="erp-build-note">Built alongside manufacturers in Bangladesh.</p>
           </div>
-        </section>
 
-        <section className="production-section factory-erp-cta" aria-labelledby="factory-erp-cta-title">
-          <div className="production-container reveal">
-            <h2 id="factory-erp-cta-title">Run a factory?<br /><em>We’d like to hear how yours works.</em></h2>
-            <p>We are building this with manufacturers, not for them at a distance. If you run a floor and the way you track it is held together with spreadsheets, tell us about it.</p>
-            <a className="production-button" href={CONTACT_HREF}>Talk about your factory <ArrowRight size={16} /></a>
+          <figure className="erp-floor-visual">
+            <img src="/factory.jpg" alt="Garment-making workspace with sewing machines, fabric and cutting tables" fetchPriority="high" />
+            <figcaption>
+              <div className="erp-photo-heading"><span>BUILT AROUND REAL WORK</span><span>01 — THE FACTORY FLOOR</span></div>
+              <strong>One order.<br />Every stage, connected.</strong>
+              <div className="erp-photo-flow" aria-hidden="true"><span>Materials</span><ArrowRight size={14} /><span>Production</span><ArrowRight size={14} /><span>Dispatch</span></div>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section className="erp-coverage" aria-labelledby="erp-coverage-title">
+        <div className="production-container erp-coverage-layout">
+          <h2 id="erp-coverage-title">From fabric in<br /> to goods out.</h2>
+          <ul className="erp-stages" aria-label="Production stages covered">
+            {stages.map((stage, index) => <li key={stage}><span>0{index + 1}</span>{stage}</li>)}
+          </ul>
+        </div>
+      </section>
+
+      <section className="erp-overview" id="erp-overview" aria-labelledby="erp-overview-title">
+        <div className="production-container">
+          <div className="erp-section-heading">
+            <div><span className="erp-kicker">LESS CHASING. MORE CLARITY.</span><h2 id="erp-overview-title">A clearer picture.<br />A smoother working day.</h2></div>
+            <p>Designed to bring the floor and the office onto the same page, with the information your team needs to move forward.</p>
           </div>
-        </section>
-      </main>
+          <div className="erp-benefits">
+            {benefits.map((item, index) => <article key={item.label}>
+              <div className="erp-benefit-label"><span>0{index + 1}</span><span>{item.label}</span></div>
+              <h3>{item.title}</h3><p>{item.body}</p>
+            </article>)}
+          </div>
+        </div>
+      </section>
 
-      <LandingFooter />
-    </div>
-  );
-};
+      <section className="erp-invitation" aria-labelledby="erp-invitation-title">
+        <div className="production-container erp-invitation-panel">
+          <div><span className="erp-kicker">BUILT WITH MANUFACTURERS</span><h2 id="erp-invitation-title">Your floor.<br />Your experience.<br /><span>Help shape what’s next.</span></h2></div>
+          <div className="erp-invitation-copy"><p>Factory ERP is in development. Tell us how your factory works, where the handoffs get difficult, and what would make a difference to your team.</p><a className="erp-button erp-button-light" href={CONTACT_HREF}>Let’s talk about your factory <ArrowUpRight size={17} /></a><span className="erp-contact-note">A conversation with the Formme team.</span></div>
+        </div>
+      </section>
+    </main>
+
+    <LandingFooter />
+  </div>
+);
 
 export default FactoryErp;
