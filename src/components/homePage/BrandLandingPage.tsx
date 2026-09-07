@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowDown, ArrowRight, ArrowUpRight, Check, Plus } from 'lucide-react';
+import { ArrowDown, ArrowRight, ArrowUpRight, Check } from 'lucide-react';
 import { CONTACT_HREF } from './LandingChrome';
 import { BrandWorkspacePreview } from './BrandWorkspacePreview';
 import { BrandProcessCards } from './BrandProcessCards';
@@ -46,7 +46,6 @@ export function BrandLandingPage() {
         </div>
         <FashionStudio />
       </div>
-      <div className="brand-container brand-hero-bottom"><span>FROM THE FIRST SKETCH TO THE FINAL STITCH.</span><div><span>Manufacturer matching</span><Plus size={13} /><span>Production management</span><Plus size={13} /><span>One shared workspace</span></div></div>
     </section>
 
     <section className="brand-proof reveal" aria-label="Production capability">
