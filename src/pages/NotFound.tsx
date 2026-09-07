@@ -1,7 +1,7 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { SEO } from "@/components/SEO";
-import { BG, LAVENDER, INK, MUTED2, PURPLE } from "@/components/homePage/theme";
+import { BG, LAVENDER, INK, MUTED2, PURPLE, BORDER, SURFACE } from "@/components/homePage/theme";
 import { SolidButton, LandingHeader, LandingFooter } from "@/components/homePage/LandingChrome";
 
 const NotFound = () => {
@@ -20,7 +20,7 @@ const NotFound = () => {
       <LandingHeader />
 
       <div className="flex-1 flex items-center justify-center px-6 pt-32 pb-20" style={{ background: LAVENDER }}>
-        <div className="text-center max-w-md p-10 bg-white rounded-2xl" style={{ border: '1px solid #E7E3F5' }}>
+        <div className="text-center max-w-md p-10 rounded-2xl" style={{ background: SURFACE, border: `1px solid ${BORDER}` }}>
           <p className="font-cormorant font-medium leading-none mb-4" style={{ color: PURPLE, fontSize: '72px' }}>404</p>
           <p className="font-inter" style={{ color: MUTED2, fontSize: '15px' }}>
             Oops! We couldn't find the page you're looking for.

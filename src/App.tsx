@@ -4,6 +4,7 @@ import Index from "./pages/Index";
 import BrandsLanding from "./pages/BrandsLanding";
 import ManufacturersLanding from "./pages/ManufacturersLanding";
 import Templates from "./pages/Templates";
+import FactoryErp from "./pages/FactoryErp";
 import Marketplace from "./pages/Marketplace";
 import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
@@ -67,6 +68,7 @@ function App() {
           {/*<Route path="/manufacturers/:id" element={<Manufacturers />} />*/}
           <Route path="/support" element={<Support />} />
           <Route path="/cost-predictor" element={<CostPredictor />} />
+          <Route path="/factory-erp" element={<FactoryErp />} />
           <Route path="/test" element={<Test />} />
           <Route path="/admin/add-factory" element={<ManufacturerOnboard />} />
           <Route path="*" element={<NotFound />} />

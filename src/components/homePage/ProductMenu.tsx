@@ -1,46 +1,36 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calculator, ChevronDown, ClipboardList, Eye, Factory, LayoutGrid, Route } from 'lucide-react';
-import { BORDER, INK, MUTED, MUTED2, PURPLE, PURPLE_BG } from './theme';
+import { ChevronDown, Factory } from 'lucide-react';
+import { BORDER, INK, MUTED, MUTED2, PURPLE, SURFACE } from './theme';
 
 type ProductItem = {
-  icon: typeof LayoutGrid;
   label: string;
   description: string;
   to: string;
 };
 
 const forBrands: ProductItem[] = [
-  { icon: LayoutGrid, label: 'Production Workspace', description: 'Manage samples, orders and production.', to: '/brands' },
-  { icon: Factory, label: 'Factory Matching', description: 'Find the right manufacturing partner.', to: '/brands#product' },
-  { icon: Calculator, label: 'Cost Predictor', description: 'Estimate apparel production costs.', to: '/cost-predictor' },
+  { label: 'Production Workspace', description: 'Manage samples, orders and production.', to: '/brands' },
+  { label: 'Cost Predictor', description: 'Estimate apparel production costs.', to: '/cost-predictor' },
 ];
 
 const forManufacturers: ProductItem[] = [
-  { icon: ClipboardList, label: 'Factory Operations', description: 'Manage orders and apparel production.', to: '/manufacturers' },
-  { icon: Eye, label: 'Buyer Visibility', description: 'Keep brands updated from the same production workflow.', to: '/manufacturers' },
+  { label: 'Factory Operations', description: 'Manage orders and apparel production.', to: '/manufacturers' },
+  { label: 'Factory ERP', description: 'Cutting, knitting, sewing and finishing — tracked in one place.', to: '/factory-erp' },
 ];
 
-const MenuLink = ({ item, tabIndex, onNavigate }: { item: ProductItem; tabIndex: number; onNavigate: () => void }) => {
-  const Icon = item.icon;
-  return (
-    <Link
-      to={item.to}
-      onClick={onNavigate}
-      role="menuitem"
-      tabIndex={tabIndex}
-      className="flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors duration-150 hover:bg-[rgba(93,82,214,0.07)] focus-visible:bg-[rgba(93,82,214,0.07)] focus-visible:outline-none"
-    >
-      <span className="mt-0.5 flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: PURPLE_BG, color: PURPLE }}>
-        <Icon className="w-3.5 h-3.5" strokeWidth={1.75} />
-      </span>
-      <span className="min-w-0">
-        <span className="block text-[13px] font-inter font-medium" style={{ color: INK }}>{item.label}</span>
-        <span className="block text-[12px] font-inter leading-snug mt-0.5" style={{ color: MUTED2 }}>{item.description}</span>
-      </span>
-    </Link>
-  );
-};
+const MenuLink = ({ item, tabIndex, onNavigate }: { item: ProductItem; tabIndex: number; onNavigate: () => void }) => (
+  <Link
+    to={item.to}
+    onClick={onNavigate}
+    role="menuitem"
+    tabIndex={tabIndex}
+    className="product-menu-item block rounded-xl px-3 py-2.5 focus-visible:outline-none"
+  >
+    <span className="product-menu-label block text-[13px] font-inter font-medium" style={{ color: INK }}>{item.label}</span>
+    <span className="block text-[12px] font-inter leading-snug mt-0.5" style={{ color: MUTED2 }}>{item.description}</span>
+  </Link>
+);
 
 /**
  * Compact "Product" dropdown for the main nav — grouped by audience, plus a
@@ -111,10 +101,11 @@ export const ProductMenu = () => {
         role="menu"
         aria-label="Product"
         aria-hidden={!open}
-        className="absolute left-1/2 mt-3 w-[600px] max-w-[92vw] rounded-2xl bg-white p-5 grid grid-cols-2 gap-x-6 transition-[opacity,transform] duration-200 origin-top"
+        className="absolute left-1/2 mt-3 w-[600px] max-w-[92vw] rounded-2xl p-5 grid grid-cols-2 gap-x-6 transition-[opacity,transform] duration-200 origin-top"
         style={{
+          background: SURFACE,
           border: `1px solid ${BORDER}`,
-          boxShadow: '0 20px 45px -20px rgba(21,19,28,0.22)',
+          boxShadow: '0 20px 45px -20px rgba(6,3,26,0.65)',
           opacity: open ? 1 : 0,
           transform: open ? 'translate(-50%, 0) scale(1)' : 'translate(-50%, -6px) scale(0.98)',
           pointerEvents: open ? 'auto' : 'none',
@@ -134,15 +125,11 @@ export const ProductMenu = () => {
             role="menuitem"
             tabIndex={tabIndex}
             onClick={close}
-            className="flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors duration-150 hover:bg-[rgba(93,82,214,0.09)] focus-visible:outline-none"
-            style={{ background: 'rgba(93,82,214,0.05)' }}
+            className="product-menu-item block rounded-xl px-3 py-2.5 focus-visible:outline-none"
           >
-            <span className="mt-0.5 flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: PURPLE_BG, color: PURPLE }}>
-              <Route className="w-3.5 h-3.5" strokeWidth={1.75} />
-            </span>
             <span className="min-w-0">
               <span className="flex items-center gap-2">
-                <span className="text-[13px] font-inter font-medium" style={{ color: INK }}>Supply Chain Visibility</span>
+                <span className="product-menu-label text-[13px] font-inter font-medium" style={{ color: INK }}>Supply Chain Visibility</span>
                 <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] uppercase tracking-wide font-inter font-semibold flex-shrink-0" style={{ background: PURPLE, color: '#fff' }}>
                   Coming soon
                 </span>
