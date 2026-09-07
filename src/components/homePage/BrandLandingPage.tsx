@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowDown, ArrowRight, ArrowUpRight, Check, Plus } from 'lucide-react';
 import { CONTACT_HREF } from './LandingChrome';
@@ -18,24 +17,21 @@ function FashionStudio() {
   </div>;
 }
 
-const makingSteps = [
-  { id: 'brief', title: 'Bring your idea.', description: 'Share your design, product references, and quantity. We help turn the details into a clear production brief.' },
-  { id: 'partner', title: 'Find your people.', description: 'We match you with a manufacturer from the network we\u2019ve built, then coordinate the next steps with you and the factory.' },
-  { id: 'production', title: 'Make it happen.', description: 'Approve the sample, then let our team coordinate production. Follow quality checks and shipment updates in your workspace.' },
-] as const;
-
 function MakingSection() {
-  const [step, setStep] = useState<(typeof makingSteps)[number]['id']>('brief');
   return <section className="brand-making" id="how-formme-works" aria-labelledby="brand-making-title">
     <div className="brand-container">
-      <div className="brand-making-heading reveal"><span className="brand-kicker">LESS BACK-AND-FORTH. MORE MOVING FORWARD.</span><h2 id="brand-making-title">Your vision.<br />Our production <span>know-how.</span></h2></div>
+      <div className="brand-making-heading reveal">
+        <span className="brand-kicker">LESS BACK-AND-FORTH. MORE MOVING FORWARD.</span>
+        <h2 id="brand-making-title">Your vision.<br />Our production <span>know-how.</span></h2>
+      </div>
       <div className="brand-making-layout reveal">
-        <div className="brand-making-steps">{makingSteps.map((item, index) => <div className={step === item.id ? 'is-selected' : ''} key={item.id}><button type="button" id={`making-step-${item.id}`} aria-expanded={step === item.id} aria-controls="making-preview" onClick={() => setStep(item.id)}><span>0{index + 1}</span><strong>{item.title}</strong><ArrowUpRight size={20} /></button>{step === item.id && <p>{item.description}</p>}</div>)}<a className="brand-link" href={CONTACT_HREF}>Tell us what you’re making <ArrowRight size={16} /></a></div>
-        <BrandProcessCards step={step} />
+        <BrandProcessCards />
+        <a className="brand-link brand-making-cta" href={CONTACT_HREF}>Tell us what you’re making <ArrowRight size={16} /></a>
       </div>
     </div>
   </section>;
 }
+
 
 export function BrandLandingPage() {
   return <main className="brand-site">
