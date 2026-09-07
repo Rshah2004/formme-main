@@ -912,7 +912,7 @@
 .about-hero > .production-container > p { margin-top: 18px; font-size: 15px; line-height: 1.8; max-width: 560px; margin-inline: auto; color: var(--production-muted); }
 .about-story-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 64px; align-items: start; }
 .about-story-copy h2 { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: clamp(28px, 3vw, 38px); line-height: 1.15; margin-bottom: 20px; }
-.about-story-points { display: grid; gap: 11px; margin-bottom: 24px; padding: 20px 22px; border-radius: 14px; background: var(--c-purple-wash); border: 1px solid var(--c-purple-50); }
+.about-story-points { display: grid; gap: 11px; margin-bottom: 24px; padding: 20px 22px; border-radius: 14px; background: #ece4f7; border: 1px solid var(--c-purple-50); }
 .about-story-points li { display: flex; align-items: flex-start; gap: 9px; font-size: 13px; line-height: 1.6; color: var(--production-ink); font-weight: 500; }
 .about-story-points li svg { flex-shrink: 0; color: var(--production-accent-text); margin-top: 2px; }
 .about-story-copy > p { margin-block: 16px; font-size: 14px; }
@@ -922,7 +922,7 @@
 .about-story-media { position: sticky; top: 100px; }
 .about-story-media img { width: 100%; height: 340px; object-fit: cover; object-position: center 68%; border-radius: 16px; border: 1px solid var(--production-border); }
 .about-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 20px; }
-.about-stats > div { padding: 20px; border-radius: 14px; background: var(--c-purple-wash); border: 1px solid var(--c-purple-100); box-shadow: 0 10px 26px -22px rgba(23,20,31,.25); }
+.about-stats > div { padding: 20px; border-radius: 14px; background: #ece4f7; border: 1px solid var(--c-purple-100); box-shadow: 0 10px 26px -22px rgba(23,20,31,.25); }
 .about-stats strong { display: block; font-family: 'DM Sans', sans-serif; font-size: 30px; font-weight: 600; letter-spacing: -.02em; color: var(--production-purple); }
 .about-stats span { display: block; margin-top: 6px; font-size: 11.5px; line-height: 1.5; color: var(--production-muted); }
 .about-pillars { background: var(--c-purple-wash); border-block: 1px solid var(--c-purple-50); }
@@ -1062,9 +1062,9 @@
 .production-page .gate-card-cta { color: var(--c-muted); border-color: var(--c-line); font-size: 14px; }
 .production-page .gate-footnote { color: var(--c-muted); }
 .production-page .about-hero h1 { font-family: 'DM Sans', sans-serif; font-weight: 600; }
-.production-page .about-pillar { border-radius: 6px; box-shadow: none; background: var(--c-paper); border-color: var(--c-line); }
-.production-page .about-stats > div { border-radius: 6px; box-shadow: none; border-color: var(--c-purple-100); }
-.production-page .about-pillars { border-color: var(--c-purple-100); }
+.production-page .about-pillar { border-radius: 6px; box-shadow: none; background: var(--c-panel-2); border-color: var(--c-panel-line); }
+.production-page .about-stats > div { border-radius: 6px; box-shadow: none; background: #ece4f7; border-color: #dbcdee; }
+.production-page .about-pillars { border-color: transparent; }
 .production-page .visibility-preview { background: var(--c-purple-wash); }
 .production-page .visibility-copy h1 { font-size: clamp(40px, 4.7vw, 66px); }
 .production-page .visibility-node { border-radius: 6px; box-shadow: none; border-color: var(--c-line); background: var(--c-paper); }
@@ -1119,6 +1119,7 @@
   .factory-hero-window,
   .connector-factory,
   .gate-card-manufacturer .gate-visual,
+  .about-pillars,
   .about-cta,
   .production-merch,
   .production-final
