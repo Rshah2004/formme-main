@@ -1,22 +1,19 @@
 import { useState } from 'react';
-import { ArrowRight, Factory, Shirt } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Audience } from './theme';
 
 const gateCopy: Record<Audience, {
-  icon: typeof Shirt;
   eyebrow: string;
   heading: string;
   description: string;
 }> = {
   brand: {
-    icon: Shirt,
     eyebrow: 'FOR BRANDS',
     heading: 'I’m a Brand',
     description: 'I want to get apparel produced.',
   },
   manufacturer: {
-    icon: Factory,
     eyebrow: 'FOR MANUFACTURERS',
     heading: 'I’m a Manufacturer',
     description: 'I want to manage apparel production.',
@@ -32,7 +29,6 @@ const GateCard = ({
   audience, active, dimmed, reduced, onSelect,
 }: { audience: Audience; active: boolean; dimmed: boolean; reduced?: boolean; onSelect: (a: Audience) => void }) => {
   const copy = gateCopy[audience];
-  const Icon = copy.icon;
   return (
     <motion.div variants={reduced ? cardItemVariantsReduced : cardItemVariants}>
       <button
@@ -43,7 +39,7 @@ const GateCard = ({
         data-active={active}
         data-dimmed={dimmed}
       >
-        <span className="gate-card-top"><span className="gate-card-icon"><Icon size={22} /></span><span className="production-eyebrow">{copy.eyebrow}</span></span>
+        <span className="gate-card-top"><span className="production-eyebrow">{copy.eyebrow}</span></span>
         <h2>{copy.heading}</h2>
         <p className="gate-card-desc">{copy.description}</p>
         <span className="gate-card-summary">{audience === 'brand' ? 'We help find your manufacturer and manage production for your brand.' : 'Plan your lines. Track every order. Keep your brands in the loop.'}</span>
