@@ -34,9 +34,9 @@ function ReferenceImage({ kind, className = '' }: { kind: 'tee' | 'factory'; cla
 }
 
 const steps = [
-  { id: 'brief', title: 'Bring your idea.', you: 'Share your design, references and quantity.', us: 'We turn it into a brief a factory can act on.' },
-  { id: 'partner', title: 'Find your people.', you: 'Meet your factory and see the first sample.', us: 'We match you from the network we’ve built.' },
-  { id: 'production', title: 'Make it happen.', you: 'Approve the product before the run begins.', us: 'We coordinate production, quality and shipment.' },
+  { id: 'brief', title: 'Bring your idea.', line: 'You send the design. We shape it into a factory-ready brief.' },
+  { id: 'partner', title: 'Find your people.', line: 'We match you from our network. You meet the factory.' },
+  { id: 'production', title: 'Make it happen.', line: 'You approve the sample. We run production.' },
 ] as const;
 
 /**
@@ -58,10 +58,7 @@ export function BrandProcessCards() {
             <h3>{step.title}</h3>
           </div>
 
-          <dl className="process-split">
-            <div><dt>You</dt><dd>{step.you}</dd></div>
-            <div><dt>Formme</dt><dd>{step.us}</dd></div>
-          </dl>
+          <p className="process-stop-line">{step.line}</p>
 
           <div className="process-evidence">
             {step.id === 'brief' && <>
