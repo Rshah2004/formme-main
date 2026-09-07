@@ -16,7 +16,7 @@ const forBrands: ProductItem[] = [
 
 const forManufacturers: ProductItem[] = [
   { label: 'Factory Operations', description: 'Manage orders and apparel production.', to: '/manufacturers' },
-  { label: 'Factory ERP', description: 'Cutting, knitting, sewing and finishing — tracked in one place.', to: '/manufacturers#factory-erp' },
+  { label: 'Factory ERP', description: 'Cutting, knitting, sewing and finishing — tracked in one place.', to: '/factory-erp' },
 ];
 
 const MenuLink = ({ item, tabIndex, onNavigate }: { item: ProductItem; tabIndex: number; onNavigate: () => void }) => (

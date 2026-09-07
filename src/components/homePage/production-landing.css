@@ -1178,13 +1178,26 @@
   opacity: .82;
 }
 
-/* Factory ERP teaser. Names the stages it covers and the problem it replaces;
+/* Factory ERP page. Names the stages it covers and the problem it replaces;
    deliberately shows no interface. */
-.factory-erp { background: var(--c-surface-2); border-block: 1px solid var(--c-line); }
-.production-page .factory-erp h2 { font-size: clamp(30px, 3.4vw, 44px); line-height: 1.12; letter-spacing: -.04em; }
-.production-page .factory-erp h2 em { font-style: normal; color: var(--production-purple); }
+.factory-erp-page { background: var(--c-paper); }
+.factory-erp { padding-block: 132px 88px; }
+.production-page .factory-erp h1 { font-size: clamp(38px, 4.6vw, 62px); line-height: 1.08; letter-spacing: -.045em; }
+
+.production-page .factory-erp h1 em, .production-page .factory-erp-cta h2 em { font-style: normal; color: var(--production-purple); }
 .production-page .factory-erp-lead { max-width: 620px; margin-top: 20px; font-size: 16px; line-height: 1.75; }
 .factory-erp-stages { display: flex; flex-wrap: wrap; gap: 10px; list-style: none; margin: 34px 0 0; padding: 0; }
 .factory-erp-stages li { padding: 9px 16px; border: 1px solid var(--c-purple-100); border-radius: 30px; background: var(--c-paper); font-size: 13px; font-weight: 500; }
 .production-page .factory-erp-note { margin-top: 26px; font-size: 13px; color: var(--production-muted); }
 @media (max-width: 600px) { .factory-erp-stages { gap: 8px; } .factory-erp-stages li { padding: 8px 13px; font-size: 12px; } }
+
+.factory-erp-replaces { background: var(--c-surface-2); border-block: 1px solid var(--c-line); }
+.production-page .factory-erp-replaces h2 { font-size: clamp(27px, 3vw, 38px); line-height: 1.15; letter-spacing: -.04em; }
+.factory-erp-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 34px; margin-top: 44px; }
+.production-page .factory-erp-grid h3 { font-size: 17px; font-weight: 600; letter-spacing: -.02em; }
+.production-page .factory-erp-grid p { margin-top: 10px; font-size: 14px; line-height: 1.7; }
+.factory-erp-cta { padding-block: 88px 104px; }
+.production-page .factory-erp-cta h2 { font-size: clamp(30px, 3.4vw, 44px); line-height: 1.12; letter-spacing: -.04em; }
+.production-page .factory-erp-cta p { max-width: 540px; margin-top: 20px; font-size: 16px; line-height: 1.75; }
+.factory-erp-cta .production-button { margin-top: 30px; }
+@media (max-width: 860px) { .factory-erp-grid { grid-template-columns: 1fr; gap: 26px; } .factory-erp { padding-block: 112px 66px; } }
