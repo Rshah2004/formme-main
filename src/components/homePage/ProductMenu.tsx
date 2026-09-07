@@ -1,23 +1,26 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronDown, Factory } from 'lucide-react';
-import { BORDER, INK, MUTED, MUTED2, PURPLE, SURFACE } from './theme';
+import { ChevronDown } from 'lucide-react';
+import { BORDER, INK, MUTED, MUTED2, PURPLE, PURPLE_BG, PURPLE_TEXT, SURFACE } from './theme';
 
 type ProductItem = {
   label: string;
   description: string;
   to: string;
+  isNew?: boolean;
 };
 
 const forBrands: ProductItem[] = [
   { label: 'Production Workspace', description: 'Manage samples, orders and production.', to: '/brands' },
-  { label: 'Cost Predictor', description: 'Estimate apparel production costs.', to: '/cost-predictor' },
+  { label: 'Cost Predictor', description: 'Estimate apparel production costs.', to: '/cost-predictor', isNew: true },
 ];
 
 const forManufacturers: ProductItem[] = [
   { label: 'Factory Operations', description: 'Manage orders and apparel production.', to: '/manufacturers' },
-  { label: 'Factory ERP', description: 'Cutting, knitting, sewing and finishing — tracked in one place.', to: '/factory-erp' },
+  { label: 'Factory ERP', description: 'Cutting, knitting, sewing and finishing — tracked in one place.', to: '/factory-erp', isNew: true },
 ];
+
+const NewBadge = () => <span className="product-menu-new inline-flex flex-shrink-0 items-center rounded-full px-2 py-0.5 text-[9px] font-inter font-semibold uppercase tracking-wide" style={{ background: PURPLE_BG, color: PURPLE_TEXT }}>New</span>;
 
 const MenuLink = ({ item, tabIndex, onNavigate }: { item: ProductItem; tabIndex: number; onNavigate: () => void }) => (
   <Link
@@ -27,7 +30,7 @@ const MenuLink = ({ item, tabIndex, onNavigate }: { item: ProductItem; tabIndex:
     tabIndex={tabIndex}
     className="product-menu-item block rounded-xl px-3 py-2.5 focus-visible:outline-none"
   >
-    <span className="product-menu-label block text-[13px] font-inter font-medium" style={{ color: INK }}>{item.label}</span>
+    <span className="flex flex-wrap items-center gap-2"><span className="product-menu-label text-[13px] font-inter font-medium" style={{ color: INK }}>{item.label}</span>{item.isNew && <NewBadge />}</span>
     <span className="block text-[12px] font-inter leading-snug mt-0.5" style={{ color: MUTED2 }}>{item.description}</span>
   </Link>
 );
@@ -172,8 +175,8 @@ export const MobileProductAccordion = ({ onNavigate }: { onNavigate: () => void 
               <p className="text-[10px] uppercase tracking-[0.1em] font-inter font-semibold mb-2" style={{ color: MUTED }}>{group.heading}</p>
               <div className="flex flex-col gap-2.5">
                 {group.items.map((item) => (
-                  <Link key={item.label} to={item.to} onClick={onNavigate} className="text-[13px] font-inter" style={{ color: INK }}>
-                    {item.label}
+                  <Link key={item.label} to={item.to} onClick={onNavigate} className="flex items-center gap-2 text-[13px] font-inter" style={{ color: INK }}>
+                    {item.label}{item.isNew && <NewBadge />}
                   </Link>
                 ))}
               </div>

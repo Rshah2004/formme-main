@@ -1,0 +1,132 @@
+/* Page-local styles keep the ERP presentation separate from the audience pages. */
+.factory-erp-page {
+  --erp-ink: #26212f;
+  --erp-muted: #706979;
+  --erp-accent: #6755bd;
+  --erp-line: #e5e0e9;
+  color: var(--erp-ink);
+  background: #fff;
+}
+.factory-erp-page .erp-main { padding-top: 72px; }
+.factory-erp-page .erp-hero { padding-block: 76px 66px; background: #faf9fc; }
+.factory-erp-page .erp-hero-layout { display: grid; grid-template-columns: 1.05fr 1fr; align-items: center; gap: 68px; }
+.factory-erp-page .erp-hero-copy { min-width: 0; }
+.factory-erp-page .erp-product-label { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-bottom: 28px; }
+.factory-erp-page .erp-product-label > span:first-child, .factory-erp-page .erp-kicker { display: block; font-size: 10px; line-height: 1.5; font-weight: 600; letter-spacing: .095em; color: var(--erp-muted); }
+.factory-erp-page .erp-build-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 500; padding: 5px 9px; border: 1px solid #e2dbef; border-radius: 30px; color: #675885; background: #f1edf7; }
+.factory-erp-page .erp-build-badge > i { width: 5px; height: 5px; background: #8d79b5; border-radius: 50%; }
+.factory-erp-page .erp-hero h1 { font-size: clamp(44px, 4.7vw, 72px); font-weight: 550; line-height: 1.04; letter-spacing: -.055em; color: var(--erp-ink); }
+.factory-erp-page .erp-hero h1 > span { color: var(--erp-accent); }
+.factory-erp-page .erp-lead { max-width: 460px; margin-top: 25px; font-size: 16px; line-height: 1.8; color: #635c6d; }
+.factory-erp-page .erp-hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; margin-top: 29px; }
+.factory-erp-page .erp-button { display: inline-flex; align-items: center; justify-content: center; gap: 13px; min-height: 48px; padding: 13px 18px; border-radius: 6px; background: #5d52d6; color: #fff; font-size: 12px; line-height: 1.5; font-weight: 500; transition: background .2s; }
+.factory-erp-page .erp-button > svg, .factory-erp-page .erp-explore > svg { flex-shrink: 0; }
+.factory-erp-page .erp-button:hover { background: #4e42b9; }
+.factory-erp-page .erp-explore { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: #5c5269; font-size: 12px; }
+.factory-erp-page .erp-explore:hover { color: var(--erp-accent); }
+.factory-erp-page .erp-build-note { margin-top: 21px; font-size: 11px; color: var(--erp-muted); }
+.factory-erp-page .erp-floor-visual { position: relative; min-width: 0; margin: 0; overflow: hidden; border-radius: 12px; background: #e7e0d6; box-shadow: 0 18px 40px -30px #31253c55; }
+.factory-erp-page .erp-floor-visual > img { display: block; width: 100%; height: 432px; object-fit: cover; object-position: 55% center; }
+.factory-erp-page .erp-floor-visual > figcaption { position: relative; padding: 25px 27px 24px; background: #fff; border: 1px solid var(--erp-line); border-top: 0; border-radius: 0 0 12px 12px; }
+.factory-erp-page .erp-photo-heading { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px; color: #807687; font-size: 8px; letter-spacing: .08em; font-weight: 500; }
+.factory-erp-page .erp-photo-heading > span:last-child { color: #928797; }
+.factory-erp-page .erp-floor-visual strong { display: block; margin-top: 14px; color: var(--erp-ink); font-size: 28px; line-height: 1.15; font-weight: 550; letter-spacing: -.035em; }
+.factory-erp-page .erp-photo-flow { display: flex; align-items: center; gap: 13px; margin-top: 19px; padding-top: 17px; border-top: 1px solid var(--erp-line); color: #70627d; font-size: 11px; }
+.factory-erp-page .erp-photo-flow > svg { color: #a193b0; }
+.factory-erp-page .erp-coverage { border-bottom: 1px solid var(--erp-line); padding-block: 32px; }
+.factory-erp-page .erp-coverage-layout { display: grid; grid-template-columns: 210px 1fr; gap: 38px; align-items: center; }
+.factory-erp-page .erp-coverage h2 { font-size: 19px; font-weight: 550; letter-spacing: -.025em; line-height: 1.35; }
+.factory-erp-page .erp-stages { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); list-style: none; gap: 16px; margin: 0; padding: 0; }
+.factory-erp-page .erp-stages > li { display: flex; flex-direction: column; gap: 7px; font-size: 13px; font-weight: 500; color: #4c4159; }
+.factory-erp-page .erp-stages > li > span { font-size: 9px; letter-spacing: .04em; color: #92879e; }
+.factory-erp-page .erp-overview { padding-block: 88px 82px; scroll-margin-top: 96px; }
+.factory-erp-page .erp-section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 60px; }
+.factory-erp-page .erp-section-heading h2 { margin-top: 19px; font-size: clamp(32px, 3vw, 44px); font-weight: 550; line-height: 1.13; letter-spacing: -.045em; color: var(--erp-ink); }
+.factory-erp-page .erp-section-heading > p { max-width: 340px; font-size: 14px; line-height: 1.8; color: var(--erp-muted); }
+.factory-erp-page .erp-benefits { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 35px; margin-top: 46px; }
+.factory-erp-page .erp-benefits > article { padding-top: 21px; border-top: 1px solid #dcd3e7; }
+.factory-erp-page .erp-benefit-label { display: flex; align-items: center; gap: 14px; color: #796888; font-size: 9px; font-weight: 500; letter-spacing: .07em; }
+.factory-erp-page .erp-benefit-label > span:first-child { color: #a28dbb; }
+.factory-erp-page .erp-benefits h3 { margin-top: 22px; font-size: 22px; font-weight: 550; line-height: 1.2; letter-spacing: -.03em; color: var(--erp-ink); }
+.factory-erp-page .erp-benefits p { margin-top: 13px; max-width: 340px; font-size: 13px; line-height: 1.8; color: var(--erp-muted); }
+.factory-erp-page .erp-invitation { padding-bottom: 76px; }
+.factory-erp-page .erp-invitation-panel { display: grid; grid-template-columns: 1.1fr 1fr; gap: 64px; align-items: center; padding: 48px 52px; border-radius: 12px; background: #292330; color: #fff; }
+.factory-erp-page .erp-invitation .erp-kicker { color: #bfb1cb; }
+.factory-erp-page .erp-invitation h2 { margin-top: 20px; font-size: clamp(31px, 3vw, 43px); font-weight: 500; line-height: 1.15; letter-spacing: -.04em; }
+.factory-erp-page .erp-invitation h2 > span { color: #c2afe7; }
+.factory-erp-page .erp-invitation-copy { max-width: 385px; justify-self: end; }
+.factory-erp-page .erp-invitation-copy > p { color: #d0c5d8; font-size: 14px; line-height: 1.85; }
+.factory-erp-page .erp-button-light { margin-top: 24px; background: #fff; color: #382846; }
+.factory-erp-page .erp-button-light:hover { background: #eee8f5; }
+.factory-erp-page .erp-contact-note { display: block; margin-top: 13px; font-size: 10px; color: #ac9cb7; }
+
+@media (min-width: 1550px) {
+  .factory-erp-page .erp-hero-layout { gap: 100px; }
+}
+@media (max-width: 1150px) {
+  .factory-erp-page .erp-hero-layout { gap: 40px; }
+  .factory-erp-page .erp-hero { padding-block: 58px; }
+  .factory-erp-page .erp-floor-visual > img { height: 340px; }
+  .factory-erp-page .erp-photo-heading > span:last-child { display: none; }
+  .factory-erp-page .erp-floor-visual > figcaption { padding: 22px; }
+  .factory-erp-page .erp-coverage-layout { grid-template-columns: 150px 1fr; gap: 30px; }
+  .factory-erp-page .erp-stages { gap: 10px; }
+  .factory-erp-page .erp-stages > li { font-size: 12px; }
+  .factory-erp-page .erp-invitation-panel { padding: 40px; gap: 44px; }
+}
+@media (max-width: 850px) {
+  .factory-erp-page .erp-hero-layout { grid-template-columns: 1fr; gap: 36px; }
+  .factory-erp-page .erp-hero h1 { font-size: 60px; }
+  .factory-erp-page .erp-lead { max-width: 530px; }
+  .factory-erp-page .erp-floor-visual { display: grid; grid-template-columns: 1.1fr 1fr; }
+  .factory-erp-page .erp-floor-visual > img { height: 100%; min-height: 270px; }
+  .factory-erp-page .erp-floor-visual > figcaption { display: flex; flex-direction: column; justify-content: center; border: 1px solid var(--erp-line); border-left: 0; border-radius: 0 12px 12px 0; padding: 26px; }
+  .factory-erp-page .erp-photo-flow { flex-wrap: wrap; gap: 8px; }
+  .factory-erp-page .erp-coverage-layout { grid-template-columns: 1fr; gap: 24px; }
+  .factory-erp-page .erp-coverage h2 > br { display: none; }
+  .factory-erp-page .erp-section-heading { display: block; }
+  .factory-erp-page .erp-section-heading > p { max-width: 510px; margin-top: 21px; }
+  .factory-erp-page .erp-benefits { gap: 25px; }
+  .factory-erp-page .erp-benefits h3 { font-size: 21px; }
+  .factory-erp-page .erp-invitation-panel { grid-template-columns: 1fr; gap: 30px; }
+  .factory-erp-page .erp-invitation-copy { justify-self: start; max-width: 470px; }
+}
+@media (max-width: 540px) {
+  .factory-erp-page .erp-main { padding-top: 64px; }
+  .factory-erp-page .erp-hero { padding-block: 38px 35px; }
+  .factory-erp-page .erp-product-label { gap: 10px; margin-bottom: 22px; }
+  .factory-erp-page .erp-product-label > span:first-child { font-size: 9px; }
+  .factory-erp-page .erp-build-badge { font-size: 9px; padding: 4px 7px; }
+  .factory-erp-page .erp-hero h1 { font-size: clamp(39px, 10.5vw, 53px); }
+  .factory-erp-page .erp-lead { margin-top: 22px; font-size: 14px; line-height: 1.75; }
+  .factory-erp-page .erp-hero-actions { gap: 10px 18px; margin-top: 23px; }
+  .factory-erp-page .erp-build-note { margin-top: 13px; font-size: 10px; }
+  .factory-erp-page .erp-floor-visual { display: block; }
+  .factory-erp-page .erp-floor-visual > img { height: 230px; min-height: 0; }
+  .factory-erp-page .erp-floor-visual > figcaption { padding: 21px; border: 1px solid var(--erp-line); border-top: 0; border-radius: 0 0 12px 12px; }
+  .factory-erp-page .erp-floor-visual strong { font-size: 27px; }
+  .factory-erp-page .erp-photo-flow { gap: 11px; }
+  .factory-erp-page .erp-coverage { padding-block: 27px; }
+  .factory-erp-page .erp-stages { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px 15px; }
+  .factory-erp-page .erp-stages > li { font-size: 13px; }
+  .factory-erp-page .erp-overview { padding-block: 54px; }
+  .factory-erp-page .erp-section-heading h2 { font-size: 33px; margin-top: 15px; }
+  .factory-erp-page .erp-section-heading > p { font-size: 13px; margin-top: 18px; }
+  .factory-erp-page .erp-benefits { grid-template-columns: 1fr; gap: 27px; margin-top: 31px; }
+  .factory-erp-page .erp-benefits > article { padding-top: 17px; }
+  .factory-erp-page .erp-benefits h3 { margin-top: 16px; font-size: 23px; }
+  .factory-erp-page .erp-benefits p { margin-top: 9px; }
+  .factory-erp-page .erp-invitation { padding-bottom: 40px; }
+  .factory-erp-page .erp-invitation-panel { padding: 30px 24px; gap: 25px; }
+  .factory-erp-page .erp-invitation h2 { font-size: 32px; }
+  .factory-erp-page .erp-invitation-copy > p { font-size: 13px; }
+  .factory-erp-page .erp-button-light { font-size: 11px; gap: 10px; padding-inline: 14px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .factory-erp-page .erp-hero-copy, .factory-erp-page .erp-floor-visual { animation: erp-arrive .55s ease-out both; }
+  .factory-erp-page .erp-floor-visual { animation-delay: .1s; }
+  @keyframes erp-arrive { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+}
+@media (prefers-reduced-motion: reduce) {
+  .factory-erp-page .erp-button { transition: none; }
+}
