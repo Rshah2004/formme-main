@@ -34,9 +34,9 @@ function ReferenceImage({ kind, className = '' }: { kind: 'tee' | 'factory'; cla
 }
 
 const steps = [
-  { id: 'brief', eyebrow: 'THE BRIEF', title: 'Bring your idea.', description: 'Share your design, references and quantity. We turn the details into a brief a factory can act on.', you: 'You share the idea.', us: 'We shape the brief.' },
-  { id: 'partner', eyebrow: 'THE MATCH', title: 'Find your people.', description: 'We match you with a manufacturer from the network we’ve built, then coordinate the next steps.', you: 'You meet your factory.', us: 'We make the introduction.' },
-  { id: 'production', eyebrow: 'THE MAKING', title: 'Make it happen.', description: 'Approve the sample, then follow quality checks and shipment updates in your workspace.', you: 'You approve the product.', us: 'We coordinate production.' },
+  { id: 'brief', title: 'Bring your idea.', you: 'Share your design, references and quantity.', us: 'We turn it into a brief a factory can act on.' },
+  { id: 'partner', title: 'Find your people.', you: 'Meet your factory and see the first sample.', us: 'We match you from the network we’ve built.' },
+  { id: 'production', title: 'Make it happen.', you: 'Approve the product before the run begins.', us: 'We coordinate production, quality and shipment.' },
 ] as const;
 
 /**
@@ -55,10 +55,13 @@ export function BrandProcessCards() {
         <li className={`process-stop process-stop-${step.id}`} key={step.id}>
           <div className="process-stop-head">
             <span className="process-stop-number">0{index + 1}</span>
-            <span className="process-eyebrow">{step.eyebrow}</span>
+            <h3>{step.title}</h3>
           </div>
-          <h3>{step.title}</h3>
-          <p className="process-stop-copy">{step.description}</p>
+
+          <dl className="process-split">
+            <div><dt>You</dt><dd>{step.you}</dd></div>
+            <div><dt>Formme</dt><dd>{step.us}</dd></div>
+          </dl>
 
           <div className="process-evidence">
             {step.id === 'brief' && <>
@@ -97,11 +100,6 @@ export function BrandProcessCards() {
               </div>
             </>}
           </div>
-
-          <dl className="process-split">
-            <div><dt>You</dt><dd>{step.you}</dd></div>
-            <div><dt>Formme</dt><dd>{step.us}</dd></div>
-          </dl>
         </li>
       ))}
     </ol>
