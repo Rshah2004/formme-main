@@ -131,12 +131,12 @@ export function ProductionLandingExperience({ audience }: AudienceProps) {
       {isBrand && <ProductionSpecs />}
       {!isBrand && <ConnectedWorkspaces audience={audience} />}
 
-      {isBrand && <aside className="production-merch" aria-label="Merch production estimates"><div className="production-container"><div><span className="merch-icon"><Shirt size={23} /></span><div><h2>Planning your budget?</h2><p>Explore production cost estimates for custom T-shirts and hoodies.</p></div></div><Link className="production-button production-button-outline" to="/cost-predictor">Estimate your cost <ArrowRight size={15} /></Link></div></aside>}
+      {isBrand && <aside className="production-merch" aria-label="Merch production estimates"><div className="production-container"><div><div><h2>Planning your budget?</h2><p>Explore production cost estimates for custom T-shirts and hoodies.</p></div></div><Link className="production-button production-button-outline" to="/cost-predictor">Estimate your cost <ArrowRight size={15} /></Link></div></aside>}
 
       <section className="production-section production-factory-story" aria-label="Built with manufacturers">
         <div className="production-container factory-story-layout">
           <div><span className="production-eyebrow">BUILT CLOSE TO THE WORK</span><h2>{isBrand ? <>We’ve been on<br />both sides of production.</> : <>Software designed<br />with the factory floor.</>}</h2><p>{isBrand ? 'Our team has run an apparel brand and brings 40+ years of combined manufacturing experience. We’re building Formme around the coordination problems we’ve experienced ourselves.' : 'Great software starts with understanding how the work gets done. We’re building Formme alongside manufacturers and designers, grounded in the realities of making clothes.'}</p><Link to="/about" className="production-text-link">The story behind Formme <ArrowRight size={15} /></Link><span className="factory-story-location">FOUNDED IN VANCOUVER · CONNECTING FASHION PRODUCTION</span></div>
-          <div className="factory-story-photo"><img src="/factory.jpg" alt="Garment workshop with sewing machines, fabric, and production equipment" loading="lazy" /><div className="factory-story-caption"><span className="factory-story-icon"><Factory size={20} /></span><div><strong>Built with manufacturers.</strong><span>Made for the realities of apparel production.</span></div><CheckCheck size={19} /></div></div>
+          <div className="factory-story-photo"><img src="/factory.jpg" alt="Garment workshop with sewing machines, fabric, and production equipment" loading="lazy" /><div className="factory-story-caption"><div><strong>Built with manufacturers.</strong><span>Made for the realities of apparel production.</span></div></div></div>
         </div>
       </section>
 

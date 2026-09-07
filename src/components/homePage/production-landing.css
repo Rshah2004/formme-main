@@ -130,9 +130,9 @@
 /* ─── How it works ─── */
 .landing-steps { background: #fff; }
 .landing-step-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin: 0; padding: 0; list-style: none; counter-reset: none; }
-.landing-step-grid > li { position: relative; padding: 30px 26px 32px; border: 1px solid var(--production-border); border-radius: 16px; background: #fbfaff; }
-.landing-step-number { position: absolute; top: 26px; right: 26px; font-family: 'DM Sans', sans-serif; font-size: 30px; font-weight: 600; letter-spacing: -.04em; color: #e4dcf3; line-height: 1; }
-.landing-step-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 11px; background: #efeafb; color: var(--production-purple); margin-bottom: 20px; }
+.landing-step-grid > li { padding: 30px 26px 32px; border: 1px solid var(--production-border); border-radius: 16px; background: #fbfaff; }
+/* The step number carries the card on its own, in place of a decorative icon. */
+.landing-step-number { display: block; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: .02em; color: var(--production-purple); line-height: 1; padding-bottom: 18px; margin-bottom: 18px; border-bottom: 1px solid var(--production-border); }
 .landing-step-grid h3 { font-family: 'DM Sans', sans-serif; font-size: 19px; font-weight: 600; letter-spacing: -.03em; margin-bottom: 9px; max-width: 15ch; }
 .landing-step-grid p { font-size: 13px; line-height: 1.75; }
 
@@ -140,7 +140,6 @@
 .landing-specs { background: var(--production-lavender); }
 .landing-spec-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
 .landing-spec-grid > div { padding: 24px 22px 26px; border-radius: 14px; background: #fff; border: 1px solid #e5ddf2; }
-.landing-spec-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; background: #f2edfc; color: var(--production-purple); margin-bottom: 18px; }
 .landing-spec-label { display: block; font-size: 9px; letter-spacing: .1em; color: var(--production-muted); margin-bottom: 8px; }
 .landing-spec-grid strong { display: block; font-family: 'DM Sans', sans-serif; font-size: 19px; font-weight: 600; letter-spacing: -.03em; color: var(--production-ink); }
 .landing-spec-grid p { font-size: 11px; line-height: 1.65; margin-top: 8px; }
@@ -341,14 +340,11 @@
 .factory-story-photo { position: relative; padding-bottom: 22px; }
 .factory-story-photo > img { width: 100%; height: 340px; object-fit: cover; border-radius: 13px; }
 .factory-story-caption { position: absolute; left: 18px; right: 18px; bottom: 0; border: 1px solid #e9ddf2; background: #fffffff5; border-radius: 10px; padding: 18px; display: flex; align-items: center; gap: 12px; box-shadow: 0 6px 14px #3a194315; }
-.factory-story-icon { width: 37px; height: 37px; display: flex; align-items: center; justify-content: center; background: #f4ebfa; color: var(--production-muted); border-radius: 8px; flex-shrink: 0; }
 .factory-story-caption strong { display: block; font-size: 12px; font-weight: 500; color: var(--production-muted); }
 .factory-story-caption > div > span { display: block; font-size: 9px; color: var(--production-muted); margin-top: 4px; }
-.factory-story-caption > svg { color: var(--production-muted); margin-left: auto; flex-shrink: 0; }
 .production-merch { background: #1c1723; padding-block: 34px; color: #ffffff; }
 .production-merch > div { display: flex; justify-content: space-between; align-items: center; gap: 25px; }
 .production-merch > div > div { display: flex; align-items: center; gap: 18px; }
-.merch-icon { display: flex; align-items: center; justify-content: center; width: 47px; height: 47px; border-radius: 10px; background: #ffffff07; border: 1px solid #ffffff09; color: var(--production-muted); }
 .production-merch h2 { font-size: 23px; font-weight: 500; letter-spacing: -.02em; }
 .production-merch p { font-size: 11px; margin-top: 5px; color: var(--production-muted); }
 .production-merch .production-button { border-color: #ffffff18; color: var(--production-ink); font-size: 11px; }
@@ -514,13 +510,11 @@
 }
 @media (max-width: 639px) {
   .landing-step-grid > li { padding: 20px 18px 22px; border-radius: 13px; }
-  .landing-step-number { top: 20px; right: 20px; font-size: 24px; }
-  .landing-step-icon { width: 36px; height: 36px; margin-bottom: 15px; }
+  .landing-step-number { font-size: 13px; padding-bottom: 14px; margin-bottom: 14px; }
   .landing-step-grid h3 { font-size: 16px; max-width: none; }
   .landing-step-grid p { font-size: 12px; }
   .landing-spec-grid { grid-template-columns: 1fr; gap: 10px; }
   .landing-spec-grid > div { padding: 18px; }
-  .landing-spec-icon { width: 30px; height: 30px; margin-bottom: 13px; }
   .landing-spec-grid strong { font-size: 16px; }
   .landing-types { margin-top: 22px; padding-top: 20px; gap: 11px 16px; }
   .landing-types > div > span { font-size: 10px; padding: 6px 10px; }
@@ -719,13 +713,11 @@
   .factory-story-caption { left: 10px; right: 10px; padding: 13px; gap: 9px; }
   .factory-story-caption strong { font-size: 10px; }
   .factory-story-caption > div > span { font-size: 7px; }
-  .factory-story-icon { width: 29px; height: 32px; }
   .factory-story-caption > svg { width: 16px; }
   .production-merch > div { align-items: flex-start; flex-direction: column; gap: 20px; }
   .production-merch > div > div { align-items: flex-start; gap: 12px; }
   .production-merch h2 { font-size: 23px; }
   .production-merch p { font-size: 11px; }
-  .merch-icon { width: 39px; height: 42px; flex-shrink: 0; }
   .production-final > div { flex-direction: column; gap: 25px; }
   .production-final h2 { font-size: 34px; }
   .production-final h2 em { display: block; }
@@ -754,7 +746,6 @@
 .gate-card:hover { transform: translateY(-3px); box-shadow: 0 16px 34px -20px rgba(30,15,60,.22); }
 .gate-card[data-active='true'] { border-color: var(--production-purple); box-shadow: 0 18px 40px -20px rgba(89,68,203,.35); }
 .gate-card[data-dimmed='true'] { opacity: .45; transform: none; }
-.gate-card-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: #f0ebfb; color: var(--production-purple); margin-bottom: 20px; }
 .gate-card .production-eyebrow { margin-bottom: 14px; }
 .gate-card h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: 27px; margin-bottom: 5px; }
 .gate-card-desc { font-size: 14px; color: var(--production-ink); margin-bottom: 16px; }
@@ -789,7 +780,6 @@
 .gate-card:focus-visible { outline: 3px solid #7655d8; outline-offset: 5px; }
 .gate-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
 .gate-card-top > svg { margin-left: auto; color: var(--production-purple); }
-.gate-card-icon { width: 32px; height: 32px; border-radius: 9px; margin: 0; }
 .gate-card-top .production-eyebrow { margin: 0; font-size: 10px; letter-spacing: .1em; }
 .gate-card h2 { font-family: 'DM Sans', sans-serif; font-size: clamp(22px, 2.4vw, 28px); font-weight: 600; letter-spacing: -.035em; }
 .gate-card-desc { color: #62556f; font-size: 13px; margin-bottom: 20px; }
@@ -832,8 +822,6 @@
 .gate-card { padding: 32px; border-top: 3px solid #b8a5ed; }
 .gate-card-manufacturer { border-top-color: #82738f; background: linear-gradient(145deg, #fff, #f6f3fa); }
 .gate-card-top { margin-bottom: 28px; gap: 12px; }
-.gate-card-icon { width: 44px; height: 44px; border-radius: 12px; }
-.gate-card-manufacturer .gate-card-icon { background: #eae4ef; color: #52435f; }
 .gate-card-manufacturer .gate-card-top .production-eyebrow { background: #eee8f3; color: #52435f; }
 .gate-card h2 { font-size: clamp(25px, 2.4vw, 30px); }
 .gate-card-desc { margin: 8px 0 0; font-size: 14px; color: #393041; }
@@ -856,8 +844,6 @@
   .gate-cards { gap: 10px; margin-top: 14px; }
   .gate-card { padding: 14px; border-radius: 12px; }
   .gate-card-top { margin-bottom: 8px; gap: 6px; }
-  .gate-card-icon { width: 26px; height: 26px; border-radius: 8px; }
-  .gate-card-icon svg { width: 14px; height: 14px; }
   .gate-card-top .production-eyebrow { font-size: 8px; }
   .gate-card h2 { font-size: 16px; }
   .gate-card-desc { font-size: 11px; margin-top: 2px; }
