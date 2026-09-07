@@ -3,22 +3,22 @@
   display: block;
   min-height: 0;
   padding: 24px;
-  background: #f4f2f9;
-  border: 1px solid #e1dcea;
+  background: #25222e;
+  border: 1px solid #25222e;
   border-radius: 13px;
-  box-shadow: 0 14px 38px -28px #40334e30;
+  box-shadow: 0 20px 44px -30px #2417456b;
   color: #292430;
 }
-.process-preview-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; color: #716980; font-size: 11px; font-weight: 650; letter-spacing: .04em; }
+.process-preview-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; color: #cac4d6; font-size: 11px; font-weight: 650; letter-spacing: .04em; }
 .process-preview-heading > span:last-child { letter-spacing: 0; }
 .process-preview-progress { display: flex; gap: 6px; margin-block: 15px 25px; }
-.process-preview-progress > span { flex: 1; height: 3px; background: #e2dce9; }
-.process-preview-progress > .is-complete { background: #9b86e5; }
-.process-preview-production .process-preview-progress > .is-complete:last-child { background: #7156dc; }
+.process-preview-progress > span { flex: 1; height: 3px; background: #ffffff2b; }
+.process-preview-progress > .is-complete { background: #c4b2ee; }
+.process-preview-production .process-preview-progress > .is-complete:last-child { background: #dccffc; }
 .process-card { min-width: 0; min-height: 580px; padding: 24px; background: #fff; border-radius: 11px; box-shadow: 0 10px 30px -22px #45375430; }
 .process-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
 .process-card-top > div { display: flex; flex-direction: column; gap: 6px; }
-.process-step-number { font-size: 29px; line-height: 1; font-weight: 650; color: #b6afc0; letter-spacing: -.04em; }
+.process-step-number { font-size: 29px; line-height: 1; font-weight: 650; color: #8b8398; letter-spacing: -.04em; }
 .process-eyebrow { display: block; color: #756b84; font-size: 10px; line-height: 1.5; letter-spacing: .05em; font-weight: 650; }
 .process-status { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 7px 12px; border-radius: 25px; background: #e4f4eb; color: #277653; font-size: 11px; font-weight: 600; white-space: nowrap; }
 .process-status > svg { flex-shrink: 0; }
@@ -37,18 +37,18 @@
 .process-request-specs { margin: 0; }
 .process-request-specs > div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #e8e3ee; font-size: 12px; line-height: 1.4; }
 .process-request-specs > div:first-child { padding-top: 2px; }
-.process-request-specs dt { color: #81768d; }
+.process-request-specs dt { color: #7b7088; }
 .process-request-specs dd { margin: 0; color: #292331; font-weight: 650; text-align: right; }
 .process-attachments-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 20px; }
 .process-attachments-heading > button { font-size: 9px; color: #6752aa; text-decoration: underline; text-underline-offset: 3px; }
 .process-attachments { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
 .process-attachment { display: flex; align-items: center; min-width: 0; border: 1px solid #e2dced; border-radius: 8px; background: #fdfcfe; }
 .process-attachment-open { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; padding: 10px 0 10px 10px; text-align: left; border-radius: 8px; }
-.process-file-icon { display: grid; place-items: center; flex-shrink: 0; width: 23px; height: 29px; color: #fff; background: #aaa7b3; border-radius: 3px; font-size: 10px; font-weight: 650; letter-spacing: .01em; }
-.process-file-icon.is-artwork { background: #fa891a; color: #fff4d6; font-size: 17px; font-weight: 550; }
+.process-file-icon { display: grid; place-items: center; flex-shrink: 0; width: 23px; height: 29px; color: #fff; background: #6f6a7c; border-radius: 3px; font-size: 10px; font-weight: 650; letter-spacing: .01em; }
+.process-file-icon.is-artwork { background: #b8560a; color: #fff; font-size: 17px; font-weight: 550; }
 .process-attachment-open > span:last-child { min-width: 0; }
 .process-attachment-open strong { display: block; font-size: 10px; font-weight: 600; overflow-wrap: anywhere; }
-.process-attachment-open small { display: block; margin-top: 3px; font-size: 9px; color: #8b8199; }
+.process-attachment-open small { display: block; margin-top: 3px; font-size: 9px; color: #6f6580; }
 .process-attachment-remove { display: grid; place-items: center; flex-shrink: 0; width: 30px; min-height: 40px; color: #756b84; border-radius: 5px; }
 .process-attachment-open:hover, .process-attachment-remove:hover { background: #f2eef9; }
 .production-page .brand-site .process-preview .process-empty-files { font-size: 11px; margin-top: 12px; }
@@ -87,7 +87,7 @@
 .process-progress-ring > div { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .process-progress-ring strong { color: #2d2536; font-size: 51px; font-weight: 600; line-height: 1; letter-spacing: -.06em; }
 .process-progress-ring strong > span { font-size: 27px; letter-spacing: -.04em; }
-.process-progress-ring > div > span { margin-top: 7px; color: #81738f; font-size: 12px; }
+.process-progress-ring > div > span { margin-top: 7px; color: #7b7088; font-size: 12px; }
 .process-current-stage { min-width: 0; }
 .process-current-stage .process-eyebrow { display: flex; align-items: center; gap: 7px; }
 .process-current-stage .process-eyebrow > i { width: 6px; height: 6px; border-radius: 50%; background: #8b73d7; }
@@ -101,14 +101,14 @@
 .process-stage-path li > span { display: grid; place-items: center; width: 21px; height: 21px; border-radius: 50%; border: 1px solid #d9d1e3; background: #fff; }
 .process-stage-path li.is-done > span { background: #e4f4eb; border-color: #e4f4eb; color: #398160; }
 .process-stage-path li.is-current > span { background: #8b73d7; border: 5px solid #f0ebfa; box-shadow: 0 0 0 1px #f0ebfa; }
-.process-stage-path li > strong { max-width: 95px; color: #8b7f97; font-size: 11px; font-weight: 500; line-height: 1.4; }
+.process-stage-path li > strong { max-width: 95px; color: #7b7088; font-size: 11px; font-weight: 500; line-height: 1.4; }
 .process-stage-path li.is-done > strong { color: #5c5169; }
 .process-stage-path li.is-current > strong { color: #5e458d; font-weight: 650; }
 .process-shipment-summary { display: flex; align-items: center; gap: 13px; padding: 18px; margin-top: auto; background: #f5f2fa; border-radius: 8px; }
 .process-shipment-summary > svg { flex-shrink: 0; color: #8b73b4; }
 .process-shipment-summary strong { display: block; margin-top: 4px; color: #392d46; font-size: 21px; font-weight: 600; letter-spacing: -.025em; }
-.process-shipment-summary > span { margin-left: auto; max-width: 115px; color: #81728f; font-size: 11px; line-height: 1.5; }
-.production-page .brand-site .process-preview .process-example-note { color: #83798f; font-size: 9px; line-height: 1.5; margin: 13px 2px 0; }
+.process-shipment-summary > span { margin-left: auto; max-width: 115px; color: #756a83; font-size: 11px; line-height: 1.5; }
+.production-page .brand-site .process-preview .process-example-note { color: #b0a8c0; font-size: 9px; line-height: 1.5; margin: 13px 2px 0; }
 .process-preview > :last-child { animation: none; }
 .process-preview :is(button, a):focus-visible { outline: 2px solid #6550bc; outline-offset: 3px; }
 .process-preview-dialog { width: calc(100% - 32px); max-width: 520px; max-height: calc(100dvh - 48px); overflow-y: auto; border-radius: 12px; border-color: #e3deec; background: #fff; color: #302638; font-family: 'DM Sans', sans-serif; }
