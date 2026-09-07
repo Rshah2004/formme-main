@@ -241,3 +241,26 @@
   .brand-link, .process-partner-link { position: relative; }
   .brand-link::after, .process-partner-link::after { content: ''; position: absolute; inset: -13px 0; }
 }
+
+/* ─── Cost predictor ─── */
+/* Tinted so it separates the workspace preview above from the company story
+   below, both of which sit on the page ground. */
+.brand-estimate { background: #efecf9; border-block: 1px solid #e2ddf0; padding-block: 76px; }
+.brand-estimate-layout { display: grid; grid-template-columns: 1fr .9fr; gap: 80px; align-items: center; }
+.brand-estimate-layout .brand-kicker { margin-bottom: 16px; }
+.production-page .brand-site .brand-estimate p { margin-block: 18px 30px; max-width: 400px; font-size: 15px; }
+
+/* Same anatomy as the timeline's spec lists — a fixed label column, so the
+   labels and values stay in two readable edges rather than drifting apart. */
+.brand-estimate-inputs { display: grid; background: #fff; border: 1px solid #e2ddf0; border-radius: 10px; padding: 6px 22px; }
+.brand-estimate-inputs > div { display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: baseline; gap: 16px; padding: 15px 0; border-bottom: 1px solid #efecf9; font-size: 13px; }
+.brand-estimate-inputs > div:last-child { border-bottom: 0; }
+.brand-estimate-inputs dt { color: #77737f; letter-spacing: .01em; }
+.brand-estimate-inputs dd { margin: 0; color: #292331; font-weight: 650; }
+.brand-estimate-result dt, .brand-estimate-result dd { color: var(--brand-accent) !important; }
+
+@media(max-width: 850px) {
+  .brand-estimate { padding-block: 56px; }
+  .brand-estimate-layout { grid-template-columns: 1fr; gap: 34px; }
+  .brand-estimate-inputs > div { grid-template-columns: 88px minmax(0, 1fr); font-size: 12.5px; padding: 13px 0; }
+}
