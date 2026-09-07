@@ -2,6 +2,7 @@ import { ArrowRight, BarChart3, Check, Factory, LayoutGrid } from 'lucide-react'
 import { SEO } from '@/components/SEO';
 import { LandingHeader, LandingFooter, CONTACT_HREF } from '@/components/homePage/LandingChrome';
 import designerImage from '@/assets/about-formme-feature.jpg';
+import { useLandingReveal } from '@/components/homePage/useLandingReveal';
 import '@/components/homePage/production-landing.css';
 
 const storyPoints = [
@@ -33,8 +34,11 @@ const pillars = [
   },
 ];
 
-const About = () => (
-  <div className="production-page">
+const About = () => {
+  /* Same Lenis smooth scroll and fade-in as the audience pages. */
+  useLandingReveal();
+  return (
+  <div className="production-page about-page">
     <SEO
       title="About"
       canonical="/about"
@@ -44,7 +48,7 @@ const About = () => (
     <LandingHeader />
 
     <section className="about-hero">
-      <div className="production-container about-hero-inner">
+      <div className="production-container about-hero-inner reveal">
         <span className="production-eyebrow"><span className="production-dot" /> ABOUT FORMME</span>
         <h1>Built for the realities of<br /><em>fashion production.</em></h1>
         <p>
@@ -55,7 +59,7 @@ const About = () => (
     </section>
 
     <section className="production-section about-story">
-      <div className="production-container about-story-grid">
+      <div className="production-container about-story-grid reveal">
         <div className="about-story-copy">
           <span className="production-eyebrow">OUR STORY</span>
           <h2>Built by people who’ve<br />lived the problem.</h2>
@@ -119,6 +123,7 @@ const About = () => (
 
     <LandingFooter />
   </div>
-);
+  );
+};
 
 export default About;

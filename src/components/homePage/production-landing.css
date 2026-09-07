@@ -66,6 +66,8 @@
 }
 
 
+.production-page.about-page { background: var(--c-paper); }
+
 .production-page {
   --production-surface: var(--c-surface-2);
   --production-surface-raised: var(--c-paper);
@@ -931,7 +933,7 @@
 .about-pillar-icon { display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 12px; background: var(--c-purple-50); color: var(--production-purple); margin-bottom: 18px; }
 .about-pillar h3 { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 16px; margin-bottom: 8px; }
 .about-pillar p { font-size: 13px; line-height: 1.7; }
-.about-cta { padding-block: 88px; background: var(--c-surface-3); color: var(--production-ink); }
+.about-cta { padding-block: 88px; }
 .about-cta-inner { display: flex; justify-content: space-between; align-items: center; gap: 45px; }
 .about-cta-inner h2 { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: clamp(28px, 3.6vw, 44px); line-height: 1.15; }
 .about-cta-inner p { max-width: 320px; margin-bottom: 20px; font-size: 13px; }
@@ -1060,8 +1062,9 @@
 .production-page .gate-card-cta { color: var(--c-muted); border-color: var(--c-line); font-size: 14px; }
 .production-page .gate-footnote { color: var(--c-muted); }
 .production-page .about-hero h1 { font-family: 'DM Sans', sans-serif; font-weight: 600; }
-.production-page .about-pillar, .production-page .about-stats > div { border-radius: 6px; box-shadow: none; background: var(--c-surface-2); border-color: var(--c-line); }
-.production-page .about-pillars { background: var(--c-surface-2); border-color: var(--c-line); }
+.production-page .about-pillar { border-radius: 6px; box-shadow: none; background: var(--c-paper); border-color: var(--c-line); }
+.production-page .about-stats > div { border-radius: 6px; box-shadow: none; border-color: var(--c-purple-100); }
+.production-page .about-pillars { border-color: var(--c-purple-100); }
 .production-page .visibility-preview { background: var(--c-purple-wash); }
 .production-page .visibility-copy h1 { font-size: clamp(40px, 4.7vw, 66px); }
 .production-page .visibility-node { border-radius: 6px; box-shadow: none; border-color: var(--c-line); background: var(--c-paper); }
@@ -1116,6 +1119,7 @@
   .factory-hero-window,
   .connector-factory,
   .gate-card-manufacturer .gate-visual,
+  .about-cta,
   .production-merch,
   .production-final
 ) {
