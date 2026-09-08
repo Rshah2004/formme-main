@@ -1,11 +1,12 @@
 /**
- * Pricing model reverse-engineered from the merch pricing spreadsheet.
+ * Pricing model taken from the merch pricing spreadsheet.
  *
- * For every tier, "Production Cost + Shipping" = unitPrice * quantity, and
- * "Total Price" = production cost * (1 + commission). Confirmed against every
- * min/max cell in the source sheet (e.g. T-shirt/Printing 20-49: unit $15,
- * commission 20% -> 15*20=$300 prod / $360 total, 15*49≈$740 prod / $890 total).
- * That lets us quote any quantity within a tier, not just its min/max bounds.
+ * The sheet's unit price is the customer-facing rate: commission is already
+ * inside it. A quote is therefore just unitPrice * quantity, which also lets us
+ * price any quantity within a tier rather than only its min/max bounds.
+ *
+ * `commission` records the share of that unit price we keep. It is documentation
+ * of the margin, not a multiplier — applying it on top would charge it twice.
  */
 
 export type GarmentType = 'tshirt' | 'hoodie';
@@ -14,7 +15,9 @@ export type DecorationType = 'printing' | 'printing-embroidery';
 export interface PricingTier {
   minQty: number;
   maxQty: number | null;
+  /** Customer-facing rate per garment, commission included. */
   unitPrice: number | null;
+  /** Share of unitPrice we keep. Recorded for reference; never applied on top. */
   commission: number | null;
 }
 
@@ -84,9 +87,7 @@ export interface CostEstimate {
   tier: PricingTier;
   quantity: number;
   unitPrice: number;
-  productionCost: number;
   totalPrice: number;
-  commission: number;
 }
 
 export type CostResult =
@@ -106,12 +107,9 @@ export function estimateCost(garment: GarmentType, decoration: DecorationType, q
   }
 
   const tier = findTier(garment, decoration, quantity);
-  if (!tier || tier.unitPrice === null || tier.commission === null) {
+  if (!tier || tier.unitPrice === null) {
     return { status: 'custom-quote' };
   }
-
-  const productionCost = tier.unitPrice * quantity;
-  const totalPrice = productionCost * (1 + tier.commission);
 
   return {
     status: 'ok',
@@ -119,9 +117,7 @@ export function estimateCost(garment: GarmentType, decoration: DecorationType, q
       tier,
       quantity,
       unitPrice: tier.unitPrice,
-      productionCost,
-      totalPrice,
-      commission: tier.commission,
+      totalPrice: tier.unitPrice * quantity,
     },
   };
 }
