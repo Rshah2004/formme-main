@@ -17,6 +17,10 @@ import {
 const currency = (value: number) =>
   value.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 
+/** Per-unit rates carry cents — rounding $8.50 to $9 misstates the rate card. */
+const unitCurrency = (value: number) =>
+  value.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
+
 const OptionPill = ({
   active,
   onClick,
@@ -70,7 +74,7 @@ const CostPredictor = () => {
             <span className="font-cormorant italic font-medium" style={{ color: PURPLE_TEXT }}>before you commit.</span>
           </h1>
           <p className="reveal mt-6 max-w-xl mx-auto font-inter leading-relaxed" style={{ color: MUTED2, fontSize: '15px' }}>
-            Pick a garment, a decoration method, and a quantity to get an instant estimate of production cost and total price.
+            Pick a garment, a decoration method, and a quantity to get an instant estimate of what your order will cost.
           </p>
         </div>
       </section>
@@ -166,7 +170,7 @@ const CostPredictor = () => {
                     {currency(result.estimate.totalPrice)}
                   </p>
                   <p className="font-inter mt-1" style={{ color: MUTED2, fontSize: '13px' }}>
-                    ≈ {currency(result.estimate.totalPrice / result.estimate.quantity)} per unit · includes production &amp; shipping
+                    ≈ {unitCurrency(result.estimate.totalPrice / result.estimate.quantity)} per unit · includes production &amp; shipping
                   </p>
                 </div>
 
@@ -181,7 +185,7 @@ const CostPredictor = () => {
 
       {/* CTA */}
       <section className="py-20 md:py-24 px-6" style={{ background: LAVENDER }}>
-        <div className="reveal mx-auto max-w-[900px] rounded-2xl p-8 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6" style={{ background: SURFACE, border: `1px solid ` }}>
+        <div className="reveal mx-auto max-w-[900px] rounded-2xl p-8 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6" style={{ background: SURFACE, border: `1px solid ${BORDER}` }}>
           <div>
             <div className="inline-flex mb-3">
               <span className="inline-flex items-center rounded-full px-3.5 py-1.5 text-[10px] uppercase tracking-[0.1em] font-inter font-medium" style={{ background: PURPLE_BG, color: PURPLE_TEXT }}>
