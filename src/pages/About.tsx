@@ -13,7 +13,7 @@ const storyPoints = [
 
 const stats = [
   { value: '40+', label: 'Years combined in apparel manufacturing' },
-  { value: '120+', label: 'Brands & manufacturers we’ve worked closely with' },
+  { value: '120+', label: 'Brands & manufacturers we’ve connected with' },
 ];
 
 const pillars = [
@@ -71,7 +71,7 @@ const About = () => {
             factory can actually produce — not guessing at it from the outside, but having felt it firsthand.
           </p>
           <p>
-            Over the past year, we've worked closely with <strong>120+ brands and manufacturers</strong> to
+            Over the past year, we've connected with <strong>120+ brands and manufacturers</strong> to
             understand where production breaks down — and formme is shaped by what we heard from all of
             them, not assumptions about what production teams need.
           </p>
