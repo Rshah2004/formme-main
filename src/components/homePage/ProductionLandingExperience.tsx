@@ -130,7 +130,7 @@ export function ProductionLandingExperience({ audience }: AudienceProps) {
       {isBrand && <ProductionSpecs />}
       {!isBrand && <ConnectedWorkspaces audience={audience} />}
 
-      {isBrand && <aside className="production-merch" aria-label="Merch production estimates"><div className="production-container"><div><div><h2>Planning your budget?</h2><p>Explore production cost estimates for custom T-shirts and hoodies.</p></div></div><Link className="production-button production-button-outline" to="/cost-predictor">Estimate your cost <ArrowRight size={15} /></Link></div></aside>}
+      {isBrand && <aside className="production-merch" aria-label="Merch production estimates"><div className="production-container"><div><div><h2>Planning your budget?</h2><p>Explore production cost estimates for custom T-shirts and hoodies.</p></div></div><Link className="production-button production-button-outline" to="/cost-predictor">Request a cost estimate <ArrowRight size={15} /></Link></div></aside>}
 
       <LandingFaq audience={audience} />
 

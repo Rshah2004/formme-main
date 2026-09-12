@@ -12,7 +12,7 @@ type ProductItem = {
 
 const forBrands: ProductItem[] = [
   { label: 'Production Workspace', description: 'Manage samples, orders and production.', to: '/brands' },
-  { label: 'Cost Predictor', description: 'Estimate apparel production costs.', to: '/cost-predictor', isNew: true },
+  { label: 'Cost Predictor', description: 'Request production cost estimates.', to: '/cost-predictor', isNew: true },
 ];
 
 const forManufacturers: ProductItem[] = [

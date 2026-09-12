@@ -121,3 +121,17 @@ export function estimateCost(garment: GarmentType, decoration: DecorationType, q
     },
   };
 }
+
+/**
+ * Quantity gate for the public cost predictor, which shows the inputs and the
+ * configuration but keeps the numbers behind an access request. It deliberately
+ * touches only the thresholds, so the public page never imports PRICING_TABLE
+ * (and the rates stay out of the client bundle).
+ */
+export type QuantityStatus = 'below-minimum' | 'custom-quote' | 'ok';
+
+export function quantityStatus(quantity: number): QuantityStatus {
+  if (!Number.isFinite(quantity) || quantity < MIN_QUANTITY) return 'below-minimum';
+  if (quantity >= CUSTOM_QUOTE_THRESHOLD) return 'custom-quote';
+  return 'ok';
+}

@@ -45,7 +45,7 @@ function EstimateSection() {
         <h2 id="brand-estimate-title">Know what it costs.</h2>
         <p>Pick a garment, a decoration and a quantity — get a per-unit and total estimate in seconds. T-shirts and hoodies, from 20 pieces.</p>
       </div>
-      <Link className="brand-cta" to="/cost-predictor">Estimate your cost <ArrowUpRight size={18} /></Link>
+      <Link className="brand-cta" to="/cost-predictor">Request a cost estimate <ArrowUpRight size={18} /></Link>
     </div>
   </section>;
 }
