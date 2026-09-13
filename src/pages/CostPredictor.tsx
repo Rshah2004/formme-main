@@ -214,6 +214,9 @@ const CostPredictor = ({ hasAccessLink = false }: { hasAccessLink?: boolean }) =
                   {!Number.isSafeInteger(quantity) ? <p>Enter a whole number of units.</p> : quote && <>
                     <SummaryRow label="Estimated unit price" value={`$${quote.unitPrice.toFixed(2)}`} />
                     <SummaryRow label="Estimated total" value={`$${quote.totalPrice.toFixed(2)}`} />
+                    <p className="font-inter text-xs" style={{ color: MUTED2 }}>
+                      All prices are in CAD and include shipping costs.
+                    </p>
                   </>}
                 </div> : <div className="rounded-xl px-4 py-4 flex flex-col gap-3" style={{ background: SURFACE, border: `1px solid ${BORDER}` }}>
                   <div className="flex items-center gap-2">
