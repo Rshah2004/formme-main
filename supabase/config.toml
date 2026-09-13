@@ -1,5 +1,8 @@
 project_id = "vesanimmcimrbbrgjuun"
 
+[functions.cost-predictor]
+verify_jwt = false
+
 [functions.generate-techpack]
 verify_jwt = false
 
