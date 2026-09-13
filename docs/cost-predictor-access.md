@@ -1,33 +1,9 @@
-# Cost Predictor access
+# Temporary Cost Predictor link
 
-Public visitors see the access request. A private link carries a random 256-bit token in its URL fragment (not in the URL sent to the web host). The Edge Function hashes the token and checks its grant and expiry on every calculation. Rates and commissions are kept in the Edge Function; only the requested customer-facing unit price and total are returned. Anyone holding a link can use it until expiry or revocation.
+The `/cost-predictor` route checks the URL fragment against the allowlist in `src/data/costPredictorAccess.ts`. A matching token opens the existing calculator; missing or incorrect tokens show the public request-access page. Calculations run in the frontend without Supabase requests, secrets, or database access.
 
-## Issue and deploy
+To remove club access on Monday, remove the token from `CLUB_ACCESS_TOKENS` and redeploy the frontend. There is no automatic expiry. This is a convenience gate: the token and pricing are inspectable in the downloaded JavaScript, and removal cannot recall an already downloaded copy.
 
-Keep the grants file outside the repository. Reuse the same file for subsequent grants: setting this secret replaces the entire registry. If another operator already manages grants, obtain their current registry first.
+The displayed unit price is the spreadsheet's customer-facing rate, with commission already included. Total price is exactly `unitPrice * quantity`; commission is never added on top. For example, 50 printed T-shirts cost $12.00 each and $600.00 total; 100 cost $8.50 each and $850.00 total.
 
-```sh
-node scripts/cost-predictor-access.mjs issue /private/tmp/club-grants.env "Club trial" 2026-09-15T07:00:00Z
-supabase secrets set --project-ref vesanimmcimrbbrgjuun --env-file /private/tmp/club-grants.env
-supabase functions deploy cost-predictor --project-ref vesanimmcimrbbrgjuun
-```
-
-This expiry allows all of Monday, September 14, 2026 in Vancouver; access stops at midnight starting Tuesday. Deploy the frontend through the site's usual Vercel deployment process, then verify the generated link before sharing it. No database migration is needed. The function is configured without Supabase JWT verification because the club token is its authorization; it grants no other application access.
-
-## Revoke early
-
-```sh
-node scripts/cost-predictor-access.mjs revoke /private/tmp/club-grants.env "Club trial"
-supabase secrets set --project-ref vesanimmcimrbbrgjuun --env-file /private/tmp/club-grants.env
-```
-
-Revocation blocks subsequent estimates. Already viewed prices cannot be recalled. The page clears its current estimate at expiry, and the server independently enforces the cutoff. Refresh after a temporary connection error to retry.
-
-## Verify
-
-```sh
-node scripts/test-cost-predictor.mjs
-npm run build
-```
-
-Before sharing, check the live link and the public page, change quantity and garment, and test a separate short-lived grant to verify expiry. Keep the grants registry and generated links private.
+The earlier Supabase function and grant scripts are unused by this temporary frontend flow.

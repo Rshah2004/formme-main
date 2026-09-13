@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useCostPredictorAccess } from '@/hooks/useCostPredictorAccess';
 import { ArrowRight, Lock } from 'lucide-react';
 import { SEO } from '@/components/SEO';
 import { BG, LAVENDER, INK, MUTED2, BORDER, SURFACE, PURPLE, PURPLE_TEXT, PURPLE_BG } from '@/components/homePage/theme';
@@ -11,12 +10,13 @@ import {
   MIN_QUANTITY,
   CUSTOM_QUOTE_THRESHOLD,
   quantityStatus,
+  estimateCost,
   type GarmentType,
   type DecorationType,
 } from '@/data/costPredictorData';
 
 /**
- * Public configuration with server-authorized pricing for private access links.
+ * Public configuration with a temporary route-based club calculator.
  */
 
 const contactHref = (subject: string, body?: string) => {
@@ -55,7 +55,7 @@ const SummaryRow = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
-const CostPredictor = () => {
+const CostPredictor = ({ hasAccessLink = false }: { hasAccessLink?: boolean }) => {
   const prefersReduced = useLandingReveal();
   const [garment, setGarment] = useState<GarmentType>('tshirt');
   const [decoration, setDecoration] = useState<DecorationType>('printing');
@@ -63,7 +63,8 @@ const CostPredictor = () => {
 
   const quantity = Number(quantityInput);
   const status = quantityStatus(quantity);
-  const { hasAccessLink, quote } = useCostPredictorAccess(garment, decoration, quantity);
+  const result = hasAccessLink ? estimateCost(garment, decoration, quantity) : null;
+  const quote = result?.status === 'ok' ? result.estimate : null;
 
   const garmentLabel = GARMENT_OPTIONS.find((o) => o.value === garment)!.label;
   const decorationLabel = DECORATION_OPTIONS.find((o) => o.value === decoration)!.label;
@@ -210,13 +211,9 @@ const CostPredictor = () => {
                 </div>
 
                 {hasAccessLink ? <div aria-live="polite" className="rounded-xl px-4 py-4 flex flex-col gap-3" style={{ background: SURFACE, border: `1px solid ${BORDER}` }}>
-                  {!Number.isSafeInteger(quantity) ? <p>Enter a whole number of units.</p> : !quote ? <p>Checking access and calculating…</p> : quote.status === 'ok' ? <>
-                    <SummaryRow label="Estimated unit price" value={`$${quote.unitPrice!.toFixed(2)}`} />
-                    <SummaryRow label="Estimated total" value={`$${quote.totalPrice!.toFixed(2)}`} />
-                    <p className="text-xs" style={{ color: MUTED2 }}>Access ends {new Intl.DateTimeFormat('en-CA', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Vancouver' }).format(new Date(quote.expiresAt!))} (Vancouver time).</p>
-                  </> : <>
-                    <p>{quote.status === 'expired' ? 'This access link has expired.' : quote.status === 'denied' ? 'This access link is invalid or has been revoked.' : 'Unable to load your estimate. Refresh the page to try again.'}</p>
-                    <SolidButton href={accessHref}>Contact us for access <ArrowRight className="w-3.5 h-3.5" /></SolidButton>
+                  {!Number.isSafeInteger(quantity) ? <p>Enter a whole number of units.</p> : quote && <>
+                    <SummaryRow label="Estimated unit price" value={`$${quote.unitPrice.toFixed(2)}`} />
+                    <SummaryRow label="Estimated total" value={`$${quote.totalPrice.toFixed(2)}`} />
                   </>}
                 </div> : <div className="rounded-xl px-4 py-4 flex flex-col gap-3" style={{ background: SURFACE, border: `1px solid ${BORDER}` }}>
                   <div className="flex items-center gap-2">
