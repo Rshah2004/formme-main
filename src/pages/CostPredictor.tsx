@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ArrowRight, Lock } from 'lucide-react';
+import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { SEO } from '@/components/SEO';
 import { BG, LAVENDER, INK, MUTED2, BORDER, SURFACE, PURPLE, PURPLE_TEXT, PURPLE_BG } from '@/components/homePage/theme';
 import { Eyebrow, SolidButton, LandingHeader, LandingFooter, CONTACT_EMAIL, CONTACT_HREF } from '@/components/homePage/LandingChrome';
@@ -9,6 +10,7 @@ import {
   DECORATION_OPTIONS,
   MIN_QUANTITY,
   CUSTOM_QUOTE_THRESHOLD,
+  PRICING_TABLE,
   quantityStatus,
   estimateCost,
   type GarmentType,
@@ -65,6 +67,11 @@ const CostPredictor = ({ hasAccessLink = false }: { hasAccessLink?: boolean }) =
   const status = quantityStatus(quantity);
   const result = hasAccessLink ? estimateCost(garment, decoration, quantity) : null;
   const quote = result?.status === 'ok' ? result.estimate : null;
+  const priceTiers = PRICING_TABLE[garment][decoration].filter((tier) => tier.unitPrice !== null);
+  const pricingCurve = [
+    ...priceTiers.map((tier) => ({ quantity: tier.minQty, unitPrice: tier.unitPrice })),
+    { quantity: CUSTOM_QUOTE_THRESHOLD - 1, unitPrice: priceTiers.at(-1)!.unitPrice },
+  ];
 
   const garmentLabel = GARMENT_OPTIONS.find((o) => o.value === garment)!.label;
   const decorationLabel = DECORATION_OPTIONS.find((o) => o.value === decoration)!.label;
@@ -227,6 +234,31 @@ const CostPredictor = ({ hasAccessLink = false }: { hasAccessLink?: boolean }) =
                     <p className="font-inter text-xs leading-relaxed rounded-lg px-3 py-2.5" style={{ color: INK, background: 'rgba(255,255,255,0.7)' }}>
                       All prices are in CAD and include shipping costs.
                     </p>
+                    <div className="pt-4" style={{ borderTop: `1px solid ${BORDER}` }}>
+                      <div className="mb-4">
+                        <p className="font-inter text-xs font-semibold" style={{ color: INK }}>Unit price by quantity</p>
+                        <p className="font-inter text-[11px] mt-1" style={{ color: MUTED2 }}>Larger runs receive a lower price per unit.</p>
+                      </div>
+                      <div className="h-44 w-full" role="img" aria-label={`Unit price decreases from $${priceTiers[0].unitPrice!.toFixed(2)} at ${priceTiers[0].minQty} units to $${priceTiers.at(-1)!.unitPrice!.toFixed(2)} at ${priceTiers.at(-1)!.minQty} units.`}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={pricingCurve} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+                            <defs>
+                              <linearGradient id="unitPriceGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor={PURPLE} stopOpacity={0.32} />
+                                <stop offset="100%" stopColor={PURPLE} stopOpacity={0.03} />
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid stroke={BORDER} strokeDasharray="3 3" vertical={false} />
+                            <XAxis dataKey="quantity" type="number" domain={[MIN_QUANTITY, CUSTOM_QUOTE_THRESHOLD - 1]} ticks={[20, 50, 80, 100, 150, 199]} tick={{ fontSize: 10, fill: MUTED2 }} tickLine={false} axisLine={false} />
+                            <YAxis tickFormatter={(value) => `$${value}`} tick={{ fontSize: 10, fill: MUTED2 }} tickLine={false} axisLine={false} width={48} />
+                            <Tooltip formatter={(value) => [`$${Number(value).toFixed(2)} CAD`, 'Unit price']} labelFormatter={(value) => `${value} units`} contentStyle={{ borderRadius: 10, border: `1px solid ${BORDER}`, fontSize: 12 }} />
+                            <ReferenceLine x={quantity} stroke={INK} strokeDasharray="3 3" />
+                            <Area type="stepAfter" dataKey="unitPrice" stroke={PURPLE} strokeWidth={3} fill="url(#unitPriceGradient)" dot={{ r: 3, fill: PURPLE, strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <p className="font-inter text-[10px] text-center mt-1" style={{ color: MUTED2 }}>Quantity (units)</p>
+                    </div>
                   </>}
                 </div> : <div className="rounded-xl px-4 py-4 flex flex-col gap-3" style={{ background: SURFACE, border: `1px solid ${BORDER}` }}>
                   <div className="flex items-center gap-2">
