@@ -210,11 +210,21 @@ const CostPredictor = ({ hasAccessLink = false }: { hasAccessLink?: boolean }) =
                   <SummaryRow label="Quantity" value={`${quantity} units`} />
                 </div>
 
-                {hasAccessLink ? <div aria-live="polite" className="rounded-xl px-4 py-4 flex flex-col gap-3" style={{ background: SURFACE, border: `1px solid ${BORDER}` }}>
+                {hasAccessLink ? <div aria-live="polite" className="rounded-xl p-5 md:p-6 flex flex-col gap-4" style={{ background: `linear-gradient(135deg, ${LAVENDER} 0%, #EAE4FF 100%)`, border: `1px solid ${BORDER}` }}>
                   {!Number.isSafeInteger(quantity) ? <p>Enter a whole number of units.</p> : quote && <>
-                    <SummaryRow label="Estimated unit price" value={`$${quote.unitPrice.toFixed(2)}`} />
-                    <SummaryRow label="Estimated total" value={`$${quote.totalPrice.toFixed(2)}`} />
-                    <p className="font-inter text-xs" style={{ color: MUTED2 }}>
+                    <div>
+                      <p className="font-inter text-xs font-medium" style={{ color: MUTED2 }}>Estimated unit price</p>
+                      <p className="font-dm-sans text-4xl font-semibold tracking-tight mt-2" style={{ color: INK }}>
+                        ${quote.unitPrice.toFixed(2)} <span className="font-inter text-sm font-normal tracking-normal" style={{ color: MUTED2 }}>CAD / unit</span>
+                      </p>
+                    </div>
+                    <div className="pt-4 flex flex-col gap-2" style={{ borderTop: `1px solid ${BORDER}` }}>
+                      <p className="font-inter text-xs" style={{ color: MUTED2 }}>
+                        {quantity} units × ${quote.unitPrice.toFixed(2)} per unit
+                      </p>
+                      <SummaryRow label="Estimated total" value={`$${quote.totalPrice.toFixed(2)}`} />
+                    </div>
+                    <p className="font-inter text-xs leading-relaxed rounded-lg px-3 py-2.5" style={{ color: INK, background: 'rgba(255,255,255,0.7)' }}>
                       All prices are in CAD and include shipping costs.
                     </p>
                   </>}
