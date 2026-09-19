@@ -41,13 +41,13 @@ export const DECORATION_OPTIONS: DecorationOption[] = [
   { value: 'printing-embroidery', label: 'Printing + Embroidery' },
 ];
 
-export const MIN_QUANTITY = 20;
+export const MIN_QUANTITY = 10;
 export const CUSTOM_QUOTE_THRESHOLD = 200;
 
 export const PRICING_TABLE: Record<GarmentType, Record<DecorationType, PricingTier[]>> = {
   tshirt: {
     printing: [
-      { minQty: 20, maxQty: 49, unitPrice: 15, commission: 0.20 },
+      { minQty: 10, maxQty: 49, unitPrice: 15, commission: 0.20 },
       { minQty: 50, maxQty: 79, unitPrice: 12, commission: 0.20 },
       { minQty: 80, maxQty: 99, unitPrice: 10, commission: 0.15 },
       { minQty: 100, maxQty: 149, unitPrice: 8.5, commission: 0.15 },
@@ -55,7 +55,7 @@ export const PRICING_TABLE: Record<GarmentType, Record<DecorationType, PricingTi
       { minQty: 200, maxQty: null, unitPrice: null, commission: null },
     ],
     'printing-embroidery': [
-      { minQty: 20, maxQty: 49, unitPrice: 18, commission: 0.20 },
+      { minQty: 10, maxQty: 49, unitPrice: 18, commission: 0.20 },
       { minQty: 50, maxQty: 79, unitPrice: 15, commission: 0.20 },
       { minQty: 80, maxQty: 99, unitPrice: 12, commission: 0.15 },
       { minQty: 100, maxQty: 149, unitPrice: 10, commission: 0.15 },
@@ -65,7 +65,7 @@ export const PRICING_TABLE: Record<GarmentType, Record<DecorationType, PricingTi
   },
   hoodie: {
     printing: [
-      { minQty: 20, maxQty: 49, unitPrice: 28, commission: 0.20 },
+      { minQty: 10, maxQty: 49, unitPrice: 28, commission: 0.20 },
       { minQty: 50, maxQty: 79, unitPrice: 25, commission: 0.20 },
       { minQty: 80, maxQty: 99, unitPrice: 23, commission: 0.15 },
       { minQty: 100, maxQty: 149, unitPrice: 21, commission: 0.15 },
@@ -73,7 +73,7 @@ export const PRICING_TABLE: Record<GarmentType, Record<DecorationType, PricingTi
       { minQty: 200, maxQty: null, unitPrice: null, commission: null },
     ],
     'printing-embroidery': [
-      { minQty: 20, maxQty: 49, unitPrice: 30, commission: 0.20 },
+      { minQty: 10, maxQty: 49, unitPrice: 30, commission: 0.20 },
       { minQty: 50, maxQty: 79, unitPrice: 27, commission: 0.20 },
       { minQty: 80, maxQty: 99, unitPrice: 25, commission: 0.15 },
       { minQty: 100, maxQty: 149, unitPrice: 23, commission: 0.15 },
