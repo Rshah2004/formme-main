@@ -150,6 +150,7 @@ const footerLinks = [
   { label: 'Cost Predictor', to: '/cost-predictor' },
   { label: 'Resources', to: '/support' },
   { label: 'Company', to: '/about' },
+  { label: 'Careers', to: '/careers/business-development-partner' },
 ];
 
 export const LandingFooter = () => (

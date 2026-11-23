@@ -32,6 +32,7 @@ import Support from "./pages/Support";
 import Test from "./pages/Test";
 import ManufacturerOnboard from "./pages/ManufacturerOnboard";
 import CostPredictorRoute from "./pages/CostPredictorRoute";
+import BusinessDevelopmentPartnerJob from "./pages/BusinessDevelopmentPartnerJob";
 
 function App() {
   return (
@@ -67,6 +68,7 @@ function App() {
           {/*<Route path="/manufacturers" element={<Manufacturers />} />*/}
           {/*<Route path="/manufacturers/:id" element={<Manufacturers />} />*/}
           <Route path="/support" element={<Support />} />
+          <Route path="/careers/business-development-partner" element={<BusinessDevelopmentPartnerJob />} />
           <Route path="/cost-predictor" element={<CostPredictorRoute />} />
           <Route path="/factory-erp" element={<FactoryErp />} />
           <Route path="/test" element={<Test />} />
